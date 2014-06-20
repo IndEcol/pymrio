@@ -15,7 +15,9 @@ A small test mrio is included in the package. To use it call
 
 The test_mrio consists of a transaction matrix and two extension types.
 
-Check the doc and the tutorial for further information
+Check the doc and the tutorial for further information:
+
+http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_basic_introduction.ipynb
 
 
 Installation
