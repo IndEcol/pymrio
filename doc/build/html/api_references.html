@@ -1,0 +1,492 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API Reference &mdash; pymrio 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/pyramid.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.1.0 documentation" href="index.html" />
+    <link rel="next" title="pymrio.load_test" href="api_doc/pymrio.load_test.html" />
+    <link rel="prev" title="Terminology" href="terminology.html" />
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head>
+  <body>
+
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="api_doc/pymrio.load_test.html" title="pymrio.load_test"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="terminology.html" title="Terminology"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pymrio 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<p>API references for all modules</p>
+<div class="section" id="data-input-and-output">
+<h2>Data input and output<a class="headerlink" href="#data-input-and-output" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="test-system">
+<h3>Test system<a class="headerlink" href="#test-system" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.load_test.html#pymrio.load_test" title="pymrio.load_test"><tt class="xref py py-obj docutils literal"><span class="pre">load_test</span></tt></a>()</td>
+<td>Returns a small test MRIO</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="raw-data">
+<h3>Raw data<a class="headerlink" href="#raw-data" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.parse_exiobase22.html#pymrio.parse_exiobase22" title="pymrio.parse_exiobase22"><tt class="xref py py-obj docutils literal"><span class="pre">parse_exiobase22</span></tt></a>(path[,&nbsp;charact,&nbsp;iosystem,&nbsp;...])</td>
+<td>Parse the exiobase 2.2 source files for the IOSystem</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="save-data">
+<h3>Save data<a class="headerlink" href="#save-data" title="Permalink to this headline">¶</a></h3>
+<p>Currently, the full MRIO system can be saved in txt or the python specific
+binary format (&#8216;pickle&#8217;). Both formats work with the same API interface:</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.save.html#pymrio.IOSystem.save" title="pymrio.IOSystem.save"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.save</span></tt></a>(path[,&nbsp;table_format,&nbsp;...])</td>
+<td>Saves the system as text or binary pickle files.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.save_all.html#pymrio.IOSystem.save_all" title="pymrio.IOSystem.save_all"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.save_all</span></tt></a>(path[,&nbsp;...])</td>
+<td>Saves the system and all extensions</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="load-processed-data">
+<h3>Load processed data<a class="headerlink" href="#load-processed-data" title="Permalink to this headline">¶</a></h3>
+<p>This functions load IOSystems or individual extensions which
+have been saved with pymrio before.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.load.html#pymrio.load" title="pymrio.load"><tt class="xref py py-obj docutils literal"><span class="pre">load</span></tt></a>(path[,&nbsp;recursive,&nbsp;ini,&nbsp;subini])</td>
+<td>Loads a IOSystem or Extension from a ini files</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.load_all.html#pymrio.load_all" title="pymrio.load_all"><tt class="xref py py-obj docutils literal"><span class="pre">load_all</span></tt></a>(path)</td>
+<td>Loads the whole IOSystem with Extensions given in path</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="accessing">
+<h3>Accessing<a class="headerlink" href="#accessing" title="Permalink to this headline">¶</a></h3>
+<p>pymrio stores all tables as pandas DataFrames. This data can be accessed with
+the usual pandas methods. On top of that, the following functions return (in
+fact yield) several tables at once:</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_DataFrame.html#pymrio.IOSystem.get_DataFrame" title="pymrio.IOSystem.get_DataFrame"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_DataFrame</span></tt></a>([data])</td>
+<td>Returns a generator which gives all panda.DataFrames in the system</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_extensions.html#pymrio.IOSystem.get_extensions" title="pymrio.IOSystem.get_extensions"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_extensions</span></tt></a>([data])</td>
+<td>Returns a generator for the extension in the IOSystem</td>
+</tr>
+</tbody>
+</table>
+<p>For the extensions, it is also possible to receive all data (F, S, M, D_fp, ...)
+for one specified row.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.get_row_data.html#pymrio.Extension.get_row_data" title="pymrio.Extension.get_row_data"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.Extension.get_row_data</span></tt></a>(row[,&nbsp;name])</td>
+<td>Returns a dict with all available data for a row in the extension</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="exploring-the-io-system">
+<h2>Exploring the IO System<a class="headerlink" href="#exploring-the-io-system" title="Permalink to this headline">¶</a></h2>
+<p>The following functions provide informations about the structure of
+the IO System and the extensions. The methods work on the IOSystem as well as
+directly on the Extensions.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_regions.html#pymrio.IOSystem.get_regions" title="pymrio.IOSystem.get_regions"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_regions</span></tt></a>([entries])</td>
+<td>Returns the names of regions in the IOSystem as unique names in order</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_sectors.html#pymrio.IOSystem.get_sectors" title="pymrio.IOSystem.get_sectors"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_sectors</span></tt></a>([entries])</td>
+<td>Returns the names of sectors in the IOSystem as unique names in order</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_Y_categories.html#pymrio.IOSystem.get_Y_categories" title="pymrio.IOSystem.get_Y_categories"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_Y_categories</span></tt></a>([entries])</td>
+<td>Returns the names of y categories in the IOSystem as unique names in order</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_index.html#pymrio.IOSystem.get_index" title="pymrio.IOSystem.get_index"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_index</span></tt></a>()</td>
+<td>Returns the pure index of the DataFrames in the system</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.get_rows.html#pymrio.Extension.get_rows" title="pymrio.Extension.get_rows"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.Extension.get_rows</span></tt></a>()</td>
+<td>Returns the name of the rows of the extension</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="calculations">
+<h2>Calculations<a class="headerlink" href="#calculations" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="top-level-methods">
+<h3>Top level methods<a class="headerlink" href="#top-level-methods" title="Permalink to this headline">¶</a></h3>
+<p>The top level level function calc_all checks the IO System and its extensions
+for missing parts and calculate these. This function calls the specific
+calculation method for the core system and for the extensions.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.calc_all.html#pymrio.IOSystem.calc_all" title="pymrio.IOSystem.calc_all"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.calc_all</span></tt></a>([recalc])</td>
+<td>Calculates missing parts of the IOSystem and all extensions.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.calc_system.html#pymrio.IOSystem.calc_system" title="pymrio.IOSystem.calc_system"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.calc_system</span></tt></a>()</td>
+<td>Calculates the missing part of the core IOSystem</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.calc_system.html#pymrio.Extension.calc_system" title="pymrio.Extension.calc_system"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.Extension.calc_system</span></tt></a>(x,&nbsp;L,&nbsp;Y_agg[,&nbsp;...])</td>
+<td>Calculates the missing part of the extension plus accounts</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="low-level-matrix-calculations">
+<h3>Low level matrix calculations<a class="headerlink" href="#low-level-matrix-calculations" title="Permalink to this headline">¶</a></h3>
+<p>The top level functions work by calling the following low level functions.
+These can also be used independently from the IO System for pandas DataFrames and
+numpy array.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_x.html#pymrio.calc_x" title="pymrio.calc_x"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_x</span></tt></a>(Z,&nbsp;Y)</td>
+<td>Calculate the industry output x from the Z and Y matrix</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_Z.html#pymrio.calc_Z" title="pymrio.calc_Z"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_Z</span></tt></a>(A,&nbsp;x)</td>
+<td>calculate the Z matrix (flows) from A and x</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_A.html#pymrio.calc_A" title="pymrio.calc_A"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_A</span></tt></a>(Z,&nbsp;x)</td>
+<td>Calculate the A matrix (coefficients) from Z and x</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_L.html#pymrio.calc_L" title="pymrio.calc_L"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_L</span></tt></a>(A)</td>
+<td>Calculate the Leontief L from A</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_S.html#pymrio.calc_S" title="pymrio.calc_S"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_S</span></tt></a>(F,&nbsp;x)</td>
+<td>Calculate extensions/factor inputs coefficients</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_F.html#pymrio.calc_F" title="pymrio.calc_F"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_F</span></tt></a>(S,&nbsp;x)</td>
+<td>Calculate total direct impacts from the impact coefficients</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_M.html#pymrio.calc_M" title="pymrio.calc_M"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_M</span></tt></a>(S,&nbsp;L)</td>
+<td>Calculate multipliers of the extensions</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_e.html#pymrio.calc_e" title="pymrio.calc_e"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_e</span></tt></a>(M,&nbsp;Y)</td>
+<td>Calculate total impacts (footprints of consumption Y)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_accounts.html#pymrio.calc_accounts" title="pymrio.calc_accounts"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_accounts</span></tt></a>(S,&nbsp;L,&nbsp;Y,&nbsp;nr_countries,&nbsp;...)</td>
+<td>Calculate sector specific footprints, terr, imp and exp accounts</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="modifiying-the-io-system-and-its-extensions">
+<h2>Modifiying the IO System and its Extensions<a class="headerlink" href="#modifiying-the-io-system-and-its-extensions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="aggregation">
+<h3>Aggregation<a class="headerlink" href="#aggregation" title="Permalink to this headline">¶</a></h3>
+<p>The IO System method &#8216;aggregate&#8217; accepts concordance matrices and/or
+aggregation vectors. The latter can be generated automatically for various
+aggregation levels for the test system and EXIOBASE 2.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.aggregate.html#pymrio.IOSystem.aggregate" title="pymrio.IOSystem.aggregate"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.aggregate</span></tt></a>([region_agg,&nbsp;...])</td>
+<td>Aggregates the IO system</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.build_agg_vec.html#pymrio.build_agg_vec" title="pymrio.build_agg_vec"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.build_agg_vec</span></tt></a>(agg_vec,&nbsp;**source)</td>
+<td>Builds an combined aggregation vector based on various classifications</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="analysing-the-source-of-impacts">
+<h3>Analysing the source of impacts<a class="headerlink" href="#analysing-the-source-of-impacts" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.per_source.html#pymrio.Extension.per_source" title="pymrio.Extension.per_source"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.Extension.per_source</span></tt></a>([name])</td>
+<td>Returns a extension disaggregated into the regional source</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="changing-extensions">
+<h3>Changing extensions<a class="headerlink" href="#changing-extensions" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.remove_extension.html#pymrio.IOSystem.remove_extension" title="pymrio.IOSystem.remove_extension"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.remove_extension</span></tt></a>([ext])</td>
+<td>Remove extension from IOSystem</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="renaming">
+<h3>Renaming<a class="headerlink" href="#renaming" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.set_regions.html#pymrio.IOSystem.set_regions" title="pymrio.IOSystem.set_regions"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.set_regions</span></tt></a>(regions)</td>
+<td>Sets new names for the regions</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.set_sectors.html#pymrio.IOSystem.set_sectors" title="pymrio.IOSystem.set_sectors"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.set_sectors</span></tt></a>(sectors)</td>
+<td>Sets new names for the sectors</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.set_Y_categories.html#pymrio.IOSystem.set_Y_categories" title="pymrio.IOSystem.set_Y_categories"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.set_Y_categories</span></tt></a>(Y_categories)</td>
+<td>Sets new names for the Y_categories</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="report">
+<h2>Report<a class="headerlink" href="#report" title="Permalink to this headline">¶</a></h2>
+<p>The following method works on the IO System (generating reports for every
+extension available) or at individual extensions.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.report_accounts.html#pymrio.IOSystem.report_accounts" title="pymrio.IOSystem.report_accounts"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.report_accounts</span></tt></a>(path[,&nbsp;...])</td>
+<td>Generates a report to the given path for all extension</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.plot_account.html#pymrio.Extension.plot_account" title="pymrio.Extension.plot_account"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.Extension.plot_account</span></tt></a>(row[,&nbsp;...])</td>
+<td>Plots D_terr, D_fp, D_imp and D_exp for the specified row</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="miscellaneous">
+<h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.reset.html#pymrio.IOSystem.reset" title="pymrio.IOSystem.reset"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.reset</span></tt></a>()</td>
+<td>Removes all attributes which can not be aggregates and must be recalculated after agg.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.copy.html#pymrio.IOSystem.copy" title="pymrio.IOSystem.copy"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.copy</span></tt></a>()</td>
+<td>Returns a deep copy of the system</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">API Reference</a><ul>
+<li><a class="reference internal" href="#data-input-and-output">Data input and output</a><ul>
+<li><a class="reference internal" href="#test-system">Test system</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#raw-data">Raw data</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#save-data">Save data</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#load-processed-data">Load processed data</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#accessing">Accessing</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#exploring-the-io-system">Exploring the IO System</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#calculations">Calculations</a><ul>
+<li><a class="reference internal" href="#top-level-methods">Top level methods</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#low-level-matrix-calculations">Low level matrix calculations</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modifiying-the-io-system-and-its-extensions">Modifiying the IO System and its Extensions</a><ul>
+<li><a class="reference internal" href="#aggregation">Aggregation</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#analysing-the-source-of-impacts">Analysing the source of impacts</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#changing-extensions">Changing extensions</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#renaming">Renaming</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#report">Report</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#visualization">Visualization</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#miscellaneous">Miscellaneous</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="terminology.html"
+                        title="previous chapter">Terminology</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api_doc/pymrio.load_test.html"
+                        title="next chapter">pymrio.load_test</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="api_doc/pymrio.load_test.html" title="pymrio.load_test"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="terminology.html" title="Terminology"
+             >previous</a> |</li>
+        <li><a href="index.html">pymrio 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Konstantin Stadler.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

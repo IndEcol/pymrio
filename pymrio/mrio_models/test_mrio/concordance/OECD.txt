@@ -1,0 +1,6 @@
+reg1	OECD
+reg2	None
+reg3	OECD
+reg4	OECD
+reg5	None
+reg6	None

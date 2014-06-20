@@ -1,0 +1,2 @@
+	reg1	reg2	reg3	reg4	reg5	reg6
+Population	7.80E+08	3.70E+09	8.20E+08	2.90E+08	4.60E+08	8.50E+08

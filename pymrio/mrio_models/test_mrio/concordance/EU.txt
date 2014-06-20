@@ -1,0 +1,6 @@
+reg1	EU
+reg2	EU
+reg3	EU
+reg4	None
+reg5	None
+reg6	None

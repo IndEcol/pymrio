@@ -1,0 +1,143 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pymrio.Extension.per_source &mdash; pymrio 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.1.0 documentation" href="../index.html" />
+    <link rel="up" title="API Reference" href="../api_references.html" />
+    <link rel="next" title="pymrio.IOSystem.remove_extension" href="pymrio.IOSystem.remove_extension.html" />
+    <link rel="prev" title="pymrio.build_agg_vec" href="pymrio.build_agg_vec.html" />
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head>
+  <body>
+
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pymrio.IOSystem.remove_extension.html" title="pymrio.IOSystem.remove_extension"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pymrio.build_agg_vec.html" title="pymrio.build_agg_vec"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">pymrio 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pymrio-extension-per-source">
+<h1>pymrio.Extension.per_source<a class="headerlink" href="#pymrio-extension-per-source" title="Permalink to this headline">¶</a></h1>
+<dl class="method">
+<dt id="pymrio.Extension.per_source">
+<tt class="descclassname">Extension.</tt><tt class="descname">per_source</tt><big>(</big><em>name=None</em><big>)</big><a class="headerlink" href="#pymrio.Extension.per_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a extension disaggregated into the regional source</p>
+<p>The returned extension included F, FY if present in the original
+extension, and units.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>Name</strong> : string (optional)</p>
+<blockquote>
+<div><p>The new name for the extension, 
+if None (default): original name + &#8216;per source region&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last">Extension</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This method changes the order of the accounts lexicographically.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pymrio.build_agg_vec.html"
+                        title="previous chapter">pymrio.build_agg_vec</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pymrio.IOSystem.remove_extension.html"
+                        title="next chapter">pymrio.IOSystem.remove_extension</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pymrio.IOSystem.remove_extension.html" title="pymrio.IOSystem.remove_extension"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pymrio.build_agg_vec.html" title="pymrio.build_agg_vec"
+             >previous</a> |</li>
+        <li><a href="../index.html">pymrio 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Konstantin Stadler.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

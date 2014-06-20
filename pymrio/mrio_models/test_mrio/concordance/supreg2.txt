@@ -1,0 +1,6 @@
+reg1	None
+reg2	None
+reg3	supreg2
+reg4	supreg2
+reg5	supreg2
+reg6	supreg2

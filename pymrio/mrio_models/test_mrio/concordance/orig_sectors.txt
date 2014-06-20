@@ -1,0 +1,8 @@
+food
+mining
+manufactoring
+electricity
+construction
+trade
+transport
+other

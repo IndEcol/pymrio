@@ -1,0 +1,179 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pymrio.calc_accounts &mdash; pymrio 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.1.0 documentation" href="../index.html" />
+    <link rel="up" title="API Reference" href="../api_references.html" />
+    <link rel="next" title="pymrio.IOSystem.aggregate" href="pymrio.IOSystem.aggregate.html" />
+    <link rel="prev" title="pymrio.calc_e" href="pymrio.calc_e.html" />
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head>
+  <body>
+
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pymrio.IOSystem.aggregate.html" title="pymrio.IOSystem.aggregate"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pymrio.calc_e.html" title="pymrio.calc_e"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">pymrio 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pymrio-calc-accounts">
+<h1>pymrio.calc_accounts<a class="headerlink" href="#pymrio-calc-accounts" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pymrio.calc_accounts">
+<tt class="descclassname">pymrio.</tt><tt class="descname">calc_accounts</tt><big>(</big><em>S</em>, <em>L</em>, <em>Y</em>, <em>nr_countries</em>, <em>nr_sectors</em><big>)</big><a class="headerlink" href="#pymrio.calc_accounts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate sector specific footprints, terr, imp and exp accounts</p>
+<p>The total industry output x for the calculation 
+is recalculated from L and y</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>L</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Leontief input output table L</p>
+</div></blockquote>
+<p><strong>S</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Direct impact coefficients</p>
+</div></blockquote>
+<p><strong>Y</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Final demand: aggregated across categories or just one category, one
+column per country</p>
+</div></blockquote>
+<p><strong>nr_countries</strong> : int</p>
+<blockquote>
+<div><p>Number of countries in the MRIO</p>
+</div></blockquote>
+<p><strong>nr_sectors</strong> : int</p>
+<blockquote>
+<div><p>Number of sectors in the MRIO</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first">Tuple</p>
+<blockquote class="last">
+<div><p>(D_fp, D_terr, D_imp, D_exp)</p>
+<p>Format: D_row x L_col (=nr_countries*nr_sectors)</p>
+<ul>
+<li><p class="first">D_fp        Footprint per sector and country</p>
+</li>
+<li><p class="first">D_terr      Total factur use per sector and country</p>
+</li>
+<li><dl class="first docutils">
+<dt>D_imp       Total global factor use to satisfy total final demand in</dt>
+<dd><p class="first last">the country per sector</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>D_exp       Total factor use in one country to satisfy final demand in</dt>
+<dd><p class="first last">all other countries (per sector)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pymrio.calc_e.html"
+                        title="previous chapter">pymrio.calc_e</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pymrio.IOSystem.aggregate.html"
+                        title="next chapter">pymrio.IOSystem.aggregate</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pymrio.IOSystem.aggregate.html" title="pymrio.IOSystem.aggregate"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pymrio.calc_e.html" title="pymrio.calc_e"
+             >previous</a> |</li>
+        <li><a href="../index.html">pymrio 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Konstantin Stadler.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

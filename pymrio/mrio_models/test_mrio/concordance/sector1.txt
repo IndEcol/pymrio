@@ -1,0 +1,8 @@
+food	sector1
+mining	sector1
+manufactoring	None
+electricity	None
+construction	None
+trade	None
+transport	None
+other	None
