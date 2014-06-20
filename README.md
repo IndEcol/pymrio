@@ -19,17 +19,22 @@ Check the doc and the tutorial for further information:
 
 http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_basic_introduction.ipynb
 
+For the specific use of EXIOBASE 2 check
+
+http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_exiobase_tutorial.ipynb
+
 
 Installation
 ------------
 
 Up to now now pymrio doesn't have a installation routine. Just download the package from the source repository (download zip on right toolstrip) and add the folder to your python path. 
 
-import sys
-_pymrio_path = r'D:\KST\proj\pymrio\pymrio'  
-if not _pymrio_path in sys.path:
-    sys.path.append(_pymrio_path)
-del _pymrio_path
+    import sys
+    _pymrio_path = r'D:\KST\proj\pymrio\pymrio'  
+    if not _pymrio_path in sys.path:
+        sys.path.append(_pymrio_path)
+    del _pymrio_path
+
 
 Dependencies
 ------------
