@@ -2370,7 +2370,7 @@ def parse_exiobase22(path, charact = None, iosystem = None,
     else:
         popdata =  popvector
 
-    return IOSystem( Z = data['Z'], Y = data['Y'], population = popdata, **ext)
+    return IOSystem( Z = data['Z'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
 
 
 # program code
