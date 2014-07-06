@@ -1562,7 +1562,7 @@ def load_all(path):
     """
     return load(path, recursive = True)
 
-def load(path, recursive = False, ini = None, subini = {}):
+def load(path, recursive = False, ini = None, subini = {}, include_core = True):
     """ Loads a IOSystem or Extension from a ini files
 
     This function can be used to load a IOSystem or Extension specified in a
@@ -1595,6 +1595,11 @@ def load(path, recursive = False, ini = None, subini = {}):
         dict.  Format: 'subfoldername':'ininame' If a key for a subfolder is
         not found or None (default), the ini found in the folder will be taken,
         error if several are found
+
+    include_core : boolean, optional
+        If False the load method does not include A, L and Z matrix. This 
+        significantly reduces the required memory if the purpose is only
+        to analyse the results calculated beforehand.
 
     Returns
     -------
@@ -1654,6 +1659,10 @@ def load(path, recursive = False, ini = None, subini = {}):
     for key in io_ini['files']:
         if '_nr_index_col' in key: continue
         if '_nr_header' in key: continue
+
+        if not include_core:
+            not_to_load = ['A','L','Z']
+            if key in not_to_load: continue
 
         file_name = io_ini.get('files', key)
         nr_index_col = io_ini.get(
