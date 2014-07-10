@@ -29,7 +29,7 @@ For using pymrio I recommend the following import convention:
     The main data manipulation and storage in pymrio depend on pandas DataFrames. It is recommend that you are familiar with the pandas DataFrame structure and API before using pymrio.
 
 *********
-Tuturials
+Tutorials
 *********
 
 Currently two tutorials are available:

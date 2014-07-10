@@ -15,13 +15,11 @@ A small test mrio is included in the package. To use it call
 
 The test_mrio consists of a transaction matrix and two extension types.
 
-Check the doc and the tutorial for further information:
+Check the [doc] (http://konstantinstadler.github.io/pymrio/index.html) and the tutorials for further information:
 
-http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_basic_introduction.ipynb
+Tutorial 1: [Basic intro] (http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_basic_introduction.ipynb)
 
-For the specific use of EXIOBASE 2 check
-
-http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_exiobase_tutorial.ipynb
+Tutorial 2: [EXIOBASE 2] (http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_exiobase_tutorial.ipynb)
 
 
 Installation
