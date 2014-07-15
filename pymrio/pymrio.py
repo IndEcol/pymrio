@@ -1544,23 +1544,25 @@ def calc_accounts(S, L, Y, nr_countries, nr_sectors):
     return (D_fp, D_terr, D_imp, D_exp)
 
 # main module functions
-def load_all(path):
+def load_all(path, **kwargs):
     """ Loads the whole IOSystem with Extensions given in path
 
-    This just calls pymrio.load with recursive = True. If several ini files are
-    present, use the low level load function directly.
+    This just calls pymrio.load with recursive = True. Apart from that the 
+    same parameter can as for .load can be used.
 
     Parameters
     ----------
     path : string
         path or ini file name for the data to load
+    **kwargs : key word arguments, optional
+            This will be passed directly to the load method
 
     Return
     ------
     IOSystem 
     None in case of errors
     """
-    return load(path, recursive = True)
+    return load(path, recursive = True,**kwargs)
 
 def load(path, recursive = False, ini = None, subini = {}, include_core = True):
     """ Loads a IOSystem or Extension from a ini files
