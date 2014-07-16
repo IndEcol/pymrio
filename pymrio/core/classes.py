@@ -39,7 +39,10 @@ class CoreSystem():
     """
 
     def __str__(self, startstr = 'System with: '):
-        parastr = ', '.join([attr for attr in self.__dict__ if self.__dict__[attr] is not None and '__' not in attr])
+        parastr = ', '.join([attr for attr in 
+                            self.__dict__ 
+                            if self.__dict__[attr] is not None 
+                                and '__' not in attr])
         return startstr + parastr
 
     def reset_to_flows(self):
@@ -58,9 +61,15 @@ class CoreSystem():
 
         This can be used to recalculate the IO tables for a new finald demand. 
 
-        Development note: The coefficient attributes are defined in self.__coefficients__
+        Development note: The coefficient attributes are 
+            defined in self.__coefficients__
         """
-        [setattr(self,key,None) for key not in self.__coefficients__]
+        [setattr(self,key,None) 
+                for key in self.get_DataFrame(
+                    data = False, 
+                    with_unit = False,
+                    with_population = False)
+                if key not in self.__coefficients__]
 
     def copy(self):
         """ Returns a deep copy of the system """
@@ -171,7 +180,7 @@ class CoreSystem():
             logging.warn("No attributes available to get sectors")
             return None
 
-    def get_DataFrame(self, data=False):
+    def get_DataFrame(self, data=False, with_unit = True, with_population = True):
         """ Returns a generator which gives all panda.DataFrames in the system
         
         Note
@@ -182,7 +191,17 @@ class CoreSystem():
         ----------
         data : boolean, optional
            If True, returns a generator which yields the DataFrames.
-           If False, returns a generator which yields only the names of the DataFrames
+           If False, returns a generator which yields 
+           only the names of the DataFrames
+
+        with_unit: boolean, optional
+            If True, includes the 'unit' DataFrame
+            If False, does not include the 'unit' DataFrame. The method
+                than only yields the numerical data tables
+
+        with_population: boolean, optional
+            If True, includes the 'population' vector
+            If False, does not include the 'population' vector.
 
         Returns
         -------
@@ -191,6 +210,8 @@ class CoreSystem():
         """
 
         for key in self.__dict__:
+            if (key is 'unit') and not with_unit: continue
+            if (key is 'population') and not with_population: continue
             if type(self.__dict__[key]) is pd.DataFrame: 
                 if data:
                     yield getattr(self, key)

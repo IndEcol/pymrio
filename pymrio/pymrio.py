@@ -736,25 +736,13 @@ class IOSystem(core.CoreSystem):
     def __str__(self):
         return super().__str__("IO System with parameters: ")
 
-    def calc_all(self, recalc = False):
+    def calc_all(self):
         """
         Calculates missing parts of the IOSystem and all extensions.
 
         This method call calc_system and calc_extensions
 
-        Parameters
-        ----------
-
-        recalc : boolean, optional
-            If true, recalc all attributes (reset the
-            IOSystem and all Extensions)
-
         """
-
-        if recalc:
-            self.reset_to_flows()
-            [exten.reset_to_flows() for exten in self.get_extensions(data = True)]
-
         self.calc_system()
         self.calc_extensions()
 
