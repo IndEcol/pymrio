@@ -160,6 +160,8 @@ class Extension(core.CoreSystem):
         self.__non_agg_attributes__ = ['S', 'M']
         self.__non_agg_attributes__.extend(self.__D_accounts__)
 
+        self.__coefficients__ = ['S', 'M']
+
         # check if all accounts are available
         for acc in self.__D_accounts__:
             if acc not in self.__dict__:
@@ -201,6 +203,16 @@ class Extension(core.CoreSystem):
         population : pandas.DataFrame or np.array, optional
             Row vector with population per region
         """
+
+        if self.F is None:
+            try:
+                self.F = calc_F(self.S, x)
+                logging.info('Total direct impacts calculated')
+            except (ValueError, AttributeError):
+                logging.error(
+                        core.IO_CALCError(
+                        'Calculation of F not possible for {} - check S and x'
+                        ).format(self.name))
 
         if self.S is None:
             try:
@@ -719,6 +731,8 @@ class IOSystem(core.CoreSystem):
         # Attributes needed to define the IOSystem
         self.__non_agg_attributes__ = ['A', 'L']
 
+        self.__coefficients__ = ['A', 'L']
+
     def __str__(self):
         return super().__str__("IO System with parameters: ")
 
@@ -738,8 +752,8 @@ class IOSystem(core.CoreSystem):
         """
 
         if recalc:
-            self.reset()
-            [exten.reset() for exten in self.get_extensions(data = True)]
+            self.reset_to_flows()
+            [exten.reset_to_flows() for exten in self.get_extensions(data = True)]
 
         self.calc_system()
         self.calc_extensions()
@@ -1101,7 +1115,7 @@ class IOSystem(core.CoreSystem):
         if not inplace:
             self = self.copy()
 
-        self.reset()
+        self.reset_to_flows()
 
         _same_regions = False
         _same_sectors = False
@@ -1221,7 +1235,7 @@ class IOSystem(core.CoreSystem):
             logging.info(
                     'Aggregate extension matrices F aggregated for {}'.
                     format(extension.name))
-            extension.reset()
+            extension.reset_to_flows()
             extension.F = pd.DataFrame(
                         data = extension.F.dot(conc.T),
                         index = extension.F.index,
@@ -1564,6 +1578,7 @@ def load_all(path, **kwargs):
     """
     return load(path, recursive = True,**kwargs)
 
+# TODO: only_coefficients which makes use of the __ variable 
 def load(path, recursive = False, ini = None, subini = {}, include_core = True):
     """ Loads a IOSystem or Extension from a ini files
 
