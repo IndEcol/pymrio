@@ -752,6 +752,32 @@ class IOSystem(core.CoreSystem):
 
         The method checks Z, x, A, L and calculates all which are None 
         """
+
+        # Possible cases: 
+        # 1) Z given, rest can be None and calculated
+        # 2) A and x given, rest can be calculated
+        # 3) A and y given, calc L (if not given) - calc x and the rest
+
+        # this catches case 3
+        if self.x is None and self.Z is None:
+            # in that case we need L or at least A to calculate it
+            try:
+                if self.L is None:
+                    try:
+                        self.L = calc_L(self.A)
+                        logging.info('Leontief matrix L calculated')
+                    except (ValueError, AttributeError):
+                        logging.error(core.IO_CALCError(
+                                'Calculation of L not possible - check A')) 
+
+                self.x = calc_x_from_L(self.L, self.Y.sum(axis=1))
+                logging.info('Industry Ooutput x calculated')
+            except (ValueError, AttributeError):
+                logging.error(
+                    core.IO_CALCError(
+                    'Calculation of x not possible - check A and x'))
+
+        # this chains of ifs catch cases 1 and 2
         if self.Z is None:
             try:
                 self.Z = calc_Z(self.A, self.x)
@@ -1028,6 +1054,24 @@ class IOSystem(core.CoreSystem):
                 yield getattr(self, key)
             else:
                 yield key
+
+    def reset_all_to_flows(self):
+        """ Resets the IOSystem and all extensions to absolute flows
+
+        This method calls reset_to_flows for the IOSystem and for
+        all Extensions in the system
+        """
+        self.reset_to_flows()
+        [ee.reset_to_flows() for ee in self.get_extensions(data=True)]
+
+    def reset_all_to_coefficients(self):
+        """ Resets the IOSystem and all extensions to coefficients.
+
+        This method calls reset_to_coefficients for the IOSystem and for
+        all Extensions in the system
+        """
+        self.reset_to_coefficients()
+        [ee.reset_to_coefficients() for ee in self.get_extensions(data=True)]
 
     def save_all(self, path, table_format = 'txt', sep = '\t', 
             table_ext = None, float_format = '%.12g'):
