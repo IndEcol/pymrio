@@ -160,7 +160,7 @@ class Extension(core.CoreSystem):
         self.__non_agg_attributes__ = ['S', 'M']
         self.__non_agg_attributes__.extend(self.__D_accounts__)
 
-        self.__coefficients__ = ['S', 'M']
+        self.__coefficients__ = ['S', 'M']    # TODO check FY
 
         # check if all accounts are available
         for acc in self.__D_accounts__:

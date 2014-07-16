@@ -42,14 +42,25 @@ class CoreSystem():
         parastr = ', '.join([attr for attr in self.__dict__ if self.__dict__[attr] is not None and '__' not in attr])
         return startstr + parastr
 
-    def reset(self):
-        """ Removes all attributes which can not be aggregates and must be recalculated after agg. 
+    def reset_to_flows(self):
+        """ Keeps only the absolute values. 
+        
+        This removes all attributes which can not be aggregated and must be
+        recalculated after the aggregation.
 
-        This can be used to force a recalculation of the IOSystem and/or Extensions after modifying these.
-
-        The attributes which should be removed must be defined in self.__non_agg_attributes__ (include all non aggregated standard attributes)
+        Development note: The attributes which should be removed are
+        defined in self.__non_agg_attributes__ 
         """
         [setattr(self,key,None) for key in self.__non_agg_attributes__]
+
+    def reset_to_coefficients(self):
+        """ Keeps only the coefficient.
+
+        This can be used to recalculate the IO tables for a new finald demand. 
+
+        Development note: The coefficient attributes are defined in self.__coefficients__
+        """
+        [setattr(self,key,None) for key not in self.__coefficients__]
 
     def copy(self):
         """ Returns a deep copy of the system """

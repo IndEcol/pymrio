@@ -203,5 +203,6 @@ Miscellaneous
 .. autosummary::
    :toctree: api_doc/
 
-   pymrio.IOSystem.reset
+   pymrio.IOSystem.reset_to_flows
+   pymrio.IOSystem.reset_to_coefficients
    pymrio.IOSystem.copy
