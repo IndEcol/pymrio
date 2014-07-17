@@ -1610,8 +1610,12 @@ def load_all(path, **kwargs):
     """
     return load(path, recursive = True,**kwargs)
 
-# TODO: only_coefficients which makes use of the __ variable 
-def load(path, recursive = False, ini = None, subini = {}, include_core = True):
+
+def load(path, recursive = False, 
+               ini = None, 
+               subini = {}, 
+               include_core = True,
+               only_coefficients = False):
     """ Loads a IOSystem or Extension from a ini files
 
     This function can be used to load a IOSystem or Extension specified in a
@@ -1713,6 +1717,10 @@ def load(path, recursive = False, ini = None, subini = {}, include_core = True):
             not_to_load = ['A','L','Z']
             if key in not_to_load: continue
 
+        if only_coefficients:
+            _io = IOSystem()
+            if key not in _io.__coefficients__ + ['unit']: continue
+
         file_name = io_ini.get('files', key)
         nr_index_col = io_ini.get(
                 'files', key + '_nr_index_col', fallback = None)
@@ -1791,6 +1799,10 @@ def load(path, recursive = False, ini = None, subini = {}, include_core = True):
             for key in subio_ini['files']:
                 if '_nr_index_col' in key: continue
                 if '_nr_header' in key: continue
+
+                if only_coefficients:
+                    _ext = Extension('temp')
+                    if key not in _ext.__coefficients__ + ['unit']: continue
 
                 file_name = subio_ini.get('files', key)
                 nr_index_col = subio_ini.get('files', key + '_nr_index_col', 
