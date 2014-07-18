@@ -59,6 +59,9 @@ imp.reload(core)
 if sys.version_info.major < 3: 
     logging.warn('This package requires Python 3.0 or later.')
 
+# version
+__version__ = '0.1.0'
+
 # constants and global variables
 PYMRIO_PATH = {
     'root': os.path.dirname(__file__),
