@@ -55,7 +55,7 @@ import imp # debug
 imp.reload(core)
 
 
-# check for correct version number
+# check for correct python version number
 if sys.version_info.major < 3: 
     logging.warn('This package requires Python 3.0 or later.')
 
