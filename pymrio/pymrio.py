@@ -273,6 +273,9 @@ class Extension(core.CoreSystem):
         # calc accounts per capita if population data is available
         if population is not None:
             if type(population) is pd.DataFrame:
+                # check for right order:
+                if population.columns.tolist() != self.D_fp_reg.columns.tolist():
+                    logging.warning('Population regions are inconsistent with IO regions')
                 population = population.values
 
             if ((self.D_fp_cap is None) or (self.D_terr_cap is None) or
@@ -293,13 +296,16 @@ class Extension(core.CoreSystem):
 
                 logging.info('Accounts D per capita calculated')
 
-    def plot_account(self, row, per_capita = False, 
-            file_name = False, file_dpi = 600, **kwargs):
-        """ Plots D_terr, D_fp, D_imp and D_exp for the specified row
+    def plot_account(self, row, per_capita = False, sector = None,
+            file_name = False, file_dpi = 600,  population = None, **kwargs):
+        """ Plots D_terr, D_fp, D_imp and D_exp for the specified row (account)
 
-        Per default the accounts are plotted as bar charts. 
+        Plot either the total country accounts or for a specific sector,
+        depending on the 'sector' parameter.
+
+        Per default the accounts are plotted as bar charts.
         However, any valid keyword for the pandas.DataFrame.plot 
-        method can be passed 
+        method can be passed.
 
         Notes
         -----
@@ -313,7 +319,14 @@ class Extension(core.CoreSystem):
             should be plotted (one(!) row - no list allowed)
         per_capita : boolean, optional
             Plot the per capita accounts instead of the absolute values
-            default is false
+            default is False
+        sector: string, optional 
+            Plot the results for a specific sector of the IO table. If 
+            None is given (default), the total regional accounts are plotted.
+        population : pandas.DataFrame or np.array, optional
+            Vector with population per region. This must be given if
+            values should be plotted per_capita for a specific sector since
+            these values are calculated on the fly.
         file_name : path string, optional
             If given, saves the plot to the given filename
         file_dpi : int, optional
@@ -341,7 +354,14 @@ class Extension(core.CoreSystem):
                 replace("'", "").
                 replace('[', '').
                 replace(']', ''))
-        graph_name = self.name + ' - ' + name_row
+        if sector: 
+            graph_name = name_row + ' for sector ' + sector
+        else:
+            graph_name = name_row + ' total account'
+        if per_capita: graph_name = graph_name + ' - per capita'
+
+        graph_name = self.name + ' - ' + graph_name
+
         try:
             # for multiindex the entry is given with header, for single index
             # just the entry
@@ -359,27 +379,51 @@ class Extension(core.CoreSystem):
             kwargs['colormap'] = 'Spectral'
 
         accounts = collections.OrderedDict()
-        if per_capita:
-            accounts['Footprint'] = 'D_fp_cap'
-            accounts['Territorial'] = 'D_terr_cap'
-            accounts['Imports'] = 'D_imp_cap'
-            accounts['Exports'] = 'D_exp_cap'
-            if 'title' not in kwargs:
-                kwargs['title'] = graph_name + ' - per capita accounts' 
+
+        if sector:
+            accounts['Footprint'] = 'D_fp'
+            accounts['Territorial'] = 'D_terr'
+            accounts['Imports'] = 'D_imp'
+            accounts['Exports'] = 'D_exp'
         else:
-            accounts['Footprint'] = 'D_fp_reg'
-            accounts['Territorial'] = 'D_terr_reg'
-            accounts['Imports'] = 'D_imp_reg'
-            accounts['Exports'] = 'D_exp_reg'
-            if 'title' not in kwargs:
-                kwargs['title'] = (graph_name  + 
-                        '\nper region (absolute) accounts' )
+            if per_capita:
+                accounts['Footprint'] = 'D_fp_cap'
+                accounts['Territorial'] = 'D_terr_cap'
+                accounts['Imports'] = 'D_imp_cap'
+                accounts['Exports'] = 'D_exp_cap'
+            else:
+                accounts['Footprint'] = 'D_fp_reg'
+                accounts['Territorial'] = 'D_terr_reg'
+                accounts['Imports'] = 'D_imp_reg'
+                accounts['Exports'] = 'D_exp_reg'
+
         data_row = pd.DataFrame(columns = [key for key in accounts])
         for key in accounts:
-            _data = pd.DataFrame(getattr(self, accounts[key]).ix[row].T)
+            if sector:
+                 _data = pd.DataFrame(
+                         getattr(self, accounts[key]).xs(key=sector, axis=1,
+                             level='sector').ix[row].T)
+                 if per_capita:
+                     if population is not None:
+                         if type(population) is pd.DataFrame:
+                             # check for right order:
+                             if population.columns.tolist() != self.D_fp_reg.columns.tolist():
+                                logging.warning('Population regions are inconsistent with IO regions')
+                             population = population.values
+                         population = population.reshape((-1,1))
+                         _data = _data / population
+                     else:
+                         logging.error('Population must be given for sector results per capita')
+                         return
+            else:
+                 _data = pd.DataFrame(
+                         getattr(self, accounts[key]).ix[row].T)
             _data.columns = [key]
             data_row[key] = _data[key]
-        
+
+        if 'title' not in kwargs:
+            kwargs['title'] = graph_name
+
         ax = data_row.plot(**kwargs)
         plt.xlabel('Regions')
         plt.ylabel(y_label_name)
@@ -852,136 +896,6 @@ class IOSystem(core.CoreSystem):
                             Y_agg = Y_agg,
                             population = self.population
                             )
-
-    def report_per_capita(self, path, extensions = None, pic_size = 1000, format='rst'):
-        """ Writes a report to the given path for all country specific accounts
-
-        Parameters
-        ----------
-        path : string
-            Root path for the per capita report
-        extensions : list of strings, optional
-            A list of key names of extensions which shall be calculated. 
-            Default: all dictionaries of IOSystem are assumed to be extensions
-                        if given, accounts per person are also included in the report
-        pic_size : int    
-            size for the figures in px, 1000 by default
-        format : string     
-            file format of the report:
-            'rst'(default), 'html', 'latex', ...  
-            except for rst all depend on the module docutils (all writer_name from docutils can be used as format)
-
-        """ 
-        # save plot status of the console
-        _plt = plt.isinteractive()
-        _rcParams = mpl.rcParams.copy()
-        rcParams={
-        'figure.figsize' : (10, 5),
-        'figure.dpi' : 350,
-        'axes.titlesize' : 20,
-        'axes.labelsize' : 20,
-        }
-        plt.ioff()
-
-        path = os.path.abspath(path.rstrip('\\'))
-
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
-
-        ext_list = list(self.get_extensions(data=False))
-        extensions = extensions or ext_list
-        if type(extensions) == str: extensions = [extensions]
-
-        labelnames = ['Footprint', 'Territorial', 'Imports', 'Exports']
-
-        # first make the global accounts with all countries
-        logging.info('Generate account report ...')
-        for ext_name in extensions:
-            ext = getattr(self, ext_name)
-
-            report_txt = []
-            report_txt.append('###########')
-            report_txt.append('MRIO report')
-            report_txt.append('###########')
-            report_txt.append('\n')
-            report_txt.append(str(self) + '\n\n')
-            report_txt.append('.. contents::\n\n')
-            report_txt.append('********************')
-            report_txt.append('Per capita accounts')
-            report_txt.append('********************\n\n')
-            report_txt.append(ext_name)
-            report_txt.append('='*len(ext_name) + '\n\n')
-
-            subfolder = os.path.join(path, ext_name)
-
-            if not os.path.exists(subfolder):
-                os.makedirs(subfolder, exist_ok=True)
-
-            for row in ext['D_fp_cap'].T:
-                graph_name = row
-                if type(graph_name) is not str:
-                    graph_name = (str(graph_name).
-                            replace('(', '').replace(')', '').
-                            replace("'", ""))
-                y_label_name = (graph_name + ' (' + 
-                        str(ext['unit'].ix[row, 'unit']) + ')')
-
-                file_name = ("".join(letter for letter in 
-                            graph_name if letter.isalnum()) + '.png')
-                file_name = os.path.join(subfolder, file_name)
-                file_name_rel = './' + os.path.relpath(file_name, start = path)
-                data_row = pd.DataFrame(index = ext['D_fp_cap'].columns, 
-                                                    columns = labelnames)
-                data_row.ix[:, labelnames[0]] = ext['D_fp_cap'].ix[row]
-                data_row.ix[:, labelnames[1]] = ext['D_terr_cap'].ix[row]
-                data_row.ix[:, labelnames[2]] = ext['D_imp_cap'].ix[row]
-                data_row.ix[:, labelnames[3]] = ext['D_exp_cap'].ix[row]
-                data_row.plot(kind='bar', title = graph_name)
-                plt.xlabel('Countries')
-                plt.ylabel(y_label_name)
-                plt.legend(loc='best')
-                try:
-                    plt.tight_layout()
-                except:
-                    pass
-                plt.savefig(file_name, dpi=600)
-                plt.close()
-
-                report_txt.append(graph_name)
-                report_txt.append('-'*len(graph_name) + '\n\n')
-                report_txt.append('.. image:: ' + file_name_rel)
-                report_txt.append('   :width: {} \n'.format(int(pic_size)))
-
-            # write report file and convert to given format
-            report_txt.append('\nReport written on ' + 
-                            time.strftime("%Y%m%d %H%M%S") )
-            fin_txt = '\n'.join(report_txt)
-            if format is not 'rst':
-                try:
-                    import docutils as du
-                    if format == 'tex': format == 'latex'
-                    fin_txt = du.core.publish_string(
-                            fin_txt, 
-                            writer_name=format, 
-                            settings_overrides={'output_encoding':'unicode'})
-                except:
-                    logging.warn(
-                        'Module docutils not available - write rst instead')
-                    format = 'rst'
-            format_str = {'latex':'tex', 
-                          'tex':'tex', 
-                          'rst':'txt', 
-                          'txt':'txt', 
-                          'html':'html'}
-            _repfile = ('report_' + str(ext_name) + '.' +
-                    format_str.get(format, str(format)))
-            with open(os.path.join(path, _repfile), 'w') as out_file:
-                out_file.write(fin_txt)
-            logging.info('Report accounts written to {}'.format(str(_repfile)))
-
-            # restore plot status
-            mpl.rcParams.update(_rcParams)
-            if _plt: plt.ion() 
 
     def report_accounts(self, path, per_region = True, 
                         per_capita = False, pic_size = 1000, 
