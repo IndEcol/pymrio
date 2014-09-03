@@ -4,6 +4,15 @@ Various parser for available MRIOs and files in a similar format
 
 KST 20140903
 """
+import os
+import logging
+import pandas as pd
+import numpy as np
+
+# constants and global variables
+from core.constants import PYMRIO_PATH
+import pymrio
+
 
 def parse_exiobase22(path, charact = None, iosystem = None, 
                      version = 'exiobase 2.2', popvector = 'exio2' ):
@@ -137,7 +146,6 @@ def parse_exiobase22(path, charact = None, iosystem = None,
                 ext_unit[key].reset_index(level='compartment', 
                                         drop=True, inplace=True)
 
-
     # build the extensions
     ext=dict()
     ext['factor_inputs'] = {'F':data['F_fac'], 
@@ -247,7 +255,6 @@ def parse_exiobase22(path, charact = None, iosystem = None,
                         .append(_impact['Q_resources']['unit']))
         impact['name'] = 'impact'
         ext['impacts'] = impact
-
     
     if popvector is 'exio2':
         popdata = pd.read_table(os.path.join(PYMRIO_PATH['exio20'], 
@@ -256,6 +263,6 @@ def parse_exiobase22(path, charact = None, iosystem = None,
     else:
         popdata =  popvector
 
-    return IOSystem( Z = data['Z'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
+    return pymrio.IOSystem( Z = data['Z'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
 
 

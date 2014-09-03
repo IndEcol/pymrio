@@ -64,23 +64,11 @@ if sys.version_info.major < 3:
 __version__ = '0.1.0'
 
 # constants and global variables
-PYMRIO_PATH = {
-    'root': os.path.dirname(__file__),
-    'test_mrio': os.path.abspath(os.path.join(os.path.dirname(__file__), 
-                './mrio_models/test_mrio')),
-    'test': os.path.abspath(os.path.join(os.path.dirname(__file__), 
-                './mrio_models/test_mrio')),
-    'exio20': os.path.abspath(os.path.join(os.path.dirname(__file__), 
-                './mrio_models/exio20')),
-    'exio2': os.path.abspath(os.path.join(os.path.dirname(__file__), 
-                './mrio_models/exio20')),
-    }
+from core.constants import PYMRIO_PATH
 
 # generic names (needed for the aggregation  if no names are given)
-GENERIC_NAMES = {   
-        'sector' : 'sec',
-        'region' : 'reg',
-        }
+from core.constants import GENERIC_NAMES
+
 
 # class definitions
 class Extension(core.CoreSystem):
