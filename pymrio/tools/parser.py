@@ -13,6 +13,101 @@ import numpy as np
 from core.constants import PYMRIO_PATH
 import pymrio
 
+def parse_exio_ext(file, index_col, name, drop_compartment = True, 
+        version = None, year = None, iosystem = None, sep = ',' ):
+    """ Parse an EXIOBASE like extension file into pymrio.Extension  
+
+    EXIOBASE like extensions files are assumed to have two
+    rows which are used as columns multiindex (region and sector)
+    and up to three columns for the row index (see Parameters).
+     
+    Notes
+    -----
+    So far this only parses factor of production extensions F (not 
+    final demand extensions FY nor coeffiecents S).
+
+    Parameters
+    ----------
+
+    file : string
+        File to parse
+
+    index_col : int
+        The number of columns (1 to 3) at the beginning of the file
+        to use as the index. The order of the index_col must be
+        - 1 index column: ['stressor']
+        - 2 index columns: ['stressor', 'unit']
+        - 3 index columns: ['stressor', 'compartment', 'unit']
+        - > 3: everything up to three index columns will be removed
+
+    name : string
+        Name of the extension
+
+    drop_compartment : boolean, optional
+        If True (default) removes the compartment from the index.
+
+    version : string, optional
+        see pymrio.Extension
+
+    iosystem : string, optional
+        see pymrio.Extension
+
+    year : string or int
+        see pymrio.Extension
+
+    sep : string, optional
+        Delimiter to use; default ','
+        
+    Returns
+    -------
+    pymrio.Extension
+        with F (and unit if available)
+
+    """
+
+    file = os.path.abspath(file)
+    
+    F = pd.read_table(file, 
+            header = [0,1], 
+            index_col = list(range(index_col)),
+            sep = sep)
+
+    F.columns.names = ['region', 'sector']
+
+    if index_col == 1:
+        F.index.names = ['stressor']
+
+    elif index_col == 2:
+        F.index.names = ['stressor', 'unit']
+
+    elif index_col == 3:
+        F.index.names = ['stressor', 'compartment', 'unit']
+
+    else:
+        F.reset_index(level = list(range(3,index_col)),
+                         drop = True,
+                         inplace = True)
+        F.index.names = ['stressor', 'compartment', 'unit']
+
+    unit = None
+    if index_col > 1:
+        unit = pd.DataFrame(F.iloc[:, 0].
+                reset_index(level='unit').unit)
+        F.reset_index(level='unit', drop=True, inplace=True)
+
+    if drop_compartment:
+        F.reset_index(level='compartment', 
+                drop=True, inplace=True)
+        unit.reset_index(level='compartment', 
+                drop=True, inplace=True)
+
+    return pymrio.Extension(name = name, 
+                            F = F, 
+                            unit = unit,
+                            iosystem = iosystem,
+                            version = version,
+                            year = year,
+                            )
 
 def parse_exiobase22(path, charact = None, iosystem = None, 
                      version = 'exiobase 2.2', popvector = 'exio2' ):

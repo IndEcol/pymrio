@@ -83,7 +83,7 @@ class Extension(core.CoreSystem):
     Attributes
     ----------
     name : string
-        Every extension must have a name. This can (reconmmended) be the name
+        Every extension must have a name. This can (recommended) be the name
         of the instance. However, for plotting and saving this can also be
         changed.  This name will also be used for saving the extension as
         prefix to the attributes.
@@ -116,7 +116,7 @@ class Extension(core.CoreSystem):
         product by product or industry by industry.
         However, this can be any string and can have more information if needed
         (eg for different technoloy assumptions)
-        The string will be passed to the IOSystem
+        The string will be passed to the Extension
     version : string
         This can be used as a version tracking system. 
     year : int
