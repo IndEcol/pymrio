@@ -16,7 +16,7 @@ import sys, os
 
 # add the pymrio path for the autodoc function
 
-_pymrio_folder = os.path.abspath('../../pymrio/')
+_pymrio_folder = os.path.abspath('../../')
 
 if not _pymrio_folder in sys.path:
     sys.path.append(_pymrio_folder)

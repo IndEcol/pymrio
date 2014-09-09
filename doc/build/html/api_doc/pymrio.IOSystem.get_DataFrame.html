@@ -64,7 +64,7 @@
 <h1>pymrio.IOSystem.get_DataFrame<a class="headerlink" href="#pymrio-iosystem-get-dataframe" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="pymrio.IOSystem.get_DataFrame">
-<tt class="descclassname">IOSystem.</tt><tt class="descname">get_DataFrame</tt><big>(</big><em>data=False</em><big>)</big><a class="headerlink" href="#pymrio.IOSystem.get_DataFrame" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">IOSystem.</tt><tt class="descname">get_DataFrame</tt><big>(</big><em>data=False</em>, <em>with_unit=True</em>, <em>with_population=True</em><big>)</big><a class="headerlink" href="#pymrio.IOSystem.get_DataFrame" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a generator which gives all panda.DataFrames in the system</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -73,7 +73,21 @@
 <tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>data</strong> : boolean, optional</p>
 <blockquote>
 <div><p>If True, returns a generator which yields the DataFrames.
-If False, returns a generator which yields only the names of the DataFrames</p>
+If False, returns a generator which yields 
+only the names of the DataFrames</p>
+</div></blockquote>
+<p><strong>with_unit: boolean, optional</strong></p>
+<blockquote>
+<div><p>If True, includes the &#8216;unit&#8217; DataFrame
+If False, does not include the &#8216;unit&#8217; DataFrame. The method</p>
+<blockquote>
+<div><p>than only yields the numerical data tables</p>
+</div></blockquote>
+</div></blockquote>
+<p><strong>with_population: boolean, optional</strong></p>
+<blockquote>
+<div><p>If True, includes the &#8216;population&#8217; vector
+If False, does not include the &#8216;population&#8217; vector.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -82,6 +96,8 @@ If False, returns a generator which yields only the names of the DataFrames</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>For IOSystem this does not include the DataFrames in the extensions.</p>
 </dd></dl>
 
 </div>

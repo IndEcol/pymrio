@@ -4,14 +4,17 @@ Various parser for available MRIOs and files in a similar format
 
 KST 20140903
 """
+
 import os
 import logging
 import pandas as pd
 import numpy as np
 
+from pymrio.core.mriosystem import IOSystem
+from pymrio.core.mriosystem import Extension
+
 # constants and global variables
-from core.constants import PYMRIO_PATH
-import pymrio
+from pymrio.core.constants import PYMRIO_PATH
 
 def parse_exio_ext(file, index_col, name, drop_compartment = True, 
         version = None, year = None, iosystem = None, sep = ',' ):
@@ -101,7 +104,7 @@ def parse_exio_ext(file, index_col, name, drop_compartment = True,
         unit.reset_index(level='compartment', 
                 drop=True, inplace=True)
 
-    return pymrio.Extension(name = name, 
+    return Extension(name = name, 
                             F = F, 
                             unit = unit,
                             iosystem = iosystem,
@@ -182,7 +185,7 @@ def parse_exiobase22(path, charact = None, iosystem = None,
     _intersect = [val for val in files_exio.values() 
             if val in os.listdir(path)]
     if len(_intersect) != len(files_exio.values()):
-        raise core.EXIOError('EXIOBASE files missing')
+        raise pymrio.core.EXIOError('EXIOBASE files missing')
 
     # number of row and column headers in EXIOBASE 
     head_col = dict()
@@ -358,6 +361,6 @@ def parse_exiobase22(path, charact = None, iosystem = None,
     else:
         popdata =  popvector
 
-    return pymrio.IOSystem( Z = data['Z'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
+    return IOSystem( Z = data['Z'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
 
 
