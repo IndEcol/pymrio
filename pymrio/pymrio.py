@@ -53,7 +53,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 import imp # debug
-imp.reload(core)
+#imp.reload(core)
 
 
 # check for correct python version number
