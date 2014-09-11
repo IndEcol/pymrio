@@ -21,8 +21,7 @@ Tutorial 1: [Basic intro] (http://nbviewer.ipython.org/github/konstantinstadler/
 
 Tutorial 2: [EXIOBASE 2] (http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_exiobase_tutorial.ipynb)
 
-Tutorial 3: [EXIOBASE 2] (http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_exiobase_tutorial.ipynb)
-
+Tutorial 3: [EXIOBASE 2] (http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_directly_assign_attributes.ipynb)
 
 Installation
 ------------

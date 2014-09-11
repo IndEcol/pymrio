@@ -201,7 +201,7 @@ class CoreSystem():
             return None
 
     def get_DataFrame(self, data=False, with_unit = True, with_population = True):
-        """ Returns a generator which gives all panda.DataFrames in the system
+        """ Yields all panda.DataFrames or there names
         
         Notes
         -----
@@ -210,22 +210,20 @@ class CoreSystem():
         Parameters
         ----------
         data : boolean, optional
-           If True, returns a generator which yields the DataFrames.
-           If False, returns a generator which yields 
-           only the names of the DataFrames
+            If True, returns a generator which yields the DataFrames.
+            If False, returns a generator which yields only the names of the DataFrames
 
         with_unit: boolean, optional
             If True, includes the 'unit' DataFrame
-            If False, does not include the 'unit' DataFrame. The method
-                than only yields the numerical data tables
+            If False, does not include the 'unit' DataFrame. The method than only yields the numerical data tables
 
         with_population: boolean, optional
             If True, includes the 'population' vector
             If False, does not include the 'population' vector.
 
-        Yields
+        Returns
         -------
-        DataFrames or string, depending on parameter data
+            DataFrames or string generator, depending on parameter data
 
         """
 
@@ -1280,7 +1278,7 @@ class IOSystem(CoreSystem):
 
 
     def get_extensions(self, data=False):
-        """ Returns a generator for the extension in the IOSystem 
+        """ Yields the extensions or their names
         
         Parameters
         ----------
@@ -1290,9 +1288,9 @@ class IOSystem(CoreSystem):
            If False, returns a generator which yields the names of
            the extensions (default)
 
-        Yields
+        Returns
         -------
-        Extension or string
+        Generator for Extension or string
 
         """
         

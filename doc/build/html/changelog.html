@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installation &mdash; pymrio 0.2.0 documentation</title>
+    <title>Changelog &mdash; pymrio 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -26,8 +26,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="pymrio 0.2.0 documentation" href="index.html" />
-    <link rel="next" title="Contribution" href="contribution.html" />
-    <link rel="prev" title="Introduction" href="intro.html" />
+    <link rel="next" title="Exploring the IO System" href="exploring.html" />
+    <link rel="prev" title="Contribution" href="contribution.html" />
 <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
 <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
 <!--[if lte IE 6]>
@@ -44,10 +44,10 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="contribution.html" title="Contribution"
+          <a href="exploring.html" title="Exploring the IO System"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="intro.html" title="Introduction"
+          <a href="contribution.html" title="Contribution"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">pymrio 0.2.0 documentation</a> &raquo;</li> 
       </ul>
@@ -58,36 +58,33 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>Up to now now pymrio doesn&#8217;t have a installation routine. Just download the package and add the folder to your python path.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">_pymrio_path</span> <span class="o">=</span> <span class="s">&#39;c:/downloads/pymrio/pymrio/&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="ow">not</span> <span class="n">_pymrio_path</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>   <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_pymrio_path</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">_pymrio_path</span>
-</pre></div>
-</div>
-<div class="section" id="python-versions">
-<h2>Python versions<a class="headerlink" href="#python-versions" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="v0-2-0-sept-11-2014">
+<h2>v0.2.0 (Sept 11, 2014)<a class="headerlink" href="#v0-2-0-sept-11-2014" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="api-changes">
+<h3>API changes<a class="headerlink" href="#api-changes" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Python version 3.3+</li>
+<li>IOSystem.reset() replaced by IOSystem.reset_all_to_flows()</li>
+<li>IOSystem.reset_to_flows() and IOSystem.reset_to_coefficients() added</li>
+<li>Version number attribute added</li>
+<li>Parser for EXIOBASE like extensions (pymrio.parse_exio_ext) added.</li>
+<li>plot_accounts now works also for for specific products (with parameter &#8220;sector&#8221;)</li>
 </ul>
 </div>
-<div class="section" id="dependencies">
-<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="misc">
+<h3>Misc<a class="headerlink" href="#misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>pandas</li>
-<li>numpy</li>
-<li>matplotlib</li>
+<li>Several bugfixes</li>
+<li>Mainmodule split into several packages and submodules</li>
+<li>Added 3rd tutorial</li>
+<li>Added CHANGELOG</li>
 </ul>
 </div>
-<div class="section" id="recommended-dependencies">
-<h2>Recommended Dependencies<a class="headerlink" href="#recommended-dependencies" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>docutils: For generating reports in tex and html format</li>
-<li>seaborn: Improves the figure appearance tremendously. <a class="reference external" href="http://stanford.edu/~mwaskom/software/seaborn/index.html">http://stanford.edu/~mwaskom/software/seaborn/index.html</a></li>
-</ul>
+</div>
+<div class="section" id="v0-1-0-june-20-2014">
+<h2>v0.1.0 (June 20, 2014)<a class="headerlink" href="#v0-1-0-june-20-2014" title="Permalink to this headline">¶</a></h2>
+<p>Initial version</p>
 </div>
 </div>
 
@@ -99,20 +96,23 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Installation</a><ul>
-<li><a class="reference internal" href="#python-versions">Python versions</a></li>
-<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
-<li><a class="reference internal" href="#recommended-dependencies">Recommended Dependencies</a></li>
+<li><a class="reference internal" href="#">Changelog</a><ul>
+<li><a class="reference internal" href="#v0-2-0-sept-11-2014">v0.2.0 (Sept 11, 2014)</a><ul>
+<li><a class="reference internal" href="#api-changes">API changes</a></li>
+<li><a class="reference internal" href="#misc">Misc</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#v0-1-0-june-20-2014">v0.1.0 (June 20, 2014)</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="intro.html"
-                        title="previous chapter">Introduction</a></p>
-  <h4>Next topic</h4>
   <p class="topless"><a href="contribution.html"
-                        title="next chapter">Contribution</a></p>
+                        title="previous chapter">Contribution</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="exploring.html"
+                        title="next chapter">Exploring the IO System</a></p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
@@ -137,10 +137,10 @@
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="contribution.html" title="Contribution"
+          <a href="exploring.html" title="Exploring the IO System"
              >next</a> |</li>
         <li class="right" >
-          <a href="intro.html" title="Introduction"
+          <a href="contribution.html" title="Contribution"
              >previous</a> |</li>
         <li><a href="index.html">pymrio 0.2.0 documentation</a> &raquo;</li> 
       </ul>
