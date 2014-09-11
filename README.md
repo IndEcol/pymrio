@@ -29,7 +29,7 @@ Installation
 Up to now now pymrio doesn't have a installation routine. Just download the package from the source repository (download zip on right toolstrip) and add the folder to your python path. 
 
     import sys
-    _pymrio_path = r'D:\KST\proj\pymrio\pymrio'  
+    _pymrio_path = r'D:\KST\proj\pymrio'  
     if not _pymrio_path in sys.path:
         sys.path.append(_pymrio_path)
     del _pymrio_path
