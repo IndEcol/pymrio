@@ -30,6 +30,8 @@ from pymrio.tools.iomath import calc_M
 from pymrio.tools.iomath import calc_e
 from pymrio.tools.iomath import calc_accounts
 
+import pymrio.tools.util as util
+
 # IO specific exceptions
 class EXIOError(Exception):
     """ Base class for errors concerning EXIOBASE download and structure """
@@ -294,9 +296,9 @@ class CoreSystem():
         io_ini['meta'] = dict()
         io_ini['files'] = dict()
 
-        if str(type(self)) ==  "<class 'pymrio.IOSystem'>":
+        if str(type(self)) ==  "<class 'pymrio.core.mriosystem.IOSystem'>":
             io_ini['systemtype']['systemtype'] = 'IOSystem'
-        elif str(type(self)) ==  "<class 'pymrio.Extension'>":
+        elif str(type(self)) ==  "<class 'pymrio.core.mriosystem.Extension'>":
             io_ini['systemtype']['systemtype'] = 'Extension'
         else:
             logging.warn('Unknown system type')

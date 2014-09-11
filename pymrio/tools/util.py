@@ -5,6 +5,9 @@ KST 20140502
 """
 
 import numpy as np
+import os
+
+from pymrio.core.constants import PYMRIO_PATH
 
 def is_vector(inp):
     """ Returns true if the input can be interpreted as a 'true' vector
