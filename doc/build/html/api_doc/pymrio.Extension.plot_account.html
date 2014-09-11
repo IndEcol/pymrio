@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pymrio.Extension.plot_account &mdash; pymrio 0.1.0 documentation</title>
+    <title>pymrio.Extension.plot_account &mdash; pymrio 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,9 +25,9 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.1.0 documentation" href="../index.html" />
+    <link rel="top" title="pymrio 0.2.0 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api_references.html" />
-    <link rel="next" title="pymrio.IOSystem.reset" href="pymrio.IOSystem.reset.html" />
+    <link rel="next" title="pymrio.IOSystem.reset_to_flows" href="pymrio.IOSystem.reset_to_flows.html" />
     <link rel="prev" title="pymrio.IOSystem.report_accounts" href="pymrio.IOSystem.report_accounts.html" />
 <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
 <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
@@ -45,12 +45,12 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="pymrio.IOSystem.reset.html" title="pymrio.IOSystem.reset"
+          <a href="pymrio.IOSystem.reset_to_flows.html" title="pymrio.IOSystem.reset_to_flows"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="pymrio.IOSystem.report_accounts.html" title="pymrio.IOSystem.report_accounts"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.1.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
           <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -64,11 +64,13 @@
 <h1>pymrio.Extension.plot_account<a class="headerlink" href="#pymrio-extension-plot-account" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="pymrio.Extension.plot_account">
-<tt class="descclassname">Extension.</tt><tt class="descname">plot_account</tt><big>(</big><em>row</em>, <em>per_capita=False</em>, <em>file_name=False</em>, <em>file_dpi=600</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pymrio.Extension.plot_account" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots D_terr, D_fp, D_imp and D_exp for the specified row</p>
-<p>Per default the accounts are plotted as bar charts. 
+<tt class="descclassname">Extension.</tt><tt class="descname">plot_account</tt><big>(</big><em>row</em>, <em>per_capita=False</em>, <em>sector=None</em>, <em>file_name=False</em>, <em>file_dpi=600</em>, <em>population=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pymrio.Extension.plot_account" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots D_terr, D_fp, D_imp and D_exp for the specified row (account)</p>
+<p>Plot either the total country accounts or for a specific sector,
+depending on the &#8216;sector&#8217; parameter.</p>
+<p>Per default the accounts are plotted as bar charts.
 However, any valid keyword for the pandas.DataFrame.plot 
-method can be passed</p>
+method can be passed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -81,7 +83,18 @@ should be plotted (one(!) row - no list allowed)</p>
 <p><strong>per_capita</strong> : boolean, optional</p>
 <blockquote>
 <div><p>Plot the per capita accounts instead of the absolute values
-default is false</p>
+default is False</p>
+</div></blockquote>
+<p><strong>sector: string, optional</strong></p>
+<blockquote>
+<div><p>Plot the results for a specific sector of the IO table. If 
+None is given (default), the total regional accounts are plotted.</p>
+</div></blockquote>
+<p><strong>population</strong> : pandas.DataFrame or np.array, optional</p>
+<blockquote>
+<div><p>Vector with population per region. This must be given if
+values should be plotted per_capita for a specific sector since
+these values are calculated on the fly.</p>
 </div></blockquote>
 <p><strong>file_name</strong> : path string, optional</p>
 <blockquote>
@@ -119,8 +132,8 @@ default is false</p>
   <p class="topless"><a href="pymrio.IOSystem.report_accounts.html"
                         title="previous chapter">pymrio.IOSystem.report_accounts</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="pymrio.IOSystem.reset.html"
-                        title="next chapter">pymrio.IOSystem.reset</a></p>
+  <p class="topless"><a href="pymrio.IOSystem.reset_to_flows.html"
+                        title="next chapter">pymrio.IOSystem.reset_to_flows</a></p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
@@ -145,12 +158,12 @@ default is false</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="pymrio.IOSystem.reset.html" title="pymrio.IOSystem.reset"
+          <a href="pymrio.IOSystem.reset_to_flows.html" title="pymrio.IOSystem.reset_to_flows"
              >next</a> |</li>
         <li class="right" >
           <a href="pymrio.IOSystem.report_accounts.html" title="pymrio.IOSystem.report_accounts"
              >previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.1.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
           <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>

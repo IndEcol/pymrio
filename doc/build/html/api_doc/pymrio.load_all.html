@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pymrio.load_all &mdash; pymrio 0.1.0 documentation</title>
+    <title>pymrio.load_all &mdash; pymrio 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.1.0 documentation" href="../index.html" />
+    <link rel="top" title="pymrio 0.2.0 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api_references.html" />
     <link rel="next" title="pymrio.IOSystem.get_DataFrame" href="pymrio.IOSystem.get_DataFrame.html" />
     <link rel="prev" title="pymrio.load" href="pymrio.load.html" />
@@ -50,7 +50,7 @@
         <li class="right" >
           <a href="pymrio.load.html" title="pymrio.load"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.1.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
           <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -64,18 +64,26 @@
 <h1>pymrio.load_all<a class="headerlink" href="#pymrio-load-all" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="pymrio.load_all">
-<tt class="descclassname">pymrio.</tt><tt class="descname">load_all</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#pymrio.load_all" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pymrio.</tt><tt class="descname">load_all</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pymrio.load_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the whole IOSystem with Extensions given in path</p>
-<p>This just calls pymrio.load with recursive = True. If several ini files are
-present, use the low level load function directly.</p>
+<p>This just calls pymrio.load with recursive = True. Apart from that the 
+same parameter can as for .load can be used.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
-<blockquote class="last">
+<blockquote>
 <div><p>path or ini file name for the data to load</p>
 </div></blockquote>
+<p><strong>**kwargs</strong> : key word arguments, optional</p>
+<blockquote>
+<div><p>This will be passed directly to the load method</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first">IOSystem</p>
+<p class="last">None in case of errors</p>
 </td>
 </tr>
 </tbody>
@@ -125,7 +133,7 @@ present, use the low level load function directly.</p>
         <li class="right" >
           <a href="pymrio.load.html" title="pymrio.load"
              >previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.1.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
           <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>

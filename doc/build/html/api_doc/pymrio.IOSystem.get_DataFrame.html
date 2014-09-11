@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pymrio.IOSystem.get_DataFrame &mdash; pymrio 0.1.0 documentation</title>
+    <title>pymrio.IOSystem.get_DataFrame &mdash; pymrio 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.1.0 documentation" href="../index.html" />
+    <link rel="top" title="pymrio 0.2.0 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api_references.html" />
     <link rel="next" title="pymrio.IOSystem.get_extensions" href="pymrio.IOSystem.get_extensions.html" />
     <link rel="prev" title="pymrio.load_all" href="pymrio.load_all.html" />
@@ -50,7 +50,7 @@
         <li class="right" >
           <a href="pymrio.load_all.html" title="pymrio.load_all"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.1.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
           <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -64,8 +64,8 @@
 <h1>pymrio.IOSystem.get_DataFrame<a class="headerlink" href="#pymrio-iosystem-get-dataframe" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="pymrio.IOSystem.get_DataFrame">
-<tt class="descclassname">IOSystem.</tt><tt class="descname">get_DataFrame</tt><big>(</big><em>data=False</em><big>)</big><a class="headerlink" href="#pymrio.IOSystem.get_DataFrame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a generator which gives all panda.DataFrames in the system</p>
+<tt class="descclassname">IOSystem.</tt><tt class="descname">get_DataFrame</tt><big>(</big><em>data=False</em>, <em>with_unit=True</em>, <em>with_population=True</em><big>)</big><a class="headerlink" href="#pymrio.IOSystem.get_DataFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields all panda.DataFrames or there names</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -75,13 +75,25 @@
 <div><p>If True, returns a generator which yields the DataFrames.
 If False, returns a generator which yields only the names of the DataFrames</p>
 </div></blockquote>
+<p><strong>with_unit: boolean, optional</strong></p>
+<blockquote>
+<div><p>If True, includes the &#8216;unit&#8217; DataFrame
+If False, does not include the &#8216;unit&#8217; DataFrame. The method than only yields the numerical data tables</p>
+</div></blockquote>
+<p><strong>with_population: boolean, optional</strong></p>
+<blockquote>
+<div><p>If True, includes the &#8216;population&#8217; vector
+If False, does not include the &#8216;population&#8217; vector.</p>
+</div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last">generator</p>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last">DataFrames or string generator, depending on parameter data</p>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>For IOSystem this does not include the DataFrames in the extensions.</p>
 </dd></dl>
 
 </div>
@@ -127,7 +139,7 @@ If False, returns a generator which yields only the names of the DataFrames</p>
         <li class="right" >
           <a href="pymrio.load_all.html" title="pymrio.load_all"
              >previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.1.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
           <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>

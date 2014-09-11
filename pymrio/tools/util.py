@@ -5,6 +5,9 @@ KST 20140502
 """
 
 import numpy as np
+import os
+
+from pymrio.core.constants import PYMRIO_PATH
 
 def is_vector(inp):
     """ Returns true if the input can be interpreted as a 'true' vector
@@ -205,3 +208,243 @@ def unique_element(ll):
         seen[item] = 1
         result.append(item)
     return result
+
+def concate_extension(*extensions, name):
+    """ Concatenate extensions
+
+    Notes
+    ----
+    The method assumes that the first index is the name of the
+    stressor/impact/input type. To provide a consistent naming this is renamed
+    to 'indicator' if they differ. All other index names ('compartments', ...)
+    are added to the concatenated extensions and set to NaN for missing values.
+
+    Notes
+    ----
+    Attributes which are not DataFrames will be set to None if they differ
+    between the extensions
+
+    Parameters
+    ----------
+
+    extensions : Extensions
+        The Extensions to concatenate as multiple parameters
+
+    name : string
+        Name of the new extension
+
+    Returns
+    -------
+
+    Concatenated extension
+
+    """
+    if type(extensions[0]) is tuple or type(extensions[0]) is list:
+        extensions = extensions[0]
+
+    # check if fd extensions is present in one of the given extensions
+    FY_present = False    
+    SY_present = False
+    SFY_columns = None
+    for ext in extensions:
+        if 'FY' in ext.get_DataFrame(data=False): 
+            FY_present = True
+            SFY_columns = ext.FY.columns
+        if 'SY' in ext.get_DataFrame(data=False): 
+            SY_present = True
+            SFY_columns = ext.SY.columns
+    
+    # get the intersection of the available dataframes
+    set_dfs = [set(ext.get_DataFrame(data=False)) for ext in extensions]
+    df_dict = {key:None for key in set.intersection(*set_dfs)}  
+    if FY_present: df_dict['FY'] = None
+    if SY_present: df_dict['SY'] = None
+    empty_df_dict = df_dict.copy()
+    attr_dict={}
+
+    # get data from each extension
+    first_run = True
+    for ext in extensions:
+        # get corresponding attributes of all extensions
+        for key in ext.__dict__:
+            if type(ext.__dict__[key]) is not pd.DataFrame:
+                if attr_dict.get(key, -99) == -99:
+                    attr_dict[key] = ext.__dict__[key]
+                elif attr_dict[key] == ext.__dict__[key]: continue
+                else:
+                    attr_dict[key] = None
+
+        # get DataFrame data
+        cur_dict = empty_df_dict.copy()
+
+        for df in cur_dict: 
+            cur_dict[df] = getattr(ext, df)
+        
+        # add zero final demand extension if final demand extension present in
+        # one extension 
+        if FY_present: 
+            # doesn't work with getattr b/c FY can be present as attribute but
+            # not as DataFrame
+            if 'FY' in ext.get_DataFrame(data = False):  
+                cur_dict['FY'] = getattr(ext, 'FY')
+            else:
+                cur_dict['FY'] = pd.DataFrame(data = 0, 
+                                    index = ext.get_index(), 
+                                    columns = SFY_columns)
+        if SY_present:
+            # doesn't work with getattr b/c SY can be present as attribute but
+            # not as DataFrame
+            if 'SY' in ext.get_DataFrame(data = False):  
+                cur_dict['SY'] = getattr(ext, 'SY')
+            else:
+                cur_dict['SY'] = pd.DataFrame(data = 0, 
+                        index = ext.get_index(), columns = SFY_columns)           
+
+        # append all df data
+        for key in cur_dict:
+            if not first_run:
+                if cur_dict[key].index.names != df_dict[key].index.names:
+                    cur_ind_names = list(cur_dict[key].index.names) 
+                    df_ind_names = list(df_dict[key].index.names) 
+                    cur_ind_names[0] = 'indicator'
+                    df_ind_names[0] = cur_ind_names[0]
+                    cur_dict[key].index.set_names(cur_ind_names, 
+                                                  inplace = True) 
+                    df_dict[key].index.set_names(df_ind_names, 
+                                                  inplace = True)
+
+                    for ind in cur_ind_names:
+                        if ind not in df_ind_names:
+                            df_dict[key] = (df_dict[key].
+                                            set_index(pd.DataFrame(data=None, 
+                                                index=df_dict[key].index, 
+                                                columns =
+                                                [ind])[ind],
+                                                append=True))
+                    for ind in df_ind_names:
+                        if ind not in cur_ind_names:
+                            cur_dict[key] = (cur_dict[key].
+                                            set_index(pd.DataFrame(data=None, 
+                                                index=cur_dict[key].index, 
+                                                columns =
+                                                [ind])[ind],
+                                                append=True))
+                    
+            df_dict[key] = pd.concat([df_dict[key], cur_dict[key]])
+
+        first_run = False
+
+        all_dict = dict(list(attr_dict.items()) + list(df_dict.items()))
+        all_dict['name'] = name
+        
+    return Extension(**all_dict)
+
+def build_agg_vec(agg_vec, **source):
+    """ Builds an combined aggregation vector based on various classifications
+    
+    This function build an aggregation vector based on the order in agg_vec.
+    The naming and actual mapping is given in source, either explicitly or by
+    pointing to a folder with the mapping.
+
+    >>> build_agg_vec(['EU', 'OECD'], path = 'test')
+    ['EU', 'EU', 'EU', 'OECD', 'REST', 'REST']
+    
+    >>> build_agg_vec(['OECD', 'EU'], path = 'test', miss='RoW')
+    ['OECD', 'EU', 'OECD', 'OECD', 'RoW', 'RoW']
+
+    >>> build_agg_vec(['EU', 'orig_regions'], path = 'test')
+    ['EU', 'EU', 'EU', 'reg4', 'reg5', 'reg6']
+
+    >>> build_agg_vec(['supreg1', 'other'], path = 'test', 
+    >>>        other = [None, None, 'other1', 'other1', 'other2', 'other2'])
+    ['supreg1', 'supreg1', 'other1', 'other1', 'other2', 'other2']
+
+
+    Parameters
+    ----------
+    agg_vec : list
+        A list of sector or regions to which the IOSystem shall be aggregated.     
+        The order in agg_vec is important: 
+        If a string was assigned to one specific entry it will not be
+        overwritten if it is given in the next vector, e.g.  ['EU', 'OECD']
+        would aggregate first into EU and the remaining one into OECD, whereas
+        ['OECD', 'EU'] would first aggregate all countries into OECD and than
+        the remaining countries into EU. 
+
+
+    source : list or string
+        Definition of the vectors in agg_vec.  The input vectors (either in the
+        file or given as list for the entries in agg_vec) must be as long as
+        the desired output with a string for every position which should be
+        aggregated and None for position which should not be used.
+
+        Special keywords:
+
+            - path : Path to a folder with concordance matrices.     
+                     The files in the folder can have any extension but must be
+                     in text format (tab separated) with one entry per row.
+                     The last column in the file will be taken as aggregation
+                     vectors (other columns can be used for documentation).
+                     Values must be given for every entry in the original
+                     classification (string None for all values not used) If
+                     the same entry is given in source and as text file in
+                     path than the one in source will be used.
+                     
+                     Two special path entries are available so far:
+
+                     - 'exio2'
+                       Concordance matrices for EXIOBASE 2.0
+                     - 'test'
+                       Concordance matrices for the test IO system
+
+                     If a entry is not found in source and no path is given
+                     the current directory will be searched for the definition. 
+
+            - miss : Entry to use for missing values, default: 'REST'
+
+    Returns
+    ------- 
+    list (aggregation vector)
+    
+    """
+
+    # build a dict with aggregation vectors in source and folder
+    if type(agg_vec) is str: agg_vec = [agg_vec]
+    agg_dict = dict()
+    for entry in agg_vec:
+        try:
+            agg_dict[entry] = source[entry]
+        except KeyError:
+            folder = source.get('path', './')
+            folder = os.path.join(PYMRIO_PATH[folder], 'concordance')
+            for file in os.listdir(folder):
+                if entry == os.path.splitext(file)[0]:
+                    _tmp = np.genfromtxt(os.path.join(folder, file), dtype=str)
+                    if _tmp.ndim == 1: 
+                        agg_dict[entry] = [None if ee == 'None' 
+                                else ee for ee in _tmp.tolist()]
+                    else:
+                        agg_dict[entry] = [None if ee == 'None' 
+                                else ee for ee in _tmp[:, -1].tolist()]
+                    break
+            else:
+                logging.error(
+                        'Aggregation vector -- {} -- not found'
+                        .format(str(entry)))
+    
+    # build the summary aggregation vector
+    def _rep(ll, ii, vv): ll[ii] = vv
+    miss_val = source.get( 'miss', 'REST' )
+
+    vec_list = [agg_dict[ee] for ee in agg_vec]
+    out = [None, ] * len(vec_list[0])
+    for currvec in vec_list:
+        if len(currvec) != len(out):
+            logging.warn('Inconsistent vector length')
+        [_rep(out, ind, val) for ind, val 
+                in enumerate(currvec) if not out[ind]]
+
+    [_rep(out, ind, miss_val) for ind, val in enumerate(out) if not val]
+
+    return out
+    

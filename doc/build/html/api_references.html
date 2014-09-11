@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>API Reference &mdash; pymrio 0.1.0 documentation</title>
+    <title>API Reference &mdash; pymrio 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.1.0 documentation" href="index.html" />
+    <link rel="top" title="pymrio 0.2.0 documentation" href="index.html" />
     <link rel="next" title="pymrio.load_test" href="api_doc/pymrio.load_test.html" />
     <link rel="prev" title="Terminology" href="terminology.html" />
 <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
@@ -49,7 +49,7 @@
         <li class="right" >
           <a href="terminology.html" title="Terminology"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">pymrio 0.1.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">pymrio 0.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -101,10 +101,10 @@ binary format (&#8216;pickle&#8217;). Both formats work with the same API interf
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.save.html#pymrio.IOSystem.save" title="pymrio.IOSystem.save"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.save</span></tt></a>(path[,&nbsp;table_format,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.save.html#pymrio.IOSystem.save" title="pymrio.IOSystem.save"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.save</span></tt></a>(path[,&nbsp;table_format,&nbsp;sep,&nbsp;...])</td>
 <td>Saves the system as text or binary pickle files.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.save_all.html#pymrio.IOSystem.save_all" title="pymrio.IOSystem.save_all"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.save_all</span></tt></a>(path[,&nbsp;...])</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.save_all.html#pymrio.IOSystem.save_all" title="pymrio.IOSystem.save_all"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.save_all</span></tt></a>(path[,&nbsp;table_format,&nbsp;sep,&nbsp;...])</td>
 <td>Saves the system and all extensions</td>
 </tr>
 </tbody>
@@ -123,7 +123,7 @@ have been saved with pymrio before.</p>
 <tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.load.html#pymrio.load" title="pymrio.load"><tt class="xref py py-obj docutils literal"><span class="pre">load</span></tt></a>(path[,&nbsp;recursive,&nbsp;ini,&nbsp;subini,&nbsp;...])</td>
 <td>Loads a IOSystem or Extension from a ini files</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.load_all.html#pymrio.load_all" title="pymrio.load_all"><tt class="xref py py-obj docutils literal"><span class="pre">load_all</span></tt></a>(path)</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.load_all.html#pymrio.load_all" title="pymrio.load_all"><tt class="xref py py-obj docutils literal"><span class="pre">load_all</span></tt></a>(path,&nbsp;**kwargs)</td>
 <td>Loads the whole IOSystem with Extensions given in path</td>
 </tr>
 </tbody>
@@ -140,10 +140,10 @@ fact yield) several tables at once:</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_DataFrame.html#pymrio.IOSystem.get_DataFrame" title="pymrio.IOSystem.get_DataFrame"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_DataFrame</span></tt></a>([data])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_DataFrame.html#pymrio.IOSystem.get_DataFrame" title="pymrio.IOSystem.get_DataFrame"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.get_DataFrame</span></tt></a>([data,&nbsp;with_unit,&nbsp;...])</td>
 <td>Returns a generator which gives all panda.DataFrames in the system</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_extensions.html#pymrio.IOSystem.get_extensions" title="pymrio.IOSystem.get_extensions"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_extensions</span></tt></a>([data])</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_extensions.html#pymrio.IOSystem.get_extensions" title="pymrio.IOSystem.get_extensions"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.get_extensions</span></tt></a>([data])</td>
 <td>Returns a generator for the extension in the IOSystem</td>
 </tr>
 </tbody>
@@ -156,7 +156,7 @@ for one specified row.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.get_row_data.html#pymrio.Extension.get_row_data" title="pymrio.Extension.get_row_data"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.Extension.get_row_data</span></tt></a>(row[,&nbsp;name])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.get_row_data.html#pymrio.Extension.get_row_data" title="pymrio.Extension.get_row_data"><tt class="xref py py-obj docutils literal"><span class="pre">Extension.get_row_data</span></tt></a>(row[,&nbsp;name])</td>
 <td>Returns a dict with all available data for a row in the extension</td>
 </tr>
 </tbody>
@@ -174,19 +174,19 @@ directly on the Extensions.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_regions.html#pymrio.IOSystem.get_regions" title="pymrio.IOSystem.get_regions"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_regions</span></tt></a>([entries])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_regions.html#pymrio.IOSystem.get_regions" title="pymrio.IOSystem.get_regions"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.get_regions</span></tt></a>([entries])</td>
 <td>Returns the names of regions in the IOSystem as unique names in order</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_sectors.html#pymrio.IOSystem.get_sectors" title="pymrio.IOSystem.get_sectors"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_sectors</span></tt></a>([entries])</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_sectors.html#pymrio.IOSystem.get_sectors" title="pymrio.IOSystem.get_sectors"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.get_sectors</span></tt></a>([entries])</td>
 <td>Returns the names of sectors in the IOSystem as unique names in order</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_Y_categories.html#pymrio.IOSystem.get_Y_categories" title="pymrio.IOSystem.get_Y_categories"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_Y_categories</span></tt></a>([entries])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_Y_categories.html#pymrio.IOSystem.get_Y_categories" title="pymrio.IOSystem.get_Y_categories"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.get_Y_categories</span></tt></a>([entries])</td>
 <td>Returns the names of y categories in the IOSystem as unique names in order</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_index.html#pymrio.IOSystem.get_index" title="pymrio.IOSystem.get_index"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.get_index</span></tt></a>()</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.get_index.html#pymrio.IOSystem.get_index" title="pymrio.IOSystem.get_index"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.get_index</span></tt></a>()</td>
 <td>Returns the pure index of the DataFrames in the system</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.get_rows.html#pymrio.Extension.get_rows" title="pymrio.Extension.get_rows"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.Extension.get_rows</span></tt></a>()</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.get_rows.html#pymrio.Extension.get_rows" title="pymrio.Extension.get_rows"><tt class="xref py py-obj docutils literal"><span class="pre">Extension.get_rows</span></tt></a>()</td>
 <td>Returns the name of the rows of the extension</td>
 </tr>
 </tbody>
@@ -205,13 +205,13 @@ calculation method for the core system and for the extensions.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.calc_all.html#pymrio.IOSystem.calc_all" title="pymrio.IOSystem.calc_all"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.calc_all</span></tt></a>([recalc])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.calc_all.html#pymrio.IOSystem.calc_all" title="pymrio.IOSystem.calc_all"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.calc_all</span></tt></a>()</td>
 <td>Calculates missing parts of the IOSystem and all extensions.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.calc_system.html#pymrio.IOSystem.calc_system" title="pymrio.IOSystem.calc_system"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.calc_system</span></tt></a>()</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.calc_system.html#pymrio.IOSystem.calc_system" title="pymrio.IOSystem.calc_system"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.calc_system</span></tt></a>()</td>
 <td>Calculates the missing part of the core IOSystem</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.calc_system.html#pymrio.Extension.calc_system" title="pymrio.Extension.calc_system"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.Extension.calc_system</span></tt></a>(x,&nbsp;L,&nbsp;Y_agg[,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.calc_system.html#pymrio.Extension.calc_system" title="pymrio.Extension.calc_system"><tt class="xref py py-obj docutils literal"><span class="pre">Extension.calc_system</span></tt></a>(x,&nbsp;L,&nbsp;Y_agg[,&nbsp;population])</td>
 <td>Calculates the missing part of the extension plus accounts</td>
 </tr>
 </tbody>
@@ -228,31 +228,31 @@ numpy array.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_x.html#pymrio.calc_x" title="pymrio.calc_x"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_x</span></tt></a>(Z,&nbsp;Y)</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_x.html#pymrio.calc_x" title="pymrio.calc_x"><tt class="xref py py-obj docutils literal"><span class="pre">calc_x</span></tt></a>(Z,&nbsp;Y)</td>
 <td>Calculate the industry output x from the Z and Y matrix</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_Z.html#pymrio.calc_Z" title="pymrio.calc_Z"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_Z</span></tt></a>(A,&nbsp;x)</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_Z.html#pymrio.calc_Z" title="pymrio.calc_Z"><tt class="xref py py-obj docutils literal"><span class="pre">calc_Z</span></tt></a>(A,&nbsp;x)</td>
 <td>calculate the Z matrix (flows) from A and x</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_A.html#pymrio.calc_A" title="pymrio.calc_A"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_A</span></tt></a>(Z,&nbsp;x)</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_A.html#pymrio.calc_A" title="pymrio.calc_A"><tt class="xref py py-obj docutils literal"><span class="pre">calc_A</span></tt></a>(Z,&nbsp;x)</td>
 <td>Calculate the A matrix (coefficients) from Z and x</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_L.html#pymrio.calc_L" title="pymrio.calc_L"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_L</span></tt></a>(A)</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_L.html#pymrio.calc_L" title="pymrio.calc_L"><tt class="xref py py-obj docutils literal"><span class="pre">calc_L</span></tt></a>(A)</td>
 <td>Calculate the Leontief L from A</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_S.html#pymrio.calc_S" title="pymrio.calc_S"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_S</span></tt></a>(F,&nbsp;x)</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_S.html#pymrio.calc_S" title="pymrio.calc_S"><tt class="xref py py-obj docutils literal"><span class="pre">calc_S</span></tt></a>(F,&nbsp;x)</td>
 <td>Calculate extensions/factor inputs coefficients</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_F.html#pymrio.calc_F" title="pymrio.calc_F"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_F</span></tt></a>(S,&nbsp;x)</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_F.html#pymrio.calc_F" title="pymrio.calc_F"><tt class="xref py py-obj docutils literal"><span class="pre">calc_F</span></tt></a>(S,&nbsp;x)</td>
 <td>Calculate total direct impacts from the impact coefficients</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_M.html#pymrio.calc_M" title="pymrio.calc_M"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_M</span></tt></a>(S,&nbsp;L)</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_M.html#pymrio.calc_M" title="pymrio.calc_M"><tt class="xref py py-obj docutils literal"><span class="pre">calc_M</span></tt></a>(S,&nbsp;L)</td>
 <td>Calculate multipliers of the extensions</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_e.html#pymrio.calc_e" title="pymrio.calc_e"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_e</span></tt></a>(M,&nbsp;Y)</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.calc_e.html#pymrio.calc_e" title="pymrio.calc_e"><tt class="xref py py-obj docutils literal"><span class="pre">calc_e</span></tt></a>(M,&nbsp;Y)</td>
 <td>Calculate total impacts (footprints of consumption Y)</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_accounts.html#pymrio.calc_accounts" title="pymrio.calc_accounts"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.calc_accounts</span></tt></a>(S,&nbsp;L,&nbsp;Y,&nbsp;nr_countries,&nbsp;...)</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.calc_accounts.html#pymrio.calc_accounts" title="pymrio.calc_accounts"><tt class="xref py py-obj docutils literal"><span class="pre">calc_accounts</span></tt></a>(S,&nbsp;L,&nbsp;Y,&nbsp;nr_countries,&nbsp;nr_sectors)</td>
 <td>Calculate sector specific footprints, terr, imp and exp accounts</td>
 </tr>
 </tbody>
@@ -272,10 +272,10 @@ aggregation levels for the test system and EXIOBASE 2.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.aggregate.html#pymrio.IOSystem.aggregate" title="pymrio.IOSystem.aggregate"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.aggregate</span></tt></a>([region_agg,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.aggregate.html#pymrio.IOSystem.aggregate" title="pymrio.IOSystem.aggregate"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.aggregate</span></tt></a>([region_agg,&nbsp;sector_agg,&nbsp;...])</td>
 <td>Aggregates the IO system</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.build_agg_vec.html#pymrio.build_agg_vec" title="pymrio.build_agg_vec"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.build_agg_vec</span></tt></a>(agg_vec,&nbsp;**source)</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.build_agg_vec.html#pymrio.build_agg_vec" title="pymrio.build_agg_vec"><tt class="xref py py-obj docutils literal"><span class="pre">build_agg_vec</span></tt></a>(agg_vec,&nbsp;**source)</td>
 <td>Builds an combined aggregation vector based on various classifications</td>
 </tr>
 </tbody>
@@ -289,7 +289,7 @@ aggregation levels for the test system and EXIOBASE 2.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.per_source.html#pymrio.Extension.per_source" title="pymrio.Extension.per_source"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.Extension.per_source</span></tt></a>([name])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.per_source.html#pymrio.Extension.per_source" title="pymrio.Extension.per_source"><tt class="xref py py-obj docutils literal"><span class="pre">Extension.per_source</span></tt></a>([name])</td>
 <td>Returns a extension disaggregated into the regional source</td>
 </tr>
 </tbody>
@@ -303,8 +303,11 @@ aggregation levels for the test system and EXIOBASE 2.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.remove_extension.html#pymrio.IOSystem.remove_extension" title="pymrio.IOSystem.remove_extension"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.remove_extension</span></tt></a>([ext])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.remove_extension.html#pymrio.IOSystem.remove_extension" title="pymrio.IOSystem.remove_extension"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.remove_extension</span></tt></a>([ext])</td>
 <td>Remove extension from IOSystem</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.parse_exio_ext.html#pymrio.parse_exio_ext" title="pymrio.parse_exio_ext"><tt class="xref py py-obj docutils literal"><span class="pre">parse_exio_ext</span></tt></a>(file,&nbsp;index_col,&nbsp;name[,&nbsp;...])</td>
+<td>Parse an EXIOBASE like extension file into pymrio.Extension</td>
 </tr>
 </tbody>
 </table>
@@ -317,13 +320,13 @@ aggregation levels for the test system and EXIOBASE 2.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.set_regions.html#pymrio.IOSystem.set_regions" title="pymrio.IOSystem.set_regions"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.set_regions</span></tt></a>(regions)</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.set_regions.html#pymrio.IOSystem.set_regions" title="pymrio.IOSystem.set_regions"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.set_regions</span></tt></a>(regions)</td>
 <td>Sets new names for the regions</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.set_sectors.html#pymrio.IOSystem.set_sectors" title="pymrio.IOSystem.set_sectors"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.set_sectors</span></tt></a>(sectors)</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.set_sectors.html#pymrio.IOSystem.set_sectors" title="pymrio.IOSystem.set_sectors"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.set_sectors</span></tt></a>(sectors)</td>
 <td>Sets new names for the sectors</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.set_Y_categories.html#pymrio.IOSystem.set_Y_categories" title="pymrio.IOSystem.set_Y_categories"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.set_Y_categories</span></tt></a>(Y_categories)</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.set_Y_categories.html#pymrio.IOSystem.set_Y_categories" title="pymrio.IOSystem.set_Y_categories"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.set_Y_categories</span></tt></a>(Y_categories)</td>
 <td>Sets new names for the Y_categories</td>
 </tr>
 </tbody>
@@ -340,7 +343,7 @@ extension available) or at individual extensions.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.report_accounts.html#pymrio.IOSystem.report_accounts" title="pymrio.IOSystem.report_accounts"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.report_accounts</span></tt></a>(path[,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.report_accounts.html#pymrio.IOSystem.report_accounts" title="pymrio.IOSystem.report_accounts"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.report_accounts</span></tt></a>(path[,&nbsp;per_region,&nbsp;...])</td>
 <td>Generates a report to the given path for all extension</td>
 </tr>
 </tbody>
@@ -354,8 +357,8 @@ extension available) or at individual extensions.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.plot_account.html#pymrio.Extension.plot_account" title="pymrio.Extension.plot_account"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.Extension.plot_account</span></tt></a>(row[,&nbsp;...])</td>
-<td>Plots D_terr, D_fp, D_imp and D_exp for the specified row</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.Extension.plot_account.html#pymrio.Extension.plot_account" title="pymrio.Extension.plot_account"><tt class="xref py py-obj docutils literal"><span class="pre">Extension.plot_account</span></tt></a>(row[,&nbsp;per_capita,&nbsp;...])</td>
+<td>Plots D_terr, D_fp, D_imp and D_exp for the specified row (account)</td>
 </tr>
 </tbody>
 </table>
@@ -368,10 +371,13 @@ extension available) or at individual extensions.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.reset.html#pymrio.IOSystem.reset" title="pymrio.IOSystem.reset"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.reset</span></tt></a>()</td>
-<td>Removes all attributes which can not be aggregates and must be recalculated after agg.</td>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.reset_to_flows.html#pymrio.IOSystem.reset_to_flows" title="pymrio.IOSystem.reset_to_flows"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.reset_to_flows</span></tt></a>()</td>
+<td>Keeps only the absolute values.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.copy.html#pymrio.IOSystem.copy" title="pymrio.IOSystem.copy"><tt class="xref py py-obj docutils literal"><span class="pre">pymrio.IOSystem.copy</span></tt></a>()</td>
+<tr class="row-even"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.reset_to_coefficients.html#pymrio.IOSystem.reset_to_coefficients" title="pymrio.IOSystem.reset_to_coefficients"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.reset_to_coefficients</span></tt></a>()</td>
+<td>Keeps only the coefficient.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="api_doc/pymrio.IOSystem.copy.html#pymrio.IOSystem.copy" title="pymrio.IOSystem.copy"><tt class="xref py py-obj docutils literal"><span class="pre">IOSystem.copy</span></tt></a>()</td>
 <td>Returns a deep copy of the system</td>
 </tr>
 </tbody>
@@ -481,7 +487,7 @@ extension available) or at individual extensions.</p>
         <li class="right" >
           <a href="terminology.html" title="Terminology"
              >previous</a> |</li>
-        <li><a href="index.html">pymrio 0.1.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">pymrio 0.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

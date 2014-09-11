@@ -11,6 +11,7 @@ Contents:
    intro
    installation
    contribution
+   changelog
    exploring
    terminology
    api_references
