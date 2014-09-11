@@ -223,9 +223,9 @@ class CoreSystem():
             If True, includes the 'population' vector
             If False, does not include the 'population' vector.
 
-        Returns
+        Yields
         -------
-        generator
+        DataFrames or string, depending on parameter data
 
         """
 
@@ -1284,17 +1284,15 @@ class IOSystem(CoreSystem):
         
         Parameters
         ----------
-
         data : boolean, optional
            If True, returns a generator which yields the dicts of the
            extensions.  
            If False, returns a generator which yields the names of
            the extensions (default)
 
-        Returns
+        Yields
         -------
-
-        generator
+        Extension or string
 
         """
         
