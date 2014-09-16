@@ -3,6 +3,16 @@ Changelog
 #########
 
 **********************
+v0.2.1 ???
+**********************
+
+Misc
+====
+
+- Function don't require level names anymore. If these are not available pymrio
+  assumes a certain level ordering TODO: add link to docu
+
+**********************
 v0.2.0 (Sept 11, 2014)
 **********************
 
