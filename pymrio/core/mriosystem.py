@@ -115,7 +115,7 @@ class CoreSystem():
             if (df in self.__dict__) and (getattr(self,df) is not None):
                 try:
                     ind = getattr(self, df).columns.get_level_values('category').unique()
-                except AssertionError:
+                except (AssertionError, KeyError):
                     ind = getattr(self, df).columns.get_level_values(1).unique()
                 if entries:
                     if type(entries) is str: entries = [entries]
@@ -163,7 +163,7 @@ class CoreSystem():
             if (df in self.__dict__) and (getattr(self,df) is not None):
                 try:
                     ind = getattr(self, df).columns.get_level_values('region').unique()
-                except AssertionError:
+                except (AssertionError, KeyError):
                     ind = getattr(self, df).columns.get_level_values(0).unique()
                 if entries:
                     if type(entries) is str: entries = [entries]
@@ -197,7 +197,7 @@ class CoreSystem():
             if (df in self.__dict__) and (getattr(self,df) is not None):
                 try:
                     ind = getattr(self, df).columns.get_level_values('sector').unique()
-                except AssertionError:
+                except (AssertionError, KeyError):
                     ind = getattr(self, df).columns.get_level_values(1).unique()
                 if entries:
                     if type(entries) is str: entries = [entries]
@@ -583,7 +583,7 @@ class Extension(CoreSystem):
             try:
                 FY_agg = (self.FY.sum(level='region', axis=1, sort=False).
                       reindex_axis(self.get_regions(), axis=1))
-            except AssertionError:
+            except (AssertionError, KeyError):
                 FY_agg = (self.FY.sum(level=0, axis=1, sort=False).
                       reindex_axis(self.get_regions(), axis=1))
             
@@ -604,7 +604,7 @@ class Extension(CoreSystem):
                 self.D_fp_reg = (
                         self.D_fp.sum(level='region', axis=1, sort=False).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
-            except AssertionError:
+            except (AssertionError, KeyError):
                 self.D_fp_reg = (
                         self.D_fp.sum(level=0, axis=1, sort=False).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
@@ -612,7 +612,7 @@ class Extension(CoreSystem):
                 self.D_terr_reg = (
                         self.D_terr.sum(level='region', axis=1, sort=False).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
-            except AssertionError:
+            except (AssertionError, KeyError):
                 self.D_terr_reg = (
                         self.D_terr.sum(level=0, axis=1, sort=False).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
@@ -620,7 +620,7 @@ class Extension(CoreSystem):
                 self.D_imp_reg = (
                         self.D_imp.sum(level='region', axis=1, sort=False).
                         reindex_axis(self.get_regions(), axis=1))
-            except AssertionError:
+            except (AssertionError, KeyError):
                 self.D_imp_reg = (
                         self.D_imp.sum(level=0, axis=1, sort=False).
                         reindex_axis(self.get_regions(), axis=1))
@@ -628,7 +628,7 @@ class Extension(CoreSystem):
                 self.D_exp_reg = (
                         self.D_exp.sum(level='region', axis=1, sort=False).
                         reindex_axis(self.get_regions(), axis=1))
-            except AssertionError:
+            except (AssertionError, KeyError):
                 self.D_exp_reg = (
                         self.D_exp.sum(level=0, axis=1, sort=False).
                         reindex_axis(self.get_regions(), axis=1))
@@ -769,7 +769,7 @@ class Extension(CoreSystem):
                     _data = pd.DataFrame(
                              getattr(self, accounts[key]).xs(key=sector, axis=1,
                                  level='sector').ix[row].T)
-                except AssertionError:
+                except (AssertionError, KeyError):
                     _data = pd.DataFrame(
                              getattr(self, accounts[key]).xs(key=sector, axis=1,
                                  level=1).ix[row].T)
@@ -1260,7 +1260,7 @@ class IOSystem(CoreSystem):
                                axis=1, 
                                sort=False).reindex_axis(self.get_regions(), 
                                                         axis=1)
-            except AssertionError:
+            except (AssertionError, KeyError):
                 Y_agg = self.Y.sum(level=0, 
                                axis=1, 
                                sort=False).reindex_axis(self.get_regions(), 
