@@ -54,7 +54,7 @@ def calc_x_from_L(L, y):
     """
     x = L.dot(y)
     if type(L) is pd.DataFrame:
-        x = pd.DataFrame(x, index = L.index, columns = ['indout'])
+        x.columns = ['indout']
     return x
 
 def calc_Z(A, x):
