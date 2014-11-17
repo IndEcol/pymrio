@@ -41,7 +41,7 @@ Dependencies
 ------------
 
 - Python 3.0 or later
-- pandas
+- pandas 0.15 or later
 - numpy
 - scipy
 - matplotlib

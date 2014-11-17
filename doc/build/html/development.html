@@ -1,0 +1,186 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Development &mdash; pymrio 0.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/pyramid.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.2.0 documentation" href="index.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head>
+  <body>
+
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="changelog.html" title="Changelog"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pymrio 0.2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="development">
+<h1>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="versioning">
+<h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline">¶</a></h2>
+<p>The versioning system follows <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<div class="section" id="documentation-and-docstrings">
+<h2>Documentation and docstrings<a class="headerlink" href="#documentation-and-docstrings" title="Permalink to this headline">¶</a></h2>
+<p>Docstring should follow the numby docstring convention. See</p>
+<ul class="simple">
+<li><a class="reference external" href="http://sphinx-doc.org/latest/ext/example_numpy.html">http://sphinx-doc.org/latest/ext/example_numpy.html</a></li>
+<li><a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#docstring-standard">https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#docstring-standard</a></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you plan to build the doc yourself, install numpydoc 0.5dev from github (<a class="reference external" href="https://github.com/numpy/numpydoc">https://github.com/numpy/numpydoc</a>). The version on pypi does not support python 3.</p>
+</div>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>Pymrio uses the py.test package for all tests. Currently all mathematical
+functions are covered by tests.</p>
+<p>In the folder pymrio/tests also a full pymrio system test based on the small
+MRIO included in pymrio is available (full_run.py). This test runs longer than
+the unit test and is therefore not included in the normal test run. To use it
+run</p>
+<p>py.test full_run.py</p>
+<p>in the test folder.</p>
+</div>
+<div class="section" id="open-points">
+<h2>Open points<a class="headerlink" href="#open-points" title="Permalink to this headline">¶</a></h2>
+<p>pymrio is under acitive deveopment. Open points include:</p>
+<ul>
+<li><p class="first">parser for other available MRIOs</p>
+<blockquote>
+<div><ul class="simple">
+<li>WIOD (<a class="reference external" href="http://www.wiod.org/">http://www.wiod.org/</a>)</li>
+<li>EXIOBASE 1 (<a class="reference external" href="http://www.exiobase.eu">http://www.exiobase.eu</a>)</li>
+<li>OPEN:EU (http://www.oneplaneteconomynetwork.org/)</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">test cases</p>
+</li>
+<li><p class="first">graphical output</p>
+<blockquote>
+<div><ul class="simple">
+<li>flow maps of impacts embodied in trade flows</li>
+<li>choropleth map for footprints</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">structural decomposition analysis</p>
+</li>
+<li><p class="first">improving the documentation (of course...)</p>
+</li>
+</ul>
+</div>
+<div class="section" id="vision">
+<h2>Vision<a class="headerlink" href="#vision" title="Permalink to this headline">¶</a></h2>
+<p>pymrio aims to provide on one hand a consistent API interface to (multi regional) input output models. Using that as starting point, the next step would be to build a GUI around this API to further simplify the access to MRIO data.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Development</a><ul>
+<li><a class="reference internal" href="#versioning">Versioning</a></li>
+<li><a class="reference internal" href="#documentation-and-docstrings">Documentation and docstrings</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#open-points">Open points</a></li>
+<li><a class="reference internal" href="#vision">Vision</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="changelog.html"
+                        title="next chapter">Changelog</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="changelog.html" title="Changelog"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li><a href="index.html">pymrio 0.2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Konstantin Stadler.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

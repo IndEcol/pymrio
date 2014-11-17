@@ -3,14 +3,21 @@ Changelog
 #########
 
 **********************
-v0.2.1 ???
+v0.2.1 (Nov 17, 2014)
 **********************
+
+Dependencies
+============
+
+- pandas version > 0.15. This required some change in the xls reading within
+  the parser.
+- pytest. For the unit tests.
 
 Misc
 ====
 
-- Function don't require level names anymore. If these are not available pymrio
-  assumes a certain level ordering TODO: add link to docu
+- Unit testing for all mathematical functions and a first system wide check.
+- Fixed some mistakes in the tutorials and readme
 
 **********************
 v0.2.0 (Sept 11, 2014)

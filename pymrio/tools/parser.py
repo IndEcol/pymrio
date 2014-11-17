@@ -13,6 +13,8 @@ import numpy as np
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
 
+pd.set_option('chained_assignment',None)   # There is one chained_assignment somewhere TODO: find and fix
+
 # constants and global variables
 from pymrio.core.constants import PYMRIO_PATH
 
@@ -311,10 +313,10 @@ def parse_exiobase22(path, charact = None, iosystem = None,
             # not completely unique - fix that
             _index = charac_data[Qname][Q_head_col_rowname[Qname]]
             if Qname is 'Q_emission':
-                _index[42] = _index[42] + ' 2008'
-                _index[43] = _index[43] + ' 2008'
-                _index[44] = _index[44] + ' 2010'
-                _index[45] = _index[45] + ' 2010'
+                _index.iloc[42] = _index.iloc[42] + ' 2008'
+                _index.iloc[43] = _index.iloc[43] + ' 2008'
+                _index.iloc[44] = _index.iloc[44] + ' 2010'
+                _index.iloc[45] = _index.iloc[45] + ' 2010'
             charac_data[Qname].index = (
                     charac_data[Qname][Q_head_col_rowname[Qname]])
 
