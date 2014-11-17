@@ -113,7 +113,10 @@ class CoreSystem():
         
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self,df) is not None):
-                ind = getattr(self, df).columns.get_level_values('category').unique()
+                try:
+                    ind = getattr(self, df).columns.get_level_values('category').unique()
+                except (AssertionError, KeyError):
+                    ind = getattr(self, df).columns.get_level_values(1).unique()
                 if entries:
                     if type(entries) is str: entries = [entries]
                     ind = ind.tolist()
@@ -158,7 +161,10 @@ class CoreSystem():
                                'D_fp_cap', 'D_terr_cap',  'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self,df) is not None):
-                ind = getattr(self, df).columns.get_level_values('region').unique()
+                try:
+                    ind = getattr(self, df).columns.get_level_values('region').unique()
+                except (AssertionError, KeyError):
+                    ind = getattr(self, df).columns.get_level_values(0).unique()
                 if entries:
                     if type(entries) is str: entries = [entries]
                     ind = ind.tolist()
@@ -189,7 +195,10 @@ class CoreSystem():
                                'D_fp_cap', 'D_terr_cap',  'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self,df) is not None):
-                ind = getattr(self, df).columns.get_level_values('sector').unique()
+                try:
+                    ind = getattr(self, df).columns.get_level_values('sector').unique()
+                except (AssertionError, KeyError):
+                    ind = getattr(self, df).columns.get_level_values(1).unique()
                 if entries:
                     if type(entries) is str: entries = [entries]
                     ind = ind.tolist()
@@ -571,8 +580,13 @@ class Extension(CoreSystem):
         FY_agg = 0
         if self.FY is not None:
             #FY_agg = util.agg_columns(ext['FY'], self.get_Y_categories().size)
-            FY_agg = (self.FY.sum(level='region', axis=1, sort=False).
+            try:
+                FY_agg = (self.FY.sum(level='region', axis=1, sort=False).
                       reindex_axis(self.get_regions(), axis=1))
+            except (AssertionError, KeyError):
+                FY_agg = (self.FY.sum(level=0, axis=1, sort=False).
+                      reindex_axis(self.get_regions(), axis=1))
+            
 
         if ((self.D_fp is None) or 
                 (self.D_terr is None) or 
@@ -586,18 +600,38 @@ class Extension(CoreSystem):
         # aggregate to country
         if ((self.D_fp_reg is None) or (self.D_terr_reg is None) or
                 (self.D_imp_reg is None) or (self.D_exp_reg is None)):
-            self.D_fp_reg = (
-                    self.D_fp.sum(level='region', axis=1, sort=False).
-                    reindex_axis(self.get_regions(), axis=1) + FY_agg)
-            self.D_terr_reg = (
-                    self.D_terr.sum(level='region', axis=1, sort=False).
-                    reindex_axis(self.get_regions(), axis=1) + FY_agg)
-            self.D_imp_reg = (
-                    self.D_imp.sum(level='region', axis=1, sort=False).
-                    reindex_axis(self.get_regions(), axis=1))
-            self.D_exp_reg = (
-                    self.D_exp.sum(level='region', axis=1, sort=False).
-                    reindex_axis(self.get_regions(), axis=1))
+            try:
+                self.D_fp_reg = (
+                        self.D_fp.sum(level='region', axis=1, sort=False).
+                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+            except (AssertionError, KeyError):
+                self.D_fp_reg = (
+                        self.D_fp.sum(level=0, axis=1, sort=False).
+                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+            try:
+                self.D_terr_reg = (
+                        self.D_terr.sum(level='region', axis=1, sort=False).
+                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+            except (AssertionError, KeyError):
+                self.D_terr_reg = (
+                        self.D_terr.sum(level=0, axis=1, sort=False).
+                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+            try:
+                self.D_imp_reg = (
+                        self.D_imp.sum(level='region', axis=1, sort=False).
+                        reindex_axis(self.get_regions(), axis=1))
+            except (AssertionError, KeyError):
+                self.D_imp_reg = (
+                        self.D_imp.sum(level=0, axis=1, sort=False).
+                        reindex_axis(self.get_regions(), axis=1))
+            try:
+                self.D_exp_reg = (
+                        self.D_exp.sum(level='region', axis=1, sort=False).
+                        reindex_axis(self.get_regions(), axis=1))
+            except (AssertionError, KeyError):
+                self.D_exp_reg = (
+                        self.D_exp.sum(level=0, axis=1, sort=False).
+                        reindex_axis(self.get_regions(), axis=1))
 
             logging.info('Accounts D for regions calculated')
 
@@ -731,21 +765,27 @@ class Extension(CoreSystem):
         data_row = pd.DataFrame(columns = [key for key in accounts])
         for key in accounts:
             if sector:
-                 _data = pd.DataFrame(
-                         getattr(self, accounts[key]).xs(key=sector, axis=1,
-                             level='sector').ix[row].T)
-                 if per_capita:
-                     if population is not None:
-                         if type(population) is pd.DataFrame:
-                             # check for right order:
-                             if population.columns.tolist() != self.D_fp_reg.columns.tolist():
+                try:
+                    _data = pd.DataFrame(
+                             getattr(self, accounts[key]).xs(key=sector, axis=1,
+                                 level='sector').ix[row].T)
+                except (AssertionError, KeyError):
+                    _data = pd.DataFrame(
+                             getattr(self, accounts[key]).xs(key=sector, axis=1,
+                                 level=1).ix[row].T)
+
+                if per_capita:
+                    if population is not None:
+                        if type(population) is pd.DataFrame:
+                            # check for right order:
+                            if population.columns.tolist() != self.D_fp_reg.columns.tolist():
                                 logging.warning('Population regions are inconsistent with IO regions')
-                             population = population.values
-                         population = population.reshape((-1,1))
-                         _data = _data / population
-                     else:
-                         logging.error('Population must be given for sector results per capita')
-                         return
+                            population = population.values
+                            population = population.reshape((-1,1))
+                            _data = _data / population
+                    else:
+                        logging.error('Population must be given for sector results per capita')
+                        return
             else:
                  _data = pd.DataFrame(
                          getattr(self, accounts[key]).ix[row].T)
@@ -1215,7 +1255,13 @@ class IOSystem(CoreSystem):
         if not Y_agg:  # this is needed in every loop iteration below
             logging.info('Calculating aggregated final demand')
             #Y_agg = util.agg_columns(self.Y, self.get_Y_categories().size)  
-            Y_agg = self.Y.sum(level='region', 
+            try:
+                Y_agg = self.Y.sum(level='region', 
+                               axis=1, 
+                               sort=False).reindex_axis(self.get_regions(), 
+                                                        axis=1)
+            except (AssertionError, KeyError):
+                Y_agg = self.Y.sum(level=0, 
                                axis=1, 
                                sort=False).reindex_axis(self.get_regions(), 
                                                         axis=1)
@@ -1283,8 +1329,7 @@ class IOSystem(CoreSystem):
         Parameters
         ----------
         data : boolean, optional
-           If True, returns a generator which yields the dicts of the
-           extensions.  
+           If True, returns a generator which yields the extensions.  
            If False, returns a generator which yields the names of
            the extensions (default)
 

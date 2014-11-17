@@ -10,7 +10,7 @@ Contents:
 
    intro
    installation
-   contribution
+   development
    changelog
    exploring
    terminology
