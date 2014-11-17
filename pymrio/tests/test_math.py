@@ -130,7 +130,7 @@ def td_small_MRIO():
         _regions = ['reg1', 'reg2']
         _Z_multiindex = pd.MultiIndex.from_product(
                 [_regions, _sectors],
-                names = [u'region', 'sector'])
+                names = [u'region', u'sector'])
 
         Z = pd.DataFrame(
                data = [
@@ -149,7 +149,7 @@ def td_small_MRIO():
         _categories = ['final demand']
         _Y_multiindex = pd.MultiIndex.from_product(
                 [_regions, _categories],
-                names = [u'region', 'category'])
+                names = [u'region', u'category'])
         Y = pd.DataFrame(
                data = [
                    [14, 3],

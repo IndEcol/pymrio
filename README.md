@@ -15,7 +15,7 @@ A small test mrio is included in the package. To use it call
 
 The test_mrio consists of a transaction matrix and two extension types.
 
-Check the [doc] (http://konstantinstadler.github.io/pymrio/index.html) and the tutorials for further information:
+Check the [documentation] (http://konstantinstadler.github.io/pymrio/index.html) and the tutorials for further information:
 
 Tutorial 1: [Basic intro] (http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_basic_introduction.ipynb)
 
@@ -26,13 +26,15 @@ Tutorial 3: [Use without parser] (http://nbviewer.ipython.org/github/konstantins
 Installation
 ------------
 
-Up to now now pymrio doesn't have a installation routine. Just download the package from the source repository (download zip on right toolstrip) and add the folder to your python path. 
+Up to now now pymrio doesn't have a installation routine. Just download the package from the source repository (download zip on right toolstrip), unzip and add the folder to your python path. 
 
     import sys
-    _pymrio_path = r'D:\KST\proj\pymrio'  
+    _pymrio_path = r'S:\pymrio-master'  
     if not _pymrio_path in sys.path:
         sys.path.append(_pymrio_path)
     del _pymrio_path
+
+    import pymrio
 
 
 Dependencies
@@ -44,3 +46,4 @@ Dependencies
 - scipy
 - matplotlib
 - docutils (only for generating reports in html format)
+- py.test (for running the unit tests)

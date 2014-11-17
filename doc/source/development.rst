@@ -1,5 +1,5 @@
 ############
-Contribution
+Development
 ############
 
 **********
@@ -20,6 +20,23 @@ Docstring should follow the numby docstring convention. See
 .. note::
 
     If you plan to build the doc yourself, install numpydoc 0.5dev from github (https://github.com/numpy/numpydoc). The version on pypi does not support python 3.
+
+*******
+Testing
+*******
+
+Pymrio uses the py.test package for all tests. Currently all mathematical
+functions are covered by tests. 
+
+In the folder pymrio/tests also a full pymrio system test based on the small
+MRIO included in pymrio is available (full_run.py). This test runs longer than
+the unit test and is therefore not included in the normal test run. To use it
+run 
+
+py.test full_run.py 
+
+in the test folder.
+
 
 ***********
 Open points
