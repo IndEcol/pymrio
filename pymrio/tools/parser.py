@@ -363,7 +363,7 @@ def parse_exiobase22(path, charact = None, iosystem = None,
 
     return IOSystem( Z = data['Z'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
 
-def parse_wiod(path, years = None, sector_names = 'full',
+def __parse_wiod(path, years = None, sector_names = 'full',
         version = 'exiobase 2.2', popvector = 'exio2'):
     """ Parse the wiod source files for the IOSystem 
     
