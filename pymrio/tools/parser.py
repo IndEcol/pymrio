@@ -365,13 +365,14 @@ def parse_exiobase22(path, charact = None, iosystem = None,
 
     return IOSystem( Z = data['Z'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
 
-def __parse_wiod(path, years = None, sector_names = 'full',
+
+def __parse_wiod(path, year = None, sector_names = 'full',
         version = 'exiobase 2.2', popvector = 'exio2'):
     """ Parse the wiod source files for the IOSystem 
     
     WIOD provides the MRIO tables in excel - format (xlsx) at
     http://www.wiod.org/new_site/database/wiots.htm (release November 2013).
-    To use WIOD in pymrio these (at least one) must be downloaded. The
+    To use WIOD in pymrio these (for the year of analysis) must be downloaded. The
     interindustry matrix of these files gets parsed in IOSystem.Z, the
     additional information is included as factor_input extension (value
     added,...)
@@ -391,7 +392,7 @@ def __parse_wiod(path, years = None, sector_names = 'full',
     is not added because it is only given in national currency.
 
     Since the "World Input-Output Tables in previous years' prices" are still
-    under construction, no parser for these is provided.
+    under construction (20141129), no parser for these is provided.
 
     Some of the meta-parameter of the IOSystem are set automatically based on
     the values given in the first four cells and the name of the WIOD data files (base
@@ -402,10 +403,11 @@ def __parse_wiod(path, years = None, sector_names = 'full',
     path : string
         Path to the folder with the WIOD source files. In case that the path to
         a specific file is given, only this will be parsed irrespective of the
-        values given in years.
-    years : int,str or list of int,str; optional
-        Which years (all found in the folder if None). The years can be given
-        with four or two digits (eg [2012 or 12]).
+        values given in year.
+    year : int, str, optional
+        Which year in the path should be parsed. The years can be given
+        with four or two digits (eg [2012 or 12]). If the path contains a file,
+        the value of year will not be used - otherwise it must be given
         For the monetary data the parser searches for files with 'wiot - two digit year'.
     sector_names : string, optional
         WIOD provides three different sector naming, which can be specified for
@@ -432,52 +434,131 @@ def __parse_wiod(path, years = None, sector_names = 'full',
     TODO Warning if extension data could not be found for the specific year
 
     """
-    
+
+    # DEBUG:
+    #path =  r'D:\S_storage\data\WIOD'
+    path =  r'D:\S_storage\data\WIOD\wiot00_row_apr12.xlsx'
+    year = 2008
+    # END DEBUG
+
+
     # Path manipulation, should work cross platform
     path = path.rstrip('\\')
     path = path.encode('unicode-escape')
     path = os.path.abspath(path)
 
-    # files contains the list of wiot files which are parsed otherwise
-    files = []
-
     # wiot start and end
     wiot_ext = b'.xlsx'
     wiot_start = b'wiot'
 
-    # determine the wiot files to be parsed
+    # determine which wiod file to be parsed
     if not os.path.isdir(path):    
         # 1. case - one file specified in path
         if os.path.isfile(path):
-            files = [path]
+            wiot_file = path
         else:
             # just in case the ending was forgotten
-            files = [path + wiot_ext]
-        if not os.path.exists(files[0]):
-            # TODO: raise WIOD error     
-            pass
+            wiot_file = path + wiot_ext
     else:
-        # 2. case: list of files
-        xlsx_folder_content  = [ff for ff in os.listdir(path) 
-                                if os.path.splitext(ff)[-1] == wiot_ext]
-        if years:
-            # 2a case: years are specified
-            if type(years) is not list:
-                years = [years]
-            years = [str(yy)[-2:].encode('unicode-escape') for yy in years]
-            files = [xf for xf in xlsx_folder_content 
-                        for yy in years 
-                        if xf[:6] == wiot_start + yy]
-        else:
-            # 2b: nothing specified, get everything
-            files = [xf for xf in xlsx_folder_content 
-                        if xf[:4] == wiot_start]
-            files.sort()
-            files = [os.path.join(path,ff) for ff in files]
-    files = [fd.decode() for fd in files]
+        # 2. case: directory given - build wiot_file with the value given in year
+        if not year:
+            # TODO: raise WIOD error
+            print('year not found')
+            pass
+        year_two_digit = str(year)[-2:].encode('unicode-escape')
+        
+        # WIOD comes with varying file names
+        # Try to estimate file name based on year
+        # TODO START NET: searc for file starting with wiot_start, year_two_digit and # wiot_ext
+        wiot_file = os.path.join(path, wiot_start + year_two_digit + wiot_ext)
 
-    # At this point the list "files" contains all wiot files which should be
-    # parsed. The employment data in the SEA file is read next. 
+    if os.path.exists(wiot_file):
+        # parse wiot file
+        try:
+            wiot_file = wiot_file.decode()
+        except:
+            pass
+
+        # file structure
+        wiot_meta = {
+                'col' : 0,   # column of the meta information
+                'year' : 0,  # rest: rows with the data
+                'iosystem' : 2,
+                'unit' : 3,
+                'end_row' : 4,
+                }
+        wiot_header = {    # the header indexes are the same for rows after removing the first two lines (empty_top_rows)
+                'code' : 0,
+                'sector_names' : 1,
+                'region' : 2,
+                'c_code' : 3,
+                'empty_top_rows' : [0,1],  
+                'total' : 3,
+                }
+        wiot_sheet = 0   # assume the first one is the one with the data.
+
+        # Wiod has an unfortunate file structure with overlapping metadata and
+        # header. In order to deal with that first the full file is read.
+        wiot_data = pd.read_excel(wiot_file,
+                                sheetname = wiot_sheet,
+                                header = None)
+
+        # get meta data
+        wiot_year = wiot_data.iloc[wiot_meta['year'],wiot_meta['col']][-4:]
+        wiot_iosystem = wiot_data.iloc[wiot_meta['iosystem'],wiot_meta['col']].rstrip(')').lstrip('(')
+        _wiot_unit = wiot_data.iloc[wiot_meta['unit'],wiot_meta['col']].rstrip(')').lstrip('(')
+
+        # remove meta data and empty rows
+        wiot_data.iloc[0:wiot_meta['end_row'],wiot_meta['col']] = NaN   
+        wiot_data.drop(wiot_header['empty_top_rows'], axis = 0, inplace = True)
+
+        # lookup for replacing sector names later one
+        wiot_sector_lookup = wiot_data[wiot_data[2] == 'USA'].iloc[:,0:4] # assuming USA is present in every WIOT year
+
+        # separate factor input extension
+        facinp_start = wiot_data[wiot_data.iloc[:,wiot_header['region']] == 'TOT'].index[0]
+        facinp_data = wiot_data.iloc[facinp_start+1:-1,:]  # the total rows (first and last) are useless 
+       
+        wiot_data = wiot_data.iloc[:facinp_start,:]
+
+        # split Z in Z and Y TODO (open calc does not show everything!)
+        # split facinp in F and FY TODO
+
+        # set row index
+        facinp_data.set_index([wiot_header['code']], inplace = True, drop = False)
+        wiot_data.set_index([wiot_header['region'],wiot_header['code']], inplace = True, drop = False)
+
+        wiot_data = wiot_data.ix[wiot_header['total']+1:,wiot_header['total']+1:]
+        # set column index
+        #facinp_data.columns = wiot_data.index
+        #wiot_data.columns = wiot_data.index
+
+
+        #facinp_data.set_index(wiot_data['sector_names'], inplace = True, drop = False)
+        #facinp_data.drop([0,2,3], axis = 1, inplace = True)  # TODO replace by wiot_header(total)
+        #facinp_data.index.names = ['stressor', 'unit'] 
+        # TODO: put names of index/columns of all attributes in the doc
+        # TODO build the extension, add also employment if available
+
+        # prepare the pure flow matrix TODO: remove after check whats useful
+        wiot_data = wiot_data.iloc[:facinp_start,:]
+        _total_header_rows = len(wiot_header['empty_top_rows']) + wiot_header['total']
+        _columns = wiot_data.iloc[
+                    len(wiot_header['empty_top_rows']):_total_header_rows + 1,
+                    wiot_header['total']+1:].copy()
+        wiot_data.drop(range(_total_header_rows + 1), axis = 0, inplace = True)
+
+        wiot_data.index.set_names(['region','sector'], inplace = True)  
+
+        wiot_unit = pd.DataFrame(index = wiot_data.index,
+                                 data = _wiot_unit,
+                                 columns = ['unit'])                   
+        # prepare the factor_input extension
+    else:
+        # Wiod file does not exist
+        # TODO: raise WIOD error     
+        print('wiot file not found')
+        pass
 
     # SEA file
     sea_ext = b'.xlsx'
@@ -497,90 +578,24 @@ def __parse_wiod(path, years = None, sector_names = 'full',
     if sea_folder_content:
         sea_folder_content.sort()
         sea_file = os.path.join(_SEA_folder,sea_folder_content[0]).decode()
-        sea_data = pd.read_excel(sea_file,
+        sea_data = pd.read_excel(sea_file,    # TODO: change to new pandas version
                                 sheetname = sea_data_sheet,
                                 header = 0,
                                 index_col = [0,1,2,3])
+        # get year column
 
-    # environmental extensions
-        # TODO: get canonical names of extensions (fixed)
-        # TODO: build a dict with the format
-        # TODO: check if folder or zip is present for each
+    # Next steps environmental extensions
+        # TODO: get canonical names of environmental extensions
+            # check if the name can be taken from the path or is present within
+            # the xls file of the extension
+        # TODO: build a dict with the format (following wiot_meta)
+            # two kinds of extension with different format, but quite similar
+            # fd emissions always present
+            # loop over countries in Z and get values if country exist
+        # TODO: check if folder or zip is present for each (how to read zip?)
         # TODO: try read for each sheet based on year (read all files - save in
         # a dict with the beginning of the files (iso3))
 
-    # general wiot data structure
-    
-    wiot_meta = {
-            'col' : 0,   # column of the meta information
-            'year' : 0,  # rows with the data
-            'iosystem' : 2,
-            'unit' : 3,
-            'end_row' : 4,
-            }
-    wiot_header = {    # the header indexes are the same for rows after removing the first two lines (empty_top_rows)
-            'code' : 0,
-            'sector_names' : 1,
-            'region' : 2,
-            'c_code' : 3,
-            'empty_top_rows' : [0,1],  
-            'total' : 3,
-            }
-    # main loop for reading the wiot file and the extensions
-    for ff in files:
-        wiot_sheet = 0   # assume the first one is the one with the data.
-
-        # Wiod has an unfortunate file structure with overlapping metadata and
-        # header. In order to deal with that first the full file is read.
-        wiot_data = pd.read_excel(ff,
-                                sheetname = wiot_sheet,
-                                header = None)
-
-        # meta data
-        wiot_year = wiot_data.iloc[wiot_meta['year'],wiot_meta['col']][-4:]
-        wiot_iosystem = wiot_data.iloc[wiot_meta['iosystem'],wiot_meta['col']].rstrip(')').lstrip('(')
-        _wiot_unit = wiot_data.iloc[wiot_meta['unit'],wiot_meta['col']].rstrip(')').lstrip('(')
-        wiot_data.iloc[0:wiot_meta['end_row'],wiot_meta['col']] = NaN
-        
-        #nr_sectors = wiot_data[wiot_data[wiot_header['region']] == 'USA'][0].count()    # assuming USA is present in every WIOT year
-        wiot_names_lookup = wiot_data[wiot_data[2] == 'USA'].iloc[:,0:4] # assuming USA is present in every WIOT year
-
-        # separate factor input extension
-        facinp_start = wiot_data[wiot_data.iloc[:,wiot_header['region']] == 'TOT'].index 
-        facinp_data = wiot_data.iloc[facinp_start+1:-1,:]  # the total rows (first and last) are useless 
-        facinp_data.set_index(wiot_data['sector_names'], inplace = True, drop = False)
-        #facinp_data.drop([0,2,3], axis = 1, inplace = True)  # TODO replace by wiot_header(total)
-        facinp_data.index.names = ['stressor', 'unit'] 
-        # TODO: put names of index/columns of all attributes in the doc
-        # TODO build the extension, add also employment if available
-
-        # prepare the pure flow matrix 
-        wiot_data = wiot_data.iloc[:facinp_start,:]
-        _total_header_rows = len(wiot_header['empty_top_rows']) + wiot_header['total']
-        _columns = wiot_data.iloc[
-                    len(wiot_header['empty_top_rows']):_total_header_rows + 1,
-                    wiot_header['total']+1:].copy()
-        wiot_data.drop(range(_total_header_rows + 1), axis = 0, inplace = True)
-        # set the index
-        #TODO set index for columns based on _columns
-        #TODO check if set_index is possible for columns as well
-        #TODO check NaN at the end of columns in the original xlsx
-        wiot_data.set_index(
-                    [wiot_header['region'],
-                     wiot_header['code']], 
-                    inplace = True)
-        wiot_data.drop(
-                    [wiot_header['sector_names'],
-                     wiot_header['c_code']], 
-                    inplace=True, axis=1)
-        wiot_data.index.set_names(['region','sector'], inplace = True)  
-        wiot_unit = pd.DataFrame(index = wiot_data.index,
-                                 data = _wiot_unit,
-                                 columns = ['unit'])                   
-        # prepare the factor_input extension
-        
-
-    # Environmental extensions
-    # Main loop over all years
+    # TODO: Function for main loop over all years
 
 
