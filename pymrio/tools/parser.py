@@ -411,11 +411,10 @@ def __parse_wiod(path, year = None, sector_names = 'full',
         For the monetary data the parser searches for files with 'wiot - two digit year'.
     sector_names : string, optional
         WIOD provides three different sector naming, which can be specified for
-        the IOSystem:
+        the IOSystem: TODO: put also names used in the dict in here
         full sector names: 'full' - default
         codes : 'code'
         c-values : 'c'
-        Internally, the parser works with the codes
     TODO popvector : string or pd.DataFrame, optional
         The population vector for the countries.  This can be given as
         pd.DataFrame(index = population, columns = countrynames) or, (default)
@@ -426,6 +425,7 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     -------
     IOSystems
         Ordered by years given (in the order given, otherwise the oldest first)
+        TODO: change to one output
 
     Raises
     ------
@@ -438,9 +438,8 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     # DEBUG:
     #path =  r'D:\S_storage\data\WIOD'
     path =  r'D:\S_storage\data\WIOD\wiot00_row_apr12.xlsx'
-    year = 2008
+    #year = 2008
     # END DEBUG
-
 
     # Path manipulation, should work cross platform
     path = path.rstrip('\\')
@@ -462,103 +461,148 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     else:
         # 2. case: directory given - build wiot_file with the value given in year
         if not year:
-            # TODO: raise WIOD error
+            # TODO: raise WIOD error and return
             print('year not found')
             pass
         year_two_digit = str(year)[-2:].encode('unicode-escape')
-        
-        # WIOD comes with varying file names
-        # Try to estimate file name based on year
-        # TODO START NET: searc for file starting with wiot_start, year_two_digit and # wiot_ext
-        wiot_file = os.path.join(path, wiot_start + year_two_digit + wiot_ext)
+        wiot_file_list = [fl for fl in os.listdir(path)
+                             if (fl[:6] == wiot_start + year_two_digit
+                                 and os.path.splitext(fl)[1] == wiot_ext)]
+        if len(wiot_file_list) != 1:
+            # TODO: raise WIOD error
+            print('multiple files for given year of file not found- specify single file in paramters')
 
-    if os.path.exists(wiot_file):
-        # parse wiot file
-        try:
-            wiot_file = wiot_file.decode()
-        except:
-            pass
+        wiot_file = os.path.join(path, wiot_file_list[0])
+    
+    wiot_file = wiot_file.decode()
+    if not os.path.exists(wiot_file):
+        # TODO: raise WIOD error
+        print('wiot_file not found')
 
-        # file structure
-        wiot_meta = {
-                'col' : 0,   # column of the meta information
-                'year' : 0,  # rest: rows with the data
-                'iosystem' : 2,
-                'unit' : 3,
-                'end_row' : 4,
-                }
-        wiot_header = {    # the header indexes are the same for rows after removing the first two lines (empty_top_rows)
-                'code' : 0,
-                'sector_names' : 1,
-                'region' : 2,
-                'c_code' : 3,
-                'empty_top_rows' : [0,1],  
-                'total' : 3,
-                }
-        wiot_sheet = 0   # assume the first one is the one with the data.
+    # wiot file structure
+    wiot_meta = {
+            'col' : 0,   # column of the meta information
+            'year' : 0,  # rest: rows with the data
+            'iosystem' : 2,
+            'unit' : 3,
+            'end_row' : 4,
+            }
+    wiot_header = {    # the header indexes are the same for rows after removing the first two lines (wiot_empty_top_rows)
+            'code' : 0,
+            'sector_names' : 1,
+            'region' : 2,
+            'c_code' : 3,
+            }
+    wiot_empty_top_rows = [0,1]
 
-        # Wiod has an unfortunate file structure with overlapping metadata and
-        # header. In order to deal with that first the full file is read.
-        wiot_data = pd.read_excel(wiot_file,
-                                sheetname = wiot_sheet,
-                                header = None)
+    wiot_marks = {   # special marks 
+            'last_interindsec' : 'c35',    # last sector of the interindustry
+            'tot_facinp' : ['r60', 'r69'], # useless totals to remove from factinp
+            'total_column' : [-1],         # the total column in the whole data
+            }
 
-        # get meta data
-        wiot_year = wiot_data.iloc[wiot_meta['year'],wiot_meta['col']][-4:]
-        wiot_iosystem = wiot_data.iloc[wiot_meta['iosystem'],wiot_meta['col']].rstrip(')').lstrip('(')
-        _wiot_unit = wiot_data.iloc[wiot_meta['unit'],wiot_meta['col']].rstrip(')').lstrip('(')
+    wiot_sheet = 0   # assume the first one is the one with the data.
 
-        # remove meta data and empty rows
-        wiot_data.iloc[0:wiot_meta['end_row'],wiot_meta['col']] = NaN   
-        wiot_data.drop(wiot_header['empty_top_rows'], axis = 0, inplace = True)
+    # Wiod has an unfortunate file structure with overlapping metadata and
+    # header. In order to deal with that first the full file is read.
+    wiot_data = pd.read_excel(wiot_file,
+                            sheetname = wiot_sheet,
+                            header = None)
 
-        # lookup for replacing sector names later one
-        wiot_sector_lookup = wiot_data[wiot_data[2] == 'USA'].iloc[:,0:4] # assuming USA is present in every WIOT year
+    # get meta data
+    wiot_year = wiot_data.iloc[wiot_meta['year'],wiot_meta['col']][-4:]
+    wiot_iosystem = wiot_data.iloc[wiot_meta['iosystem'],wiot_meta['col']].rstrip(')').lstrip('(')
+    _wiot_unit = wiot_data.iloc[wiot_meta['unit'],wiot_meta['col']].rstrip(')').lstrip('(')
 
-        # separate factor input extension
-        facinp_start = wiot_data[wiot_data.iloc[:,wiot_header['region']] == 'TOT'].index[0]
-        facinp_data = wiot_data.iloc[facinp_start+1:-1,:]  # the total rows (first and last) are useless 
-       
-        wiot_data = wiot_data.iloc[:facinp_start,:]
+    # remove meta data, empty rows, total column
+    wiot_data.iloc[0:wiot_meta['end_row'],wiot_meta['col']] = NaN   
+    wiot_data.drop(wiot_empty_top_rows, 
+                    axis = 0, inplace = True) 
+    wiot_data.drop(wiot_data.columns[wiot_marks['total_column']], 
+                    axis = 1, inplace = True)
+        #at this stage row and column header should have the same size but 
+        # the index starts now at two - replace/reset to row numbers
+    wiot_data.index = range(wiot_data.shape[0])
 
-        # split Z in Z and Y TODO (open calc does not show everything!)
-        # split facinp in F and FY TODO
+    # get the end of the interindustry matrix
+    _lastZcol = wiot_data[
+        wiot_data.iloc[:,wiot_header['c_code']] == wiot_marks['last_interindsec']
+        ].index[-1]
+    _lastZrow = wiot_data[
+        wiot_data.iloc[wiot_header['c_code'],:] == wiot_marks['last_interindsec']
+        ].index[-1]
 
-        # set row index
-        facinp_data.set_index([wiot_header['code']], inplace = True, drop = False)
-        wiot_data.set_index([wiot_header['region'],wiot_header['code']], inplace = True, drop = False)
-
-        wiot_data = wiot_data.ix[wiot_header['total']+1:,wiot_header['total']+1:]
-        # set column index
-        #facinp_data.columns = wiot_data.index
-        #wiot_data.columns = wiot_data.index
-
-
-        #facinp_data.set_index(wiot_data['sector_names'], inplace = True, drop = False)
-        #facinp_data.drop([0,2,3], axis = 1, inplace = True)  # TODO replace by wiot_header(total)
-        #facinp_data.index.names = ['stressor', 'unit'] 
-        # TODO: put names of index/columns of all attributes in the doc
-        # TODO build the extension, add also employment if available
-
-        # prepare the pure flow matrix TODO: remove after check whats useful
-        wiot_data = wiot_data.iloc[:facinp_start,:]
-        _total_header_rows = len(wiot_header['empty_top_rows']) + wiot_header['total']
-        _columns = wiot_data.iloc[
-                    len(wiot_header['empty_top_rows']):_total_header_rows + 1,
-                    wiot_header['total']+1:].copy()
-        wiot_data.drop(range(_total_header_rows + 1), axis = 0, inplace = True)
-
-        wiot_data.index.set_names(['region','sector'], inplace = True)  
-
-        wiot_unit = pd.DataFrame(index = wiot_data.index,
-                                 data = _wiot_unit,
-                                 columns = ['unit'])                   
-        # prepare the factor_input extension
+    if _lastZcol != _lastZrow:
+        print('wiod parsing error, interindustry not symetric')
     else:
-        # Wiod file does not exist
-        # TODO: raise WIOD error     
-        print('wiot file not found')
-        pass
+        Zshape = (_lastZrow, _lastZcol)
+        
+    # separate factor input extension and remove 
+    # totals in the first and last row
+    facinp = wiot_data.iloc[Zshape[0]+1:,:] 
+    facinp.drop(
+        facinp[facinp[wiot_header['c_code']].isin(wiot_marks['tot_facinp'])].index,
+        inplace = True,
+        axis = 0
+        )
+
+    Z = wiot_data.iloc[:Zshape[0],:Zshape[1]]
+    Y = wiot_data.iloc[:Zshape[0],Zshape[1]+1:]
+    F_fac = facinp.iloc[:,:Zshape[1]]
+    FY_fac = facinp.iloc[:,Zshape[1]+1:]
+
+    # START NEXT STEPS
+    # check in excel if split is correct
+    # put in multiindex:
+    #   put things in subfunction
+        # with code (this must be used b/c available in all extensions)
+            # save lookup table for the output
+        # use from below (code only tested up to this point) 
+        # build core io table with meta data
+        # build the first extension for fac, with unit
+        # loop through SEA and the other extensions
+
+    # removing the factor input, but header could be done now
+    #Z_header_list = sorted(wiot_header, key = wiot_header.get)
+    #wiot_data.set_index([wiot_header[ww] for ww in Z_header_list], 
+                         #inplace = True, drop = False)
+    #wiot_data.index.names = Z_header_list
+    # for columns: something lie columns = [wiot_data.iloc[x,4:].tolist() for x in range(4)]
+
+    # lookup for replacing sector names later one
+    #wiot_sector_lookup = wiot_data[wiot_data[2] == 'USA'].iloc[:,0:4] # assuming USA is present in every WIOT year TODO maybe later before removing index put header already present?
+
+    # set row index
+    facinp_data.set_index([wiot_header['code']], inplace = True, drop = False)
+    wiot_data.set_index([wiot_header['region'],wiot_header['code']], inplace = True, drop = False)
+
+    wiot_data = wiot_data.ix[wiot_header['total']+1:,wiot_header['total']+1:]
+    # set column index
+    #facinp_data.columns = wiot_data.index
+    #wiot_data.columns = wiot_data.index
+
+
+    #facinp_data.set_index(wiot_data['sector_names'], inplace = True, drop = False)
+    #facinp_data.drop([0,2,3], axis = 1, inplace = True)  # TODO replace by wiot_header(total)
+    #facinp_data.index.names = ['stressor', 'unit'] 
+    # TODO: put names of index/columns of all attributes in the doc
+    # TODO build the extension, add also employment if available
+
+    # prepare the pure flow matrix TODO: remove after check whats useful
+    wiot_data = wiot_data.iloc[:facinp_start,:]
+    _total_header_rows = len(wiot_header['empty_top_rows']) + wiot_header['total']
+    _columns = wiot_data.iloc[
+                len(wiot_header['empty_top_rows']):_total_header_rows + 1,
+                wiot_header['total']+1:].copy()
+    wiot_data.drop(range(_total_header_rows + 1), axis = 0, inplace = True)
+
+    wiot_data.index.set_names(['region','sector'], inplace = True)  
+
+    wiot_unit = pd.DataFrame(index = wiot_data.index,
+                             data = _wiot_unit,
+                             columns = ['unit'])                   
+    # prepare the factor_input extension
+
 
     # SEA file
     sea_ext = b'.xlsx'
