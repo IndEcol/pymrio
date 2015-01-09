@@ -335,7 +335,7 @@ def parse_exiobase22(path, charact = None, iosystem = None,
                                 data['Y'].shape[1]])
             _impact[Qname] = {'F':charac_data[Qname].dot(
                                 ext[Qsheets[Qname]]['F'].values),
-                              'FY':charac_data[Qname].dot(_FY),
+                              'FY':charac_dat[Qname].dot(_FY),
                               'unit':_units[Qname]
                              }
 
@@ -385,11 +385,11 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     parser. In case a zip file and a folder is available, the data is read from
     the folder. 
 
-    If a WIOD SEA file is present (at the root of path or in a folder names
-    'SEA'; the parser uses the youngest as specified in the file name), the labor
-    data of this file gets included in the factor_input extension (calculated
-    for the the three skill levels available). The monetary data in this file
-    is not added because it is only given in national currency.
+    If a WIOD SEA file is present (at the root of path or in a folder named
+    'SEA' - only one file!), the labor data of this file gets included in the
+    factor_input extension (calculated for the the three skill levels
+    available). The monetary data in this file is not added because it is only
+    given in national currency.
 
     Since the "World Input-Output Tables in previous years' prices" are still
     under construction (20141129), no parser for these is provided.
@@ -437,7 +437,8 @@ def __parse_wiod(path, year = None, sector_names = 'full',
 
     # DEBUG:
     #path =  r'D:\S_storage\data\WIOD'
-    path =  r'D:\S_storage\data\WIOD\wiot00_row_apr12.xlsx'
+    #path =  r'D:\S_storage\data\WIOD\wiot00_row_apr12.xlsx'
+    path = r'S:\data\WIOD\\wiot00_row_apr12.xlsx'
     #year = 2008
     # END DEBUG
 
@@ -475,6 +476,7 @@ def __parse_wiod(path, year = None, sector_names = 'full',
         wiot_file = os.path.join(path, wiot_file_list[0])
     
     wiot_file = wiot_file.decode()
+    root_path = os.path.split(wiot_file)[0]   
     if not os.path.exists(wiot_file):
         # TODO: raise WIOD error
         print('wiot_file not found')
@@ -546,89 +548,103 @@ def __parse_wiod(path, year = None, sector_names = 'full',
         axis = 0
         )
 
-    Z = wiot_data.iloc[:Zshape[0],:Zshape[1]]
-    Y = wiot_data.iloc[:Zshape[0],Zshape[1]+1:]
-    F_fac = facinp.iloc[:,:Zshape[1]]
-    FY_fac = facinp.iloc[:,Zshape[1]+1:]
+    Z = wiot_data.iloc[:Zshape[0]+1,:Zshape[1]+1].copy()
+    Y = wiot_data.iloc[:Zshape[0]+1,Zshape[1]+1:].copy()
+    F_fac = facinp.iloc[:,:Zshape[1]+1].copy()
+    FY_fac = facinp.iloc[:,Zshape[1]+1:].copy()
 
-    # START NEXT STEPS
-    # check in excel if split is correct
-    # put in multiindex:
-    #   put things in subfunction
-        # with code (this must be used b/c available in all extensions)
-            # save lookup table for the output
-        # use from below (code only tested up to this point) 
-        # build core io table with meta data
-        # build the first extension for fac, with unit
-        # loop through SEA and the other extensions
+    # set the index/columns, work with code b/c these are also used in the extensions
+    Z.set_index([wiot_header['region'], wiot_header['code']], inplace = True, drop = False)
+    index_wiot_headers = [nr for nr in wiot_header.values()]
+    Z = Z.iloc[max(index_wiot_headers)+1:, max(index_wiot_headers)+1:]
+    Z.index.names = ['region', 'sector']
+    Z.columns = Z.index
+    
+    indexY_col_head = Y.iloc[[wiot_header['region'], wiot_header['c_code']],:]    # no code for these, use c_code
+    Y.columns = pd.MultiIndex.from_arrays(indexY_col_head.values, names = Z.index.names)
+    Y = Y.iloc[max(index_wiot_headers)+1:, :]
+    Y.index = Z.index
 
-    # removing the factor input, but header could be done now
-    #Z_header_list = sorted(wiot_header, key = wiot_header.get)
-    #wiot_data.set_index([wiot_header[ww] for ww in Z_header_list], 
-                         #inplace = True, drop = False)
-    #wiot_data.index.names = Z_header_list
-    # for columns: something lie columns = [wiot_data.iloc[x,4:].tolist() for x in range(4)]
+    F_fac.set_index([wiot_header['sector_names']], inplace = True, drop = False) # also c_code missing, use names
+    F_fac.index.names = ['inputtype']
+    F_fac = F_fac.iloc[:, max(index_wiot_headers)+1:]
+    F_fac.columns = Z.columns
+    FY_fac.columns = Y.columns
+    FY_fac.index = F_fac.index
 
-    # lookup for replacing sector names later one
-    #wiot_sector_lookup = wiot_data[wiot_data[2] == 'USA'].iloc[:,0:4] # assuming USA is present in every WIOT year TODO maybe later before removing index put header already present?
+    wiot_sector_lookup = wiot_data[wiot_data[2] == 'USA'].iloc[:,0:max(index_wiot_headers)+1] # assuming USA is present in every WIOT year 
+    wiot_sector_lookup.columns = [entry[1] for entry in sorted(zip(wiot_header.values(), wiot_header.keys()))]
 
-    # set row index
-    facinp_data.set_index([wiot_header['code']], inplace = True, drop = False)
-    wiot_data.set_index([wiot_header['region'],wiot_header['code']], inplace = True, drop = False)
+    # convert from object to float (was object because mixed float,str)
+    Z = Z.astype('float')
+    Y = Y.astype('float')
+    F_fac = F_fac.astype('float')
+    FY_fac = FY_fac.astype('float')
 
-    wiot_data = wiot_data.ix[wiot_header['total']+1:,wiot_header['total']+1:]
-    # set column index
-    #facinp_data.columns = wiot_data.index
-    #wiot_data.columns = wiot_data.index
+    # save the units
+    Z_units = pd.DataFrame(Z.iloc[:,0])
+    Z_units.columns = ['unit'] 
+    Z_units['unit'] = _wiot_unit
 
+    F_fac_units = pd.DataFrame(F_fac.iloc[:,0])
+    F_fac_units.columns = ['unit'] 
+    F_fac_units['unit'] = _wiot_unit
 
-    #facinp_data.set_index(wiot_data['sector_names'], inplace = True, drop = False)
-    #facinp_data.drop([0,2,3], axis = 1, inplace = True)  # TODO replace by wiot_header(total)
-    #facinp_data.index.names = ['stressor', 'unit'] 
-    # TODO: put names of index/columns of all attributes in the doc
-    # TODO build the extension, add also employment if available
+    # SEA file - append to factor_inputs if available
+    sea_ext = '.xlsx'
+    sea_start = 'WIOD_SEA'
 
-    # prepare the pure flow matrix TODO: remove after check whats useful
-    wiot_data = wiot_data.iloc[:facinp_start,:]
-    _total_header_rows = len(wiot_header['empty_top_rows']) + wiot_header['total']
-    _columns = wiot_data.iloc[
-                len(wiot_header['empty_top_rows']):_total_header_rows + 1,
-                wiot_header['total']+1:].copy()
-    wiot_data.drop(range(_total_header_rows + 1), axis = 0, inplace = True)
-
-    wiot_data.index.set_names(['region','sector'], inplace = True)  
-
-    wiot_unit = pd.DataFrame(index = wiot_data.index,
-                             data = _wiot_unit,
-                             columns = ['unit'])                   
-    # prepare the factor_input extension
-
-
-    # SEA file
-    sea_ext = b'.xlsx'
-    sea_start = b'WIOD_SEA'
-    sea_data_sheet = 'DATA'
-    sea_data = None
-
-    # check if SEA folder exists
-    _SEA_folder = os.path.join(path, b'SEA')
+    # check if a separate SEA folder exists
+    _SEA_folder = os.path.join(root_path, 'SEA')
     if not os.path.exists(_SEA_folder):
-        _SEA_folder = path
+        _SEA_folder = root_path
 
     sea_folder_content  = [ff for ff in os.listdir(_SEA_folder) 
                             if os.path.splitext(ff)[-1] == sea_ext and
                             ff[:8] == sea_start]
 
     if sea_folder_content:
-        sea_folder_content.sort()
-        sea_file = os.path.join(_SEA_folder,sea_folder_content[0]).decode()
-        sea_data = pd.read_excel(sea_file,    # TODO: change to new pandas version
-                                sheetname = sea_data_sheet,
-                                header = 0,
-                                index_col = [0,1,2,3])
-        # get year column
+        # take the first found file (there should be only one...) 
+        sea_file = os.path.join(_SEA_folder,sorted(sea_folder_content)[0])
+        sea_data, sea_units = __get_WIOD_SEA_extension(file = sea_file)
+
+        # append does not work with multiindex columns - remove temporarily 
+        _sea = pd.DataFrame(data=sea_data.values, index=sea_data.index)
+        _F_fac = pd.DataFrame(data=F_fac.values, index=F_fac.index)
+        _df_append = _F_fac.append(_sea)
+        _df_append.columns = F_fac.columns
+        F_fac = _df_append
+        F_fac_units = F_fac_units.append(sea_units)
+
+        # make FY_fac consistent
+        _FY_sea = pd.DataFrame(index = sea_data.index, columns=FY_fac.columns)
+        _FY_sea = pd.DataFrame(data=_FY_sea.values, index = _FY_sea.index)
+        _FY_sea.fillna(0, inplace = True)
+
+        _FY_fac = pd.DataFrame(data=FY_fac.values, index=FY_fac.index)
+        _df_append = _FY_fac.append(_FY_sea)
+        _df_append.columns = FY_fac.columns
+        FY_fac = _df_append
+
+    ext = dict()
+    ext['factor_inputs'] = {'F':F_fac,
+                            'FY':FY_fac,
+                            'year' : wiot_year,
+                            'iosystem' : wiot_iosystem,
+                            'unit': F_fac_units, 
+                            'name':'factor input',
+                            }
+
+
+    wiod = IOSystem(Z = Z, Y = Y, 
+                    year = wiot_year,
+                    iosystem = wiot_iosystem,
+                    unit = Z_units,
+                    **ext) 
+
 
     # Next steps environmental extensions
+        #START - check again if SEA correct, then start with env extensions
         # TODO: get canonical names of environmental extensions
             # check if the name can be taken from the path or is present within
             # the xls file of the extension
@@ -642,4 +658,73 @@ def __parse_wiod(path, year = None, sector_names = 'full',
 
     # TODO: Function for main loop over all years
 
+def __get_WIOD_SEA_extension(file, year, data_sheet = 'DATA'):
+    """ Utility function to get the useful data for the extension from the SEA file in WIOD
+
+    This script is based on the structure in the WIOD_SEA_July14 file, and also 
+    fixes the wrong index ROU (to ROM), and appends RoW if missing
+    Missing values are set to zero.
+
+    Parameters
+    ----------
+    seafile : string
+        SEA file with full path
+    year : str or int
+        Year to return for the extension
+    sea_data_sheet : string, optional
+        Worksheet with the SEA data in the excel file
+
+    Returns
+    -------
+    SEA data as extension for the WIOD MRIO
+    """
+
+    # read data 
+    df_sea = pd.read_excel(file, 
+            sheetname = data_sheet,
+            header = 0,
+            index_col = [0,1,2,3])
+
+    # fix years
+    ic_sea = df_sea.columns.tolist()
+    ic_sea = [yystr.lstrip('_') for yystr in ic_sea]
+    df_sea.columns = ic_sea
+
+    ds_sea = df_sea[str(year)]
+
+    # get useful data (employment)
+    mt_sea = ['EMP', 'EMPE', 'H_EMP', 'H_EMPE'] 
+    ds_use_sea = pd.concat([ds_sea.xs(key = vari, level = 'Variable', drop_level = False) for vari in mt_sea])
+    ds_use_sea.drop(labels = 'TOT', level = 'Code', inplace = True)
+    ds_use_sea.reset_index('Description', drop = True, inplace = True)
+
+    # correct for wrong index in the SEA file
+    df_use_sea = ds_use_sea.reset_index('Country')
+    df_use_sea[df_use_sea['Country'] == 'ROU'] = 'ROM' 
+    ds_use_sea = df_use_sea.set_index('Country', append = True, drop = True, ).iloc[:,0]
+
+    # append the RoW entry
+    if not 'RoW' in ds_use_sea.index.get_level_values('Country'):
+        ds_RoW = ds_use_sea.xs('USA', level = 'Country', drop_level = False)
+        ds_RoW.ix[:] = 0;
+        df_RoW = ds_RoW.reset_index()
+        df_RoW['Country'] = 'RoW'
+        ds_use_sea = pd.concat([ds_use_sea.reset_index(), df_RoW]).set_index(['Country', 'Code', 'Variable'])
+
+    ds_use_sea.fillna(value=0, inplace = True)
+    df_use_sea = ds_use_sea.unstack(level = ['Country', 'Code'])[str(year)]
+    df_use_sea.index.names = ['inputtype']
+    df_use_sea.columns.names = ['region', 'sector']
+
+    df_units = pd.DataFrame(
+                data = [    # this data must be in the same order as mt_sea
+                    'thousand persons', 
+                    'thousand persons', 
+                    'mill hours', 
+                    'mill hours', 
+                    ],
+                columns = ['unit'],
+                index = df_use_sea.index)
+
+    return df_use_sea, df_units
 
