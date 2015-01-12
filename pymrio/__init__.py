@@ -55,6 +55,7 @@ from pymrio.core.fileio import load_test
 
 from pymrio.tools.parser import parse_exio_ext
 from pymrio.tools.parser import parse_exiobase22
+from pymrio.tools.parser import parse_exiobase3
 
 from pymrio.tools.util import concate_extension
 from pymrio.tools.util import build_agg_vec

@@ -1190,7 +1190,7 @@ class IOSystem(CoreSystem):
                                 'Calculation of L not possible - check A')) 
 
                 self.x = calc_x_from_L(self.L, self.Y.sum(axis=1))
-                logging.info('Industry Ooutput x calculated')
+                logging.info('Industry Output x calculated')
             except (ValueError, AttributeError):
                 logging.error(
                     core.IO_CALCError(

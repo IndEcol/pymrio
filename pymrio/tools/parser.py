@@ -421,7 +421,6 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None ):
                 'unit_col',   # column containing the unit for the table (couting starts at zero)
                 ])
     ver_ext = version + '.txt'
-    
 
     core_files = dict(       # for the core files the unit_col is still hard coded below - fix if needed
             A = file_data(file_name = 'mrIot' + ver_ext, 
