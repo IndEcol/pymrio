@@ -423,30 +423,30 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None ):
     ver_ext = version + '.txt'
 
     core_files = dict(       # for the core files the unit_col is still hard coded below - fix if needed
-            A = file_data(file_name = 'mrIot' + ver_ext, 
+            Z = file_data(file_name = 'mrIot' + ver_ext, 
                 index_rows = 2, index_col=3, unit_col = 2),
             Y = file_data(file_name = 'mrFinalDemand' + ver_ext, 
                 index_rows = 2, index_col = 3, unit_col = 2),           
             )
     extension_files = dict(
         factor_input = dict(
-            S = file_data(file_name = 'mrFactorInputs' + ver_ext, 
+            F = file_data(file_name = 'mrFactorInputs' + ver_ext, 
                 index_rows = 2, index_col = 2, unit_col = 1),
             ),
         emissions = dict(
-            S = file_data(file_name = 'mrEmissions' + ver_ext, 
+            F = file_data(file_name = 'mrEmissions' + ver_ext, 
                 index_rows = 2, index_col = 3, unit_col = 2),
             FY = file_data(file_name = 'mrFDEmissions' + ver_ext, 
                 index_rows = 2, index_col = 3, unit_col = 2),           
             ),
         materials = dict(
-            S = file_data(file_name = 'mrMaterials' + ver_ext, 
+            F = file_data(file_name = 'mrMaterials' + ver_ext, 
                 index_rows = 2, index_col = 2, unit_col = 1),
             FY = file_data(file_name = 'mrFDMaterials' + ver_ext, 
                 index_rows = 2, index_col = 2, unit_col = 1),       
             ),
         resources = dict(
-            S = file_data(file_name = 'mrResources' + ver_ext, 
+            F = file_data(file_name = 'mrResources' + ver_ext, 
                 index_rows = 2, index_col = 3, unit_col = 2),
             FY = file_data(file_name = 'mrFDResources' + ver_ext, 
                 index_rows = 2, index_col = 3, unit_col = 2),
@@ -506,11 +506,11 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None ):
                     _unit.columns = ['unit']
                     _unit['unit'] = 'undef'
                     _unit.reset_index(level='unit', drop=True, inplace=True)
-                    extension[ext_type][table].reset_index(level='unit', drop=True, inplace=True)
 
             if table == 'FY':
                 extension[ext_type][table].columns.names = ['region', 'category']
-                extension[ext_type][table].reset_index(level='unit', drop=True, inplace=True)
+            
+            extension[ext_type][table].reset_index(level='unit', drop=True, inplace=True)
         extension[ext_type]['unit'] = _unit
 
     return IOSystem(version = version, 
