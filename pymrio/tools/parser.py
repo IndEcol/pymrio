@@ -645,13 +645,16 @@ def __parse_wiod(path, year = None, sector_names = 'full',
 
     # Next steps environmental extensions
         #START - check again if SEA correct, then start with env extensions
-        # TODO: get canonical names of environmental extensions
+        # TODO: get canonical names of environmental extensions (note sheet) include in dict
             # check if the name can be taken from the path or is present within
             # the xls file of the extension
-        # TODO: build a dict with the format (following wiot_meta)
+        # TODO: build a dict with the format (following wiot_meta) and possible files - read a subset of these
             # two kinds of extension with different format, but quite similar
-            # fd emissions always present
-            # loop over countries in Z and get values if country exist
+            #   lower case names and upper case names have similar format
+            #   for the lower case the unit could be taken from the file but better not
+            #   build a dict with the spec and the unit
+            # fd emissions always present - include always
+            # loop over countries in Z and get values if country exist - sheet named after year
         # TODO: check if folder or zip is present for each (how to read zip?)
         # TODO: try read for each sheet based on year (read all files - save in
         # a dict with the beginning of the files (iso3))
