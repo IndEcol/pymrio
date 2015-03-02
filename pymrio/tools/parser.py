@@ -9,6 +9,8 @@ import os
 import logging
 import pandas as pd
 import numpy as np
+import zipfile
+import collections
 
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
@@ -364,6 +366,158 @@ def parse_exiobase22(path, charact = None, iosystem = None,
         popdata =  popvector
 
     return IOSystem( Z = data['Z'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
+
+
+def parse_exiobase3(file, version = '3.0', iosystem = None, year = None ):
+    """ Parse the exiobase 3 source files for the IOSystem 
+   
+    The function parse product by product and industry by industry source file
+    with flow matrices (Z). 
+
+    Currently EXIOBASE 3 is deilvered in the format
+        year/mrIOT.zip/mrIOT/filesX.X.txt
+    The parser reads directly from these files (files must not be unzipped)
+        
+    TODO: popvector (see exio2 parser), charac
+
+    Parameters
+    ----------
+    file : string
+        Zip file containing EXIO3 (abs or relative path ending /mrIOT.zip)
+    version : string, optional
+        The version defines the filename in EXIOBASE.
+        For example: 
+            mrIOT3.0.txt for EXIOBASE3 requires the 
+            version parameter to be "3.0"
+    iosystem : string, optional
+        Note for the IOSystem, recommended to be 'pxp' or 'ixi' for
+        product by product or industry by industry.
+        However, this can be any string and can have more information if needed
+        (eg for different technology assumptions)
+        The string will be passed to the IOSystem.
+    year : string or int
+        see pymrio.Extension
+
+    Returns
+    -------
+    IOSystem
+        A IOSystem with the parsed exiobase 3 data
+
+    Raises
+    ------
+    EXIOError
+        If the exiobase source files are not complete in the given path
+
+    """
+
+    file = os.path.abspath(file)
+    path_in_zip = 'mrIOT/'
+
+    file_data = collections.namedtuple(
+            'file_data', [
+                'file_name', 
+                'index_rows', # number of rows containing index on the top of the table (for the columns)
+                'index_col',  # number of cols containing index on the left of the table (for the rows)
+                'unit_col',   # column containing the unit for the table (couting starts at zero)
+                ])
+    ver_ext = version + '.txt'
+
+    core_files = dict(       # for the core files the unit_col is still hard coded below - fix if needed
+            Z = file_data(file_name = 'mrIot' + ver_ext, 
+                index_rows = 2, index_col=3, unit_col = 2),
+            Y = file_data(file_name = 'mrFinalDemand' + ver_ext, 
+                index_rows = 2, index_col = 3, unit_col = 2),           
+            )
+    extension_files = dict(
+        factor_input = dict(
+            F = file_data(file_name = 'mrFactorInputs' + ver_ext, 
+                index_rows = 2, index_col = 2, unit_col = 1),
+            ),
+        emissions = dict(
+            F = file_data(file_name = 'mrEmissions' + ver_ext, 
+                index_rows = 2, index_col = 3, unit_col = 2),
+            FY = file_data(file_name = 'mrFDEmissions' + ver_ext, 
+                index_rows = 2, index_col = 3, unit_col = 2),           
+            ),
+        materials = dict(
+            F = file_data(file_name = 'mrMaterials' + ver_ext, 
+                index_rows = 2, index_col = 2, unit_col = 1),
+            FY = file_data(file_name = 'mrFDMaterials' + ver_ext, 
+                index_rows = 2, index_col = 2, unit_col = 1),       
+            ),
+        resources = dict(
+            F = file_data(file_name = 'mrResources' + ver_ext, 
+                index_rows = 2, index_col = 3, unit_col = 2),
+            FY = file_data(file_name = 'mrFDResources' + ver_ext, 
+                index_rows = 2, index_col = 3, unit_col = 2),
+            ),
+        )
+
+    # read the data into a dicts as pandas.DataFrame
+    logging.info('Read exiobase3 from {}'.format(file))
+    zip_file = zipfile.ZipFile(file)
+
+    core_data = { exio_table:pd.read_table(
+                    zip_file.open(
+                        path_in_zip + core_files[exio_table].file_name),
+                    index_col = list(range(core_files[exio_table].index_col)), 
+                    header = list(range(core_files[exio_table].index_rows))) 
+                    for exio_table in core_files}
+
+    extension = dict()
+    for ext_type in extension_files:
+        extension[ext_type] = {
+                    exio_table : pd.read_table(
+                        zip_file.open(
+                            path_in_zip + extension_files[ext_type][exio_table].file_name),
+                        index_col = list(range(extension_files[ext_type][exio_table].index_col)), 
+                        header = list(range(extension_files[ext_type][exio_table].index_rows))) 
+                    for exio_table in extension_files[ext_type]}        
+        extension[ext_type]['name'] = ext_type
+
+    # adjust index
+    for table in core_data:
+        core_data[table].index.names = ['region', 'sector', 'unit']
+        if table == 'A' or table == 'Z':
+            core_data[table].columns.names = ['region', 'sector']
+            _unit = pd.DataFrame(core_data[table].iloc[:,0]).reset_index(level='unit').unit
+        if table == 'Y':
+            core_data[table].columns.names = ['region', 'category']
+        core_data[table].reset_index(level='unit', drop=True, inplace=True)
+    core_data['unit'] = _unit
+    
+    for ext_type in extension:
+        _unit = None
+        for table in extension[ext_type]:
+            if type(extension[ext_type][table]) is not pd.core.frame.DataFrame:  # jump over the name field
+                continue
+            if extension_files[ext_type][table].index_col == 3:
+                extension[ext_type][table].index.names = ['stressor', 'compartment', 'unit']
+            elif extension_files[ext_type][table].index_col == 2:
+                extension[ext_type][table].index.names = ['stressor', 'unit']
+            else:
+                raise pymrio.core.EXIOError('Unknown EXIOBASE file structure')
+            if table == 'S' or table == 'F':
+                extension[ext_type][table].columns.names = ['region', 'sector']
+                try:
+                    _unit = pd.DataFrame(extension[ext_type][table].iloc[:,0]).reset_index(level='unit').unit
+                except IndexError:
+                    _unit = pd.DataFrame(extension[ext_type][table].iloc[:,0])
+                    _unit.columns = ['unit']
+                    _unit['unit'] = 'undef'
+                    _unit.reset_index(level='unit', drop=True, inplace=True)
+
+            if table == 'FY':
+                extension[ext_type][table].columns.names = ['region', 'category']
+            
+            extension[ext_type][table].reset_index(level='unit', drop=True, inplace=True)
+        extension[ext_type]['unit'] = _unit
+
+    return IOSystem(version = version, 
+                    price = 'current', 
+                    year = year, 
+                    **dict(core_data, **extension))
+
 
 def __parse_wiod(path, years = None, sector_names = 'full',
         version = 'exiobase 2.2', popvector = 'exio2'):

@@ -878,6 +878,7 @@ class Extension(CoreSystem):
                             'per capita accounts':rep_spec(per_capita, 
                                                 '_per_capita', True)}
         logging.info('Write report for {}'.format(self.name))
+        fig_name_list = []
         for arep in reports_to_write:
             if not reports_to_write[arep].make:
                 continue
@@ -914,8 +915,19 @@ class Extension(CoreSystem):
 
                 # get valid file name
                 clean = lambda varStr: re.sub('\W|^(?=\d)', '_', varStr) 
-                file_name = (clean(name_row + 
-                                reports_to_write[arep].spec_string) + '.png')
+                file_name = (clean(name_row + reports_to_write[arep].spec_string))
+                file_name = re.sub('_+', '_', file_name)  # possibility of still having __ in there
+
+                # restrict file length
+                file_name = file_name[:50]
+
+                file_name_nr = lambda a,c: a + '_' + str(c)
+                _loopco = 0
+                while file_name_nr(file_name, _loopco) in fig_name_list:
+                    _loopco += 1
+                file_name = file_name_nr(file_name, _loopco)
+                fig_name_list.append(file_name)
+                file_name = file_name + '.png'
                 
                 file_name = os.path.join(subfolder, file_name)
                 file_name_rel = './' + os.path.relpath(file_name, start = path)
@@ -1190,7 +1202,7 @@ class IOSystem(CoreSystem):
                                 'Calculation of L not possible - check A')) 
 
                 self.x = calc_x_from_L(self.L, self.Y.sum(axis=1))
-                logging.info('Industry Ooutput x calculated')
+                logging.info('Industry Output x calculated')
             except (ValueError, AttributeError):
                 logging.error(
                     core.IO_CALCError(
