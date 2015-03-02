@@ -116,12 +116,15 @@ def parse_exio_ext(file, index_col, name, drop_compartment = True,
                             year = year,
                             )
 
-def parse_exiobase22(path, charact = None, iosystem = None, 
-                     version = 'exiobase 2.2', popvector = 'exio2' ):
-    """ Parse the exiobase 2.2 source files for the IOSystem 
+def parse_exiobase2(path, charact = None, iosystem = None, 
+                     version = 'exiobase 2.2.2', popvector = 'exio2' ):
+    """ Parse the exiobase 2.2.2 source files for the IOSystem 
    
     The function parse product by product and industry by industry source file
-    with flow matrices (Z)
+    in the coefficient form (A and S).
+
+    Filenames are hardcoded in the parser - for any other function the code has
+    to be adopted. Check git comments to find older verions.
 
     Parameters
     ----------
@@ -140,7 +143,7 @@ def parse_exiobase22(path, charact = None, iosystem = None,
         (eg for different technology assumptions)
         The string will be passed to the IOSystem.
     version : string, optional
-        This can be used as a version tracking system. Default: exiobase 2.2 
+        This can be used as a version tracking system. Default: exiobase 2.2.2
     popvector : string or pd.DataFrame, optional
         The population vector for the countries.  This can be given as
         pd.DataFrame(index = population, columns = countrynames) or, (default)
@@ -164,25 +167,15 @@ def parse_exiobase22(path, charact = None, iosystem = None,
     # standard file names in exiobase
     files_exio = dict(
 
-        # exiobase 2.2
-        Z = 'mrIot_version2.2.0.txt',
-        Y = 'mrFinalDemand_version2.2.0.txt',
-        F_fac = 'mrFactorInputs_version2.2.0.txt',
-        F_emissions = 'mrEmissions_version2.2.0.txt',
-        F_materials = 'mrMaterials_version2.2.0.txt',
-        F_resources = 'mrResources_version2.2.0.txt',
-        FY_emissions = 'mrFDEmissions_version2.2.0.txt',
-        FY_materials = 'mrFDMaterials_version2.2.0.txt',
-
-        # old exiobase 2.1 filenames
-        #Z = 'mrIot.txt',
-        #Y = 'mrFinalDemand.txt',
-        #F_fac = 'mrFactorInputs.txt',
-        #F_emissions = 'mrEmissions.txt',
-        #F_materials = 'mrMaterials.txt',
-        #F_resources = 'mrResources.txt',
-        #FY_emissions = 'mrFDEmissions.txt',
-        #FY_materials = 'mrFDMaterials.txt',
+        # exiobase 2.2.2
+        A = 'mrIot_version2.2.2.txt',
+        Y = 'mrFinalDemand_version2.2.2.txt',
+        S_fac = 'mrFactorInputs_version2.2.2.txt',
+        S_emissions = 'mrEmissions_version2.2.2.txt',
+        S_materials = 'mrMaterials_version2.2.2.txt',
+        S_resources = 'mrResources_version2.2.2.txt',
+        FY_emissions = 'mrFDEmissions_version2.2.2.txt',
+        FY_materials = 'mrFDMaterials_version2.2.2.txt',
         )
 
     # check if source exiobase is complete
@@ -194,18 +187,18 @@ def parse_exiobase22(path, charact = None, iosystem = None,
     # number of row and column headers in EXIOBASE 
     head_col = dict()
     head_row = dict()
-    head_col['Z'] = 3 #  number of cols containing row headers at the beginning
-    head_row['Z'] = 2 #  number of rows containing col headers at the top
+    head_col['A'] = 3 #  number of cols containing row headers at the beginning
+    head_row['A'] = 2 #  number of rows containing col headers at the top
     head_col['Y'] = 3
     head_row['Y'] = 2
-    head_col['F_fac'] = 2
-    head_row['F_fac'] = 2
-    head_col['F_emissions'] = 3
-    head_row['F_emissions'] = 2
-    head_col['F_materials'] = 2
-    head_row['F_materials'] = 2
-    head_col['F_resources'] = 3
-    head_row['F_resources'] = 2
+    head_col['S_fac'] = 2
+    head_row['S_fac'] = 2
+    head_col['S_emissions'] = 3
+    head_row['S_emissions'] = 2
+    head_col['S_materials'] = 2
+    head_row['S_materials'] = 2
+    head_col['S_resources'] = 3
+    head_row['S_resources'] = 2
     head_col['FY_emissions'] = 3
     head_row['FY_emissions'] = 2
     head_col['FY_materials'] = 2
@@ -219,17 +212,18 @@ def parse_exiobase22(path, charact = None, iosystem = None,
             for key in files_exio}
     
     # refine multiindex and save units
-    data['Z'].index.names = ['region', 'sector', 'unit']
-    data['Z'].columns.names = ['region', 'sector']
-    data['unit'] = pd.DataFrame(data['Z'].iloc[:, 0].
+    data['A'].index.names = ['region', 'sector', 'unit']
+    data['A'].columns.names = ['region', 'sector']
+    data['unit'] = pd.DataFrame(data['A'].iloc[:, 0].
                     reset_index(level='unit').unit)
-    data['Z'].reset_index(level='unit', drop=True, inplace=True)
+    data['unit'].unit = data['unit'].unit.str.replace('/.*','')
+    data['A'].reset_index(level='unit', drop=True, inplace=True)
     data['Y'].index.names = ['region', 'sector', 'unit']
     data['Y'].columns.names = ['region', 'category']
     data['Y'].reset_index(level='unit', drop=True, inplace=True)
     ext_unit = dict()
-    for key in ['F_fac', 'F_emissions', 'F_materials', 
-                'F_resources', 'FY_emissions', 'FY_materials']:
+    for key in ['S_fac', 'S_emissions', 'S_materials', 
+                'S_resources', 'FY_emissions', 'FY_materials']:
         if head_col[key] == 3:
             data[key].index.names = ['stressor', 'compartment', 'unit']
         if head_col[key] == 2:
@@ -247,18 +241,19 @@ def parse_exiobase22(path, charact = None, iosystem = None,
                                         drop=True, inplace=True)
                 ext_unit[key].reset_index(level='compartment', 
                                         drop=True, inplace=True)
+            ext_unit[key].unit = ext_unit[key].unit.str.replace('/.*','')
 
     # build the extensions
     ext=dict()
-    ext['factor_inputs'] = {'F':data['F_fac'], 
-                            'unit':ext_unit['F_fac'], 'name':'factor input'}
-    ext['emissions'] = {'F':data['F_emissions'], 'FY':data['FY_emissions'], 
-                            'unit':ext_unit['F_emissions'], 'name':'emissons'}
-    ext['materials'] = {'F':data['F_materials'], 'FY':data['FY_materials'], 
-                            'unit':ext_unit['F_materials'], 
+    ext['factor_inputs'] = {'S':data['S_fac'], 
+                            'unit':ext_unit['S_fac'], 'name':'factor input'}
+    ext['emissions'] = {'S':data['S_emissions'], 'FY':data['FY_emissions'], 
+                            'unit':ext_unit['S_emissions'], 'name':'emissons'}
+    ext['materials'] = {'S':data['S_materials'], 'FY':data['FY_materials'], 
+                            'unit':ext_unit['S_materials'], 
                             'name':'material extraction'}
-    ext['resources'] = {'F':data['F_resources'], 
-                            'unit':ext_unit['F_resources'], 'name':'resources'}
+    ext['resources'] = {'S':data['S_resources'], 
+                            'unit':ext_unit['S_resources'], 'name':'resources'}
 
     # read the characterisation matrices if available
     # and build one extension with the impacts
@@ -333,23 +328,23 @@ def parse_exiobase22(path, charact = None, iosystem = None,
             if 'FY' in ext[Qsheets[Qname]]:
                 _FY = ext[Qsheets[Qname]]['FY'].values
             else:
-                _FY = np.zeros([ext[Qsheets[Qname]]['F'].shape[0], 
+                _FY = np.zeros([ext[Qsheets[Qname]]['S'].shape[0], 
                                 data['Y'].shape[1]])
-            _impact[Qname] = {'F':charac_data[Qname].dot(
-                                ext[Qsheets[Qname]]['F'].values),
+            _impact[Qname] = {'S':charac_data[Qname].dot(
+                                ext[Qsheets[Qname]]['S'].values),
                               'FY':charac_data[Qname].dot(_FY),
                               'unit':_units[Qname]
                              }
 
-        impact['F'] = (_impact['Q_factorinputs']['F']
-                        .append(_impact['Q_emission']['F'])
-                        .append(_impact['Q_materials']['F'])
-                        .append(_impact['Q_resources']['F']))
+        impact['S'] = (_impact['Q_factorinputs']['S']
+                        .append(_impact['Q_emission']['S'])
+                        .append(_impact['Q_materials']['S'])
+                        .append(_impact['Q_resources']['S']))
         impact['FY'] = (_impact['Q_factorinputs']['FY']
                         .append(_impact['Q_emission']['FY'])
                         .append(_impact['Q_materials']['FY'])
                         .append(_impact['Q_resources']['FY']))
-        impact['F'].columns = ext['emissions']['F'].columns 
+        impact['S'].columns = ext['emissions']['S'].columns 
         impact['FY'].columns = ext['emissions']['FY'].columns 
         impact['unit'] = (_impact['Q_factorinputs']['unit']
                         .append(_impact['Q_emission']['unit'])
@@ -365,7 +360,7 @@ def parse_exiobase22(path, charact = None, iosystem = None,
     else:
         popdata =  popvector
 
-    return IOSystem( Z = data['Z'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
+    return IOSystem( A = data['A'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
 
 
 def parse_exiobase3(file, version = '3.0', iosystem = None, year = None ):
