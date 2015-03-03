@@ -20,6 +20,12 @@ pd.set_option('chained_assignment',None)   # There is one chained_assignment som
 # constants and global variables
 from pymrio.core.constants import PYMRIO_PATH
 
+# Exceptions
+class ParserError(Exception):
+    """ Base class for errors concerning parsing of IO source files """
+    pass
+
+# Top level function
 def parse_exio_ext(file, index_col, name, drop_compartment = True, 
         version = None, year = None, iosystem = None, sep = ',' ):
     """ Parse an EXIOBASE like extension file into pymrio.Extension  
@@ -157,7 +163,7 @@ def parse_exiobase2(path, charact = None, iosystem = None,
 
     Raises
     ------
-    EXIOError
+    ParserError
         If the exiobase source files are not complete in the given path
 
     """
@@ -182,7 +188,7 @@ def parse_exiobase2(path, charact = None, iosystem = None,
     _intersect = [val for val in files_exio.values() 
             if val in os.listdir(path)]
     if len(_intersect) != len(files_exio.values()):
-        raise pymrio.core.EXIOError('EXIOBASE files missing')
+        raise ParserError('EXIOBASE files missing')
 
     # number of row and column headers in EXIOBASE 
     head_col = dict()
@@ -400,8 +406,8 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None ):
 
     Raises
     ------
-    EXIOError
-        If the exiobase source files are not complete in the given path
+    ParserError
+        If the exiobase source files are not complete in the given path or EXIOBASE files missing TODO
 
     """
 
@@ -491,7 +497,7 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None ):
             elif extension_files[ext_type][table].index_col == 2:
                 extension[ext_type][table].index.names = ['stressor', 'unit']
             else:
-                raise pymrio.core.EXIOError('Unknown EXIOBASE file structure')
+                raise ParserError('Unknown EXIOBASE file structure')
             if table == 'S' or table == 'F':
                 extension[ext_type][table].columns.names = ['region', 'sector']
                 try:
