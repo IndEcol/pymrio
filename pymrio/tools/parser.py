@@ -369,7 +369,7 @@ def parse_exiobase2(path, charact = None, iosystem = None,
     return IOSystem( A = data['A'], Y = data['Y'], unit = data['unit'], population = popdata, **ext)
 
 
-def parse_exiobase3(file, version = '3.0', iosystem = None, year = None ):
+def parse_exiobase3(file, version = '3.0', iosystem = None, year = None, charact = None ):
     """ Parse the exiobase 3 source files for the IOSystem 
    
     The function parse product by product and industry by industry source file
@@ -390,6 +390,12 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None ):
         For example: 
             mrIOT3.0.txt for EXIOBASE3 requires the 
             version parameter to be "3.0"
+    charact : string, optional
+        Filename with path to the characterisation matrices for the extensions
+        (xls).  This is provided together with the EXIOBASE system and given as
+        a xls file. The four sheets  Q_factorinputs, Q_emission, Q_materials and
+        Q_resources are read and used to generate one new extensions with the
+        impacts 
     iosystem : string, optional
         Note for the IOSystem, recommended to be 'pxp' or 'ixi' for
         product by product or industry by industry.
@@ -513,6 +519,97 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None ):
             
             extension[ext_type][table].reset_index(level='unit', drop=True, inplace=True)
         extension[ext_type]['unit'] = _unit
+
+    # read the characterisation matrices if available
+    # and build one extension with the impacts
+    if charact:
+        # dict with correspondence to the extensions
+        Qsheets =  {'Q_factorinputs':'factor_inputs',   
+                    'Q_emission':'emissions', 
+                    'Q_materials':'materials', 
+                    'Q_resources':'resources'}
+        Q_head_col = dict()
+        Q_head_row = dict()
+        Q_head_col_rowname = dict()
+        Q_head_col_rowunit= dict()
+        Q_head_col_metadata= dict()
+        # number of cols containing row headers at the beginning
+        Q_head_col['Q_emission'] = 4 
+        # number of rows containing col headers at the top - this will be
+        # skipped
+        Q_head_row['Q_emission'] = 3 
+        # assuming the same classification as in the extensions
+        Q_head_col['Q_factorinputs'] = 2 
+        Q_head_row['Q_factorinputs'] = 2 
+        Q_head_col['Q_resources'] = 2 
+        Q_head_row['Q_resources'] = 3 
+        Q_head_col['Q_materials'] = 2 
+        Q_head_row['Q_materials'] = 2
+
+        #  column to use as name for the rows
+        Q_head_col_rowname['Q_emission'] = 1 
+        Q_head_col_rowname['Q_factorinputs'] = 0 
+        Q_head_col_rowname['Q_resources'] = 0 
+        Q_head_col_rowname['Q_materials'] = 0 
+
+        # column to use as unit for the rows which gives also the last column
+        # before the data
+        Q_head_col_rowunit['Q_emission'] = 3  
+        Q_head_col_rowunit['Q_factorinputs'] = 1
+        Q_head_col_rowunit['Q_resources'] = 1 
+        Q_head_col_rowunit['Q_materials'] = 1 
+
+        charac_data = {Qname:pd.read_excel(charact, 
+                        sheetname = Qname, 
+                        skiprows = list(range(0, Q_head_row[Qname])), 
+                        header=None) 
+                       for Qname in Qsheets} 
+
+        _units = dict()
+        # temp for the calculated impacts which than 
+        # get summarized in the 'impact'
+        _impact = dict()  
+        impact = dict()
+        for Qname in Qsheets:
+            charac_data[Qname].index = (
+                    charac_data[Qname][Q_head_col_rowname[Qname]])
+
+            _units[Qname] = pd.DataFrame(
+                    charac_data[Qname].iloc[:, Q_head_col_rowunit[Qname]])
+            _units[Qname].columns = ['unit']
+            _units[Qname].index.name = 'impact'
+            charac_data[Qname] = charac_data[Qname].ix[:, 
+                                            Q_head_col_rowunit[Qname]+1:]
+            charac_data[Qname].index.name = 'impact'
+            
+            if 'FY' in extension[Qsheets[Qname]]:
+                _FY = extension[Qsheets[Qname]]['FY'].values
+            else:
+                _FY = np.zeros([extension[Qsheets[Qname]]['F'].shape[0], 
+                                data['Y'].shape[1]])
+            _impact[Qname] = {'F':charac_data[Qname].dot(
+                                extension[Qsheets[Qname]]['F'].values),
+                              'FY':charac_data[Qname].dot(_FY),
+                              'unit':_units[Qname]
+                             }
+
+        impact['F'] = (_impact['Q_factorinputs']['F']
+                        .append(_impact['Q_emission']['F'])
+                        .append(_impact['Q_materials']['F'])
+                        .append(_impact['Q_resources']['F']))
+        impact['FY'] = (_impact['Q_factorinputs']['FY']
+                        .append(_impact['Q_emission']['FY'])
+                        .append(_impact['Q_materials']['FY'])
+                        .append(_impact['Q_resources']['FY']))
+        impact['F'].columns = extension['emissions']['F'].columns 
+        impact['FY'].columns = extension['emissions']['FY'].columns 
+        impact['unit'] = (_impact['Q_factorinputs']['unit']
+                        .append(_impact['Q_emission']['unit'])
+                        .append(_impact['Q_materials']['unit'])
+                        .append(_impact['Q_resources']['unit']))
+        impact['name'] = 'impact'
+        extension['impacts'] = impact
+
 
     return IOSystem(version = version, 
                     price = 'current', 
