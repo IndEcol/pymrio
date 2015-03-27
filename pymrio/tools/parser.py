@@ -436,7 +436,7 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None, charact
                 index_rows = 2, index_col = 3, unit_col = 2),           
             )
     extension_files = dict(
-        factor_input = dict(
+        factor_inputs = dict(
             F = file_data(file_name = 'mrFactorInputs' + ver_ext, 
                 index_rows = 2, index_col = 2, unit_col = 1),
             ),
@@ -586,7 +586,7 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None, charact
                 _FY = extension[Qsheets[Qname]]['FY'].values
             else:
                 _FY = np.zeros([extension[Qsheets[Qname]]['F'].shape[0], 
-                                data['Y'].shape[1]])
+                                core_data['Y'].shape[1]])
             _impact[Qname] = {'F':charac_data[Qname].dot(
                                 extension[Qsheets[Qname]]['F'].values),
                               'FY':charac_data[Qname].dot(_FY),
