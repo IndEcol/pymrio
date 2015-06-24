@@ -488,6 +488,8 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None, charact
         if table == 'A' or table == 'Z':
             core_data[table].columns.names = ['region', 'sector']
             _unit = pd.DataFrame(core_data[table].iloc[:,0]).reset_index(level='unit').unit
+            _unit = pd.DataFrame(_unit)
+            _unit.columns = ['unit']
         if table == 'Y':
             core_data[table].columns.names = ['region', 'category']
         core_data[table].reset_index(level='unit', drop=True, inplace=True)
@@ -513,6 +515,8 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None, charact
                     _unit.columns = ['unit']
                     _unit['unit'] = 'undef'
                     _unit.reset_index(level='unit', drop=True, inplace=True)
+                _unit = pd.DataFrame(_unit)
+                _unit.columns = ['unit']
 
             if table == 'FY':
                 extension[ext_type][table].columns.names = ['region', 'category']

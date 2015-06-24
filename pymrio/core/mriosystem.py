@@ -248,7 +248,7 @@ class CoreSystem():
         table_format : string
             Format to save the DataFrames:
                 
-                - 'pkl' : Binary pickle files, (alias: 'pickle')
+                - 'pkl' : Binary pickle files, (alias: 'pickle', 'bin', 'binary')
                 - 'txt' : Text files, (alis: 'text') default
 
         table_ext : string, optional
@@ -273,6 +273,8 @@ class CoreSystem():
 
         if table_format == 'text' : table_format = 'txt'
         if table_format == 'pickle' : table_format = 'pkl'
+        if table_format == 'bin' : table_format = 'pkl'
+        if table_format == 'binary' : table_format = 'pkl'
         if table_format != 'txt' and table_format != 'pkl':
             logging.error('Unknown table format')
             return None
