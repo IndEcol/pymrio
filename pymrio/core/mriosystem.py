@@ -696,15 +696,18 @@ class Extension(CoreSystem):
 
         graph_name = self.name + ' - ' + graph_name
 
-        try:
-            # for multiindex the entry is given with header, for single index
-            # just the entry
-            y_label_name = (name_row + 
-                            ' (' + 
-                            str(self.unit.ix[row, 'unit'].tolist()[0]) + ')')
-        except:
-            y_label_name = (name_row + ' (' + 
-                            str(self.unit.ix[row, 'unit']) + ')')
+        if self.unit:
+            try:
+                # for multiindex the entry is given with header, for single index
+                # just the entry
+                y_label_name = (name_row + 
+                                ' (' + 
+                                str(self.unit.ix[row, 'unit'].tolist()[0]) + ')')
+            except:
+                y_label_name = (name_row + ' (' + 
+                                str(self.unit.ix[row, 'unit']) + ')')
+        else:
+            y_label_name = name_row
 
         if 'kind' not in kwargs:
             kwargs['kind'] = 'bar'
