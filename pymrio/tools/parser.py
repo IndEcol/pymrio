@@ -405,10 +405,11 @@ def __parse_wiod(path, year = None, sector_names = 'full',
         a specific file is given, only this will be parsed irrespective of the
         values given in year.
     year : int, str, optional
-        Which year in the path should be parsed. The years can be given
-        with four or two digits (eg [2012 or 12]). If the path contains a file,
-        the value of year will not be used - otherwise it must be given
-        For the monetary data the parser searches for files with 'wiot - two digit year'.
+        Which year in the path should be parsed. The years can be given with
+        four or two digits (eg [2012 or 12]). If the given path contains a
+        specific file, the value of year will not be used (but inferred from
+        the meta data)- otherwise it must be given For the monetary data the
+        parser searches for files with 'wiot - two digit year'.
     sector_names : string, optional
         WIOD provides three different sector naming, which can be specified for
         the IOSystem: TODO: put also names used in the dict in here
@@ -517,7 +518,7 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     _wiot_unit = wiot_data.iloc[wiot_meta['unit'],wiot_meta['col']].rstrip(')').lstrip('(')
 
     # remove meta data, empty rows, total column
-    wiot_data.iloc[0:wiot_meta['end_row'],wiot_meta['col']] = NaN   
+    wiot_data.iloc[0:wiot_meta['end_row'],wiot_meta['col']] = np.NaN   
     wiot_data.drop(wiot_empty_top_rows, 
                     axis = 0, inplace = True) 
     wiot_data.drop(wiot_data.columns[wiot_marks['total_column']], 
@@ -606,7 +607,7 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     if sea_folder_content:
         # take the first found file (there should be only one...) 
         sea_file = os.path.join(_SEA_folder,sorted(sea_folder_content)[0])
-        sea_data, sea_units = __get_WIOD_SEA_extension(file = sea_file)
+        sea_data, sea_units = __get_WIOD_SEA_extension(file = sea_file, year = year) #TODO make year robust - compare meta data with given year
 
         # append does not work with multiindex columns - remove temporarily 
         _sea = pd.DataFrame(data=sea_data.values, index=sea_data.index)
@@ -660,6 +661,7 @@ def __parse_wiod(path, year = None, sector_names = 'full',
         # a dict with the beginning of the files (iso3))
 
     # TODO: Function for main loop over all years
+    return locals()
 
 def __get_WIOD_SEA_extension(file, year, data_sheet = 'DATA'):
     """ Utility function to get the useful data for the extension from the SEA file in WIOD
