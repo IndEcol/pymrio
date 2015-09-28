@@ -696,7 +696,7 @@ class Extension(CoreSystem):
 
         graph_name = self.name + ' - ' + graph_name
 
-        if self.unit:
+        if self.unit is not None:
             try:
                 # for multiindex the entry is given with header, for single index
                 # just the entry
