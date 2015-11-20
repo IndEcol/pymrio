@@ -694,13 +694,6 @@ def __parse_wiod(path, year = None, sector_names = 'full',
 
     """
 
-    # DEBUG:
-    #path =  r'D:\S_storage\data\WIOD'
-    #path =  r'D:\S_storage\data\WIOD\wiot00_row_apr12.xlsx'
-    path = r'S:\data\WIOD\\wiot00_row_apr12.xlsx'
-    #year = 2008
-    # END DEBUG
-
     # Path manipulation, should work cross platform
     path = path.rstrip('\\')
     path = path.encode('unicode-escape')
@@ -790,10 +783,11 @@ def __parse_wiod(path, year = None, sector_names = 'full',
         wiot_data.iloc[:,wiot_header['c_code']] == wiot_marks['last_interindsec']
         ].index[-1]
     _lastZrow = wiot_data[
-        wiot_data.iloc[wiot_header['c_code'],:] == wiot_marks['last_interindsec']
+        wiot_data[wiot_header['c_code']] == wiot_marks['last_interindsec']
         ].index[-1]
 
     if _lastZcol != _lastZrow:
+        # TODO convert to wiod error
         print('wiod parsing error, interindustry not symetric')
     else:
         Zshape = (_lastZrow, _lastZcol)
@@ -849,43 +843,9 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     F_fac_units.columns = ['unit'] 
     F_fac_units['unit'] = _wiot_unit
 
-    # SEA file - append to factor_inputs if available
-    sea_ext = '.xlsx'
-    sea_start = 'WIOD_SEA'
-
-    # check if a separate SEA folder exists
-    _SEA_folder = os.path.join(root_path, 'SEA')
-    if not os.path.exists(_SEA_folder):
-        _SEA_folder = root_path
-
-    sea_folder_content  = [ff for ff in os.listdir(_SEA_folder) 
-                            if os.path.splitext(ff)[-1] == sea_ext and
-                            ff[:8] == sea_start]
-
-    if sea_folder_content:
-        # take the first found file (there should be only one...) 
-        sea_file = os.path.join(_SEA_folder,sorted(sea_folder_content)[0])
-        sea_data, sea_units = __get_WIOD_SEA_extension(file = sea_file, year = year) #TODO make year robust - compare meta data with given year
-
-        # append does not work with multiindex columns - remove temporarily 
-        _sea = pd.DataFrame(data=sea_data.values, index=sea_data.index)
-        _F_fac = pd.DataFrame(data=F_fac.values, index=F_fac.index)
-        _df_append = _F_fac.append(_sea)
-        _df_append.columns = F_fac.columns
-        F_fac = _df_append
-        F_fac_units = F_fac_units.append(sea_units)
-
-        # make FY_fac consistent
-        _FY_sea = pd.DataFrame(index = sea_data.index, columns=FY_fac.columns)
-        _FY_sea = pd.DataFrame(data=_FY_sea.values, index = _FY_sea.index)
-        _FY_sea.fillna(0, inplace = True)
-
-        _FY_fac = pd.DataFrame(data=FY_fac.values, index=FY_fac.index)
-        _df_append = _FY_fac.append(_FY_sea)
-        _df_append.columns = FY_fac.columns
-        FY_fac = _df_append
-
+    # Finalize the factor inputs extension
     ext = dict()
+
     ext['factor_inputs'] = {'F':F_fac,
                             'FY':FY_fac,
                             'year' : wiot_year,
@@ -894,44 +854,108 @@ def __parse_wiod(path, year = None, sector_names = 'full',
                             'name':'factor input',
                             }
 
+    # SEA extension 
+    _F_sea_data, _F_sea_units = __get_WIOD_SEA_extension(root_path = root_path, year = year) #TODO make year robust - compare meta data with given year
+    if _F_sea_data is not None:
+        _FY_sea = pd.DataFrame(index = _F_sea_data.index, columns=FY_fac.columns, data = 0) 
+        ext['SEA'] = {'F':_F_sea_data,
+                'FY':_FY_sea,
+                'year' : wiot_year,
+                'iosystem' : wiot_iosystem,
+                'unit': _F_sea_units, 
+                'name':'SEA',
+                }
+
+    # Environmental extensions, name follow, if available, 
+    # the name given in the meta sheet (except for CO2 to
+    # get a better description).
+    # Units are hardcoded - no consistent place to read them
+    # within the files.
+    dl_envext_para = {
+            'AIR' : {'name' : 'Air Emission Accounts',
+                    'start' : 'AIR_',
+                    'units' : {
+                        'CO2' : 'Gg',
+                        'CH4' : 't',
+                        'N2O' : 't',
+                        'NOx' : 't',
+                        'SOx' : 't',
+                        'CO' : 't',
+                        'NMVOC' : 't',
+                        'NH3' : 't',
+                        } 
+                    }, 
+            'CO2' : {'name' : 'CO2 emissions - per source',
+                    'start' : 'CO2_',
+                    'units' : {
+                        'all' : 'Gg'}
+                    }, 
+            'EM' : {'name' : 'Emission relevant energy use',
+                    'start' : 'EM_', 
+                    'units' : {
+                        'all' : 'TJ'}
+                    },
+            'EU' : {'name' : 'Gross energy use', 
+                    'start' : 'EU_', 
+                    'units' : {
+                        'all' : 'TJ'}
+                    },
+            'lan' : {'name' : 'land use',
+                    'start' : 'lan_', 
+                    'units' : {
+                        'all' : '1000 ha'}
+                    },
+            'mat' : {'name' : 'material use',
+                    'start' : 'mat_', 
+                    'units' : {
+                        'all' : '1000 t'}
+                    },
+            'wat' : {'name' : 'water use',
+                    'start' : 'wat_',
+                    'units' : {
+                        'all' : '1000 m3'}
+                    },                   
+            }
+
+    for ik_ext in dl_envext_para:
+        pass
+
+    # Build system
 
     wiod = IOSystem(Z = Z, Y = Y, 
-                    year = wiot_year,
                     iosystem = wiot_iosystem,
                     unit = Z_units,
                     **ext) 
 
 
     # Next steps environmental extensions
-        #START - check again if SEA correct, then start with env extensions
-        # TODO: get canonical names of environmental extensions (note sheet) include in dict
-            # check if the name can be taken from the path or is present within
+        # TODO: KST START subfunction for reading extensions
             # the xls file of the extension
         # TODO: build a dict with the format (following wiot_meta) and possible files - read a subset of these
             # two kinds of extension with different format, but quite similar
             #   lower case names and upper case names have similar format
             #   for the lower case the unit could be taken from the file but better not
             #   build a dict with the spec and the unit
-            # fd emissions always present - include always
+            # fd emissions always present - include always - (CHECK)
             # loop over countries in Z and get values if country exist - sheet named after year
-        # TODO: check if folder or zip is present for each (how to read zip?)
         # TODO: try read for each sheet based on year (read all files - save in
-        # a dict with the beginning of the files (iso3))
 
     # TODO: Function for main loop over all years
     return locals()
 
-def __get_WIOD_SEA_extension(file, year, data_sheet = 'DATA'):
+def __get_WIOD_SEA_extension(root_path, year, data_sheet = 'DATA'):
     """ Utility function to get the useful data for the extension from the SEA file in WIOD
 
     This script is based on the structure in the WIOD_SEA_July14 file, and also 
     fixes the wrong index ROU (to ROM), and appends RoW if missing
     Missing values are set to zero.
 
+    The function works if the SEA file is either in path or in a subfolder named 'SEA'.
+
     Parameters
     ----------
-    seafile : string
-        SEA file with full path
+    root_path : string
+        Path to the WIOD data or the path with the SEA data.
     year : str or int
         Year to return for the extension
     sea_data_sheet : string, optional
@@ -941,53 +965,68 @@ def __get_WIOD_SEA_extension(file, year, data_sheet = 'DATA'):
     -------
     SEA data as extension for the WIOD MRIO
     """
+    sea_ext = '.xlsx'
+    sea_start = 'WIOD_SEA'
 
-    # read data 
-    df_sea = pd.read_excel(file, 
-            sheetname = data_sheet,
-            header = 0,
-            index_col = [0,1,2,3])
+    _SEA_folder = os.path.join(root_path, 'SEA')
+    if not os.path.exists(_SEA_folder):
+        _SEA_folder = root_path
 
-    # fix years
-    ic_sea = df_sea.columns.tolist()
-    ic_sea = [yystr.lstrip('_') for yystr in ic_sea]
-    df_sea.columns = ic_sea
+    sea_folder_content  = [ff for ff in os.listdir(_SEA_folder) 
+                            if os.path.splitext(ff)[-1] == sea_ext and
+                            ff[:8] == sea_start]
 
-    ds_sea = df_sea[str(year)]
+    if sea_folder_content:
+        # read data 
+        sea_file = os.path.join(_SEA_folder,sorted(sea_folder_content)[0])
+        
+        df_sea = pd.read_excel(sea_file, 
+                sheetname = data_sheet,
+                header = 0,
+                index_col = [0,1,2,3])
 
-    # get useful data (employment)
-    mt_sea = ['EMP', 'EMPE', 'H_EMP', 'H_EMPE'] 
-    ds_use_sea = pd.concat([ds_sea.xs(key = vari, level = 'Variable', drop_level = False) for vari in mt_sea])
-    ds_use_sea.drop(labels = 'TOT', level = 'Code', inplace = True)
-    ds_use_sea.reset_index('Description', drop = True, inplace = True)
+        # fix years
+        ic_sea = df_sea.columns.tolist()
+        ic_sea = [yystr.lstrip('_') for yystr in ic_sea]
+        df_sea.columns = ic_sea
 
-    # correct for wrong index in the SEA file
-    df_use_sea = ds_use_sea.reset_index('Country')
-    df_use_sea[df_use_sea['Country'] == 'ROU'] = 'ROM' 
-    ds_use_sea = df_use_sea.set_index('Country', append = True, drop = True, ).iloc[:,0]
+        ds_sea = df_sea[str(year)]
 
-    # append the RoW entry
-    if not 'RoW' in ds_use_sea.index.get_level_values('Country'):
-        ds_RoW = ds_use_sea.xs('USA', level = 'Country', drop_level = False)
-        ds_RoW.ix[:] = 0;
-        df_RoW = ds_RoW.reset_index()
-        df_RoW['Country'] = 'RoW'
-        ds_use_sea = pd.concat([ds_use_sea.reset_index(), df_RoW]).set_index(['Country', 'Code', 'Variable'])
+        # get useful data (employment)
+        mt_sea = ['EMP', 'EMPE', 'H_EMP', 'H_EMPE'] 
+        ds_use_sea = pd.concat([ds_sea.xs(key = vari, level = 'Variable', drop_level = False) for vari in mt_sea])
+        ds_use_sea.drop(labels = 'TOT', level = 'Code', inplace = True)
+        ds_use_sea.reset_index('Description', drop = True, inplace = True)
 
-    ds_use_sea.fillna(value=0, inplace = True)
-    df_use_sea = ds_use_sea.unstack(level = ['Country', 'Code'])[str(year)]
-    df_use_sea.index.names = ['inputtype']
-    df_use_sea.columns.names = ['region', 'sector']
+        # correct for wrong index in the SEA file
+        df_use_sea = ds_use_sea.reset_index('Country')
+        df_use_sea[df_use_sea['Country'] == 'ROU'] = 'ROM' 
+        ds_use_sea = df_use_sea.set_index('Country', append = True, drop = True, ).iloc[:,0]
 
-    df_units = pd.DataFrame(
-                data = [    # this data must be in the same order as mt_sea
-                    'thousand persons', 
-                    'thousand persons', 
-                    'mill hours', 
-                    'mill hours', 
-                    ],
-                columns = ['unit'],
-                index = df_use_sea.index)
+        # append the RoW entry
+        if not 'RoW' in ds_use_sea.index.get_level_values('Country'):
+            ds_RoW = ds_use_sea.xs('USA', level = 'Country', drop_level = False)
+            ds_RoW.ix[:] = 0;
+            df_RoW = ds_RoW.reset_index()
+            df_RoW['Country'] = 'RoW'
+            ds_use_sea = pd.concat([ds_use_sea.reset_index(), df_RoW]).set_index(['Country', 'Code', 'Variable'])
 
-    return df_use_sea, df_units
+        ds_use_sea.fillna(value=0, inplace = True)
+        df_use_sea = ds_use_sea.unstack(level = ['Country', 'Code'])[str(year)]
+        df_use_sea.index.names = ['inputtype']
+        df_use_sea.columns.names = ['region', 'sector']
+
+        df_units = pd.DataFrame(
+                    data = [    # this data must be in the same order as mt_sea
+                        'thousand persons', 
+                        'thousand persons', 
+                        'mill hours', 
+                        'mill hours', 
+                        ],
+                    columns = ['unit'],
+                    index = df_use_sea.index)
+
+        return df_use_sea, df_units
+    else: 
+        return None, None
 
