@@ -32,22 +32,6 @@ from pymrio.tools.iomath import calc_accounts
 
 import pymrio.tools.util as util
 
-# IO specific exceptions
-class EXIOError(Exception):
-    """ Base class for errors concerning EXIOBASE download and structure """
-    def __init__(self, value='Error in Exiobase Source Files'):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-class IO_CALCError(Exception):
-    """ Base class for errors occuring during the calculation of the IO System """
-    def __init__(self, value='Calculation error'):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
-
 # Abstract classes
 class CoreSystem():
     """ This class is the base class for IOSystem and Extension
@@ -264,7 +248,7 @@ class CoreSystem():
         table_format : string
             Format to save the DataFrames:
                 
-                - 'pkl' : Binary pickle files, (alias: 'pickle')
+                - 'pkl' : Binary pickle files, (alias: 'pickle', 'bin', 'binary')
                 - 'txt' : Text files, (alis: 'text') default
 
         table_ext : string, optional
@@ -289,6 +273,8 @@ class CoreSystem():
 
         if table_format == 'text' : table_format = 'txt'
         if table_format == 'pickle' : table_format = 'pkl'
+        if table_format == 'bin' : table_format = 'pkl'
+        if table_format == 'binary' : table_format = 'pkl'
         if table_format != 'txt' and table_format != 'pkl':
             logging.error('Unknown table format')
             return None
@@ -548,34 +534,17 @@ class Extension(CoreSystem):
         """
 
         if self.F is None:
-            try:
-                self.F = calc_F(self.S, x)
-                logging.info('Total direct impacts calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                        core.IO_CALCError(
-                        'Calculation of F not possible for {} - check S and x'
-                        ).format(self.name))
+            self.F = calc_F(self.S, x)
+            logging.info('Total direct impacts calculated')
 
         if self.S is None:
-            try:
-                self.S = calc_S(self.F, x)
-                logging.info('Factors of production coefficients S calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                        core.IO_CALCError(
-                        'Calculation of S not possible for {} - check F and x'
-                        ).format(self.name))
+            self.S = calc_S(self.F, x)
+            logging.info('Factors of production coefficients S calculated')
 
         if self.M is None:
-            try:
-                self.M = calc_M(self.S, L)
-                logging.info('Multipliers M calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                        core.IO_CALCError(
-                        'Calculation of M not possible for {} - check S and L'
-                        ).format(self.name))
+            self.M = calc_M(self.S, L)
+            logging.info('Multipliers M calculated')
+
 
         FY_agg = 0
         if self.FY is not None:
@@ -727,15 +696,18 @@ class Extension(CoreSystem):
 
         graph_name = self.name + ' - ' + graph_name
 
-        try:
-            # for multiindex the entry is given with header, for single index
-            # just the entry
-            y_label_name = (name_row + 
-                            ' (' + 
-                            str(self.unit.ix[row, 'unit'].tolist()[0]) + ')')
-        except:
-            y_label_name = (name_row + ' (' + 
-                            str(self.unit.ix[row, 'unit']) + ')')
+        if self.unit is not None:
+            try:
+                # for multiindex the entry is given with header, for single index
+                # just the entry
+                y_label_name = (name_row + 
+                                ' (' + 
+                                str(self.unit.ix[row, 'unit'].tolist()[0]) + ')')
+            except:
+                y_label_name = (name_row + ' (' + 
+                                str(self.unit.ix[row, 'unit']) + ')')
+        else:
+            y_label_name = name_row
 
         if 'kind' not in kwargs:
             kwargs['kind'] = 'bar'
@@ -878,6 +850,7 @@ class Extension(CoreSystem):
                             'per capita accounts':rep_spec(per_capita, 
                                                 '_per_capita', True)}
         logging.info('Write report for {}'.format(self.name))
+        fig_name_list = []
         for arep in reports_to_write:
             if not reports_to_write[arep].make:
                 continue
@@ -914,8 +887,19 @@ class Extension(CoreSystem):
 
                 # get valid file name
                 clean = lambda varStr: re.sub('\W|^(?=\d)', '_', varStr) 
-                file_name = (clean(name_row + 
-                                reports_to_write[arep].spec_string) + '.png')
+                file_name = (clean(name_row + reports_to_write[arep].spec_string))
+                file_name = re.sub('_+', '_', file_name)  # possibility of still having __ in there
+
+                # restrict file length
+                file_name = file_name[:50]
+
+                file_name_nr = lambda a,c: a + '_' + str(c)
+                _loopco = 0
+                while file_name_nr(file_name, _loopco) in fig_name_list:
+                    _loopco += 1
+                file_name = file_name_nr(file_name, _loopco)
+                fig_name_list.append(file_name)
+                file_name = file_name + '.png'
                 
                 file_name = os.path.join(subfolder, file_name)
                 file_name_rel = './' + os.path.relpath(file_name, start = path)
@@ -1180,56 +1164,29 @@ class IOSystem(CoreSystem):
         # this catches case 3
         if self.x is None and self.Z is None:
             # in that case we need L or at least A to calculate it
-            try:
-                if self.L is None:
-                    try:
-                        self.L = calc_L(self.A)
-                        logging.info('Leontief matrix L calculated')
-                    except (ValueError, AttributeError):
-                        logging.error(core.IO_CALCError(
-                                'Calculation of L not possible - check A')) 
-
-                self.x = calc_x_from_L(self.L, self.Y.sum(axis=1))
-                logging.info('Industry Ooutput x calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                    core.IO_CALCError(
-                    'Calculation of x not possible - check A and x'))
+            if self.L is None:
+                self.L = calc_L(self.A)
+                logging.info('Leontief matrix L calculated')
+            self.x = calc_x_from_L(self.L, self.Y.sum(axis=1))
+            logging.info('Industry Output x calculated')
 
         # this chains of ifs catch cases 1 and 2
         if self.Z is None:
-            try:
-                self.Z = calc_Z(self.A, self.x)
-                logging.info('Flow matrix Z calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                    core.IO_CALCError(
-                    'Calculation of Z not possible - check A and x'))
+            self.Z = calc_Z(self.A, self.x)
+            logging.info('Flow matrix Z calculated')
 
         if self.x is None:
-            try:
-                self.x = calc_x(self.Z, self.Y)
-                logging.info('Industry output x calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                    core.IO_CALCError(
-                        'Calculation of x not possible - check Z and Y'))
+            self.x = calc_x(self.Z, self.Y)
+            logging.info('Industry output x calculated')
 
         if self.A is None: 
-            try:
                 self.A = calc_A(self.Z, self.x)
                 logging.info('Coefficient matrix A calculated')
-            except (ValueError, AttributeError):
-                logging.error(core.IO_CALCError(
-                        'Calculation of A not possible - check Z and x')) 
 
         if self.L is None:
-            try:
                 self.L = calc_L(self.A)
                 logging.info('Leontief matrix L calculated')
-            except (ValueError, AttributeError):
-                logging.error(core.IO_CALCError(
-                        'Calculation of L not possible - check A')) 
+
 
     def calc_extensions(self, extensions = None, Y_agg = None):
         """ Calculates the extension and their accounts 
