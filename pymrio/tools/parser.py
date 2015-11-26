@@ -472,6 +472,7 @@ def parse_exiobase3(file, version = '3.0', iosystem = None, year = None, charact
                     index_col = list(range(core_files[exio_table].index_col)), 
                     header = list(range(core_files[exio_table].index_rows))) 
                     for exio_table in core_files}
+    zip_file.close()
 
     extension = dict()
     for ext_type in extension_files:
@@ -843,6 +844,9 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     F_fac_units.columns = ['unit'] 
     F_fac_units['unit'] = _wiot_unit
 
+
+    ll_countries = list(Z.index.levels[0])
+
     # Finalize the factor inputs extension
     ext = dict()
 
@@ -869,11 +873,14 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     # Environmental extensions, name follow, if available, 
     # the name given in the meta sheet (except for CO2 to
     # get a better description).
-    # Units are hardcoded - no consistent place to read them
-    # within the files.
+    # Units are hardcoded if no consistent place to read them
+    # within the files (all extensions in upper case).
+    # Start must identify exactly one folder or zip file to read the extension.
+    # Within the folder, the routine looks for xls files starting with the country code.
     dl_envext_para = {
             'AIR' : {'name' : 'Air Emission Accounts',
                     'start' : 'AIR_',
+                    'ext' : '.xls',
                     'units' : {
                         'CO2' : 'Gg',
                         'CH4' : 't',
@@ -883,37 +890,43 @@ def __parse_wiod(path, year = None, sector_names = 'full',
                         'CO' : 't',
                         'NMVOC' : 't',
                         'NH3' : 't',
-                        } 
+                        }, 
                     }, 
             'CO2' : {'name' : 'CO2 emissions - per source',
                     'start' : 'CO2_',
+                    'ext' : '.xls',
                     'units' : {
                         'all' : 'Gg'}
                     }, 
             'EM' : {'name' : 'Emission relevant energy use',
                     'start' : 'EM_', 
+                    'ext' : '.xls',
                     'units' : {
                         'all' : 'TJ'}
                     },
             'EU' : {'name' : 'Gross energy use', 
                     'start' : 'EU_', 
+                    'ext' : '.xls',
                     'units' : {
                         'all' : 'TJ'}
                     },
             'lan' : {'name' : 'land use',
                     'start' : 'lan_', 
+                    'ext' : '.xls',
                     'units' : {
-                        'all' : '1000 ha'}
+                        'all' : None}
                     },
             'mat' : {'name' : 'material use',
                     'start' : 'mat_', 
+                    'ext' : '.xls',
                     'units' : {
-                        'all' : '1000 t'}
+                        'all' : None}
                     },
             'wat' : {'name' : 'water use',
                     'start' : 'wat_',
+                    'ext' : '.xls',
                     'units' : {
-                        'all' : '1000 m3'}
+                        'all' : None}
                     },                   
             }
 
@@ -929,7 +942,7 @@ def __parse_wiod(path, year = None, sector_names = 'full',
 
 
     # Next steps environmental extensions
-        # TODO: KST START subfunction for reading extensions
+        # TODO: KST START subfunction for reading extensions - continue
             # the xls file of the extension
         # TODO: build a dict with the format (following wiot_meta) and possible files - read a subset of these
             # two kinds of extension with different format, but quite similar
@@ -942,6 +955,84 @@ def __parse_wiod(path, year = None, sector_names = 'full',
 
     # TODO: Function for main loop over all years
     return locals()
+
+def __get_WIOD_env_extension(root_path, year, ll_co, para):
+    """ Parses the wiod environmental extension
+
+    Parameters
+    ----------
+    root_path : string
+        Path to the WIOD data or the path with the extension data folder or zip file.
+    year : str or int
+        Year to return for the extension = valid sheetname for the xls file.
+    ll_co : list like
+        List of countries in WIOD - used for finding and matching
+        extension data in the given folder.
+    para : dict
+        Defining the parameters for reading the extension.
+        TODO: fill in description based on dl_envext_para
+
+
+    """
+    # DEBUG
+    para = {'name' : 'material use',
+                    'start' : 'mat_', 
+                    'ext' : '.xls',
+                    'units' : {
+                        'all' : None}
+                    }
+
+    ll_root_content = [ff for ff in os.listdir(root_path) if
+                      ff.startswith(para['start'])] 
+    if len(ll_root_content) < 1:
+        # TODO change both to WIOD errors
+        logging.error('extension not found')
+    elif len(ll_root_content) > 1:
+        logging.error('several extension data for {} available - further define'.format(para['start']))
+
+    pf_env = os.path.join(root_path, ll_root_content[0])
+
+    if pf_env.endswith('.zip'):
+        rf_zip = zipfile.ZipFile(pf_env)
+        ll_env_content = [ff for ff in r_zip.namelist() if
+                      ff.endswith(para['ext'])] 
+    else:
+        ll_env_content = [ff for ff in os.listdir(pf_env) if
+                      ff.endswith(para['ext'])] 
+    
+    dl_env = dict()
+    for co in ll_co:
+        ll_pff_read = [ff for ff in ll_env_content if
+                    ff.endswith(para['ext']) and
+                    ff.startswith(co)]
+        if len(ll_pff_read) < 1:
+            # TODO change both to WIOD errors
+            logging.error('extension data for {} not found'.format(co))
+            dl_env[co] = None
+            #continue  # DEBUG
+        elif len(ll_pff_read) > 1:
+            logging.error('several extension data for {} available - clean extension folder'.format(co))
+            dl_env[co] = None
+            #continue  # DEBUG
+        pff_read = ll_pff_read[0]
+
+        if pf_env.endswith('.zip'):
+            dl_env = pd.read_excel(
+                        rf_zip.open(pff_read), 
+                        sheetname = str(year)
+                        )
+        else:
+            dl_env = pd.read_excel(
+                        os.path.join(pf_env, pff_read)
+                        sheetname = str(year)
+                        )
+
+
+        # clean up
+     
+
+    if pf_env.endswith('.zip'):
+        rf_zip.close()
 
 def __get_WIOD_SEA_extension(root_path, year, data_sheet = 'DATA'):
     """ Utility function to get the useful data for the extension from the SEA file in WIOD
