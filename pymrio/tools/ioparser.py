@@ -307,7 +307,7 @@ def parse_exiobase2(path, charact = None, iosystem = None,
                         header=None) 
                        for Qname in Qsheets} 
 
-        _units = dict()
+        _unit = dict()
         # temp for the calculated impacts which than 
         # get summarized in the 'impact'
         _impact = dict()  
@@ -324,10 +324,10 @@ def parse_exiobase2(path, charact = None, iosystem = None,
             charac_data[Qname].index = (
                     charac_data[Qname][Q_head_col_rowname[Qname]])
 
-            _units[Qname] = pd.DataFrame(
+            _unit[Qname] = pd.DataFrame(
                     charac_data[Qname].iloc[:, Q_head_col_rowunit[Qname]])
-            _units[Qname].columns = ['unit']
-            _units[Qname].index.name = 'impact'
+            _unit[Qname].columns = ['unit']
+            _unit[Qname].index.name = 'impact'
             charac_data[Qname] = charac_data[Qname].ix[:, 
                                             Q_head_col_rowunit[Qname]+1:]
             charac_data[Qname].index.name = 'impact'
@@ -342,7 +342,7 @@ def parse_exiobase2(path, charact = None, iosystem = None,
                                 ext[Qsheets[Qname]]['S'].values),
                               'FY':charac_data[Qname].dot(_FY),
 
-                              'unit':_units[Qname]
+                              'unit':_unit[Qname]
                              }
 
         impact['S'] = (_impact['Q_factorinputs']['S']
@@ -600,7 +600,7 @@ def parse_exiobase3(file,
                         header=None) 
                        for Qname in Qsheets} 
 
-        _units = dict()
+        _unit = dict()
         # temp for the calculated impacts which than 
         # get summarized in the 'impact'
         _impact = dict()  
@@ -609,10 +609,10 @@ def parse_exiobase3(file,
             charac_data[Qname].index = (
                     charac_data[Qname][Q_head_col_rowname[Qname]])
 
-            _units[Qname] = pd.DataFrame(
+            _unit[Qname] = pd.DataFrame(
                     charac_data[Qname].iloc[:, Q_head_col_rowunit[Qname]])
-            _units[Qname].columns = ['unit']
-            _units[Qname].index.name = 'impact'
+            _unit[Qname].columns = ['unit']
+            _unit[Qname].index.name = 'impact'
             charac_data[Qname] = charac_data[Qname].ix[:, 
                                             Q_head_col_rowunit[Qname]+1:]
             charac_data[Qname].index.name = 'impact'
@@ -625,7 +625,7 @@ def parse_exiobase3(file,
             _impact[Qname] = {'F':charac_data[Qname].dot(
                                 extension[Qsheets[Qname]]['F'].values),
                               'FY':charac_data[Qname].dot(_FY),
-                              'unit':_units[Qname]
+                              'unit':_unit[Qname]
                              }
 
         impact['F'] = (_impact['Q_factorinputs']['F']
@@ -844,6 +844,7 @@ def __parse_wiod(path, year = None, sector_names = 'full',
 
     # set the index/columns, work with code b/c these are also used in the
     # extensions
+    Z[wiot_header['code']] = Z[wiot_header['code']].astype(str)
     Z.set_index([wiot_header['region'], 
                 wiot_header['code']], inplace = True, drop = False)
     index_wiot_headers = [nr for nr in wiot_header.values()]
@@ -878,13 +879,13 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     FY_fac = FY_fac.astype('float')
 
     # save the units
-    Z_units = pd.DataFrame(Z.iloc[:,0])
-    Z_units.columns = ['unit'] 
-    Z_units['unit'] = _wiot_unit
+    Z_unit = pd.DataFrame(Z.iloc[:,0])
+    Z_unit.columns = ['unit'] 
+    Z_unit['unit'] = _wiot_unit
 
-    F_fac_units = pd.DataFrame(F_fac.iloc[:,0])
-    F_fac_units.columns = ['unit'] 
-    F_fac_units['unit'] = _wiot_unit
+    F_fac_unit = pd.DataFrame(F_fac.iloc[:,0])
+    F_fac_unit.columns = ['unit'] 
+    F_fac_unit['unit'] = _wiot_unit
 
 
     ll_countries = list(Z.index.get_level_values('region').unique())
@@ -896,30 +897,41 @@ def __parse_wiod(path, year = None, sector_names = 'full',
                             'FY':FY_fac,
                             'year' : wiot_year,
                             'iosystem' : wiot_iosystem,
-                            'unit': F_fac_units, 
+                            'unit': F_fac_unit, 
                             'name':'factor input',
                             }
 
     # SEA extension 
     #TODO make year robust - compare meta data with given year
-    _F_sea_data, _F_sea_units = __get_WIOD_SEA_extension(
+    _F_sea_data, _F_sea_unit = __get_WIOD_SEA_extension(
                             root_path = root_path, year = year) 
     if _F_sea_data is not None:
         _FY_sea = pd.DataFrame(index = _F_sea_data.index, 
                                columns=FY_fac.columns, data = 0) 
+        _FY_sea = _FY_sea.astype('float')
+        
         ext['SEA'] = {'F':_F_sea_data,
                 'FY':_FY_sea,
                 'year' : wiot_year,
                 'iosystem' : wiot_iosystem,
-                'unit': _F_sea_units, 
+                'unit': _F_sea_unit, 
                 'name':'SEA',
                 }
+
+    # TODO KST START: test all extensions, make script for run all years
+    # TODO fix todos and fill in wioderrors
+    # use something like
+     #scol2 = wiod.SEA.F.columns.get_level_values(1).unique()
+     #scol1 = wiod.SEA.F.columns.get_level_values(0).unique()
+     #lcol2 = wiod.L.columns.get_level_values(1).unique()
+     #lcol1 = wiod.L.columns.get_level_values(0).unique()
+     #(scol1 == lcol1).all()
 
     # Environmental extensions, names follow the name given 
     # in the meta sheet (except for CO2 to get a better description).
     # Units are hardcoded if no consistent place to read them
     # within the files (for all extensions in upper case). 
-    # The names must exactly match!
+    # The units names must exactly match!
     # Start must identify exactly one folder or zip file to read the extension.
     # Within the folder, the routine looks for xls files 
     # starting with the country code.
@@ -927,7 +939,7 @@ def __parse_wiod(path, year = None, sector_names = 'full',
             'AIR' : {'name' : 'Air Emission Accounts',
                     'start' : 'AIR_',
                     'ext' : '.xls',
-                    'units' : {
+                    'unit' : {
                         'CO2' : 'Gg',
                         'CH4' : 't',
                         'N2O' : 't',
@@ -941,68 +953,88 @@ def __parse_wiod(path, year = None, sector_names = 'full',
             'CO2' : {'name' : 'CO2 emissions - per source',
                     'start' : 'CO2_',
                     'ext' : '.xls',
-                    'units' : {
+                    'unit' : {
                         'all' : 'Gg'}
                     }, 
+  
             'EM' : {'name' : 'Emission relevant energy use',
                     'start' : 'EM_', 
                     'ext' : '.xls',
-                    'units' : {
+                    'unit' : {
                         'all' : 'TJ'}
                     },
             'EU' : {'name' : 'Gross energy use', 
                     'start' : 'EU_', 
                     'ext' : '.xls',
-                    'units' : {
+                    'unit' : {
                         'all' : 'TJ'}
                     },
             'lan' : {'name' : 'land use',
                     'start' : 'lan_', 
                     'ext' : '.xls',
-                    'units' : {
+                    'unit' : {
                         'all' : None}
                     },
             'mat' : {'name' : 'material use',
                     'start' : 'mat_', 
                     'ext' : '.xls',
-                    'units' : {
+                    'unit' : {
                         'all' : None}
                     },
             'wat' : {'name' : 'water use',
                     'start' : 'wat_',
                     'ext' : '.xls',
-                    'units' : {
+                    'unit' : {
                         'all' : None}
                     },                   
             }
 
+    _FY_template = pd.DataFrame(columns=FY_fac.columns) 
+    _ss_FY_pressure_column = 'c37'
     for ik_ext in dl_envext_para:
-        __get_WIOD_env_extension(root_path = root_path, year, 
-                                 ll_countries, dl_envext_para[ik_ext])
+        _dl_ex = __get_WIOD_env_extension(root_path = root_path, 
+                                          year = year, 
+                                          ll_co = ll_countries, 
+                                          para = dl_envext_para[ik_ext])
+        _FY = _dl_ex['FY']
 
+        _FY.columns = pd.MultiIndex.from_product([
+                            _FY.columns, _ss_FY_pressure_column])
+        _FY = _FY_template.append(_FY)
+        _FY.fillna(0, inplace = True)
+        _FY.index.names = _dl_ex['F'].index.names
+        _FY.columns.names = _FY_template.columns.names
+        _FY = _FY[ll_countries]
+        _FY = _FY.astype('float')
+
+        ext[ik_ext] = {
+                'F' : _dl_ex['F'],
+                'FY' : _FY,
+                'year' : wiot_year,
+                'iosystem' : wiot_iosystem,
+                'unit':_dl_ex['unit'],
+                'name':dl_envext_para[ik_ext]['name'],
+                }
         break
 
     # Build system
 
     wiod = IOSystem(Z = Z, Y = Y, 
                     iosystem = wiot_iosystem,
-                    unit = Z_units,
+                    unit = Z_unit,
                     **ext) 
-
-    # Next steps environmental extensions
-        # TODO: KST START subfunction for reading extensions - continue after .T, next steps:
-        #   build a dict with all extensions for all countries
-        #   remove FC_HH
-            
-        # TODO: build a dict with the format (following wiot_meta) and possible files - read a subset of these
-            # fd emissions always present - include always - (CHECK)
-            # loop over countries in Z and get values if country exist - sheet named after year
 
     # TODO: Function for main loop over all years
     return locals()
 
 def __get_WIOD_env_extension(root_path, year, ll_co, para):
     """ Parses the wiod environmental extension
+
+    This function is based on the structure of the extensions from _may12.
+
+    Note
+    ----
+    The function deletes 'secQ' which is not present in the economic tables.
 
     Parameters
     ----------
@@ -1025,7 +1057,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         FY : pd.Dataframe with index 'stressor' and column 'region'
             This data is for household stressors - must be applied to the right 
             final demand column afterwards.
-        units : pd.DataFrame with index 'stressor' and column 'unit'
+        unit : pd.DataFrame with index 'stressor' and column 'unit'
 
 
     """
@@ -1059,11 +1091,11 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
             # TODO change both to WIOD errors
             logging.error('extension data for {} not found'.format(co))
             dl_env[co] = None
-            #continue  # DEBUG
+
         elif len(ll_pff_read) > 1:
             logging.error('several extension data for {} available - clean extension folder'.format(co))
             dl_env[co] = None
-            #continue  # DEBUG
+
         pff_read = ll_pff_read[0]
 
         if pf_env.endswith('.zip'):
@@ -1087,7 +1119,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
 
         # unit can be taken from the first cell in the excel sheet
         if df_env.columns[0] != 'level_0':
-            para['units']['all'] = df_env.columns[0]
+            para['unit']['all'] = df_env.columns[0]
 
         # two clean up cases - can be identified by lower/upper case extension
         # description
@@ -1102,6 +1134,13 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         df_env.dropna(axis = 0, how = 'all', inplace = True)
         df_env = df_env[df_env.iloc[:,0] != 'total']
         df_env = df_env[df_env.iloc[:,0] != 'secTOT']
+        df_env = df_env[df_env.iloc[:,0] != 'secQ']
+        df_env.iloc[:,0].astype(str, inplace = True)
+        df_env.iloc[:,0].replace(to_replace = 'sec', 
+                                 value = '',
+                                 regex = True,
+                                 inplace = True)
+
         df_env.set_index([df_env.columns[0]], inplace = True)
         df_env.index.names = ['sector']
         df_env = df_env.T
@@ -1123,27 +1162,27 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     df_FY.index.names = ['stressor']
 
     # build the unit df
-    df_units = pd.DataFrame(index = df_F.index, columns = ['unit'])
-    _ss_unit = para['units'].get('all', 'undef')
-    for ikr in df_units.index:
-        df_units.ix[ikr,'unit'] = para['units'].get(ikr, _ss_unit)
+    df_unit = pd.DataFrame(index = df_F.index, columns = ['unit'])
+    _ss_unit = para['unit'].get('all', 'undef')
+    for ikr in df_unit.index:
+        df_unit.ix[ikr,'unit'] = para['unit'].get(ikr, _ss_unit)
 
-    df_units.columns.names = ['unit']
-    df_units.index.names = ['stressor']
+    df_unit.columns.names = ['unit']
+    df_unit.index.names = ['stressor']
 
     if pf_env.endswith('.zip'):
         rf_zip.close()
 
     return {'F' : df_F,
             'FY' : df_FY,
-            'units' : df_units
+            'unit' : df_unit
             }
 
 def __get_WIOD_SEA_extension(root_path, year, data_sheet = 'DATA'):
     """ Utility function to get the extension data from the SEA file in WIOD
 
-    This script is based on the structure in the WIOD_SEA_July14 file, and also 
-    fixes the wrong index ROU (to ROM), and appends RoW if missing
+    This function is based on the structure in the WIOD_SEA_July14 file.  
+    It also fixes the wrong index ROU (to ROM), and appends RoW if missing
     Missing values are set to zero.
 
     The function works if the SEA file is either in path or in a subfolder
@@ -1198,10 +1237,12 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet = 'DATA'):
         ds_use_sea.reset_index('Description', drop = True, inplace = True)
 
         # correct for wrong index in the SEA file
-        df_use_sea = ds_use_sea.reset_index('Country')
-        df_use_sea[df_use_sea['Country'] == 'ROU'] = 'ROM' 
-        ds_use_sea = df_use_sea.set_index('Country', 
-                                append = True, drop = True, ).iloc[:,0]
+        # TODO check if this is perhaps necessary for some years.
+        # If not, delete and remove from docstring
+        #df_use_sea = ds_use_sea.reset_index('Country')
+        #df_use_sea.Country[df_use_sea['Country'] == 'ROU'] = 'ROM' 
+        #ds_use_sea = df_use_sea.set_index('Country', 
+                                #append = True, drop = True, ).iloc[:,0]
 
         # append the RoW entry
         if not 'RoW' in ds_use_sea.index.get_level_values('Country'):
@@ -1218,8 +1259,9 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet = 'DATA'):
         df_use_sea = ds_use_sea.unstack(level = ['Country', 'Code'])[str(year)]
         df_use_sea.index.names = ['inputtype']
         df_use_sea.columns.names = ['region', 'sector']
+        df_use_sea = df_use_sea.astype('float')
 
-        df_units = pd.DataFrame(
+        df_unit = pd.DataFrame(
                     data = [    # this data must be in the same order as mt_sea
                         'thousand persons', 
                         'thousand persons', 
@@ -1229,7 +1271,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet = 'DATA'):
                     columns = ['unit'],
                     index = df_use_sea.index)
 
-        return df_use_sea, df_units
+        return df_use_sea, df_unit
     else: 
         return None, None
 

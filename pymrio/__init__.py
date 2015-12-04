@@ -53,13 +53,13 @@ from pymrio.core.fileio import load_all
 from pymrio.core.fileio import load
 from pymrio.core.fileio import load_test
 
-from pymrio.tools.parser import parse_exio_ext
-from pymrio.tools.parser import parse_exiobase2
-from pymrio.tools.parser import parse_exiobase3
+from pymrio.tools.ioparser import parse_exio_ext
+from pymrio.tools.ioparser import parse_exiobase2
+from pymrio.tools.ioparser import parse_exiobase3
 
-from pymrio.tools.util import concate_extension
-from pymrio.tools.util import build_agg_vec
-from pymrio.tools.util import build_agg_matrix
+from pymrio.tools.ioutil import concate_extension
+from pymrio.tools.ioutil import build_agg_vec
+from pymrio.tools.ioutil import build_agg_matrix
 
 from pymrio.tools.iomath import calc_x
 from pymrio.tools.iomath import calc_x_from_L
