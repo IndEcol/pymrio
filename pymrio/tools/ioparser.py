@@ -18,7 +18,7 @@ from pymrio.core.mriosystem import Extension
 # There is one chained_assignment somewhere TODO: find and fix
 pd.set_option('chained_assignment',None)   
 
-# constants and global variables
+# Constants and global variables
 from pymrio.core.constants import PYMRIO_PATH
 
 # Exceptions
@@ -718,9 +718,8 @@ def __parse_wiod(path, year = None, sector_names = 'full',
 
     Raises
     ------
-    TODO WIODError
-        If the wiod source files are not complete in the given path
-    TODO Warning if extension data could not be found for the specific year
+    ParserError
+        If the WIOD source file are not complete or inconsistent
 
     """
 
@@ -734,7 +733,7 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     wiot_start = b'wiot'
 
     # determine which wiod file to be parsed
-    if not os.path.isdir(path):    
+    if not os.path.isdir(path):
         # 1. case - one file specified in path
         if os.path.isfile(path):
             wiot_file = path
@@ -744,24 +743,20 @@ def __parse_wiod(path, year = None, sector_names = 'full',
     else:
         # 2. case: directory given-build wiot_file with the value given in year
         if not year:
-            # TODO: raise WIOD error and return
-            print('year not found')
-            pass
+            raise ParserError('No year specified (either specify a specific file or a path and year)')
         year_two_digit = str(year)[-2:].encode('unicode-escape')
         wiot_file_list = [fl for fl in os.listdir(path)
                              if (fl[:6] == wiot_start + year_two_digit
                                  and os.path.splitext(fl)[1] == wiot_ext)]
         if len(wiot_file_list) != 1:
-            # TODO: raise WIOD error
-            print('multiple files for given year of file not found- specify single file in paramters')
+            raise ParserError('Multiple files for a given year or file not found (specify a specific file in paramters)')
 
         wiot_file = os.path.join(path, wiot_file_list[0])
-    
+
     wiot_file = wiot_file.decode()
-    root_path = os.path.split(wiot_file)[0]   
+    root_path = os.path.split(wiot_file)[0]
     if not os.path.exists(wiot_file):
-        # TODO: raise WIOD error
-        print('wiot_file not found')
+        raise ParserError('WIOD file not found in the specified folder.')
 
     # wiot file structure
     wiot_meta = {
@@ -771,7 +766,7 @@ def __parse_wiod(path, year = None, sector_names = 'full',
             'unit' : 3,
             'end_row' : 4,
             }
-    wiot_header = {    
+    wiot_header = {
             # the header indexes are the same for rows after removing the first
             # two lines (wiot_empty_top_rows)
             'code' : 0,
@@ -822,11 +817,10 @@ def __parse_wiod(path, year = None, sector_names = 'full',
         ].index[-1]
 
     if _lastZcol != _lastZrow:
-        # TODO convert to wiod error
-        print('wiod parsing error, interindustry not symetric')
+        raise ParserError('Interindustry matrix no symetric in the WIOD source file')
     else:
         Zshape = (_lastZrow, _lastZcol)
-        
+
     # separate factor input extension and remove 
     # totals in the first and last row
     facinp = wiot_data.iloc[Zshape[0]+1:,:] 
@@ -1065,9 +1059,9 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     ll_root_content = [ff for ff in os.listdir(root_path) if
                       ff.startswith(para['start'])] 
     if len(ll_root_content) < 1:
-        # TODO change both to WIOD errors
-        logging.error('extension not found')
+        raise ParserError("Extension '{}' not found.".format(para['start']))
     elif len(ll_root_content) > 1:
+        raise ParserError("Extension '{}' not found.".format(para['name']))
         logging.error('several extension data for {} available - further define'.format(para['start']))
 
     pf_env = os.path.join(root_path, ll_root_content[0])
