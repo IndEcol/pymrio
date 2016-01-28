@@ -388,33 +388,28 @@ def parse_exiobase3(zip_file,
     The function parse product by product and industry by industry source file
     with flow matrices (Z). 
 
-    Currently EXIOBASE 3 is deilvered in the format year/some_zip_file.zip 
+    Currently EXIOBASE 3 is delivered in the format year/some_zip_file.zip 
     This file must be passed (parameter zip_file). Within the zip_file the 
     structure changed during the last versions of the EXIOBASE 3 development.
     Some versions have the data stored in a subfolder with in the zip file,
     in other versions the data is directly in the root of the file. The 
     parameter path_in_zip allows to specify the relative folder within the 
     zip file.
-
-    
-    The
-
-    The parser reads directly from these files (files must not be unzipped)
         
     TODO: popvector (see exio2 parser), charac
 
     Parameters
     ----------
-    file : string
+    zip_file : string
         Zip file containing EXIO3 (abs or relative path)
-
     path_in_zip : string, optional
         Relative path to the data within the zipfile. Default: root ('/')
     version : string, optional
         The version defines the filename in EXIOBASE.
         For example: 
             mrIOT3.0.txt for EXIOBASE3 requires the 
-            version parameter to be "3.0"
+            version parameter to be "3.0",
+            mrIOT_3_1.txt requires version to be "_3_1"
     charact : string, optional
         Filename with path to the characterisation matrices for the extensions
         (xls).  This is provided together with the EXIOBASE system and given as
