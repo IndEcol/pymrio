@@ -400,6 +400,7 @@ def parse_exiobase3(zip_file,
 
     Parameters
     ----------
+
     zip_file : string
         Zip file containing EXIO3 (abs or relative path)
     path_in_zip : string, optional
@@ -410,6 +411,7 @@ def parse_exiobase3(zip_file,
             mrIOT3.0.txt for EXIOBASE3 requires the 
             version parameter to be "3.0",
             mrIOT_3_1.txt requires version to be "_3_1"
+            version parameter to be "3.0"
     charact : string, optional
         Filename with path to the characterisation matrices for the extensions
         (xls).  This is provided together with the EXIOBASE system and given as
