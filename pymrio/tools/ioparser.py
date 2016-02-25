@@ -377,18 +377,28 @@ def parse_exiobase2(path, charact = None, iosystem = None,
             **ext)
 
 
-def parse_exiobase3(file,
-                    version = '3.0',
-                    iosystem = None,
-                    year = None,
+def parse_exiobase3(zip_file, 
+                    path_in_zip = '/'
+                    version = '3.0', 
+                    iosystem = None, 
+                    year = None, 
                     charact = None ):
     """ Parse the exiobase 3 source files for the IOSystem
 
     The function parse product by product and industry by industry source file
     with flow matrices (Z).
 
-    Currently EXIOBASE 3 is deilvered in the format
-        year/mrIOT.zip/mrIOT/filesX.X.txt
+    Currently EXIOBASE 3 is deilvered in the format year/some_zip_file.zip 
+    This file must be passed (parameter zip_file). Within the zip_file the 
+    structure changed during the last versions of the EXIOBASE 3 development.
+    Some versions have the data stored in a subfolder with in the zip file,
+    in other versions the data is directly in the root of the file. The 
+    parameter path_in_zip allows to specify the relative folder within the 
+    zip file.
+
+    
+    The
+
     The parser reads directly from these files (files must not be unzipped)
 
     TODO: popvector (see exio2 parser), charac
@@ -396,7 +406,10 @@ def parse_exiobase3(file,
     Parameters
     ----------
     file : string
-        Zip file containing EXIO3 (abs or relative path ending /mrIOT.zip)
+        Zip file containing EXIO3 (abs or relative path)
+
+    path_in_zip : string, optional
+        Relative path to the data within the zipfile. Default: root ('/')
     version : string, optional
         The version defines the filename in EXIOBASE.
         For example:
@@ -430,8 +443,7 @@ def parse_exiobase3(file,
 
     """
 
-    file = os.path.abspath(file)
-    path_in_zip = 'mrIOT/'
+    zip_file = os.path.abspath(zip_file)
 
     file_data = collections.namedtuple(
         'file_data', [
@@ -480,7 +492,7 @@ def parse_exiobase3(file,
 
     # read the data into a dicts as pandas.DataFrame
     logging.info('Read exiobase3 from {}'.format(file))
-    zip_file = zipfile.ZipFile(file)
+    zip_file = zipfile.ZipFile(zip_file)
 
     core_data = { exio_table:pd.read_table(
                     zip_file.open(
