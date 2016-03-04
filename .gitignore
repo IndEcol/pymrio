@@ -6,7 +6,7 @@
 
 # folders and files which are not that important or can be reproduced easily
 /**/__pycache__/
-
+Session.vim
 # binary files
 #*.xls
 #*.xlsx
@@ -17,3 +17,4 @@
 #*.png
 #*.gif
 #*.pyc
+Session.vim

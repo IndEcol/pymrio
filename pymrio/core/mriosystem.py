@@ -30,7 +30,7 @@ from pymrio.tools.iomath import calc_M
 from pymrio.tools.iomath import calc_e
 from pymrio.tools.iomath import calc_accounts
 
-import pymrio.tools.util as util
+import pymrio.tools.ioutil as ioutil
 
 # Abstract classes
 class CoreSystem():
@@ -548,7 +548,7 @@ class Extension(CoreSystem):
 
         FY_agg = 0
         if self.FY is not None:
-            #FY_agg = util.agg_columns(ext['FY'], self.get_Y_categories().size)
+            #FY_agg = ioutil.agg_columns(ext['FY'], self.get_Y_categories().size)
             try:
                 FY_agg = (self.FY.sum(level='region', axis=1, sort=False).
                       reindex_axis(self.get_regions(), axis=1))
@@ -1414,14 +1414,14 @@ class IOSystem(CoreSystem):
 
         # build aggregation concordance matrix for regions and sectors if
         # concordance is not given as matrix
-        if not util.is_vector(region_agg):
+        if not ioutil.is_vector(region_agg):
             region_conc = region_agg
         else:
-            region_conc = util.build_agg_matrix(region_agg, region_dict)
-        if not util.is_vector(sector_agg):
+            region_conc = ioutil.build_agg_matrix(region_agg, region_dict)
+        if not ioutil.is_vector(sector_agg):
             sector_conc = sector_agg
         else:
-            sector_conc = util.build_agg_matrix(sector_agg, sector_dict)
+            sector_conc = ioutil.build_agg_matrix(sector_agg, sector_dict)
 
 
         # build the new names
@@ -1433,7 +1433,7 @@ class IOSystem(CoreSystem):
                 if isinstance(region_agg, np.ndarray): 
                     region_agg = region_agg.flatten().tolist()
                 if type(region_agg[0]) is str: 
-                    names_regions = util.unique_element(region_agg)
+                    names_regions = ioutil.unique_element(region_agg)
                 else:  
                     # rows in the concordance matrix give the new number of
                     # regions
@@ -1448,7 +1448,7 @@ class IOSystem(CoreSystem):
                 if isinstance(sector_agg, np.ndarray): sector_agg = (
                         sector_agg.flatten().tolist())
                 if type(sector_agg[0]) is str: 
-                    names_sectors = util.unique_element(sector_agg)
+                    names_sectors = ioutil.unique_element(sector_agg)
                 else: 
                     names_sectors = [GENERIC_NAMES['sector'] + 
                             str(nr) for nr in range(sector_conc.shape[0])]

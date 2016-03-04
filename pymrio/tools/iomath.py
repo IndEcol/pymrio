@@ -11,7 +11,7 @@ To avoid namespace pollution everythin here starts with calc_
 import pandas as pd
 import numpy as np
 
-import pymrio.tools.util as util
+import pymrio.tools.ioutil as ioutil
 
 def calc_x(Z, Y):
     """ Calculate the industry output x from the Z and Y matrix 
@@ -257,7 +257,7 @@ def calc_accounts(S, L, Y, nr_countries, nr_sectors):
     # diagonalize each sector block per country
     # this results in a disaggregated y with final demand per country per
     # sector in one column
-    Y_diag = util.diagonalize_blocks(Y.values, blocksize = nr_sectors)
+    Y_diag = ioutil.diagonalize_blocks(Y.values, blocksize = nr_sectors)
     x_diag = L.dot(Y_diag)
     x_tot  = x_diag.values.sum(1)
     del Y_diag
@@ -272,7 +272,7 @@ def calc_accounts(S, L, Y, nr_countries, nr_sectors):
     
     # for the traded accounts set the domestic industry output to zero
     dom_block = np.zeros((nr_sectors, nr_sectors))
-    x_trade = util.set_block(x_diag.values, dom_block)   
+    x_trade = ioutil.set_block(x_diag.values, dom_block)   
     D_imp = pd.DataFrame(S.values.dot(x_trade), 
                          index=S.index, 
                          columns = S.columns)
