@@ -921,10 +921,10 @@ class Extension(CoreSystem):
             fin_txt = '\n'.join(report_txt)
             if format is not 'rst':
                 try:
-                    import docutils as du
+                    import docutils.core as dc
                     if format == 'tex': 
                         format == 'latex'
-                    fin_txt = du.core.publish_string(fin_txt, 
+                    fin_txt = dc.publish_string(fin_txt, 
                             writer_name=format, 
                             settings_overrides={'output_encoding':'unicode'})
                 except:
