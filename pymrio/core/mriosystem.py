@@ -989,6 +989,11 @@ class Extension(CoreSystem):
     def per_source(self, name = None):
         """ Returns a extension disaggregated into the regional source 
 
+        DEPRECATED: The new method 'build_flow_matrix' is more powerful
+        and calculate per source region and per source sector. These can be 
+        aggregated to one (or several) sectors with the standard aggregation
+        routine. The method here will be deleted in the next versions.
+
         The returned extension included F, FY if present in the original
         extension, and units.
 
@@ -998,7 +1003,7 @@ class Extension(CoreSystem):
 
         Parameters
         ----------
-        Name : string (optional)
+        name : string (optional)
             The new name for the extension, 
             if None (default): original name + 'per source region'
 
@@ -1059,6 +1064,62 @@ class Extension(CoreSystem):
                               inplace = True, drop = True)
 
         return persou
+
+    def diag_stressor(self, stressor, name = None):
+        """ Diagonalize one row of the stressor matrix for a flow analysis.
+
+        This method takes one row of the F matrix and diagonalize 
+        to the full region/sector format. Footprints calculation based
+        on this matrix show the flow of embodied stressors from the source
+        region/sector (row index) to the final consumer (column index).
+
+        Note
+        ----
+
+        Since the type of analysis based on the disaggregated matrix is based
+        on flow, direct household emissions (FY) are not included.
+ 
+        Parameters
+        ----------
+        stressor : str or int - valid index for one row of the F matrix
+            This must be a tuple for a multiindex, a string otherwise.
+            The stressor to diagonalize.
+
+        name : string (optional)
+            The new name for the extension, 
+            if None (default): string based on the given stressor (row name)
+
+        Returns
+        -------
+        Extension
+
+        """
+        if type(stressor) is int:
+           stressor = self.F.index[stressor] 
+        if len(stressor) == 1: stressor = stressor[0]
+        if not name: 
+            if type(stressor) is str:
+                name = stressor
+            else:
+                name = '_'.join(stressor)
+
+        ext_diag = Extension(name)
+        ext_diag.version = self.version
+        ext_diag.iosystem = self.iosystem
+        ext_diag.year = self.year
+
+        ext_diag.F = pd.DataFrame(
+                index=self.F.columns,
+                columns=self.F.columns,
+                data=np.diag(self.F.loc[stressor,:])
+                )
+
+        ext_diag.unit = pd.DataFrame(
+                index=ext_diag.F.index,
+                columns=self.unit.columns,
+                data=self.unit.loc[stressor].unit )
+        return ext_diag
+
 
 
 class IOSystem(CoreSystem):
