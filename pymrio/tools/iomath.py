@@ -209,17 +209,52 @@ def calc_e(M, Y):
         Final consumption
 
     TODO - this must be completely redone (D, check for dataframe, ...)
+
     Returns
     -------
     pandas.DataFrame or numpy.array
         Multipliers m
-        The type is determined by the type of D. 
-        If DataFrame index/columns as D   
+        The type is determined by the type of M. 
+        If DataFrame index/columns as M   
     The calcubased on multipliers M and finald demand Y """
 
     return M.dot(Y)
 
-def calc_accounts(S, L, Y, nr_countries, nr_sectors):
+def recalc_M(S, D_fp, Y, nr_sectors):
+    """ Calculate Multipliers based on footprints.
+
+    Parameters
+    ----------
+    D_fp : pandas.DataFrame or numpy array
+        Footprint per sector and country
+    Y : pandas.DataFrame or numpy array
+        Final demand: aggregated across categories or just one category, one
+        column per country. This will be diagonalized per country block.
+        The diagonolized form must be invertable for this method to work.
+    nr_sectors : int
+        Number of sectors in the MRIO
+
+    Returns
+    -------
+
+    pandas.DataFrame or numpy.array
+        Multipliers M
+        The type is determined by the type of D_fp. 
+        If DataFrame index/columns as D_fp   
+
+
+    """
+
+    Y_diag = ioutil.diagonalize_blocks(Y.values, blocksize = nr_sectors)
+    Y_inv = np.linalg.inv(Y_diag)
+    M = D_fp.dot(Y_inv)
+    if type(D_fp) is pd.DataFrame:
+        M.columns = D_fp.columns
+        M.index = D_fp.index
+
+    return M
+
+def calc_accounts(S, L, Y, nr_sectors):
     """ Calculate sector specific footprints, terr, imp and exp accounts
 
     The total industry output x for the calculation 
@@ -234,8 +269,6 @@ def calc_accounts(S, L, Y, nr_countries, nr_sectors):
     Y : pandas.DataFrame
         Final demand: aggregated across categories or just one category, one
         column per country
-    nr_countries : int
-        Number of countries in the MRIO
     nr_sectors : int
         Number of sectors in the MRIO
 
