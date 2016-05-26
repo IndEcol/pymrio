@@ -578,10 +578,10 @@ class Extension(CoreSystem):
         if self.FY is not None:
             #FY_agg = ioutil.agg_columns(ext['FY'], self.get_Y_categories().size)
             try:
-                FY_agg = (self.FY.sum(level='region', axis=1, sort=False).
+                FY_agg = (self.FY.sum(level='region', axis=1).
                       reindex_axis(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
-                FY_agg = (self.FY.sum(level=0, axis=1, sort=False).
+                FY_agg = (self.FY.sum(level=0, axis=1).
                       reindex_axis(self.get_regions(), axis=1))
 
         if ((self.D_fp is None) or 
@@ -607,35 +607,35 @@ class Extension(CoreSystem):
                 (self.D_imp_reg is None) or (self.D_exp_reg is None)):
             try:
                 self.D_fp_reg = (
-                        self.D_fp.sum(level='region', axis=1, sort=False).
+                        self.D_fp.sum(level='region', axis=1).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
             except (AssertionError, KeyError):
                 self.D_fp_reg = (
-                        self.D_fp.sum(level=0, axis=1, sort=False).
+                        self.D_fp.sum(level=0, axis=1).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
             try:
                 self.D_terr_reg = (
-                        self.D_terr.sum(level='region', axis=1, sort=False).
+                        self.D_terr.sum(level='region', axis=1).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
             except (AssertionError, KeyError):
                 self.D_terr_reg = (
-                        self.D_terr.sum(level=0, axis=1, sort=False).
+                        self.D_terr.sum(level=0, axis=1).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
             try:
                 self.D_imp_reg = (
-                        self.D_imp.sum(level='region', axis=1, sort=False).
+                        self.D_imp.sum(level='region', axis=1).
                         reindex_axis(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
                 self.D_imp_reg = (
-                        self.D_imp.sum(level=0, axis=1, sort=False).
+                        self.D_imp.sum(level=0, axis=1).
                         reindex_axis(self.get_regions(), axis=1))
             try:
                 self.D_exp_reg = (
-                        self.D_exp.sum(level='region', axis=1, sort=False).
+                        self.D_exp.sum(level='region', axis=1).
                         reindex_axis(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
                 self.D_exp_reg = (
-                        self.D_exp.sum(level=0, axis=1, sort=False).
+                        self.D_exp.sum(level=0, axis=1).
                         reindex_axis(self.get_regions(), axis=1))
 
             logging.info('Accounts D for regions calculated')
@@ -1314,14 +1314,10 @@ class IOSystem(CoreSystem):
             #Y_agg = util.agg_columns(self.Y, self.get_Y_categories().size)  
             try:
                 Y_agg = self.Y.sum(level='region', 
-                               axis=1, 
-                               sort=False).reindex_axis(self.get_regions(), 
-                                                        axis=1)
+                    axis=1).reindex_axis(self.get_regions(), axis=1)
             except (AssertionError, KeyError):
                 Y_agg = self.Y.sum(level=0, 
-                               axis=1, 
-                               sort=False).reindex_axis(self.get_regions(), 
-                                                        axis=1)
+                    axis=1,).reindex_axis(self.get_regions(), axis=1)
 
         for ext_name in extensions:
             ext = getattr(self, ext_name)

@@ -375,7 +375,6 @@ def test_calc_accounts_MRIO(td_small_MRIO):
             td_small_MRIO.S,
             td_small_MRIO.L,
             td_small_MRIO.Y,
-            nr_countries = len(td_small_MRIO.Z.index.get_level_values('region').unique()),
             nr_sectors = len(td_small_MRIO.Z.index.get_level_values('sector').unique()),
             )
     # test all
