@@ -562,9 +562,17 @@ class Extension(CoreSystem):
                 self.M = calc_M(self.S, L)
                 logging.info('Multipliers M calculated based on L')
             else:
-                self.M = recalc_M(self.S, self.D_fp, 
+                try:
+                    self.M = recalc_M(self.S, self.D_fp, 
                                   Y=Y_agg, nr_sectors=self.get_sectors().size)
-                logging.info('multipliers M calculated based on D_fp and Y')
+                    logging.info(
+                        'Multipliers M calculated based on D_fp and Y')
+                except Exception as ex:
+                    logging.warn(
+                            'Recalculation of M not possible - cause: {}'.
+                            format(ex))
+
+
 
         FY_agg = 0
         if self.FY is not None:
@@ -580,9 +588,19 @@ class Extension(CoreSystem):
                 (self.D_terr is None) or 
                 (self.D_imp is None) or 
                 (self.D_exp is None)):
-            self.D_fp, self.D_terr, self.D_imp, self.D_exp = (
+            if L is None:
+                logging.warn('Not possilbe to calculate D accounts')
+            else:
+                self.D_fp, self.D_terr, self.D_imp, self.D_exp = (
                     calc_accounts(self.S, L, Y_agg, self.get_sectors().size))
-            logging.info('Accounts D calculated')
+                logging.info('Accounts D calculated')
+
+        if ((self.D_fp is None) or 
+                (self.D_terr is None) or 
+                (self.D_imp is None) or 
+                (self.D_exp is None)):
+                    logging.info('Aggregation accounts not calculated')
+                    return
 
         # aggregate to country
         if ((self.D_fp_reg is None) or (self.D_terr_reg is None) or
@@ -1131,11 +1149,14 @@ class Extension(CoreSystem):
                 columns=self.F.columns,
                 data=np.diag(self.F.loc[stressor,:])
                 )
-
-        ext_diag.unit = pd.DataFrame(
-                index=ext_diag.F.index,
-                columns=self.unit.columns,
-                data=self.unit.loc[stressor].unit )
+        try: 
+            ext_diag.unit = pd.DataFrame(
+                    index=ext_diag.F.index,
+                    columns=self.unit.columns,
+                    data=self.unit.loc[stressor].unit )
+        except AttributeError:
+            # If no unit in stressor, self.unit.columns break
+            ext_diag.unit = None
         return ext_diag
 
 
@@ -1630,7 +1651,9 @@ class IOSystem(CoreSystem):
 
                 # Without unit - this is reset aftwards if necessary
                 if ik_df.index.names == ['region', 'sector'] == ik_df.columns.names:
-                    # Full disaggregated extensions - aggregate both axis 
+                    # Full disaggregated extensions - aggregate both axis
+                    # (this is the case if the extions shows the flows from
+                    # pda to cba)
                     extension.__dict__[ik_name] = pd.DataFrame(
                             data = conc.dot(ik_df).dot(conc.T))
 
@@ -1665,11 +1688,15 @@ class IOSystem(CoreSystem):
                     extension.__dict__[ik_name].index = ik_df.index
 
                 if st_redo_unit:
-                    _value = extension.unit.iloc[0].tolist()[0]
-                    extension.unit = pd.DataFrame(
-                            index=mi_reg_sec,
-                            columns=extension.unit.columns,
-                            data=_value)
+                    try:
+                        _value = extension.unit.iloc[0].tolist()[0]
+                        extension.unit = pd.DataFrame(
+                                index=mi_reg_sec,
+                                columns=extension.unit.columns,
+                                data=_value)
+                    except AttributeError:
+                        # could fail if no unit available
+                        extension.unit = None
         self.calc_extensions()
         if not inplace:
             return self
