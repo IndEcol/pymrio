@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pymrio.Extension.per_source &mdash; pymrio 0.2.1 documentation</title>
+    <title>pymrio.Extension.per_source &mdash; pymrio 0.2.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.1',
+        VERSION:     '0.2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,8 +23,8 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.2.1 documentation" href="../index.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.2.2 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api_references.html" />
     <link rel="next" title="pymrio.IOSystem.remove_extension" href="pymrio.IOSystem.remove_extension.html" />
     <link rel="prev" title="pymrio.build_agg_vec" href="pymrio.build_agg_vec.html" />
@@ -36,9 +35,9 @@
 <![endif]-->
 
   </head>
-  <body>
+  <body role="document">
 
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -50,36 +49,40 @@
         <li class="right" >
           <a href="pymrio.build_agg_vec.html" title="pymrio.build_agg_vec"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.1 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="pymrio-extension-per-source">
 <h1>pymrio.Extension.per_source<a class="headerlink" href="#pymrio-extension-per-source" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="pymrio.Extension.per_source">
-<tt class="descclassname">Extension.</tt><tt class="descname">per_source</tt><big>(</big><em>name=None</em><big>)</big><a class="headerlink" href="#pymrio.Extension.per_source" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">Extension.</code><code class="descname">per_source</code><span class="sig-paren">(</span><em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.Extension.per_source" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a extension disaggregated into the regional source</p>
+<p>DEPRECATED: The new method &#8216;build_flow_matrix&#8217; is more powerful
+and calculate per source region and per source sector. These can be 
+aggregated to one (or several) sectors with the standard aggregation
+routine. The method here will be deleted in the next versions.</p>
 <p>The returned extension included F, FY if present in the original
 extension, and units.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>Name</strong> : string (optional)</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : string (optional)</p>
 <blockquote>
 <div><p>The new name for the extension, 
 if None (default): original name + &#8216;per source region&#8217;</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last">Extension</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Extension</p>
 </td>
 </tr>
 </tbody>
@@ -94,7 +97,7 @@ if None (default): original name + &#8216;per source region&#8217;</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="pymrio.build_agg_vec.html"
@@ -102,7 +105,7 @@ if None (default): original name + &#8216;per source region&#8217;</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pymrio.IOSystem.remove_extension.html"
                         title="next chapter">pymrio.IOSystem.remove_extension</a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -119,7 +122,7 @@ if None (default): original name + &#8216;per source region&#8217;</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -131,13 +134,13 @@ if None (default): original name + &#8216;per source region&#8217;</p>
         <li class="right" >
           <a href="pymrio.build_agg_vec.html" title="pymrio.build_agg_vec"
              >previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.1 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Konstantin Stadler.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
     </div>
   </body>
 </html>

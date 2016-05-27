@@ -14,10 +14,10 @@ Dependencies
 Misc
 ====
 
-- Include World Input-Output Database (WIOD) parser.
-- Preliminary EXIOBASE 3 parser.
 - Fixed filename error for the test system.
 - Various small bug fixes.
+- Preliminary EXIOBASE 3 parser.
+- Preliminary World Input-Output Database (WIOD) parser.
 
 **********************
 v0.2.1 (Nov 17, 2014)

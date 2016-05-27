@@ -105,10 +105,13 @@ def calc_A(Z, x):
     """
     if type(x) is pd.DataFrame:
         x=x.values
-    recix = 1/x
-    recix[recix==np.inf]=0
+    if x == 0:
+        recix=0
+    else:
+        recix = 1/x
+        recix[recix==np.inf]=0
+        recix=recix.reshape((1, -1))  # use numpy broadcasting - factor ten faster 
     #return Z.dot(np.diagflat(recix)) # Mathematical form - slow
-    recix=recix.reshape((1, -1))  # use numpy broadcasting - factor ten faster 
     if type(Z) is pd.DataFrame:
         return pd.DataFrame(Z.values * recix, index=Z.index, columns=Z.columns)
     else:

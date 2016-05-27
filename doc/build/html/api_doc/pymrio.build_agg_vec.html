@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pymrio.build_agg_vec &mdash; pymrio 0.2.1 documentation</title>
+    <title>pymrio.build_agg_vec &mdash; pymrio 0.2.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.1',
+        VERSION:     '0.2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,8 +23,8 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.2.1 documentation" href="../index.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.2.2 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api_references.html" />
     <link rel="next" title="pymrio.Extension.per_source" href="pymrio.Extension.per_source.html" />
     <link rel="prev" title="pymrio.IOSystem.aggregate" href="pymrio.IOSystem.aggregate.html" />
@@ -36,9 +35,9 @@
 <![endif]-->
 
   </head>
-  <body>
+  <body role="document">
 
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -50,39 +49,39 @@
         <li class="right" >
           <a href="pymrio.IOSystem.aggregate.html" title="pymrio.IOSystem.aggregate"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.1 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="pymrio-build-agg-vec">
 <h1>pymrio.build_agg_vec<a class="headerlink" href="#pymrio-build-agg-vec" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="pymrio.build_agg_vec">
-<tt class="descclassname">pymrio.</tt><tt class="descname">build_agg_vec</tt><big>(</big><em>agg_vec</em>, <em>**source</em><big>)</big><a class="headerlink" href="#pymrio.build_agg_vec" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pymrio.</code><code class="descname">build_agg_vec</code><span class="sig-paren">(</span><em>agg_vec</em>, <em>**source</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.build_agg_vec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds an combined aggregation vector based on various classifications</p>
 <p>This function build an aggregation vector based on the order in agg_vec.
 The naming and actual mapping is given in source, either explicitly or by
 pointing to a folder with the mapping.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s">&#39;EU&#39;</span><span class="p">,</span> <span class="s">&#39;OECD&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s">&#39;test&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s1">&#39;EU&#39;</span><span class="p">,</span> <span class="s1">&#39;OECD&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span><span class="p">)</span>
 <span class="go">[&#39;EU&#39;, &#39;EU&#39;, &#39;EU&#39;, &#39;OECD&#39;, &#39;REST&#39;, &#39;REST&#39;]</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s">&#39;OECD&#39;</span><span class="p">,</span> <span class="s">&#39;EU&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="n">miss</span><span class="o">=</span><span class="s">&#39;RoW&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s1">&#39;OECD&#39;</span><span class="p">,</span> <span class="s1">&#39;EU&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">miss</span><span class="o">=</span><span class="s1">&#39;RoW&#39;</span><span class="p">)</span>
 <span class="go">[&#39;OECD&#39;, &#39;EU&#39;, &#39;OECD&#39;, &#39;OECD&#39;, &#39;RoW&#39;, &#39;RoW&#39;]</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s">&#39;EU&#39;</span><span class="p">,</span> <span class="s">&#39;orig_regions&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s">&#39;test&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s1">&#39;EU&#39;</span><span class="p">,</span> <span class="s1">&#39;orig_regions&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span><span class="p">)</span>
 <span class="go">[&#39;EU&#39;, &#39;EU&#39;, &#39;EU&#39;, &#39;reg4&#39;, &#39;reg5&#39;, &#39;reg6&#39;]</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s">&#39;supreg1&#39;</span><span class="p">,</span> <span class="s">&#39;other&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s">&#39;test&#39;</span><span class="p">,</span> 
-<span class="gp">&gt;&gt;&gt; </span>       <span class="n">other</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;other1&#39;</span><span class="p">,</span> <span class="s">&#39;other1&#39;</span><span class="p">,</span> <span class="s">&#39;other2&#39;</span><span class="p">,</span> <span class="s">&#39;other2&#39;</span><span class="p">])</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s1">&#39;supreg1&#39;</span><span class="p">,</span> <span class="s1">&#39;other&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> 
+<span class="gp">&gt;&gt;&gt; </span>       <span class="n">other</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;other1&#39;</span><span class="p">,</span> <span class="s1">&#39;other1&#39;</span><span class="p">,</span> <span class="s1">&#39;other2&#39;</span><span class="p">,</span> <span class="s1">&#39;other2&#39;</span><span class="p">])</span>
 <span class="go">[&#39;supreg1&#39;, &#39;supreg1&#39;, &#39;other1&#39;, &#39;other1&#39;, &#39;other2&#39;, &#39;other2&#39;]</span>
 </pre></div>
 </div>
@@ -90,7 +89,7 @@ pointing to a folder with the mapping.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>agg_vec</strong> : list</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>agg_vec</strong> : list</p>
 <blockquote>
 <div><p>A list of sector or regions to which the IOSystem shall be aggregated.     
 The order in agg_vec is important: 
@@ -138,7 +137,7 @@ the current directory will be searched for the definition.</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last">list (aggregation vector)</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list (aggregation vector)</p>
 </td>
 </tr>
 </tbody>
@@ -151,7 +150,7 @@ the current directory will be searched for the definition.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="pymrio.IOSystem.aggregate.html"
@@ -159,7 +158,7 @@ the current directory will be searched for the definition.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pymrio.Extension.per_source.html"
                         title="next chapter">pymrio.Extension.per_source</a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -176,7 +175,7 @@ the current directory will be searched for the definition.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -188,13 +187,13 @@ the current directory will be searched for the definition.</p>
         <li class="right" >
           <a href="pymrio.IOSystem.aggregate.html" title="pymrio.IOSystem.aggregate"
              >previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.1 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Konstantin Stadler.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
     </div>
   </body>
 </html>
