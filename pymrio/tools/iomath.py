@@ -105,7 +105,7 @@ def calc_A(Z, x):
     """
     if type(x) is pd.DataFrame:
         x=x.values
-    if x == 0:
+    if (type(x) is not np.ndarray) and (x == 0):
         recix=0
     else:
         recix = 1/x
