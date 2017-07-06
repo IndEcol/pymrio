@@ -226,12 +226,13 @@ def parse_exiobase2(path, charact=None, iosystem=None,
             header=list(range(head_row[key])))
             for key in files_exio}
 
-    # refine multiindex and save units
+    logging.debug('Refine multiindex')
     data['A'].index.names = ['region', 'sector', 'unit']
     data['A'].columns.names = ['region', 'sector']
     data['unit'] = pd.DataFrame(
         data['A'].iloc[:, 0].
         reset_index(level='unit').unit)
+    logging.debug('Refine units')
     data['unit'].unit = data['unit'].unit.str.replace('/.*', '')
     data['A'].reset_index(level='unit', drop=True, inplace=True)
     data['Y'].index.names = ['region', 'sector', 'unit']
@@ -240,6 +241,7 @@ def parse_exiobase2(path, charact=None, iosystem=None,
     ext_unit = dict()
     for key in ['S_fac', 'S_emissions', 'S_materials',
                 'S_resources', 'FY_emissions', 'FY_materials']:
+        logging.debug('Parse extension {}'.format(key))
         if head_col[key] == 3:
             data[key].index.names = ['stressor', 'compartment', 'unit']
         if head_col[key] == 2:
@@ -259,7 +261,7 @@ def parse_exiobase2(path, charact=None, iosystem=None,
                                           drop=True, inplace=True)
             ext_unit[key].unit = ext_unit[key].unit.str.replace('/.*', '')
 
-    # build the extensions
+    logging.debug('Build the extensions')
     ext = dict()
     ext['factor_inputs'] = {'S': data['S_fac'],
                             'unit': ext_unit['S_fac'], 'name': 'factor input'}
@@ -274,6 +276,7 @@ def parse_exiobase2(path, charact=None, iosystem=None,
     # read the characterisation matrices if available
     # and build one extension with the impacts
     if charact:
+        logging.debug('Parse characterisation matrix')
         # dict with correspondence to the extensions
         Qsheets = {'Q_factorinputs': 'factor_inputs',
                    'Q_emission': 'emissions',
@@ -372,6 +375,7 @@ def parse_exiobase2(path, charact=None, iosystem=None,
         ext['impacts'] = impact
 
     if popvector is 'exio2':
+        logging.debug('Read population vector')
         popdata = pd.read_table(os.path.join(PYMRIO_PATH['exio20'],
                                 './misc/population.txt'),
                                 index_col=0).astype(float)
