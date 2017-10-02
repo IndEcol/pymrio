@@ -28,6 +28,7 @@ class ParserError(Exception):
     """ Base class for errors concerning parsing of IO source files """
     pass
 
+
 class ParserWarning(UserWarning):
     """ Base class for warnings concerning parsing of IO source files """
     pass
@@ -674,7 +675,8 @@ def parse_exiobase3(zip_file,
                     year=year,
                     **dict(core_data, **extension))
 
-def parse_wiod(path, year=None, names=('isic','c_codes'),
+
+def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                version='year12', popvector=None):
     """ Parse the wiod source files for the IOSystem
 
@@ -688,10 +690,10 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
     The folder with these xslx must than be passed to the WIOD parsing
     function. This folder may contain folders with the extension data. Every
     folder within the wiod root folder will be parsed for extension data and
-    will be added to the IOSystem. The WIOD database offers the download of 
+    will be added to the IOSystem. The WIOD database offers the download of
     the environmental extensions as zip files. These can be read directly by
     the parser. In case a zip file and a folder with the same name are
-    available, the data is read from the folder. If the zip files are 
+    available, the data is read from the folder. If the zip files are
     extracted into folder, the folders must have the same name as the
     corresponding zip file (without the 'zip' extension).
 
@@ -725,9 +727,9 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
         WIOD provides three different sector/final demand categories naming
         schemes. These can can be specified for the IOSystem. Pass:
 
-            1) 'isic': ISIC rev 3 Codes - available for interindustry flows 
+            1) 'isic': ISIC rev 3 Codes - available for interindustry flows
                and final demand rows.
-            2) 'full': Full names - available for final demand rows and 
+            2) 'full': Full names - available for final demand rows and
                columns (categories) and interindustry flows.
             3) 'c_codes' : WIOD specific sector numbers, available for final
                demand rows and columns (categories) and interindustry flows.
@@ -774,13 +776,16 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
     else:
         # 2. case: directory given-build wiot_file with the value given in year
         if not year:
-            raise ParserError('No year specified (either specify a specific file or a path and year)')
+            raise ParserError('No year specified '
+                              '(either specify a specific file '
+                              'or a path and year)')
         year_two_digit = str(year)[-2:].encode('unicode-escape')
         wiot_file_list = [fl for fl in os.listdir(path)
                           if (fl[:6] == wiot_start + year_two_digit and
                           os.path.splitext(fl)[1] == wiot_ext)]
         if len(wiot_file_list) != 1:
-            raise ParserError('Multiple files for a given year or file not found (specify a specific file in paramters)')
+            raise ParserError('Multiple files for a given year or file not '
+                              'found (specify a specific file in paramters)')
 
         wiot_file = os.path.join(path, wiot_file_list[0])
 
@@ -818,82 +823,85 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
     # Wiod has an unfortunate file structure with overlapping metadata and
     # header. In order to deal with that first the full file is read.
     wiot_data = pd.read_excel(wiot_file,
-                            sheetname=wiot_sheet,
-                            header=None)
+                              sheetname=wiot_sheet,
+                              header=None)
 
     # get meta data
     wiot_year = wiot_data.iloc[wiot_meta['year'], wiot_meta['col']][-4:]
     wiot_iosystem = wiot_data.iloc[
             wiot_meta['iosystem'], wiot_meta['col']].rstrip(')').lstrip('(')
     _wiot_unit = wiot_data.iloc[
-            wiot_meta['unit'],wiot_meta['col']].rstrip(')').lstrip('(')
+            wiot_meta['unit'], wiot_meta['col']].rstrip(')').lstrip('(')
 
     # remove meta data, empty rows, total column
-    wiot_data.iloc[0:wiot_meta['end_row'],wiot_meta['col']] = np.NaN
+    wiot_data.iloc[0:wiot_meta['end_row'], wiot_meta['col']] = np.NaN
     wiot_data.drop(wiot_empty_top_rows,
                    axis=0, inplace=True)
     wiot_data.drop(wiot_data.columns[wiot_marks['total_column']],
                    axis=1, inplace=True)
-    #at this stage row and column header should have the same size but
+    # at this stage row and column header should have the same size but
     # the index starts now at two - replace/reset to row numbers
     wiot_data.index = range(wiot_data.shape[0])
 
     # Early years in WIOD tables have a different name for Romania:
-    # 'ROM' which should be 'ROU'. The latter is also consistent with 
+    # 'ROM' which should be 'ROU'. The latter is also consistent with
     # the environmental extensions names.
     wiot_data.iloc[wiot_header['region'], :] = wiot_data.iloc[
-        wiot_header['region'], :].str.replace('ROM','ROU')
+        wiot_header['region'], :].str.replace('ROM', 'ROU')
     wiot_data.iloc[:, wiot_header['region']] = wiot_data.iloc[
-        :, wiot_header['region']].str.replace('ROM','ROU')
-
+        :, wiot_header['region']].str.replace('ROM', 'ROU')
 
     # get the end of the interindustry matrix
     _lastZcol = wiot_data[
-        wiot_data.iloc[:,wiot_header['c_code']]
-                == wiot_marks['last_interindsec']
+        wiot_data.iloc[
+            :, wiot_header['c_code']] == wiot_marks['last_interindsec']
         ].index[-1]
     _lastZrow = wiot_data[
         wiot_data[wiot_header['c_code']] == wiot_marks['last_interindsec']
         ].index[-1]
 
     if _lastZcol != _lastZrow:
-        raise ParserError('Interindustry matrix no symetric in the WIOD source file')
+        raise ParserError(
+            'Interindustry matrix no symetric in the WIOD source file')
     else:
         Zshape = (_lastZrow, _lastZcol)
 
     # separate factor input extension and remove
     # totals in the first and last row
-    facinp = wiot_data.iloc[Zshape[0]+1:,:]
+    facinp = wiot_data.iloc[Zshape[0]+1:, :]
     facinp.drop(
         facinp[facinp[wiot_header['c_code']].isin(
             wiot_marks['tot_facinp'])].index,
-        inplace = True,
-        axis = 0
+        inplace=True,
+        axis=0
         )
 
-    Z = wiot_data.iloc[:Zshape[0]+1,:Zshape[1]+1].copy()
-    Y = wiot_data.iloc[:Zshape[0]+1,Zshape[1]+1:].copy()
-    F_fac = facinp.iloc[:,:Zshape[1]+1].copy()
-    FY_fac = facinp.iloc[:,Zshape[1]+1:].copy()
+    Z = wiot_data.iloc[:Zshape[0]+1, :Zshape[1]+1].copy()
+    Y = wiot_data.iloc[:Zshape[0]+1, Zshape[1]+1:].copy()
+    F_fac = facinp.iloc[:, :Zshape[1]+1].copy()
+    FY_fac = facinp.iloc[:, Zshape[1]+1:].copy()
 
     index_wiot_headers = [nr for nr in wiot_header.values()]
     # Save lookup of sectors and codes - to be used at the end of the parser
     # Assuming USA is present in every WIOT year
     wiot_sector_lookup = wiot_data[
         wiot_data[wiot_header['region']] == 'USA'].iloc[
-            :,0:max(index_wiot_headers)+1].applymap(str)
-    wiot_sector_lookup.columns = [entry[1]
-        for entry in sorted(zip(wiot_header.values(), wiot_header.keys()))]
+            :, 0:max(index_wiot_headers)+1].applymap(str)
+    wiot_sector_lookup.columns = [
+        entry[1] for entry in sorted(
+            zip(wiot_header.values(), wiot_header.keys()))]
     wiot_sector_lookup.set_index('code', inplace=True, drop=False)
-    _Y = Y.T.iloc[:,[
+    _Y = Y.T.iloc[:, [
         wiot_header['code'],  # Included to be consistent with  wiot_header
         wiot_header['sector_names'],
         wiot_header['region'],
         wiot_header['c_code'],
         ]]
-    wiot_fd_lookup = _Y[_Y.iloc[:,wiot_header['region']]=='USA'].applymap(str)
-    wiot_fd_lookup.columns = [entry[1]
-        for entry in sorted(zip(wiot_header.values(), wiot_header.keys()))]
+    wiot_fd_lookup = _Y[_Y.iloc[
+        :, wiot_header['region']] == 'USA'].applymap(str)
+    wiot_fd_lookup.columns = [
+        entry[1] for entry in
+        sorted(zip(wiot_header.values(), wiot_header.keys()))]
     wiot_fd_lookup.set_index('c_code', inplace=True, drop=False)
     wiot_fd_lookup.index.name = 'code'
 
@@ -901,19 +909,20 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
     # extensions
     Z[wiot_header['code']] = Z[wiot_header['code']].astype(str)
     Z.set_index([wiot_header['region'],
-                wiot_header['code']], inplace = True, drop = False)
+                wiot_header['code']], inplace=True, drop=False)
     Z = Z.iloc[max(index_wiot_headers)+1:, max(index_wiot_headers)+1:]
     Z.index.names = ['region', 'sector']
     Z.columns = Z.index
 
-    indexY_col_head = Y.iloc[[wiot_header['region'], wiot_header['c_code']],:]
+    indexY_col_head = Y.iloc[[wiot_header['region'],
+                              wiot_header['c_code']], :]
     Y.columns = pd.MultiIndex.from_arrays(indexY_col_head.values,
-                                          names = Z.index.names)
+                                          names=Z.index.names)
     Y = Y.iloc[max(index_wiot_headers)+1:, :]
     Y.index = Z.index
 
     F_fac.set_index([wiot_header['sector_names']],
-                    inplace = True, drop = False) # c_code missing, use names
+                    inplace=True, drop=False)  # c_code missing, use names
     F_fac.index.names = ['inputtype']
     F_fac = F_fac.iloc[:, max(index_wiot_headers)+1:]
     F_fac.columns = Z.columns
@@ -927,116 +936,115 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
     FY_fac = FY_fac.astype('float')
 
     # save the units
-    Z_unit = pd.DataFrame(Z.iloc[:,0])
+    Z_unit = pd.DataFrame(Z.iloc[:, 0])
     Z_unit.columns = ['unit']
     Z_unit['unit'] = _wiot_unit
 
-    F_fac_unit = pd.DataFrame(F_fac.iloc[:,0])
+    F_fac_unit = pd.DataFrame(F_fac.iloc[:, 0])
     F_fac_unit.columns = ['unit']
     F_fac_unit['unit'] = _wiot_unit
-
 
     ll_countries = list(Z.index.get_level_values('region').unique())
 
     # Finalize the factor inputs extension
     ext = dict()
 
-    ext['factor_inputs'] = {'F':F_fac,
-                            'FY':FY_fac,
-                            'year' : wiot_year,
-                            'iosystem' : wiot_iosystem,
+    ext['factor_inputs'] = {'F': F_fac,
+                            'FY': FY_fac,
+                            'year': wiot_year,
+                            'iosystem': wiot_iosystem,
                             'unit': F_fac_unit,
-                            'name':'factor input',
+                            'name': 'factor input',
                             }
 
     # SEA extension
     _F_sea_data, _F_sea_unit = __get_WIOD_SEA_extension(
-                            root_path = root_path, year = year)
+                            root_path=root_path, year=year)
     if _F_sea_data is not None:
         # None if no SEA file present
-        _FY_sea = pd.DataFrame(index = _F_sea_data.index,
-                               columns=FY_fac.columns, data = 0)
+        _FY_sea = pd.DataFrame(index=_F_sea_data.index,
+                               columns=FY_fac.columns, data=0)
         _FY_sea = _FY_sea.astype('float')
 
         ext['SEA'] = {'F': _F_sea_data,
-                'FY': _FY_sea,
-                'year': wiot_year,
-                'iosystem': wiot_iosystem,
-                'unit': _F_sea_unit,
-                'name': 'SEA',
-                'version': version
-                }
+                      'FY': _FY_sea,
+                      'year': wiot_year,
+                      'iosystem': wiot_iosystem,
+                      'unit': _F_sea_unit,
+                      'name': 'SEA',
+                      'version': version
+                      }
 
     # Environmental extensions, names follow the name given
     # in the meta sheet (except for CO2 to get a better description).
     # Units are hardcoded if no consistent place to read them
     # within the files (for all extensions in upper case).
     # The units names must exactly match!
-    # Start must identify exactly one folder or a zip file to 
+    # Start must identify exactly one folder or a zip file to
     # read the extension.
     # Within the folder, the routine looks for xls files
     # starting with the country code.
     dl_envext_para = {
-            'AIR' : {'name' : 'Air Emission Accounts',
-                    'start' : 'AIR_',
-                    'ext' : '.xls',
-                    'unit' : {
-                        'CO2' : 'Gg',
-                        'CH4' : 't',
-                        'N2O' : 't',
-                        'NOx' : 't',
-                        'SOx' : 't',
-                        'CO' : 't',
-                        'NMVOC' : 't',
-                        'NH3' : 't',
-                        },
+            'AIR': {'name': 'Air Emission Accounts',
+                    'start': 'AIR_',
+                    'ext': '.xls',
+                    'unit': {
+                            'CO2': 'Gg',
+                            'CH4': 't',
+                            'N2O': 't',
+                            'NOx': 't',
+                            'SOx': 't',
+                            'CO': 't',
+                            'NMVOC': 't',
+                            'NH3': 't',
+                            },
                     },
-            'CO2' : {'name' : 'CO2 emissions - per source',
-                    'start' : 'CO2_',
-                    'ext' : '.xls',
-                    'unit' : {
-                        'all' : 'Gg'}
+            'CO2': {'name': 'CO2 emissions - per source',
+                    'start': 'CO2_',
+                    'ext': '.xls',
+                    'unit': {
+                        'all': 'Gg'}
                     },
 
-            'EM' : {'name' : 'Emission relevant energy use',
-                    'start' : 'EM_',
-                    'ext' : '.xls',
-                    'unit' : {
-                        'all' : 'TJ'}
+            'EM': {'name': 'Emission relevant energy use',
+                   'start': 'EM_',
+                   'ext': '.xls',
+                   'unit': {
+                        'all': 'TJ'}
+                   },
+            'EU': {'name': 'Gross energy use',
+                   'start': 'EU_',
+                   'ext': '.xls',
+                   'unit': {
+                        'all': 'TJ'}
+                   },
+            'lan': {'name': 'land use',
+                    'start': 'lan_',
+                    'ext': '.xls',
+                    'unit': {
+                        'all': None}
                     },
-            'EU' : {'name' : 'Gross energy use',
-                    'start' : 'EU_',
-                    'ext' : '.xls',
-                    'unit' : {
-                        'all' : 'TJ'}
+            'mat': {'name': 'material use',
+                    'start': 'mat_',
+                    'ext': '.xls',
+                    'unit': {
+                        'all': None}
                     },
-            'lan' : {'name' : 'land use',
-                    'start' : 'lan_',
-                    'ext' : '.xls',
-                    'unit' : {
-                        'all' : None}
-                    },
-            'mat' : {'name' : 'material use',
-                    'start' : 'mat_',
-                    'ext' : '.xls',
-                    'unit' : {
-                        'all' : None}
-                    },
-            'wat' : {'name' : 'water use',
-                    'start' : 'wat_',
-                    'ext' : '.xls',
-                    'unit' : {
-                        'all' : None}
+            'wat': {'name': 'water use',
+                    'start': 'wat_',
+                    'ext': '.xls',
+                    'unit': {
+                        'all': None}
                     },
             }
 
     _FY_template = pd.DataFrame(columns=FY_fac.columns)
     _ss_FY_pressure_column = 'c37'
     for ik_ext in dl_envext_para:
-        _dl_ex = __get_WIOD_env_extension(root_path = root_path,
-                                          year = year,
-                                          ll_co = ll_countries,
-                                          para = dl_envext_para[ik_ext])
+        _dl_ex = __get_WIOD_env_extension(root_path=root_path,
+                                          year=year,
+                                          ll_co=ll_countries,
+                                          para=dl_envext_para[ik_ext])
         if _dl_ex is not None:
             # None if extension not available
             _FY = _dl_ex['FY']
@@ -1044,20 +1052,20 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
             _FY.columns = pd.MultiIndex.from_product([
                                 _FY.columns, _ss_FY_pressure_column])
             _FY = _FY_template.append(_FY)
-            _FY.fillna(0, inplace = True)
+            _FY.fillna(0, inplace=True)
             _FY.index.names = _dl_ex['F'].index.names
             _FY.columns.names = _FY_template.columns.names
             _FY = _FY[ll_countries]
             _FY = _FY.astype('float')
 
             ext[ik_ext] = {
-                    'F' : _dl_ex['F'],
-                    'FY' : _FY,
-                    'year' : wiot_year,
-                    'iosystem' : wiot_iosystem,
-                    'unit':_dl_ex['unit'],
-                    'name':dl_envext_para[ik_ext]['name'],
-                    'version':version
+                    'F': _dl_ex['F'],
+                    'FY': _FY,
+                    'year': wiot_year,
+                    'iosystem': wiot_iosystem,
+                    'unit': _dl_ex['unit'],
+                    'name': dl_envext_para[ik_ext]['name'],
+                    'version': version
                     }
 
     # Build system
@@ -1069,8 +1077,8 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
 
     # Replace sector/final demand category names
     if type(names) is str:
-        names=(names,names)
-    ll_names=[w[0].lower() for w in names]
+        names = (names, names)
+    ll_names = [w[0].lower() for w in names]
 
     if ll_names[0] == 'c':
         dd_sec_rename = wiot_sector_lookup.c_code.to_dict()
@@ -1080,8 +1088,8 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
         dd_sec_rename = wiot_sector_lookup.sector_names.to_dict()
     else:
         dd_sec_rename = wiot_sector_lookup.isic.to_dict()
-        warnings.warn('Parameter for names not understood - '\
-            'used ISIC codes as sector names')
+        warnings.warn('Parameter for names not understood - '
+                      'used ISIC codes as sector names')
 
     if ll_names[1] == 'c':
         dd_fd_rename = wiot_fd_lookup.c_code.to_dict()
@@ -1090,8 +1098,8 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
     elif ll_names[1] == 'f':
         dd_fd_rename = wiot_fd_lookup.sector_names.to_dict()
     else:
-        warnings.warn('Parameter for names not understood - '\
-            'used c_codes as final demand category names')
+        warnings.warn('Parameter for names not understood - '
+                      'used c_codes as final demand category names')
 
     wiod.Z.rename(columns=dd_sec_rename, index=dd_sec_rename, inplace=True)
     wiod.Y.rename(columns=dd_fd_rename, index=dd_sec_rename, inplace=True)
@@ -1100,6 +1108,7 @@ def parse_wiod(path, year=None, names=('isic','c_codes'),
         ext.FY.rename(columns=dd_fd_rename, inplace=True)
 
     return wiod
+
 
 def __get_WIOD_env_extension(root_path, year, ll_co, para):
     """ Parses the wiod environmental extension
@@ -1140,41 +1149,43 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     """
 
     ll_root_content = [ff for ff in os.listdir(root_path) if
-                      ff.startswith(para['start'])]
+                       ff.startswith(para['start'])]
     if len(ll_root_content) < 1:
-        warnings.warn('Extension data for {} not found - '  
+        warnings.warn(
+            'Extension data for {} not found - '
             'Extension not included'.format(para['start']), ParserWarning)
         return None
 
     elif len(ll_root_content) > 1:
-        raise ParserError('Several raw data for extension' 
-                '{} available - clean extension folder.'.format(
-                    para['start']))
+        raise ParserError(
+            'Several raw data for extension'
+            '{} available - clean extension folder.'.format(para['start']))
 
     pf_env = os.path.join(root_path, ll_root_content[0])
 
     if pf_env.endswith('.zip'):
         rf_zip = zipfile.ZipFile(pf_env)
         ll_env_content = [ff for ff in rf_zip.namelist() if
-                      ff.endswith(para['ext'])]
+                          ff.endswith(para['ext'])]
     else:
         ll_env_content = [ff for ff in os.listdir(pf_env) if
-                      ff.endswith(para['ext'])]
+                          ff.endswith(para['ext'])]
 
     dl_env = dict()
     dl_env_hh = dict()
     for co in ll_co:
         ll_pff_read = [ff for ff in ll_env_content if
-                    ff.endswith(para['ext']) and
-                    (ff.startswith(co.upper()) or
-                     ff.startswith(co.lower())) ]
+                       ff.endswith(para['ext']) and
+                       (ff.startswith(co.upper()) or
+                        ff.startswith(co.lower()))]
+
         if len(ll_pff_read) < 1:
-            raise ParserError('Country data not complete for Extension ' 
-                '{} - missing {}.'.format(para['start'],co))
+            raise ParserError('Country data not complete for Extension '
+                              '{} - missing {}.'.format(para['start'], co))
 
         elif len(ll_pff_read) > 1:
-            raise ParserError('Multiple country data for Extension ' 
-                '{} - country {}.'.format(para['start'],co))
+            raise ParserError('Multiple country data for Extension '
+                              '{} - country {}.'.format(para['start'], co))
 
         pff_read = ll_pff_read[0]
 
@@ -1183,21 +1194,21 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         else:
             ff_excel = pd.ExcelFile(os.path.join(pf_env, pff_read))
         if str(year) in ff_excel.sheet_names:
-            df_env = ff_excel.parse(sheetname = str(year),
-                                    index_col = None,
-                                    header = 0
+            df_env = ff_excel.parse(sheetname=str(year),
+                                    index_col=None,
+                                    header=0
                                     )
         else:
-            warnings.warn('Extension {} does not include' \
-                    'data for the year {} - '
-                    'Extension not included'.format(para['start'],year),
-                    ParserWarning)
+            warnings.warn('Extension {} does not include'
+                          'data for the year {} - '
+                          'Extension not included'.format(para['start'], year),
+                          ParserWarning)
             return None
 
         if not df_env.index.is_numeric():
             # upper case letter extensions gets parsed with multiindex, not
             # quite sure why...
-            df_env.reset_index(inplace = True)
+            df_env.reset_index(inplace=True)
 
         # unit can be taken from the first cell in the excel sheet
         if df_env.columns[0] != 'level_0':
@@ -1208,21 +1219,21 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         if para['start'].islower():
             pass
         elif para['start'].isupper():
-            df_env = df_env.iloc[:,1:]
+            df_env = df_env.iloc[:, 1:]
         else:
             raise ParserError('Format of extension not given.')
 
-        df_env.dropna(axis = 0, how = 'all', inplace = True)
-        df_env = df_env[df_env.iloc[:,0] != 'total']
-        df_env = df_env[df_env.iloc[:,0] != 'secTOT']
-        df_env = df_env[df_env.iloc[:,0] != 'secQ']
-        df_env.iloc[:,0].astype(str, inplace = True)
-        df_env.iloc[:,0].replace(to_replace = 'sec',
-                                 value = '',
-                                 regex = True,
-                                 inplace = True)
+        df_env.dropna(axis=0, how='all', inplace=True)
+        df_env = df_env[df_env.iloc[:, 0] != 'total']
+        df_env = df_env[df_env.iloc[:, 0] != 'secTOT']
+        df_env = df_env[df_env.iloc[:, 0] != 'secQ']
+        df_env.iloc[:, 0].astype(str, inplace=True)
+        df_env.iloc[:, 0].replace(to_replace='sec',
+                                  value='',
+                                  regex=True,
+                                  inplace=True)
 
-        df_env.set_index([df_env.columns[0]], inplace = True)
+        df_env.set_index([df_env.columns[0]], inplace=True)
         df_env.index.names = ['sector']
         df_env = df_env.T
 
@@ -1231,10 +1242,10 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         del df_env[ikc_hh]
         dl_env[co] = df_env
 
-    df_F = pd.concat(dl_env, axis = 1)[ll_co]
-    df_FY = pd.concat(dl_env_hh, axis = 1)[ll_co]
-    df_F.fillna(0, inplace = True)
-    df_FY.fillna(0, inplace = True)
+    df_F = pd.concat(dl_env, axis=1)[ll_co]
+    df_FY = pd.concat(dl_env_hh, axis=1)[ll_co]
+    df_F.fillna(0, inplace=True)
+    df_FY.fillna(0, inplace=True)
 
     df_F.columns.names = ['region', 'sector']
     df_F.index.names = ['stressor']
@@ -1243,10 +1254,10 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     df_FY.index.names = ['stressor']
 
     # build the unit df
-    df_unit = pd.DataFrame(index = df_F.index, columns = ['unit'])
+    df_unit = pd.DataFrame(index=df_F.index, columns=['unit'])
     _ss_unit = para['unit'].get('all', 'undef')
     for ikr in df_unit.index:
-        df_unit.ix[ikr,'unit'] = para['unit'].get(ikr, _ss_unit)
+        df_unit.ix[ikr, 'unit'] = para['unit'].get(ikr, _ss_unit)
 
     df_unit.columns.names = ['unit']
     df_unit.index.names = ['stressor']
@@ -1254,12 +1265,13 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     if pf_env.endswith('.zip'):
         rf_zip.close()
 
-    return {'F' : df_F,
-            'FY' : df_FY,
-            'unit' : df_unit
+    return {'F': df_F,
+            'FY': df_FY,
+            'unit': df_unit
             }
 
-def __get_WIOD_SEA_extension(root_path, year, data_sheet = 'DATA'):
+
+def __get_WIOD_SEA_extension(root_path, year, data_sheet='DATA'):
     """ Utility function to get the extension data from the SEA file in WIOD
 
     This function is based on the structure in the WIOD_SEA_July14 file.
@@ -1288,18 +1300,18 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet = 'DATA'):
     if not os.path.exists(_SEA_folder):
         _SEA_folder = root_path
 
-    sea_folder_content  = [ff for ff in os.listdir(_SEA_folder)
-                            if os.path.splitext(ff)[-1] == sea_ext and
-                            ff[:8] == sea_start]
+    sea_folder_content = [ff for ff in os.listdir(_SEA_folder)
+                          if os.path.splitext(ff)[-1] == sea_ext and
+                          ff[:8] == sea_start]
 
     if sea_folder_content:
         # read data
-        sea_file = os.path.join(_SEA_folder,sorted(sea_folder_content)[0])
+        sea_file = os.path.join(_SEA_folder, sorted(sea_folder_content)[0])
 
         df_sea = pd.read_excel(sea_file,
-                sheetname = data_sheet,
-                header = 0,
-                index_col = [0,1,2,3])
+                               sheetname=data_sheet,
+                               header=0,
+                               index_col=[0, 1, 2, 3])
 
         # fix years
         ic_sea = df_sea.columns.tolist()
@@ -1309,7 +1321,8 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet = 'DATA'):
         try:
             ds_sea = df_sea[str(year)]
         except KeyError:
-            warnings.warn('SEA extension does not include data for the '\
+            warnings.warn(
+                'SEA extension does not include data for the '
                 'year {} - SEA-Extension not included'.format(year),
                 ParserWarning)
             return None, None
@@ -1317,43 +1330,42 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet = 'DATA'):
         # get useful data (employment)
         mt_sea = ['EMP', 'EMPE', 'H_EMP', 'H_EMPE']
         ds_use_sea = pd.concat(
-                [ds_sea.xs(key = vari, level = 'Variable', drop_level = False)
+                [ds_sea.xs(key=vari, level='Variable', drop_level=False)
                  for vari in mt_sea])
-        ds_use_sea.drop(labels = 'TOT', level = 'Code', inplace = True)
-        ds_use_sea.reset_index('Description', drop = True, inplace = True)
+        ds_use_sea.drop(labels='TOT', level='Code', inplace=True)
+        ds_use_sea.reset_index('Description', drop=True, inplace=True)
 
-
-        # RoW not included in SEA but needed to get it consistent for 
+        # RoW not included in SEA but needed to get it consistent for
         # all countries. Just add a dummy with 0 for all accounts.
-        if not 'RoW' in ds_use_sea.index.get_level_values('Country'):
+        if 'RoW' not in ds_use_sea.index.get_level_values('Country'):
             ds_RoW = ds_use_sea.xs('USA',
-                                level = 'Country', drop_level = False)
-            ds_RoW.ix[:] = 0;
+                                   level='Country', drop_level=False)
+            ds_RoW.ix[:] = 0
             df_RoW = ds_RoW.reset_index()
             df_RoW['Country'] = 'RoW'
             ds_use_sea = pd.concat(
                         [ds_use_sea.reset_index(), df_RoW]).set_index(
                                         ['Country', 'Code', 'Variable'])
 
-        ds_use_sea.fillna(value=0, inplace = True)
-        df_use_sea = ds_use_sea.unstack(level = ['Country', 'Code'])[str(year)]
+        ds_use_sea.fillna(value=0, inplace=True)
+        df_use_sea = ds_use_sea.unstack(level=['Country', 'Code'])[str(year)]
         df_use_sea.index.names = ['inputtype']
         df_use_sea.columns.names = ['region', 'sector']
         df_use_sea = df_use_sea.astype('float')
 
         df_unit = pd.DataFrame(
-                    data = [    # this data must be in the same order as mt_sea
+                    data=[    # this data must be in the same order as mt_sea
                         'thousand persons',
                         'thousand persons',
                         'mill hours',
                         'mill hours',
                         ],
-                    columns = ['unit'],
-                    index = df_use_sea.index)
+                    columns=['unit'],
+                    index=df_use_sea.index)
 
         return df_use_sea, df_unit
     else:
-        warnings.warn('SEA extension raw data file not found - '
+        warnings.warn(
+            'SEA extension raw data file not found - '
             'SEA-Extension not included', ParserWarning)
         return None, None
-
