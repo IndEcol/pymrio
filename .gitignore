@@ -18,3 +18,4 @@ Session.vim
 #*.gif
 #*.pyc
 Session.vim
+/.cache
