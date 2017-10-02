@@ -1,4 +1,5 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+import os
 
 exec(open('pymrio/version.py').read())
 
@@ -12,14 +13,18 @@ setup(
     author='Konstantin Stadler',
     author_email='konstantin.stadler@ntnu.no',
     version=__version__,  # noqa
-    packages=['pymrio', ],
+    packages=find_packages(),
+    include_package_data=True,
+    package_data = {
+        '': ['*.txt', '*.dat', '*.doc', '*.rst'],
+    },
     install_requires=['pandas >= 0.17.0'],
     classifiers=[
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3 :: Only',
-          'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+          'License :: OSI Approved :: BSD License',
           'Development Status :: 4 - Beta',
           'Environment :: Console',
           'Intended Audience :: End Users/Desktop',

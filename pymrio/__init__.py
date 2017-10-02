@@ -30,19 +30,18 @@ Dependencies:
 
 :Authors: Konstantin Stadler 
 
-:license: BSD 2-Clause License
+:license: BSD 3-Clause License
 
 """
 
 import sys
+import logging
 
 
 # check for correct python version number
 if sys.version_info.major < 3: 
     logging.warn('This package requires Python 3.0 or later.')
 
-# version
-__version__ = '0.2.2'
 
 # import public functionality 
 
@@ -73,4 +72,3 @@ from pymrio.tools.iomath import calc_e
 from pymrio.tools.iomath import calc_accounts
 
 
-#__all__ = ['spam', 'grok']

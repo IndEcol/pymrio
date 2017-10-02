@@ -19,3 +19,11 @@ Session.vim
 #*.pyc
 Session.vim
 /.cache
+/dist/
+/pymrio.egg-info/
+/build/
+/__pycache__
+/tests/__pycache__/
+/.cache
+/.idea
+/doc/.ipynb_checkpoints/
