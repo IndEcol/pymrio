@@ -3,6 +3,23 @@ Changelog
 #########
 
 **********************
+v0.2.2 (May 27, 2016)
+**********************
+
+Dependencies
+============
+
+- pytest. For the unit tests.
+
+Misc
+====
+
+- Fixed filename error for the test system.
+- Various small bug fixes.
+- Preliminary EXIOBASE 3 parser.
+- Preliminary World Input-Output Database (WIOD) parser.
+
+**********************
 v0.2.1 (Nov 17, 2014)
 **********************
 

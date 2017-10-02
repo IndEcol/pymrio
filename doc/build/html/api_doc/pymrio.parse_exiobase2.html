@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pymrio.parse_exiobase22 &mdash; pymrio 0.2.0 documentation</title>
+    <title>pymrio.parse_exiobase2 &mdash; pymrio 0.2.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,8 +23,8 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.2.0 documentation" href="../index.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.2.2 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api_references.html" />
     <link rel="next" title="pymrio.IOSystem.save" href="pymrio.IOSystem.save.html" />
     <link rel="prev" title="pymrio.load_test" href="pymrio.load_test.html" />
@@ -36,9 +35,9 @@
 <![endif]-->
 
   </head>
-  <body>
+  <body role="document">
 
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -50,29 +49,31 @@
         <li class="right" >
           <a href="pymrio.load_test.html" title="pymrio.load_test"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
-  <div class="section" id="pymrio-parse-exiobase22">
-<h1>pymrio.parse_exiobase22<a class="headerlink" href="#pymrio-parse-exiobase22" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="pymrio-parse-exiobase2">
+<h1>pymrio.parse_exiobase2<a class="headerlink" href="#pymrio-parse-exiobase2" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="pymrio.parse_exiobase22">
-<tt class="descclassname">pymrio.</tt><tt class="descname">parse_exiobase22</tt><big>(</big><em>path</em>, <em>charact=None</em>, <em>iosystem=None</em>, <em>version='exiobase 2.2'</em>, <em>popvector='exio2'</em><big>)</big><a class="headerlink" href="#pymrio.parse_exiobase22" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parse the exiobase 2.2 source files for the IOSystem</p>
+<dt id="pymrio.parse_exiobase2">
+<code class="descclassname">pymrio.</code><code class="descname">parse_exiobase2</code><span class="sig-paren">(</span><em>path</em>, <em>charact=None</em>, <em>iosystem=None</em>, <em>version='exiobase 2.2.2'</em>, <em>popvector='exio2'</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.parse_exiobase2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the exiobase 2.2.2 source files for the IOSystem</p>
 <p>The function parse product by product and industry by industry source file
-with flow matrices (Z)</p>
+in the coefficient form (A and S).</p>
+<p>Filenames are hardcoded in the parser - for any other function the code has
+to be adopted. Check git comments to find older verions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
 <blockquote>
 <div><p>Path to the EXIOBASE source files</p>
 </div></blockquote>
@@ -80,9 +81,9 @@ with flow matrices (Z)</p>
 <blockquote>
 <div><p>Filename with path to the characterisation matrices for the extensions
 (xls).  This is provided together with the EXIOBASE system and given as
-a xls file. The four sheets  Q_factorinputs, Q_emission, Q_materials and
-Q_resources are read and used to generate one new extensions with the
-impacts</p>
+a xls file. The four sheets  Q_factorinputs, Q_emission, Q_materials
+and Q_resources are read and used to generate one new extensions with
+the impacts</p>
 </div></blockquote>
 <p><strong>iosystem</strong> : string, optional</p>
 <blockquote>
@@ -94,7 +95,7 @@ The string will be passed to the IOSystem.</p>
 </div></blockquote>
 <p><strong>version</strong> : string, optional</p>
 <blockquote>
-<div><p>This can be used as a version tracking system. Default: exiobase 2.2</p>
+<div><p>This can be used as a version tracking system. Default: exiobase 2.2.2</p>
 </div></blockquote>
 <p><strong>popvector</strong> : string or pd.DataFrame, optional</p>
 <blockquote>
@@ -105,13 +106,13 @@ data will be passed to the IOSystem.</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first">IOSystem</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">IOSystem</p>
 <blockquote>
 <div><p>A IOSystem with the parsed exiobase 2 data</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first"><strong>EXIOError</strong></p>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ParserError</strong></p>
 <blockquote class="last">
 <div><p>If the exiobase source files are not complete in the given path</p>
 </div></blockquote>
@@ -127,7 +128,7 @@ data will be passed to the IOSystem.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="pymrio.load_test.html"
@@ -135,7 +136,7 @@ data will be passed to the IOSystem.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pymrio.IOSystem.save.html"
                         title="next chapter">pymrio.IOSystem.save</a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -152,7 +153,7 @@ data will be passed to the IOSystem.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -164,13 +165,13 @@ data will be passed to the IOSystem.</p>
         <li class="right" >
           <a href="pymrio.load_test.html" title="pymrio.load_test"
              >previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Konstantin Stadler.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
     </div>
   </body>
 </html>

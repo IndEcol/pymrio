@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Changelog &mdash; pymrio 0.2.0 documentation</title>
+    <title>Changelog &mdash; pymrio 0.2.2 documentation</title>
     
     <link rel="stylesheet" href="_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '0.2.0',
+        URL_ROOT:    './',
+        VERSION:     '0.2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,8 +23,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.2.0 documentation" href="index.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.2.2 documentation" href="index.html" />
     <link rel="next" title="Exploring the IO System" href="exploring.html" />
     <link rel="prev" title="Development" href="development.html" />
 <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
@@ -35,9 +34,9 @@
 <![endif]-->
 
   </head>
-  <body>
+  <body role="document">
 
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -49,29 +48,47 @@
         <li class="right" >
           <a href="development.html" title="Development"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">pymrio 0.2.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pymrio 0.2.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="changelog">
 <h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="v0-2-1-nov-17-2014">
-<h2>v0.2.1 (Nov 17, 2014)<a class="headerlink" href="#v0-2-1-nov-17-2014" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="v0-2-2-may-27-2016">
+<h2>v0.2.2 (May 27, 2016)<a class="headerlink" href="#v0-2-2-may-27-2016" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="dependencies">
 <h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>pytest. For the unit tests.</li>
+</ul>
+</div>
+<div class="section" id="misc">
+<h3>Misc<a class="headerlink" href="#misc" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed filename error for the test system.</li>
+<li>Various small bug fixes.</li>
+<li>Preliminary EXIOBASE 3 parser.</li>
+<li>Preliminary World Input-Output Database (WIOD) parser.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="v0-2-1-nov-17-2014">
+<h2>v0.2.1 (Nov 17, 2014)<a class="headerlink" href="#v0-2-1-nov-17-2014" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>Dependencies<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>pandas version &gt; 0.15. This required some change in the xls reading within
 the parser.</li>
 <li>pytest. For the unit tests.</li>
 </ul>
 </div>
-<div class="section" id="misc">
-<h3>Misc<a class="headerlink" href="#misc" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h3>Misc<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Unit testing for all mathematical functions and a first system wide check.</li>
 <li>Fixed some mistakes in the tutorials and readme</li>
@@ -90,8 +107,8 @@ the parser.</li>
 <li>plot_accounts now works also for for specific products (with parameter &#8220;sector&#8221;)</li>
 </ul>
 </div>
-<div class="section" id="id1">
-<h3>Misc<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>Misc<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Several bugfixes</li>
 <li>Mainmodule split into several packages and submodules</li>
@@ -110,19 +127,24 @@ the parser.</li>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Changelog</a><ul>
-<li><a class="reference internal" href="#v0-2-1-nov-17-2014">v0.2.1 (Nov 17, 2014)</a><ul>
+<li><a class="reference internal" href="#v0-2-2-may-27-2016">v0.2.2 (May 27, 2016)</a><ul>
 <li><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li><a class="reference internal" href="#misc">Misc</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#v0-2-1-nov-17-2014">v0.2.1 (Nov 17, 2014)</a><ul>
+<li><a class="reference internal" href="#id1">Dependencies</a></li>
+<li><a class="reference internal" href="#id2">Misc</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#v0-2-0-sept-11-2014">v0.2.0 (Sept 11, 2014)</a><ul>
 <li><a class="reference internal" href="#api-changes">API changes</a></li>
-<li><a class="reference internal" href="#id1">Misc</a></li>
+<li><a class="reference internal" href="#id3">Misc</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#v0-1-0-june-20-2014">v0.1.0 (June 20, 2014)</a></li>
@@ -136,7 +158,7 @@ the parser.</li>
   <h4>Next topic</h4>
   <p class="topless"><a href="exploring.html"
                         title="next chapter">Exploring the IO System</a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -153,7 +175,7 @@ the parser.</li>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -165,12 +187,12 @@ the parser.</li>
         <li class="right" >
           <a href="development.html" title="Development"
              >previous</a> |</li>
-        <li><a href="index.html">pymrio 0.2.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pymrio 0.2.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Konstantin Stadler.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
     </div>
   </body>
 </html>

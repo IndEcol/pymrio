@@ -11,7 +11,7 @@ To avoid namespace pollution everythin here starts with calc_
 import pandas as pd
 import numpy as np
 
-import pymrio.tools.util as util
+import pymrio.tools.ioutil as ioutil
 
 def calc_x(Z, Y):
     """ Calculate the industry output x from the Z and Y matrix 
@@ -105,10 +105,13 @@ def calc_A(Z, x):
     """
     if type(x) is pd.DataFrame:
         x=x.values
-    recix = 1/x
-    recix[recix==np.inf]=0
+    if (type(x) is not np.ndarray) and (x == 0):
+        recix=0
+    else:
+        recix = 1/x
+        recix[recix==np.inf]=0
+        recix=recix.reshape((1, -1))  # use numpy broadcasting - factor ten faster 
     #return Z.dot(np.diagflat(recix)) # Mathematical form - slow
-    recix=recix.reshape((1, -1))  # use numpy broadcasting - factor ten faster 
     if type(Z) is pd.DataFrame:
         return pd.DataFrame(Z.values * recix, index=Z.index, columns=Z.columns)
     else:
@@ -209,17 +212,52 @@ def calc_e(M, Y):
         Final consumption
 
     TODO - this must be completely redone (D, check for dataframe, ...)
+
     Returns
     -------
     pandas.DataFrame or numpy.array
         Multipliers m
-        The type is determined by the type of D. 
-        If DataFrame index/columns as D   
+        The type is determined by the type of M. 
+        If DataFrame index/columns as M   
     The calcubased on multipliers M and finald demand Y """
 
     return M.dot(Y)
 
-def calc_accounts(S, L, Y, nr_countries, nr_sectors):
+def recalc_M(S, D_fp, Y, nr_sectors):
+    """ Calculate Multipliers based on footprints.
+
+    Parameters
+    ----------
+    D_fp : pandas.DataFrame or numpy array
+        Footprint per sector and country
+    Y : pandas.DataFrame or numpy array
+        Final demand: aggregated across categories or just one category, one
+        column per country. This will be diagonalized per country block.
+        The diagonolized form must be invertable for this method to work.
+    nr_sectors : int
+        Number of sectors in the MRIO
+
+    Returns
+    -------
+
+    pandas.DataFrame or numpy.array
+        Multipliers M
+        The type is determined by the type of D_fp. 
+        If DataFrame index/columns as D_fp   
+
+
+    """
+
+    Y_diag = ioutil.diagonalize_blocks(Y.values, blocksize = nr_sectors)
+    Y_inv = np.linalg.inv(Y_diag)
+    M = D_fp.dot(Y_inv)
+    if type(D_fp) is pd.DataFrame:
+        M.columns = D_fp.columns
+        M.index = D_fp.index
+
+    return M
+
+def calc_accounts(S, L, Y, nr_sectors):
     """ Calculate sector specific footprints, terr, imp and exp accounts
 
     The total industry output x for the calculation 
@@ -234,8 +272,6 @@ def calc_accounts(S, L, Y, nr_countries, nr_sectors):
     Y : pandas.DataFrame
         Final demand: aggregated across categories or just one category, one
         column per country
-    nr_countries : int
-        Number of countries in the MRIO
     nr_sectors : int
         Number of sectors in the MRIO
 
@@ -257,7 +293,7 @@ def calc_accounts(S, L, Y, nr_countries, nr_sectors):
     # diagonalize each sector block per country
     # this results in a disaggregated y with final demand per country per
     # sector in one column
-    Y_diag = util.diagonalize_blocks(Y.values, blocksize = nr_sectors)
+    Y_diag = ioutil.diagonalize_blocks(Y.values, blocksize = nr_sectors)
     x_diag = L.dot(Y_diag)
     x_tot  = x_diag.values.sum(1)
     del Y_diag
@@ -272,7 +308,7 @@ def calc_accounts(S, L, Y, nr_countries, nr_sectors):
     
     # for the traded accounts set the domestic industry output to zero
     dom_block = np.zeros((nr_sectors, nr_sectors))
-    x_trade = util.set_block(x_diag.values, dom_block)   
+    x_trade = ioutil.set_block(x_diag.values, dom_block)   
     D_imp = pd.DataFrame(S.values.dot(x_trade), 
                          index=S.index, 
                          columns = S.columns)

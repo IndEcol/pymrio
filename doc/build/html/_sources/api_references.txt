@@ -25,7 +25,7 @@ Raw data
 .. autosummary::
     :toctree: api_doc/
 
-    parse_exiobase22 
+    parse_exiobase2
 
 Save data
 =========

@@ -42,7 +42,7 @@ if sys.version_info.major < 3:
     logging.warn('This package requires Python 3.0 or later.')
 
 # version
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 # import public functionality 
 
@@ -53,12 +53,13 @@ from pymrio.core.fileio import load_all
 from pymrio.core.fileio import load
 from pymrio.core.fileio import load_test
 
-from pymrio.tools.parser import parse_exio_ext
-from pymrio.tools.parser import parse_exiobase22
+from pymrio.tools.ioparser import parse_exio_ext
+from pymrio.tools.ioparser import parse_exiobase2
+from pymrio.tools.ioparser import parse_exiobase3
 
-from pymrio.tools.util import concate_extension
-from pymrio.tools.util import build_agg_vec
-from pymrio.tools.util import build_agg_matrix
+from pymrio.tools.ioutil import concate_extension
+from pymrio.tools.ioutil import build_agg_vec
+from pymrio.tools.ioutil import build_agg_matrix
 
 from pymrio.tools.iomath import calc_x
 from pymrio.tools.iomath import calc_x_from_L

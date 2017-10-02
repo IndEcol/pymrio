@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pymrio.Extension.calc_system &mdash; pymrio 0.2.0 documentation</title>
+    <title>pymrio.Extension.calc_system &mdash; pymrio 0.2.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,8 +23,8 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.2.0 documentation" href="../index.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.2.2 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api_references.html" />
     <link rel="next" title="pymrio.calc_x" href="pymrio.calc_x.html" />
     <link rel="prev" title="pymrio.IOSystem.calc_system" href="pymrio.IOSystem.calc_system.html" />
@@ -36,9 +35,9 @@
 <![endif]-->
 
   </head>
-  <body>
+  <body role="document">
 
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -50,21 +49,21 @@
         <li class="right" >
           <a href="pymrio.IOSystem.calc_system.html" title="pymrio.IOSystem.calc_system"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="pymrio-extension-calc-system">
 <h1>pymrio.Extension.calc_system<a class="headerlink" href="#pymrio-extension-calc-system" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="pymrio.Extension.calc_system">
-<tt class="descclassname">Extension.</tt><tt class="descname">calc_system</tt><big>(</big><em>x</em>, <em>L</em>, <em>Y_agg</em>, <em>population=None</em><big>)</big><a class="headerlink" href="#pymrio.Extension.calc_system" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">Extension.</code><code class="descname">calc_system</code><span class="sig-paren">(</span><em>x</em>, <em>Y_agg</em>, <em>L=None</em>, <em>population=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.Extension.calc_system" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the missing part of the extension plus accounts</p>
 <p>This method uses y aggregated across specified y categories</p>
 <p>Calculates:</p>
@@ -92,17 +91,19 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>x</strong> : pandas.DataFrame or numpy.array</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : pandas.DataFrame or numpy.array</p>
 <blockquote>
 <div><p>Industry output column vector</p>
-</div></blockquote>
-<p><strong>L</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Leontief input output table L</p>
 </div></blockquote>
 <p><strong>Y_agg</strong> : pandas.DataFrame or np.array</p>
 <blockquote>
 <div><p>The final demand aggregated (one category per country)</p>
+</div></blockquote>
+<p><strong>L</strong> : pandas.DataFrame or numpy.array, optional</p>
+<blockquote>
+<div><p>Leontief input output table L. If this is not given,
+the method recalculates M based on D_fp (must be present in 
+the extension).</p>
 </div></blockquote>
 <p><strong>population</strong> : pandas.DataFrame or np.array, optional</p>
 <blockquote class="last">
@@ -123,7 +124,7 @@ checked for each group (reg, cap, and w/o appendix)).</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="pymrio.IOSystem.calc_system.html"
@@ -131,7 +132,7 @@ checked for each group (reg, cap, and w/o appendix)).</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pymrio.calc_x.html"
                         title="next chapter">pymrio.calc_x</a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -148,7 +149,7 @@ checked for each group (reg, cap, and w/o appendix)).</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -160,13 +161,13 @@ checked for each group (reg, cap, and w/o appendix)).</p>
         <li class="right" >
           <a href="pymrio.IOSystem.calc_system.html" title="pymrio.IOSystem.calc_system"
              >previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Konstantin Stadler.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
     </div>
   </body>
 </html>

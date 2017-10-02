@@ -29,24 +29,9 @@ from pymrio.tools.iomath import calc_F
 from pymrio.tools.iomath import calc_M
 from pymrio.tools.iomath import calc_e
 from pymrio.tools.iomath import calc_accounts
+from pymrio.tools.iomath import recalc_M
 
-import pymrio.tools.util as util
-
-# IO specific exceptions
-class EXIOError(Exception):
-    """ Base class for errors concerning EXIOBASE download and structure """
-    def __init__(self, value='Error in Exiobase Source Files'):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-class IO_CALCError(Exception):
-    """ Base class for errors occuring during the calculation of the IO System """
-    def __init__(self, value='Calculation error'):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
+import pymrio.tools.ioutil as ioutil
 
 # Abstract classes
 class CoreSystem():
@@ -64,6 +49,17 @@ class CoreSystem():
                             if self.__dict__[attr] is not None 
                                 and '__' not in attr])
         return startstr + parastr
+    def reset_full(self):
+        """ Remove all accounts which can be recalculated.
+
+        """
+        # Attriubtes to keep must be defined in the init: __basic__
+        [setattr(self,key,None) 
+                for key in self.get_DataFrame(
+                    data = False, 
+                    with_unit = False,
+                    with_population = False)
+                if key not in self.__basic__]
 
     def reset_to_flows(self):
         """ Keeps only the absolute values. 
@@ -71,9 +67,9 @@ class CoreSystem():
         This removes all attributes which can not be aggregated and must be
         recalculated after the aggregation.
 
-        Development note: The attributes which should be removed are
-        defined in self.__non_agg_attributes__ 
         """
+        # Development note: The attributes which should be removed are
+        # defined in self.__non_agg_attributes__ 
         [setattr(self,key,None) for key in self.__non_agg_attributes__]
 
     def reset_to_coefficients(self):
@@ -81,9 +77,9 @@ class CoreSystem():
 
         This can be used to recalculate the IO tables for a new finald demand. 
 
-        Development note: The coefficient attributes are 
-            defined in self.__coefficients__
         """
+        # Development note: The coefficient attributes are 
+            # defined in self.__coefficients__
         [setattr(self,key,None) 
                 for key in self.get_DataFrame(
                     data = False, 
@@ -264,7 +260,7 @@ class CoreSystem():
         table_format : string
             Format to save the DataFrames:
                 
-                - 'pkl' : Binary pickle files, (alias: 'pickle')
+                - 'pkl' : Binary pickle files, (alias: 'pickle', 'bin', 'binary')
                 - 'txt' : Text files, (alis: 'text') default
 
         table_ext : string, optional
@@ -289,6 +285,8 @@ class CoreSystem():
 
         if table_format == 'text' : table_format = 'txt'
         if table_format == 'pickle' : table_format = 'pkl'
+        if table_format == 'bin' : table_format = 'pkl'
+        if table_format == 'binary' : table_format = 'pkl'
         if table_format != 'txt' and table_format != 'pkl':
             logging.error('Unknown table format')
             return None
@@ -497,11 +495,13 @@ class Extension(CoreSystem):
             setattr(self, ext, kwargs[ext])
 
         # Internal attributes
-        self.__D_accounts__ = ['D_fp', 'D_terr', 'D_imp', 'D_exp', 'D_fp_reg',
-                'D_terr_reg', 'D_imp_reg', 'D_exp_reg', 'D_fp_cap',
-                'D_terr_cap', 'D_imp_cap', 'D_exp_cap']
-        self.__non_agg_attributes__ = ['S', 'M']
-        self.__non_agg_attributes__.extend(self.__D_accounts__)
+        self.__basic__ = ['F', 'FY']  # minimal necessary to calc the rest
+        self.__D_accounts__ = ['D_fp', 'D_terr', 'D_imp', 'D_exp', 
+                'D_fp_reg', 'D_terr_reg', 'D_imp_reg', 'D_exp_reg', 
+                'D_fp_cap', 'D_terr_cap', 'D_imp_cap', 'D_exp_cap']
+        self.__non_agg_attributes__ = ['S', 'M',
+                'D_fp_reg', 'D_terr_reg', 'D_imp_reg', 'D_exp_reg', 
+                'D_fp_cap', 'D_terr_cap', 'D_imp_cap', 'D_exp_cap']
 
         self.__coefficients__ = ['S', 'M']    # TODO check FY
 
@@ -515,7 +515,7 @@ class Extension(CoreSystem):
                 "Extension {} with parameters: "
                 ).format(self.name)
 
-    def calc_system(self, x, L, Y_agg, population = None ):
+    def calc_system(self, x, Y_agg, L=None,  population = None ):
         """ Calculates the missing part of the extension plus accounts 
         
         
@@ -539,98 +539,103 @@ class Extension(CoreSystem):
         ----------
         x : pandas.DataFrame or numpy.array
             Industry output column vector
-        L : pandas.DataFrame or numpy.array
-            Leontief input output table L
         Y_agg : pandas.DataFrame or np.array
             The final demand aggregated (one category per country)
+        L : pandas.DataFrame or numpy.array, optional
+            Leontief input output table L. If this is not given,
+            the method recalculates M based on D_fp (must be present in 
+            the extension).
         population : pandas.DataFrame or np.array, optional
             Row vector with population per region
         """
 
         if self.F is None:
-            try:
-                self.F = calc_F(self.S, x)
-                logging.info('Total direct impacts calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                        core.IO_CALCError(
-                        'Calculation of F not possible for {} - check S and x'
-                        ).format(self.name))
+            self.F = calc_F(self.S, x)
+            logging.info('Total direct impacts calculated')
 
         if self.S is None:
-            try:
-                self.S = calc_S(self.F, x)
-                logging.info('Factors of production coefficients S calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                        core.IO_CALCError(
-                        'Calculation of S not possible for {} - check F and x'
-                        ).format(self.name))
+            self.S = calc_S(self.F, x)
+            logging.info('Factors of production coefficients S calculated')
 
         if self.M is None:
-            try:
+            if L is not None:
                 self.M = calc_M(self.S, L)
-                logging.info('Multipliers M calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                        core.IO_CALCError(
-                        'Calculation of M not possible for {} - check S and L'
-                        ).format(self.name))
+                logging.info('Multipliers M calculated based on L')
+            else:
+                try:
+                    self.M = recalc_M(self.S, self.D_fp, 
+                                  Y=Y_agg, nr_sectors=self.get_sectors().size)
+                    logging.info(
+                        'Multipliers M calculated based on D_fp and Y')
+                except Exception as ex:
+                    logging.warn(
+                            'Recalculation of M not possible - cause: {}'.
+                            format(ex))
+
+
 
         FY_agg = 0
         if self.FY is not None:
-            #FY_agg = util.agg_columns(ext['FY'], self.get_Y_categories().size)
+            #FY_agg = ioutil.agg_columns(ext['FY'], self.get_Y_categories().size)
             try:
-                FY_agg = (self.FY.sum(level='region', axis=1, sort=False).
+                FY_agg = (self.FY.sum(level='region', axis=1).
                       reindex_axis(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
-                FY_agg = (self.FY.sum(level=0, axis=1, sort=False).
+                FY_agg = (self.FY.sum(level=0, axis=1).
                       reindex_axis(self.get_regions(), axis=1))
-            
 
         if ((self.D_fp is None) or 
                 (self.D_terr is None) or 
                 (self.D_imp is None) or 
                 (self.D_exp is None)):
-            self.D_fp, self.D_terr, self.D_imp, self.D_exp = (
-                    calc_accounts(self.S, L, Y_agg, 
-                        self.get_regions().size, self.get_sectors().size))
-            logging.info('Accounts D calculated')
+            if L is None:
+                logging.warn('Not possilbe to calculate D accounts')
+            else:
+                self.D_fp, self.D_terr, self.D_imp, self.D_exp = (
+                    calc_accounts(self.S, L, Y_agg, self.get_sectors().size))
+                logging.info('Accounts D calculated')
+
+        if ((self.D_fp is None) or 
+                (self.D_terr is None) or 
+                (self.D_imp is None) or 
+                (self.D_exp is None)):
+                    logging.info('Aggregation accounts not calculated')
+                    return
 
         # aggregate to country
         if ((self.D_fp_reg is None) or (self.D_terr_reg is None) or
                 (self.D_imp_reg is None) or (self.D_exp_reg is None)):
             try:
                 self.D_fp_reg = (
-                        self.D_fp.sum(level='region', axis=1, sort=False).
+                        self.D_fp.sum(level='region', axis=1).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
             except (AssertionError, KeyError):
                 self.D_fp_reg = (
-                        self.D_fp.sum(level=0, axis=1, sort=False).
+                        self.D_fp.sum(level=0, axis=1).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
             try:
                 self.D_terr_reg = (
-                        self.D_terr.sum(level='region', axis=1, sort=False).
+                        self.D_terr.sum(level='region', axis=1).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
             except (AssertionError, KeyError):
                 self.D_terr_reg = (
-                        self.D_terr.sum(level=0, axis=1, sort=False).
+                        self.D_terr.sum(level=0, axis=1).
                         reindex_axis(self.get_regions(), axis=1) + FY_agg)
             try:
                 self.D_imp_reg = (
-                        self.D_imp.sum(level='region', axis=1, sort=False).
+                        self.D_imp.sum(level='region', axis=1).
                         reindex_axis(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
                 self.D_imp_reg = (
-                        self.D_imp.sum(level=0, axis=1, sort=False).
+                        self.D_imp.sum(level=0, axis=1).
                         reindex_axis(self.get_regions(), axis=1))
             try:
                 self.D_exp_reg = (
-                        self.D_exp.sum(level='region', axis=1, sort=False).
+                        self.D_exp.sum(level='region', axis=1).
                         reindex_axis(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
                 self.D_exp_reg = (
-                        self.D_exp.sum(level=0, axis=1, sort=False).
+                        self.D_exp.sum(level=0, axis=1).
                         reindex_axis(self.get_regions(), axis=1))
 
             logging.info('Accounts D for regions calculated')
@@ -727,15 +732,18 @@ class Extension(CoreSystem):
 
         graph_name = self.name + ' - ' + graph_name
 
-        try:
-            # for multiindex the entry is given with header, for single index
-            # just the entry
-            y_label_name = (name_row + 
-                            ' (' + 
-                            str(self.unit.ix[row, 'unit'].tolist()[0]) + ')')
-        except:
-            y_label_name = (name_row + ' (' + 
-                            str(self.unit.ix[row, 'unit']) + ')')
+        if self.unit is not None:
+            try:
+                # for multiindex the entry is given with header, for single index
+                # just the entry
+                y_label_name = (name_row + 
+                                ' (' + 
+                                str(self.unit.ix[row, 'unit'].tolist()[0]) + ')')
+            except:
+                y_label_name = (name_row + ' (' + 
+                                str(self.unit.ix[row, 'unit']) + ')')
+        else:
+            y_label_name = name_row
 
         if 'kind' not in kwargs:
             kwargs['kind'] = 'bar'
@@ -878,6 +886,7 @@ class Extension(CoreSystem):
                             'per capita accounts':rep_spec(per_capita, 
                                                 '_per_capita', True)}
         logging.info('Write report for {}'.format(self.name))
+        fig_name_list = []
         for arep in reports_to_write:
             if not reports_to_write[arep].make:
                 continue
@@ -914,8 +923,19 @@ class Extension(CoreSystem):
 
                 # get valid file name
                 clean = lambda varStr: re.sub('\W|^(?=\d)', '_', varStr) 
-                file_name = (clean(name_row + 
-                                reports_to_write[arep].spec_string) + '.png')
+                file_name = (clean(name_row + reports_to_write[arep].spec_string))
+                file_name = re.sub('_+', '_', file_name)  # possibility of still having __ in there
+
+                # restrict file length
+                file_name = file_name[:50]
+
+                file_name_nr = lambda a,c: a + '_' + str(c)
+                _loopco = 0
+                while file_name_nr(file_name, _loopco) in fig_name_list:
+                    _loopco += 1
+                file_name = file_name_nr(file_name, _loopco)
+                fig_name_list.append(file_name)
+                file_name = file_name + '.png'
                 
                 file_name = os.path.join(subfolder, file_name)
                 file_name_rel = './' + os.path.relpath(file_name, start = path)
@@ -937,10 +957,10 @@ class Extension(CoreSystem):
             fin_txt = '\n'.join(report_txt)
             if format is not 'rst':
                 try:
-                    import docutils as du
+                    import docutils.core as dc
                     if format == 'tex': 
                         format == 'latex'
-                    fin_txt = du.core.publish_string(fin_txt, 
+                    fin_txt = dc.publish_string(fin_txt, 
                             writer_name=format, 
                             settings_overrides={'output_encoding':'unicode'})
                 except:
@@ -1005,6 +1025,11 @@ class Extension(CoreSystem):
     def per_source(self, name = None):
         """ Returns a extension disaggregated into the regional source 
 
+        DEPRECATED: The new method 'build_flow_matrix' is more powerful
+        and calculate per source region and per source sector. These can be 
+        aggregated to one (or several) sectors with the standard aggregation
+        routine. The method here will be deleted in the next versions.
+
         The returned extension included F, FY if present in the original
         extension, and units.
 
@@ -1014,7 +1039,7 @@ class Extension(CoreSystem):
 
         Parameters
         ----------
-        Name : string (optional)
+        name : string (optional)
             The new name for the extension, 
             if None (default): original name + 'per source region'
 
@@ -1075,6 +1100,65 @@ class Extension(CoreSystem):
                               inplace = True, drop = True)
 
         return persou
+
+    def diag_stressor(self, stressor, name = None):
+        """ Diagonalize one row of the stressor matrix for a flow analysis.
+
+        This method takes one row of the F matrix and diagonalize 
+        to the full region/sector format. Footprints calculation based
+        on this matrix show the flow of embodied stressors from the source
+        region/sector (row index) to the final consumer (column index).
+
+        Note
+        ----
+
+        Since the type of analysis based on the disaggregated matrix is based
+        on flow, direct household emissions (FY) are not included.
+ 
+        Parameters
+        ----------
+        stressor : str or int - valid index for one row of the F matrix
+            This must be a tuple for a multiindex, a string otherwise.
+            The stressor to diagonalize.
+
+        name : string (optional)
+            The new name for the extension, 
+            if None (default): string based on the given stressor (row name)
+
+        Returns
+        -------
+        Extension
+
+        """
+        if type(stressor) is int:
+           stressor = self.F.index[stressor] 
+        if len(stressor) == 1: stressor = stressor[0]
+        if not name: 
+            if type(stressor) is str:
+                name = stressor
+            else:
+                name = '_'.join(stressor)
+
+        ext_diag = Extension(name)
+        ext_diag.version = self.version
+        ext_diag.iosystem = self.iosystem
+        ext_diag.year = self.year
+
+        ext_diag.F = pd.DataFrame(
+                index=self.F.columns,
+                columns=self.F.columns,
+                data=np.diag(self.F.loc[stressor,:])
+                )
+        try: 
+            ext_diag.unit = pd.DataFrame(
+                    index=ext_diag.F.index,
+                    columns=self.unit.columns,
+                    data=self.unit.loc[stressor].unit )
+        except AttributeError:
+            # If no unit in stressor, self.unit.columns break
+            ext_diag.unit = None
+        return ext_diag
+
 
 
 class IOSystem(CoreSystem):
@@ -1151,6 +1235,7 @@ class IOSystem(CoreSystem):
         self.__non_agg_attributes__ = ['A', 'L']
 
         self.__coefficients__ = ['A', 'L']
+        self.__basic__ = ['Z', 'Y']  # minimal necessary to calc the rest
 
     def __str__(self):
         return super().__str__("IO System with parameters: ")
@@ -1180,56 +1265,28 @@ class IOSystem(CoreSystem):
         # this catches case 3
         if self.x is None and self.Z is None:
             # in that case we need L or at least A to calculate it
-            try:
-                if self.L is None:
-                    try:
-                        self.L = calc_L(self.A)
-                        logging.info('Leontief matrix L calculated')
-                    except (ValueError, AttributeError):
-                        logging.error(core.IO_CALCError(
-                                'Calculation of L not possible - check A')) 
-
-                self.x = calc_x_from_L(self.L, self.Y.sum(axis=1))
-                logging.info('Industry Ooutput x calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                    core.IO_CALCError(
-                    'Calculation of x not possible - check A and x'))
+            if self.L is None:
+                self.L = calc_L(self.A)
+                logging.info('Leontief matrix L calculated')
+            self.x = calc_x_from_L(self.L, self.Y.sum(axis=1))
+            logging.info('Industry Output x calculated')
 
         # this chains of ifs catch cases 1 and 2
         if self.Z is None:
-            try:
-                self.Z = calc_Z(self.A, self.x)
-                logging.info('Flow matrix Z calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                    core.IO_CALCError(
-                    'Calculation of Z not possible - check A and x'))
+            self.Z = calc_Z(self.A, self.x)
+            logging.info('Flow matrix Z calculated')
 
         if self.x is None:
-            try:
-                self.x = calc_x(self.Z, self.Y)
-                logging.info('Industry output x calculated')
-            except (ValueError, AttributeError):
-                logging.error(
-                    core.IO_CALCError(
-                        'Calculation of x not possible - check Z and Y'))
+            self.x = calc_x(self.Z, self.Y)
+            logging.info('Industry output x calculated')
 
         if self.A is None: 
-            try:
                 self.A = calc_A(self.Z, self.x)
                 logging.info('Coefficient matrix A calculated')
-            except (ValueError, AttributeError):
-                logging.error(core.IO_CALCError(
-                        'Calculation of A not possible - check Z and x')) 
 
         if self.L is None:
-            try:
                 self.L = calc_L(self.A)
                 logging.info('Leontief matrix L calculated')
-            except (ValueError, AttributeError):
-                logging.error(core.IO_CALCError(
-                        'Calculation of L not possible - check A')) 
 
     def calc_extensions(self, extensions = None, Y_agg = None):
         """ Calculates the extension and their accounts 
@@ -1257,14 +1314,10 @@ class IOSystem(CoreSystem):
             #Y_agg = util.agg_columns(self.Y, self.get_Y_categories().size)  
             try:
                 Y_agg = self.Y.sum(level='region', 
-                               axis=1, 
-                               sort=False).reindex_axis(self.get_regions(), 
-                                                        axis=1)
+                    axis=1).reindex_axis(self.get_regions(), axis=1)
             except (AssertionError, KeyError):
                 Y_agg = self.Y.sum(level=0, 
-                               axis=1, 
-                               sort=False).reindex_axis(self.get_regions(), 
-                                                        axis=1)
+                    axis=1,).reindex_axis(self.get_regions(), axis=1)
 
         for ext_name in extensions:
             ext = getattr(self, ext_name)
@@ -1347,6 +1400,17 @@ class IOSystem(CoreSystem):
             else:
                 yield key
 
+    def reset_all_full(self):
+        """ Removes all accounts that can be recalculated (IOSystem and extensions)
+
+        This calls reset_full for the core system and all extension.
+        Use this before the aggregation to achieve a pre-aggregation
+        of the system.
+
+        """
+        self.reset_full()
+        [ee.reset_full() for ee in self.get_extensions(data=True)]
+
     def reset_all_to_flows(self):
         """ Resets the IOSystem and all extensions to absolute flows
 
@@ -1394,11 +1458,11 @@ class IOSystem(CoreSystem):
 
     def aggregate(self, region_agg = None, sector_agg = None, 
                   region_dict = None, sector_dict = None, 
-                  recalc = False, inplace = False):
-        """ Aggregates the IO system
-            
-            This removes all data which can't be aggregated (coefficients)
-            these must be recalculated afterwards
+                  inplace = True, pre_aggregation = False):
+        """ Aggregates the IO system.
+
+            TODO: 2 cases: pre/post aggregation, what happens to 
+            the coefficients...
             
             Aggregation can be given as vector (use pymrio.build_agg_vec) or
             aggregation matrix. In the case of a vector this must be of length
@@ -1412,23 +1476,31 @@ class IOSystem(CoreSystem):
             can define specific names by defining the aggregation as string
             vector
 
+
             Parameters
             ----------
-            region_agg : list or array, optional
+            region_agg : list,array or string, optional
                 The aggregation vector or matrix for the regions (np.ndarray or
-                list)
-            sector_agg : list or arrays, optional
+                list). If string: aggregates to one total region and names is
+                to the given string.
+            sector_agg : list,arrays or string, optional
                 The aggregation vector or matrix for the sectors (np.ndarray or
-                list)
+                list).If string: aggregates to one total region and names is
+                to the given string.
             region_dict : dict, optional    
                 Information to reorder the aggregated regions
             secotor_dict : dict, optional    
                 Information to reorder the aggregated sectors
-            recalc : boolean, optional
-                Recalc IOSystem and accounts after aggregation, default: False
             inplace : boolean, optional
-                If True, aggregates the IOSystem in place, otherwise return a
-                new IOSystem (default)
+                If True, aggregates the IOSystem in place (default), 
+                otherwise return a new IOSystem
+            TODO:pre_aggregation : boolean, optional
+                If True, resets the IO system before the aggregation. This
+                removes all calculated accounts (Footprints, coefficients)
+                before the calculation. If False (default), all 
+                account which can be aggregated (ergo -  not the coefficients)
+                are aggregated TODO: fill in coefficients.
+            TODO: switch for recalc coefficients
                 
             Returns
             -------
@@ -1436,6 +1508,10 @@ class IOSystem(CoreSystem):
                 Aggregated IOSystem (if inplace is False)
 
         """
+        # Development note: This cant be put in the CoreSystem b/c 
+        # than the recalculation of the extension coefficients would not 
+        # work.
+
         if not inplace:
             self = self.copy()
 
@@ -1455,17 +1531,20 @@ class IOSystem(CoreSystem):
             names_sectors = self.get_sectors()
             _same_sectors = True
 
-        # build aggregation concordance matrix for regions and sectors if
-        # concordance is not given as matrix
-        if not util.is_vector(region_agg):
-            region_conc = region_agg
-        else:
-            region_conc = util.build_agg_matrix(region_agg, region_dict)
-        if not util.is_vector(sector_agg):
-            sector_conc = sector_agg
-        else:
-            sector_conc = util.build_agg_matrix(sector_agg, sector_dict)
+        # capture total aggregation case
+        if type(region_agg) is str:
+            region_agg = [region_agg] * len(self.get_regions())
+        if type(sector_agg) is str:
+            sector_agg = [sector_agg] * len(self.get_sectors())
 
+        if ioutil.is_vector(region_agg):
+            region_conc = ioutil.build_agg_matrix(region_agg, region_dict)
+        else:
+            region_conc = region_agg
+        if ioutil.is_vector(sector_agg):
+            sector_conc = ioutil.build_agg_matrix(sector_agg, sector_dict)
+        else:
+            sector_conc = sector_agg
 
         # build the new names
         if not _same_regions:
@@ -1476,10 +1555,11 @@ class IOSystem(CoreSystem):
                 if isinstance(region_agg, np.ndarray): 
                     region_agg = region_agg.flatten().tolist()
                 if type(region_agg[0]) is str: 
-                    names_regions = util.unique_element(region_agg)
+                    names_regions = ioutil.unique_element(region_agg)
                 else:  
                     # rows in the concordance matrix give the new number of
                     # regions
+                    # TODO fails: DEFINE GENERIC_NAMES
                     names_regions = [GENERIC_NAMES['region'] + 
                             str(nr) for nr in range(region_conc.shape[0])] 
 
@@ -1491,8 +1571,9 @@ class IOSystem(CoreSystem):
                 if isinstance(sector_agg, np.ndarray): sector_agg = (
                         sector_agg.flatten().tolist())
                 if type(sector_agg[0]) is str: 
-                    names_sectors = util.unique_element(sector_agg)
+                    names_sectors = ioutil.unique_element(sector_agg)
                 else: 
+                    # TODO fails: DEFINE GENERIC_NAMES
                     names_sectors = [GENERIC_NAMES['sector'] + 
                             str(nr) for nr in range(sector_conc.shape[0])]
 
@@ -1521,17 +1602,6 @@ class IOSystem(CoreSystem):
         conc_y = np.kron(region_conc , np.eye(len(self.get_Y_categories())))
 
         # Aggregate
-        try:    
-            # x can also be obtained from the aggregated Z, but aggregate if
-            # available
-            self.x = pd.DataFrame(
-                        data = conc.dot(self.x),
-                        index = mi_reg_sec,
-                        columns = self.x.columns,
-                        )
-            logging.info('Aggregate industry output x')
-        except:
-            pass
         
         logging.info('Aggregate final demand y')
         self.Y = pd.DataFrame(
@@ -1547,6 +1617,18 @@ class IOSystem(CoreSystem):
                     columns = mi_reg_sec,
                     )
 
+        try:    
+            # x can also be obtained from the aggregated Z, but aggregate if
+            # available
+            self.x = pd.DataFrame(
+                        data = conc.dot(self.x),
+                        index = mi_reg_sec,
+                        columns = self.x.columns,
+                        )
+            logging.info('Aggregate industry output x')
+        except:
+            self.x = calc_x(self.Z, self.Y)
+
         if self.population is not None:
             logging.info('Aggregate population vector')
             self.population = pd.DataFrame(
@@ -1555,31 +1637,63 @@ class IOSystem(CoreSystem):
                         index = self.population.index,
                         )
 
-        for extension in self.get_extensions(data = True):
-            logging.info(
-                    'Aggregate extension matrices F aggregated for {}'.
-                    format(extension.name))
+        for extension in self.get_extensions(data=True):
+            logging.info('Aggregate extensions...')
             extension.reset_to_flows()
-            extension.F = pd.DataFrame(
-                        data = extension.F.dot(conc.T),
-                        index = extension.F.index,
-                        )
-            # the next step must be done afterwards due to unknown reasons
-            extension.F.columns = mi_reg_sec 
-            if getattr(extension, 'FY') is not None:
-                logging.info(
-                        'Aggregate final demand extension matrices FY for {}'
-                        .format(extension.name))           
-                extension.FY = pd.DataFrame(
-                        data = extension.FY.dot(conc_y.T),
-                        index = extension.FY.index,
-                        )
-                # the next step must be done afterwards due to unknown reasons
-                extension.FY.columns = mi_reg_Ycat
-        
-        if recalc:
-            self.calc_all()
+            st_redo_unit = False
+            for ik_name,ik_df in zip(
+                    extension.get_DataFrame(data=False, with_unit=False),
+                    extension.get_DataFrame(data=True, with_unit=False)):
 
+                # Without unit - this is reset aftwards if necessary
+                if ik_df.index.names == ['region', 'sector'] == ik_df.columns.names:
+                    # Full disaggregated extensions - aggregate both axis
+                    # (this is the case if the extions shows the flows from
+                    # pda to cba)
+                    extension.__dict__[ik_name] = pd.DataFrame(
+                            data = conc.dot(ik_df).dot(conc.T))
+
+                    # the next step must be done afterwards due to unknown reasons
+                    extension.__dict__[ik_name].columns = mi_reg_sec
+                    extension.__dict__[ik_name].index = mi_reg_sec
+                    st_redo_unit = True
+                elif (ik_df.index.names == ['region', 'sector'] and
+                      ik_df.columns.names == ['region', 'category']):
+                    # Full disaggregated finald demand satellite account.
+                    # Thats not implemented yet - but aggregation is in place
+                    extension.__dict__[ik_name]  = pd.DataFrame(
+                            data = conc.dot(ik_df).dot(conc_y.T))
+                    # the next step must be done afterwards due to unknown reasons
+                    extension.__dict__[ik_name].columns = mi_reg_Ycat
+                    extension.__dict__[ik_name].index = mi_reg_sec
+
+                elif ik_df.columns.names == ['region', 'category']:
+                    # Satellite account connected to final demand (e.g. FY)
+                    extension.__dict__[ik_name]  = pd.DataFrame(
+                            data=ik_df.dot(conc_y.T))
+                    # the next step must be done afterwards due to unknown reasons
+                    extension.__dict__[ik_name].columns = mi_reg_Ycat
+                    extension.__dict__[ik_name].index = ik_df.index
+
+                else: 
+                    # Standard case - aggregated columns, keep stressor rows
+                    extension.__dict__[ik_name]  = pd.DataFrame(
+                            data=ik_df.dot(conc.T))
+                    # the next step must be done afterwards due to unknown reasons
+                    extension.__dict__[ik_name].columns = mi_reg_sec
+                    extension.__dict__[ik_name].index = ik_df.index
+
+                if st_redo_unit:
+                    try:
+                        _value = extension.unit.iloc[0].tolist()[0]
+                        extension.unit = pd.DataFrame(
+                                index=mi_reg_sec,
+                                columns=extension.unit.columns,
+                                data=_value)
+                    except AttributeError:
+                        # could fail if no unit available
+                        extension.unit = None
+        self.calc_extensions()
         if not inplace:
             return self
     def remove_extension(self, ext=None):

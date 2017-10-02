@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pymrio.IOSystem.save &mdash; pymrio 0.2.0 documentation</title>
+    <title>pymrio.IOSystem.save &mdash; pymrio 0.2.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,11 +23,11 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.2.0 documentation" href="../index.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.2.2 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api_references.html" />
     <link rel="next" title="pymrio.IOSystem.save_all" href="pymrio.IOSystem.save_all.html" />
-    <link rel="prev" title="pymrio.parse_exiobase22" href="pymrio.parse_exiobase22.html" />
+    <link rel="prev" title="pymrio.parse_exiobase2" href="pymrio.parse_exiobase2.html" />
 <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
 <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
 <!--[if lte IE 6]>
@@ -36,9 +35,9 @@
 <![endif]-->
 
   </head>
-  <body>
+  <body role="document">
 
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -48,30 +47,30 @@
           <a href="pymrio.IOSystem.save_all.html" title="pymrio.IOSystem.save_all"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="pymrio.parse_exiobase22.html" title="pymrio.parse_exiobase22"
+          <a href="pymrio.parse_exiobase2.html" title="pymrio.parse_exiobase2"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="pymrio-iosystem-save">
 <h1>pymrio.IOSystem.save<a class="headerlink" href="#pymrio-iosystem-save" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="pymrio.IOSystem.save">
-<tt class="descclassname">IOSystem.</tt><tt class="descname">save</tt><big>(</big><em>path</em>, <em>table_format='txt'</em>, <em>sep='t'</em>, <em>table_ext=None</em>, <em>float_format='%.12g'</em><big>)</big><a class="headerlink" href="#pymrio.IOSystem.save" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">IOSystem.</code><code class="descname">save</code><span class="sig-paren">(</span><em>path</em>, <em>table_format='txt'</em>, <em>sep='\t'</em>, <em>table_ext=None</em>, <em>float_format='%.12g'</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.IOSystem.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the system as text or binary pickle files.</p>
 <p>Tables (dataframes) of the current system are saved as text or binary pickle files, meta data (all other attributes) and the specifications of the tables are saved in a ini file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
 <blockquote>
 <div><p>path for the saved data (will be created if necessary, data within will be overwritten).
 The path can contain the name for the ini file, otherwise this will be based on the name attribute.</p>
@@ -81,7 +80,7 @@ The path can contain the name for the ini file, otherwise this will be based on 
 <div><p>Format to save the DataFrames:</p>
 <blockquote>
 <div><ul class="simple">
-<li>&#8216;pkl&#8217; : Binary pickle files, (alias: &#8216;pickle&#8217;)</li>
+<li>&#8216;pkl&#8217; : Binary pickle files, (alias: &#8216;pickle&#8217;, &#8216;bin&#8217;, &#8216;binary&#8217;)</li>
 <li>&#8216;txt&#8217; : Text files, (alis: &#8216;text&#8217;) default</li>
 </ul>
 </div></blockquote>
@@ -113,15 +112,15 @@ Use save_all to save the whole system.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="pymrio.parse_exiobase22.html"
-                        title="previous chapter">pymrio.parse_exiobase22</a></p>
+  <p class="topless"><a href="pymrio.parse_exiobase2.html"
+                        title="previous chapter">pymrio.parse_exiobase2</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pymrio.IOSystem.save_all.html"
                         title="next chapter">pymrio.IOSystem.save_all</a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -138,7 +137,7 @@ Use save_all to save the whole system.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -148,15 +147,15 @@ Use save_all to save the whole system.</p>
           <a href="pymrio.IOSystem.save_all.html" title="pymrio.IOSystem.save_all"
              >next</a> |</li>
         <li class="right" >
-          <a href="pymrio.parse_exiobase22.html" title="pymrio.parse_exiobase22"
+          <a href="pymrio.parse_exiobase2.html" title="pymrio.parse_exiobase2"
              >previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Konstantin Stadler.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
     </div>
   </body>
 </html>

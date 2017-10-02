@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pymrio.IOSystem.aggregate &mdash; pymrio 0.2.0 documentation</title>
+    <title>pymrio.IOSystem.aggregate &mdash; pymrio 0.2.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,8 +23,8 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.2.0 documentation" href="../index.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pymrio 0.2.2 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api_references.html" />
     <link rel="next" title="pymrio.build_agg_vec" href="pymrio.build_agg_vec.html" />
     <link rel="prev" title="pymrio.calc_accounts" href="pymrio.calc_accounts.html" />
@@ -36,9 +35,9 @@
 <![endif]-->
 
   </head>
-  <body>
+  <body role="document">
 
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -50,24 +49,24 @@
         <li class="right" >
           <a href="pymrio.calc_accounts.html" title="pymrio.calc_accounts"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="pymrio-iosystem-aggregate">
 <h1>pymrio.IOSystem.aggregate<a class="headerlink" href="#pymrio-iosystem-aggregate" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="pymrio.IOSystem.aggregate">
-<tt class="descclassname">IOSystem.</tt><tt class="descname">aggregate</tt><big>(</big><em>region_agg=None</em>, <em>sector_agg=None</em>, <em>region_dict=None</em>, <em>sector_dict=None</em>, <em>recalc=False</em>, <em>inplace=False</em><big>)</big><a class="headerlink" href="#pymrio.IOSystem.aggregate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Aggregates the IO system</p>
-<p>This removes all data which can&#8217;t be aggregated (coefficients)
-these must be recalculated afterwards</p>
+<code class="descclassname">IOSystem.</code><code class="descname">aggregate</code><span class="sig-paren">(</span><em>region_agg=None</em>, <em>sector_agg=None</em>, <em>region_dict=None</em>, <em>sector_dict=None</em>, <em>inplace=True</em>, <em>pre_aggregation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.IOSystem.aggregate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aggregates the IO system.</p>
+<p>TODO: 2 cases: pre/post aggregation, what happens to 
+the coefficients...</p>
 <p>Aggregation can be given as vector (use pymrio.build_agg_vec) or
 aggregation matrix. In the case of a vector this must be of length
 self.get_regions() / self.get_sectors() respectively with the new
@@ -82,15 +81,17 @@ vector</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>region_agg</strong> : list or array, optional</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>region_agg</strong> : list,array or string, optional</p>
 <blockquote>
 <div><p>The aggregation vector or matrix for the regions (np.ndarray or
-list)</p>
+list). If string: aggregates to one total region and names is
+to the given string.</p>
 </div></blockquote>
-<p><strong>sector_agg</strong> : list or arrays, optional</p>
+<p><strong>sector_agg</strong> : list,arrays or string, optional</p>
 <blockquote>
 <div><p>The aggregation vector or matrix for the sectors (np.ndarray or
-list)</p>
+list).If string: aggregates to one total region and names is
+to the given string.</p>
 </div></blockquote>
 <p><strong>region_dict</strong> : dict, optional</p>
 <blockquote>
@@ -100,18 +101,23 @@ list)</p>
 <blockquote>
 <div><p>Information to reorder the aggregated sectors</p>
 </div></blockquote>
-<p><strong>recalc</strong> : boolean, optional</p>
-<blockquote>
-<div><p>Recalc IOSystem and accounts after aggregation, default: False</p>
-</div></blockquote>
 <p><strong>inplace</strong> : boolean, optional</p>
 <blockquote>
-<div><p>If True, aggregates the IOSystem in place, otherwise return a
-new IOSystem (default)</p>
+<div><p>If True, aggregates the IOSystem in place (default), 
+otherwise return a new IOSystem</p>
 </div></blockquote>
+<p><strong>TODO:pre_aggregation</strong> : boolean, optional</p>
+<blockquote>
+<div><p>If True, resets the IO system before the aggregation. This
+removes all calculated accounts (Footprints, coefficients)
+before the calculation. If False (default), all 
+account which can be aggregated (ergo -  not the coefficients)
+are aggregated TODO: fill in coefficients.</p>
+</div></blockquote>
+<p><strong>TODO: switch for recalc coefficients</strong></p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first">IOSystem</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">IOSystem</p>
 <blockquote class="last">
 <div><p>Aggregated IOSystem (if inplace is False)</p>
 </div></blockquote>
@@ -127,7 +133,7 @@ new IOSystem (default)</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="pymrio.calc_accounts.html"
@@ -135,7 +141,7 @@ new IOSystem (default)</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pymrio.build_agg_vec.html"
                         title="next chapter">pymrio.build_agg_vec</a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
@@ -152,7 +158,7 @@ new IOSystem (default)</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -164,13 +170,13 @@ new IOSystem (default)</p>
         <li class="right" >
           <a href="pymrio.calc_accounts.html" title="pymrio.calc_accounts"
              >previous</a> |</li>
-        <li><a href="../index.html">pymrio 0.2.0 documentation</a> &raquo;</li>
-          <li><a href="../api_references.html" >API Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../api_references.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2014, Konstantin Stadler.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
     </div>
   </body>
 </html>
