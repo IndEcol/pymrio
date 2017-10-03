@@ -12,16 +12,12 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys
+import os
+from unittest.mock import MagicMock
 
 # add the pymrio path for the autodoc function
 
-# THIS IS THE OLD FUNCTION BEFORE SETUP.PY
-# _pymrio_folder = os.path.abspath('../../')
-
-# if not _pymrio_folder in sys.path:
-    # sys.path.append(_pymrio_folder)
-# del _pymrio_folder
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -30,6 +26,16 @@ import sys, os
 sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration -----------------------------------------------------
+
+# ReadTheDocs setting for mocking pandas, numpy
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return MagicMock()
+
+
+MOCK_MODULES = ['numpy', 'pandas']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
