@@ -42,8 +42,7 @@ import logging
 if sys.version_info.major < 3: 
     logging.warn('This package requires Python 3.0 or later.')
 
-
-# import public functionality 
+from pymrio.version import __version__
 
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
