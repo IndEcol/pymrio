@@ -14,7 +14,6 @@
 
 import sys
 import os
-from unittest.mock import MagicMock
 
 # add the pymrio path for the autodoc function
 
@@ -27,15 +26,6 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration -----------------------------------------------------
 
-# ReadTheDocs setting for mocking pandas, numpy
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-            return MagicMock()
-
-
-MOCK_MODULES = ['numpy', 'pandas']
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
