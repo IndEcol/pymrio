@@ -180,22 +180,18 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>Z</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Symmetric input output table (flows)</p>
-</div></blockquote>
-<p><strong>x</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Industry output column vector</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Z</strong> (<em>pandas.DataFrame or numpy.array</em>) – Symmetric input output table (flows)</li>
+<li><strong>x</strong> (<em>pandas.DataFrame or numpy.array</em>) – Industry output column vector</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
-<blockquote class="last">
-<div><p>Symmetric input output table (coefficients) A
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Symmetric input output table (coefficients) A
 The type is determined by the type of Z.
 If DataFrame index/columns as Z</p>
-</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pandas.DataFrame or numpy.array</p>
 </td>
 </tr>
 </tbody>
@@ -210,22 +206,18 @@ If DataFrame index/columns as Z</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>S</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Direct impact coefficients S</p>
-</div></blockquote>
-<p><strong>x</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Industry output column vector</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>S</strong> (<em>pandas.DataFrame or numpy.array</em>) – Direct impact coefficients S</li>
+<li><strong>x</strong> (<em>pandas.DataFrame or numpy.array</em>) – Industry output column vector</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
-<blockquote class="last">
-<div><p>Total direct impacts F
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Total direct impacts F
 The type is determined by the type of S.
 If DataFrame index/columns as S</p>
-</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pandas.DataFrame or numpy.array</p>
 </td>
 </tr>
 </tbody>
@@ -240,19 +232,13 @@ If DataFrame index/columns as S</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>A</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Symmetric input output table (coefficients)</p>
-</div></blockquote>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>A</strong> (<em>pandas.DataFrame or numpy.array</em>) – Symmetric input output table (coefficients)</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
-<blockquote class="last">
-<div><p>Leontief input output table L
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Leontief input output table L
 The type is determined by the type of A.
-If DataFrame index/columns as A</p>
-</div></blockquote>
-</td>
+If DataFrame index/columns as A</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">pandas.DataFrame or numpy.array</td>
 </tr>
 </tbody>
 </table>
@@ -266,22 +252,18 @@ If DataFrame index/columns as A</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>L</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Leontief input output table L</p>
-</div></blockquote>
-<p><strong>S</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Direct impact coefficients</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>L</strong> (<em>pandas.DataFrame or numpy.array</em>) – Leontief input output table L</li>
+<li><strong>S</strong> (<em>pandas.DataFrame or numpy.array</em>) – Direct impact coefficients</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
-<blockquote class="last">
-<div><p>Multipliers M
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Multipliers M
 The type is determined by the type of D.
 If DataFrame index/columns as D</p>
-</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pandas.DataFrame or numpy.array</p>
 </td>
 </tr>
 </tbody>
@@ -296,22 +278,18 @@ If DataFrame index/columns as D</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>F</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Total direct impacts</p>
-</div></blockquote>
-<p><strong>x</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Industry output column vector</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>F</strong> (<em>pandas.DataFrame or numpy.array</em>) – Total direct impacts</li>
+<li><strong>x</strong> (<em>pandas.DataFrame or numpy.array</em>) – Industry output column vector</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
-<blockquote class="last">
-<div><p>Direct impact coefficients S
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Direct impact coefficients S
 The type is determined by the type of F.
 If DataFrame index/columns as F</p>
-</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pandas.DataFrame or numpy.array</p>
 </td>
 </tr>
 </tbody>
@@ -326,22 +304,18 @@ If DataFrame index/columns as F</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>A</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Symmetric input output table (coefficients)</p>
-</div></blockquote>
-<p><strong>x</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Industry output column vector</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> (<em>pandas.DataFrame or numpy.array</em>) – Symmetric input output table (coefficients)</li>
+<li><strong>x</strong> (<em>pandas.DataFrame or numpy.array</em>) – Industry output column vector</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
-<blockquote class="last">
-<div><p>Symmetric input output table (flows) Z
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Symmetric input output table (flows) Z
 The type is determined by the type of A.
 If DataFrame index/columns as A</p>
-</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pandas.DataFrame or numpy.array</p>
 </td>
 </tr>
 </tbody>
@@ -358,28 +332,16 @@ is recalculated from L and y</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>L</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Leontief input output table L</p>
-</div></blockquote>
-<p><strong>S</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Direct impact coefficients</p>
-</div></blockquote>
-<p><strong>Y</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Final demand: aggregated across categories or just one category, one
-column per country</p>
-</div></blockquote>
-<p><strong>nr_sectors</strong> : int</p>
-<blockquote>
-<div><p>Number of sectors in the MRIO</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>L</strong> (<em>pandas.DataFrame</em>) – Leontief input output table L</li>
+<li><strong>S</strong> (<em>pandas.DataFrame</em>) – Direct impact coefficients</li>
+<li><strong>Y</strong> (<em>pandas.DataFrame</em>) – Final demand: aggregated across categories or just one category, one
+column per country</li>
+<li><strong>nr_sectors</strong> (<em>int</em>) – Number of sectors in the MRIO</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Tuple</p>
-<blockquote class="last">
-<div><p>(D_fp, D_terr, D_imp, D_exp)</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>(D_fp, D_terr, D_imp, D_exp)</p>
 <p>Format: D_row x L_col (=nr_countries*nr_sectors)</p>
 <ul class="simple">
 <li>D_fp        Footprint per sector and country</li>
@@ -395,7 +357,10 @@ column per country</p>
 </dl>
 </li>
 </ul>
-</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Tuple</p>
 </td>
 </tr>
 </tbody>
@@ -410,24 +375,20 @@ column per country</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>M</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Multipliers</p>
-</div></blockquote>
-<p><strong>Y</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Final consumption</p>
-</div></blockquote>
-<p><strong>TODO - this must be completely redone (D, check for dataframe, …)</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>M</strong> (<em>pandas.DataFrame or numpy.array</em>) – Multipliers</li>
+<li><strong>Y</strong> (<em>pandas.DataFrame or numpy.array</em>) – Final consumption</li>
+<li><strong>TODO - this must be completely redone (D, check for dataframe, …)</strong></li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Multipliers m
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>pandas.DataFrame or numpy.array</em> – Multipliers m
 The type is determined by the type of M.
-If DataFrame index/columns as M</p>
-</div></blockquote>
-<p class="last">The calcubased on multipliers M and finald demand Y</p>
+If DataFrame index/columns as M</li>
+<li><em>The calcubased on multipliers M and finald demand Y</em></li>
+</ul>
+</p>
 </td>
 </tr>
 </tbody>
@@ -442,21 +403,17 @@ If DataFrame index/columns as M</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>Z</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Symmetric input output table (flows)</p>
-</div></blockquote>
-<p><strong>Y</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>final demand with categories (1.order) for each country (2.order)</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Z</strong> (<em>pandas.DataFrame or numpy.array</em>) – Symmetric input output table (flows)</li>
+<li><strong>Y</strong> (<em>pandas.DataFrame or numpy.array</em>) – final demand with categories (1.order) for each country (2.order)</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
-<blockquote class="last">
-<div><p>Industry output x as column vector
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Industry output x as column vector
 The type is determined by the type of Z. If DataFrame index as Z</p>
-</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pandas.DataFrame or numpy.array</p>
 </td>
 </tr>
 </tbody>
@@ -471,21 +428,17 @@ The type is determined by the type of Z. If DataFrame index as Z</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>L</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Symmetric input output Leontief table</p>
-</div></blockquote>
-<p><strong>y</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>a column vector of the total final demand</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>L</strong> (<em>pandas.DataFrame or numpy.array</em>) – Symmetric input output Leontief table</li>
+<li><strong>y</strong> (<em>pandas.DataFrame or numpy.array</em>) – a column vector of the total final demand</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
-<blockquote class="last">
-<div><p>Industry output x as column vector
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Industry output x as column vector
 The type is determined by the type of L. If DataFrame index as L</p>
-</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pandas.DataFrame or numpy.array</p>
 </td>
 </tr>
 </tbody>
@@ -500,28 +453,21 @@ The type is determined by the type of L. If DataFrame index as L</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>D_fp</strong> : pandas.DataFrame or numpy array</p>
-<blockquote>
-<div><p>Footprint per sector and country</p>
-</div></blockquote>
-<p><strong>Y</strong> : pandas.DataFrame or numpy array</p>
-<blockquote>
-<div><p>Final demand: aggregated across categories or just one category, one
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>D_fp</strong> (<em>pandas.DataFrame or numpy array</em>) – Footprint per sector and country</li>
+<li><strong>Y</strong> (<em>pandas.DataFrame or numpy array</em>) – Final demand: aggregated across categories or just one category, one
 column per country. This will be diagonalized per country block.
-The diagonolized form must be invertable for this method to work.</p>
-</div></blockquote>
-<p><strong>nr_sectors</strong> : int</p>
-<blockquote>
-<div><p>Number of sectors in the MRIO</p>
-</div></blockquote>
+The diagonolized form must be invertable for this method to work.</li>
+<li><strong>nr_sectors</strong> (<em>int</em>) – Number of sectors in the MRIO</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
-<blockquote class="last">
-<div><p>Multipliers M
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Multipliers M
 The type is determined by the type of D_fp.
 If DataFrame index/columns as D_fp</p>
-</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pandas.DataFrame or numpy.array</p>
 </td>
 </tr>
 </tbody>
@@ -554,60 +500,38 @@ If DataFrame index/columns as D_fp</p>
 <p>EXIOBASE like extensions files are assumed to have two
 rows which are used as columns multiindex (region and sector)
 and up to three columns for the row index (see Parameters).</p>
+<p class="rubric">Notes</p>
+<p>So far this only parses factor of production extensions F (not
+final demand extensions FY nor coeffiecents S).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>file</strong> : string</p>
-<blockquote>
-<div><p>File to parse</p>
-</div></blockquote>
-<p><strong>index_col</strong> : int</p>
-<blockquote>
-<div><p>The number of columns (1 to 3) at the beginning of the file
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file</strong> (<em>string</em>) – File to parse</li>
+<li><strong>index_col</strong> (<em>int</em>) – The number of columns (1 to 3) at the beginning of the file
 to use as the index. The order of the index_col must be
 - 1 index column: [‘stressor’]
 - 2 index columns: [‘stressor’, ‘unit’]
 - 3 index columns: [‘stressor’, ‘compartment’, ‘unit’]
-- &gt; 3: everything up to three index columns will be removed</p>
-</div></blockquote>
-<p><strong>name</strong> : string</p>
-<blockquote>
-<div><p>Name of the extension</p>
-</div></blockquote>
-<p><strong>drop_compartment</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If True (default) removes the compartment from the index.</p>
-</div></blockquote>
-<p><strong>version</strong> : string, optional</p>
-<blockquote>
-<div><p>see pymrio.Extension</p>
-</div></blockquote>
-<p><strong>iosystem</strong> : string, optional</p>
-<blockquote>
-<div><p>see pymrio.Extension</p>
-</div></blockquote>
-<p><strong>year</strong> : string or int</p>
-<blockquote>
-<div><p>see pymrio.Extension</p>
-</div></blockquote>
-<p><strong>sep</strong> : string, optional</p>
-<blockquote>
-<div><p>Delimiter to use; default ‘,’</p>
-</div></blockquote>
+- &gt; 3: everything up to three index columns will be removed</li>
+<li><strong>name</strong> (<em>string</em>) – Name of the extension</li>
+<li><strong>drop_compartment</strong> (<em>boolean, optional</em>) – If True (default) removes the compartment from the index.</li>
+<li><strong>version</strong> (<em>string, optional</em>) – see pymrio.Extension</li>
+<li><strong>iosystem</strong> (<em>string, optional</em>) – see pymrio.Extension</li>
+<li><strong>year</strong> (<em>string or int</em>) – see pymrio.Extension</li>
+<li><strong>sep</strong> (<em>string, optional</em>) – Delimiter to use; default ‘,’</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pymrio.Extension</p>
-<blockquote class="last">
-<div><p>with F (and unit if available)</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">with F (and unit if available)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pymrio.Extension</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>So far this only parses factor of production extensions F (not
-final demand extensions FY nor coeffiecents S).</p>
 </dd></dl>
 
 <dl class="function">
@@ -622,49 +546,33 @@ to be adopted. Check git comments to find older verions.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
-<blockquote>
-<div><p>Path to the EXIOBASE source files</p>
-</div></blockquote>
-<p><strong>charact</strong> : string, optional</p>
-<blockquote>
-<div><p>Filename with path to the characterisation matrices for the extensions
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<em>string</em>) – Path to the EXIOBASE source files</li>
+<li><strong>charact</strong> (<em>string, optional</em>) – Filename with path to the characterisation matrices for the extensions
 (xls).  This is provided together with the EXIOBASE system and given as
 a xls file. The four sheets  Q_factorinputs, Q_emission, Q_materials
 and Q_resources are read and used to generate one new extensions with
-the impacts</p>
-</div></blockquote>
-<p><strong>iosystem</strong> : string, optional</p>
-<blockquote>
-<div><p>Note for the IOSystem, recommended to be ‘pxp’ or ‘ixi’ for
+the impacts</li>
+<li><strong>iosystem</strong> (<em>string, optional</em>) – Note for the IOSystem, recommended to be ‘pxp’ or ‘ixi’ for
 product by product or industry by industry.
 However, this can be any string and can have more information if needed
 (eg for different technology assumptions)
-The string will be passed to the IOSystem.</p>
-</div></blockquote>
-<p><strong>version</strong> : string, optional</p>
-<blockquote>
-<div><p>This can be used as a version tracking system. Default: exiobase 2.2.2</p>
-</div></blockquote>
-<p><strong>popvector</strong> : string or pd.DataFrame, optional</p>
-<blockquote>
-<div><p>The population vector for the countries.  This can be given as
+The string will be passed to the IOSystem.</li>
+<li><strong>version</strong> (<em>string, optional</em>) – This can be used as a version tracking system. Default: exiobase 2.2.2</li>
+<li><strong>popvector</strong> (<em>string or pd.DataFrame, optional</em>) – The population vector for the countries.  This can be given as
 pd.DataFrame(index = population, columns = countrynames) or, (default)
 will be taken from the pymrio module. If popvector = None no population
-data will be passed to the IOSystem.</p>
-</div></blockquote>
+data will be passed to the IOSystem.</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">IOSystem</p>
-<blockquote>
-<div><p>A IOSystem with the parsed exiobase 2 data</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A IOSystem with the parsed exiobase 2 data</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ParserError</strong></p>
-<blockquote class="last">
-<div><p>If the exiobase source files are not complete in the given path</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="pymrio.core.html#pymrio.core.mriosystem.IOSystem" title="pymrio.core.mriosystem.IOSystem">IOSystem</a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#pymrio.tools.ioparser.ParserError" title="pymrio.tools.ioparser.ParserError"><code class="xref py py-exc docutils literal"><span class="pre">ParserError</span></code></a> – If the exiobase source files are not complete in the given path</p>
 </td>
 </tr>
 </tbody>
@@ -689,17 +597,12 @@ zip file.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>zip_file</strong> : string</p>
-<blockquote>
-<div><p>Zip file containing EXIO3 (abs or relative path)</p>
-</div></blockquote>
-<p><strong>path_in_zip</strong> : string, optional</p>
-<blockquote>
-<div><p>Relative path to the data within the zipfile. Default: root (‘’)</p>
-</div></blockquote>
-<p><strong>version</strong> : string, optional</p>
-<blockquote>
-<div><p>The version defines the filename in EXIOBASE.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first">
+<li><p class="first"><strong>zip_file</strong> (<em>string</em>) – Zip file containing EXIO3 (abs or relative path)</p>
+</li>
+<li><p class="first"><strong>path_in_zip</strong> (<em>string, optional</em>) – Relative path to the data within the zipfile. Default: root (‘’)</p>
+</li>
+<li><p class="first"><strong>version</strong> (<em>string, optional</em>) – The version defines the filename in EXIOBASE.
 For example:</p>
 <blockquote>
 <div><p>mrIOT3.0.txt for EXIOBASE3 requires the
@@ -707,40 +610,32 @@ version parameter to be “3.0”,
 mrIOT_3_1.txt requires version to be “_3_1”
 version parameter to be “3.0”</p>
 </div></blockquote>
-</div></blockquote>
-<p><strong>charact</strong> : string, optional</p>
-<blockquote>
-<div><p>Filename with path to the characterisation matrices for the extensions
+</li>
+<li><p class="first"><strong>charact</strong> (<em>string, optional</em>) – Filename with path to the characterisation matrices for the extensions
 (xls).  This is provided together with the EXIOBASE system and given as
 a xls file. The four sheets  Q_factorinputs, Q_emission, Q_materials
 and Q_resources are read and used to generate one new extensions
 with the impacts</p>
-</div></blockquote>
-<p><strong>iosystem</strong> : string, optional</p>
-<blockquote>
-<div><p>Note for the IOSystem, recommended to be ‘pxp’ or ‘ixi’ for
+</li>
+<li><p class="first"><strong>iosystem</strong> (<em>string, optional</em>) – Note for the IOSystem, recommended to be ‘pxp’ or ‘ixi’ for
 product by product or industry by industry.
 However, this can be any string and can have more information if needed
 (eg for different technology assumptions)
 The string will be passed to the IOSystem.</p>
-</div></blockquote>
-<p><strong>year</strong> : string or int</p>
-<blockquote>
-<div><p>see pymrio.Extension</p>
-</div></blockquote>
+</li>
+<li><p class="first"><strong>year</strong> (<em>string or int</em>) – see pymrio.Extension</p>
+</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">IOSystem</p>
-<blockquote>
-<div><p>A IOSystem with the parsed exiobase 3 data</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A IOSystem with the parsed exiobase 3 data</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ParserError</strong></p>
-<blockquote class="last">
-<div><p>If the exiobase source files are not
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="pymrio.core.html#pymrio.core.mriosystem.IOSystem" title="pymrio.core.mriosystem.IOSystem">IOSystem</a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#pymrio.tools.ioparser.ParserError" title="pymrio.tools.ioparser.ParserError"><code class="xref py py-exc docutils literal"><span class="pre">ParserError</span></code></a> – If the exiobase source files are not
 complete in the given path or EXIOBASE files missing TODO</p>
-</div></blockquote>
 </td>
 </tr>
 </tbody>
@@ -781,23 +676,18 @@ These can be overwritten afterwards if needed.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
-<blockquote>
-<div><p>Path to the folder with the WIOD source files. In case that the path
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first">
+<li><p class="first"><strong>path</strong> (<em>string</em>) – Path to the folder with the WIOD source files. In case that the path
 to a specific file is given, only this will be parsed irrespective of
 the values given in year.</p>
-</div></blockquote>
-<p><strong>year</strong> : int, str, optional</p>
-<blockquote>
-<div><p>Which year in the path should be parsed. The years can be given with
+</li>
+<li><p class="first"><strong>year</strong> (<em>int, str, optional</em>) – Which year in the path should be parsed. The years can be given with
 four or two digits (eg [2012 or 12]). If the given path contains a
 specific file, the value of year will not be used (but inferred from
 the meta data)- otherwise it must be given For the monetary data the
 parser searches for files with ‘wiot - two digit year’.</p>
-</div></blockquote>
-<p><strong>names</strong> : string or tuple, optional</p>
-<blockquote>
-<div><p>WIOD provides three different sector/final demand categories naming
+</li>
+<li><p class="first"><strong>names</strong> (<em>string or tuple, optional</em>) – WIOD provides three different sector/final demand categories naming
 schemes. These can can be specified for the IOSystem. Pass:</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -816,21 +706,18 @@ was passed for final demand categories). To specify different finial
 consumption category names, pass a tuple with (sectors/interindustry
 classification, fd categories), eg (‘isic’, ‘full’). Names are case
 insensitive and passing the first character is sufficient.</p>
-</div></blockquote>
-<p><strong>version</strong> : str, optional</p>
-<blockquote>
-<div><p>Version information to be stored in the parsed database.</p>
-</div></blockquote>
-<p><strong>TODO popvector</strong> : TO BE IMPLEMENTED (consistent with EXIOBASE)</p>
+</li>
+<li><p class="first"><strong>version</strong> (<em>str, optional</em>) – Version information to be stored in the parsed database.</p>
+</li>
+<li><p class="first"><strong>TODO popvector</strong> (<em>TO BE IMPLEMENTED (consistent with EXIOBASE)</em>)</p>
+</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first">IOSystem</p>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><em>IOSystem</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ParserError</strong></p>
-<blockquote class="last">
-<div><p>If the WIOD source file are not complete or inconsistent</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#pymrio.tools.ioparser.ParserError" title="pymrio.tools.ioparser.ParserError"><code class="xref py py-exc docutils literal"><span class="pre">ParserError</span></code></a> – If the WIOD source file are not complete or inconsistent</p>
 </td>
 </tr>
 </tbody>
@@ -863,55 +750,45 @@ insensitive and passing the first character is sufficient.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>agg_vector</strong> : list or vector like numpy ndarray</p>
-<blockquote>
-<div><blockquote>
-<div><p>This can be row or column vector.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>agg_vector</strong> (<em>list or vector like numpy ndarray</em>) – This can be row or column vector.
 Length m with position given for n and -1 if values
 should not be included
 or
-length m with id_string for the aggregation</p>
-</div></blockquote>
-<dl class="docutils">
-<dt>pos_dict <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
-<dd><p class="first last">(only possible if agg_vector is given as string)
+length m with id_string for the aggregation</li>
+<li><strong>pos_dict</strong> (<em>dictionary</em>) – (only possible if agg_vector is given as string)
 output order for the new matrix
 must be given as dict with
 ‘string in agg_vector’ = pos
-(as int, -1 if value should not be included in the aggregation)</p>
-</dd>
-</dl>
-</div></blockquote>
-<p><strong>Example 1:</strong></p>
-<blockquote>
-<div><p>input vector: np.array([0, 1, 1, 2]) or [‘a’, ‘b’, ‘b’, ‘c’]</p>
-<p>agg matrix:</p>
-<blockquote>
-<div><p>m0  m1  m2  m3</p>
-</div></blockquote>
-<p>n0 1   0   0   0
-n1 0   1   1   0
-n2 0   0   0   1</p>
-</div></blockquote>
-<p><strong>Example 2:</strong></p>
-<blockquote class="last">
-<div><dl class="docutils">
-<dt>input vector: np.array([1, 0, 0, 2]) or</dt>
-<dd><p class="first last">([‘b’, ‘a’, ‘a’, ‘c’], dict(a=0,b=1,c=2))</p>
-</dd>
-</dl>
-<p>agg matrix:</p>
-<blockquote>
-<div><p>m0  m1  m2  m3</p>
-</div></blockquote>
-<p>n0 0   1   1   0
-n1 1   0   0   0
-n2 0   0   0   1</p>
-</div></blockquote>
+(as int, -1 if value should not be included in the aggregation)</li>
+</ul>
 </td>
 </tr>
 </tbody>
 </table>
+<dl class="docutils">
+<dt>Example 1:</dt>
+<dd><p class="first">input vector: np.array([0, 1, 1, 2]) or [‘a’, ‘b’, ‘b’, ‘c’]</p>
+<p>agg matrix:</p>
+<blockquote>
+<div>m0  m1  m2  m3</div></blockquote>
+<p class="last">n0 1   0   0   0
+n1 0   1   1   0
+n2 0   0   0   1</p>
+</dd>
+<dt>Example 2:</dt>
+<dd><dl class="first docutils">
+<dt>input vector: np.array([1, 0, 0, 2]) or</dt>
+<dd>([‘b’, ‘a’, ‘a’, ‘c’], dict(a=0,b=1,c=2))</dd>
+</dl>
+<p>agg matrix:</p>
+<blockquote>
+<div>m0  m1  m2  m3</div></blockquote>
+<p class="last">n0 0   1   1   0
+n1 1   0   0   0
+n2 0   0   0   1</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -942,24 +819,24 @@ pointing to a folder with the mapping.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>agg_vec</strong> : list</p>
-<blockquote>
-<div><p>A list of sector or regions to which the IOSystem shall be aggregated.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>agg_vec</strong> (<em>list</em>) – A list of sector or regions to which the IOSystem shall be aggregated.
 The order in agg_vec is important:
 If a string was assigned to one specific entry it will not be
 overwritten if it is given in the next vector, e.g.  [‘EU’, ‘OECD’]
 would aggregate first into EU and the remaining one into OECD, whereas
 [‘OECD’, ‘EU’] would first aggregate all countries into OECD and than
-the remaining countries into EU.</p>
-</div></blockquote>
-<p><strong>source</strong> : list or string</p>
-<blockquote>
-<div><p>Definition of the vectors in agg_vec.  The input vectors (either in the
+the remaining countries into EU.</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>source <span class="classifier-delimiter">:</span> <span class="classifier">list or string</span></dt>
+<dd><p class="first">Definition of the vectors in agg_vec.  The input vectors (either in the
 file or given as list for the entries in agg_vec) must be as long as
 the desired output with a string for every position which should be
 aggregated and None for position which should not be used.</p>
 <p>Special keywords:</p>
-<blockquote>
+<blockquote class="last">
 <div><ul>
 <li><dl class="first docutils">
 <dt>path <span class="classifier-delimiter">:</span> <span class="classifier">Path to a folder with concordance matrices.</span></dt>
@@ -987,11 +864,15 @@ the current directory will be searched for the definition.</p>
 </li>
 </ul>
 </div></blockquote>
-</div></blockquote>
-</td>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list (aggregation vector)</p>
-</td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list (aggregation vector)</td>
 </tr>
 </tbody>
 </table>
@@ -1013,17 +894,16 @@ between the extensions</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>extensions</strong> : Extensions</p>
-<blockquote>
-<div><p>The Extensions to concatenate as multiple parameters</p>
-</div></blockquote>
-<p><strong>name</strong> : string</p>
-<blockquote>
-<div><p>Name of the new extension</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>extensions</strong> (<em>Extensions</em>) – The Extensions to concatenate as multiple parameters</li>
+<li><strong>name</strong> (<em>string</em>) – Name of the new extension</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Concatenated extension</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Concatenated extension</p>
 </td>
 </tr>
 </tbody>
@@ -1038,44 +918,51 @@ between the extensions</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>arr</strong> : numpy array</p>
-<blockquote>
-<div><p>Input array</p>
-</div></blockquote>
-<p><strong>blocksize</strong> : int</p>
-<blockquote>
-<div><p>number of rows/colums forming one block</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arr</strong> (<em>numpy array</em>) – Input array</li>
+<li><strong>blocksize</strong> (<em>int</em>) – number of rows/colums forming one block</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">numpy ndarray with shape (columns ‘arr’ * blocksize,</p>
-<blockquote class="last">
-<div><p>columns ‘arr’ * blocksize)</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">columns ‘arr’ * blocksize)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy ndarray with shape (columns ‘arr’ * blocksize,</p>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Example</p>
+<dl class="docutils">
+<dt>arr:      output: (blocksize = 3)</dt>
+<dd>3 1     3 0 0 1 0 0
+4 2     0 4 0 0 2 0
+5 3     0 0 5 0 0 3
+6 9     6 0 0 9 0 0
+7 6     0 7 0 0 6 0
+8 4     0 0 8 0 0 4</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="pymrio.tools.ioutil.is_vector">
 <code class="descclassname">pymrio.tools.ioutil.</code><code class="descname">is_vector</code><span class="sig-paren">(</span><em>inp</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioutil.is_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns true if the input can be interpreted as a ‘true’ vector</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Does only check dimensions, not if type is numeric</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>inp</strong> : numpy.ndarray or something that can be converted into ndarray</p>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>inp</strong> (<em>numpy.ndarray or something that can be converted into ndarray</em>)</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Boolean</p>
-<blockquote class="last">
-<div><p>True for vectors: ndim = 1 or ndim = 2 and shape of one axis = 1
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True for vectors: ndim = 1 or ndim = 2 and shape of one axis = 1
 False for all other arrays
-None if inp is not a ndarray and cant be converted to one</p>
-</div></blockquote>
-</td>
+None if inp is not a ndarray and cant be converted to one</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Boolean</td>
 </tr>
 </tbody>
 </table>
@@ -1089,17 +976,16 @@ None if inp is not a ndarray and cant be converted to one</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>arr</strong> : numpy ndarray</p>
-<blockquote>
-<div><p>the original array</p>
-</div></blockquote>
-<p><strong>block_arr</strong> : numpy ndarray</p>
-<blockquote>
-<div><p>the block array for the new diagonal</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arr</strong> (<em>numpy ndarray</em>) – the original array</li>
+<li><strong>block_arr</strong> (<em>numpy ndarray</em>) – the block array for the new diagonal</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">numpy ndarray (the modified array)</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy ndarray (the modified array)</p>
 </td>
 </tr>
 </tbody>

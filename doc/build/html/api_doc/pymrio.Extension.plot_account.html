@@ -187,53 +187,37 @@ depending on the ‘sector’ parameter.</p>
 <p>Per default the accounts are plotted as bar charts.
 However, any valid keyword for the pandas.DataFrame.plot
 method can be passed.</p>
+<p class="rubric">Notes</p>
+<p>This looks prettier with the seaborn module
+(import seaborn before calling this method)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>row</strong> : string, tuple or int</p>
-<blockquote>
-<div><p>A valid index for the row in the extension which
-should be plotted (one(!) row - no list allowed)</p>
-</div></blockquote>
-<p><strong>per_capita</strong> : boolean, optional</p>
-<blockquote>
-<div><p>Plot the per capita accounts instead of the absolute values
-default is False</p>
-</div></blockquote>
-<p><strong>sector: string, optional</strong></p>
-<blockquote>
-<div><p>Plot the results for a specific sector of the IO table. If
-None is given (default), the total regional accounts are plotted.</p>
-</div></blockquote>
-<p><strong>population</strong> : pandas.DataFrame or np.array, optional</p>
-<blockquote>
-<div><p>Vector with population per region. This must be given if
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>row</strong> (<em>string, tuple or int</em>) – A valid index for the row in the extension which
+should be plotted (one(!) row - no list allowed)</li>
+<li><strong>per_capita</strong> (<em>boolean, optional</em>) – Plot the per capita accounts instead of the absolute values
+default is False</li>
+<li><strong>sector</strong> (<em>string, optional</em>) – Plot the results for a specific sector of the IO table. If
+None is given (default), the total regional accounts are plotted.</li>
+<li><strong>population</strong> (<em>pandas.DataFrame or np.array, optional</em>) – Vector with population per region. This must be given if
 values should be plotted per_capita for a specific sector since
-these values are calculated on the fly.</p>
-</div></blockquote>
-<p><strong>file_name</strong> : path string, optional</p>
-<blockquote>
-<div><p>If given, saves the plot to the given filename</p>
-</div></blockquote>
-<p><strong>file_dpi</strong> : int, optional</p>
-<blockquote>
-<div><p>Dpi for saving the figure, default 600</p>
-</div></blockquote>
-<p><strong>**kwargs</strong> : key word arguments, optional</p>
-<blockquote>
-<div><p>This will be passed directly to the pd.DataFrame.plot method</p>
-</div></blockquote>
+these values are calculated on the fly.</li>
+<li><strong>file_name</strong> (<em>path string, optional</em>) – If given, saves the plot to the given filename</li>
+<li><strong>file_dpi</strong> (<em>int, optional</em>) – Dpi for saving the figure, default 600</li>
+<li><strong>**kwargs</strong> (<em>key word arguments, optional</em>) – This will be passed directly to the pd.DataFrame.plot method</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Axis as given by pandas.DataFrame.plot, None in case of errors</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Axis as given by pandas.DataFrame.plot, None in case of errors</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>This looks prettier with the seaborn module
-(import seaborn before calling this method)</p>
 </dd></dl>
 
 </div>

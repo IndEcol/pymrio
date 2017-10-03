@@ -213,24 +213,24 @@ pointing to a folder with the mapping.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>agg_vec</strong> : list</p>
-<blockquote>
-<div><p>A list of sector or regions to which the IOSystem shall be aggregated.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>agg_vec</strong> (<em>list</em>) – A list of sector or regions to which the IOSystem shall be aggregated.
 The order in agg_vec is important:
 If a string was assigned to one specific entry it will not be
 overwritten if it is given in the next vector, e.g.  [‘EU’, ‘OECD’]
 would aggregate first into EU and the remaining one into OECD, whereas
 [‘OECD’, ‘EU’] would first aggregate all countries into OECD and than
-the remaining countries into EU.</p>
-</div></blockquote>
-<p><strong>source</strong> : list or string</p>
-<blockquote>
-<div><p>Definition of the vectors in agg_vec.  The input vectors (either in the
+the remaining countries into EU.</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>source <span class="classifier-delimiter">:</span> <span class="classifier">list or string</span></dt>
+<dd><p class="first">Definition of the vectors in agg_vec.  The input vectors (either in the
 file or given as list for the entries in agg_vec) must be as long as
 the desired output with a string for every position which should be
 aggregated and None for position which should not be used.</p>
 <p>Special keywords:</p>
-<blockquote>
+<blockquote class="last">
 <div><ul>
 <li><dl class="first docutils">
 <dt>path <span class="classifier-delimiter">:</span> <span class="classifier">Path to a folder with concordance matrices.</span></dt>
@@ -258,11 +258,15 @@ the current directory will be searched for the definition.</p>
 </li>
 </ul>
 </div></blockquote>
-</div></blockquote>
-</td>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list (aggregation vector)</p>
-</td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list (aggregation vector)</td>
 </tr>
 </tbody>
 </table>

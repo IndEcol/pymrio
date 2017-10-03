@@ -200,28 +200,16 @@ is recalculated from L and y</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>L</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Leontief input output table L</p>
-</div></blockquote>
-<p><strong>S</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Direct impact coefficients</p>
-</div></blockquote>
-<p><strong>Y</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Final demand: aggregated across categories or just one category, one
-column per country</p>
-</div></blockquote>
-<p><strong>nr_sectors</strong> : int</p>
-<blockquote>
-<div><p>Number of sectors in the MRIO</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>L</strong> (<em>pandas.DataFrame</em>) – Leontief input output table L</li>
+<li><strong>S</strong> (<em>pandas.DataFrame</em>) – Direct impact coefficients</li>
+<li><strong>Y</strong> (<em>pandas.DataFrame</em>) – Final demand: aggregated across categories or just one category, one
+column per country</li>
+<li><strong>nr_sectors</strong> (<em>int</em>) – Number of sectors in the MRIO</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Tuple</p>
-<blockquote class="last">
-<div><p>(D_fp, D_terr, D_imp, D_exp)</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>(D_fp, D_terr, D_imp, D_exp)</p>
 <p>Format: D_row x L_col (=nr_countries*nr_sectors)</p>
 <ul class="simple">
 <li>D_fp        Footprint per sector and country</li>
@@ -237,7 +225,10 @@ column per country</p>
 </dl>
 </li>
 </ul>
-</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Tuple</p>
 </td>
 </tr>
 </tbody>

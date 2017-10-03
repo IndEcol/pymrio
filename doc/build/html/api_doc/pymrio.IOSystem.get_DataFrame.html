@@ -191,34 +191,30 @@
 <dt id="pymrio.IOSystem.get_DataFrame">
 <code class="descclassname">IOSystem.</code><code class="descname">get_DataFrame</code><span class="sig-paren">(</span><em>data=False</em>, <em>with_unit=True</em>, <em>with_population=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.IOSystem.get_DataFrame" title="Permalink to this definition">¶</a></dt>
 <dd><p>Yields all panda.DataFrames or there names</p>
+<p class="rubric">Notes</p>
+<p>For IOSystem this does not include the DataFrames in the extensions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>data</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If True, returns a generator which yields the DataFrames.
-If False, returns a generator which yields only the names of the DataFrames</p>
-</div></blockquote>
-<p><strong>with_unit: boolean, optional</strong></p>
-<blockquote>
-<div><p>If True, includes the ‘unit’ DataFrame
-If False, does not include the ‘unit’ DataFrame. The method than only yields the numerical data tables</p>
-</div></blockquote>
-<p><strong>with_population: boolean, optional</strong></p>
-<blockquote>
-<div><p>If True, includes the ‘population’ vector
-If False, does not include the ‘population’ vector.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<em>boolean, optional</em>) – If True, returns a generator which yields the DataFrames.
+If False, returns a generator which yields only the names of the DataFrames</li>
+<li><strong>with_unit</strong> (<em>boolean, optional</em>) – If True, includes the ‘unit’ DataFrame
+If False, does not include the ‘unit’ DataFrame. The method than only yields the numerical data tables</li>
+<li><strong>with_population</strong> (<em>boolean, optional</em>) – If True, includes the ‘population’ vector
+If False, does not include the ‘population’ vector.</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrames or string generator, depending on parameter data</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">DataFrames or string generator, depending on parameter data</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>For IOSystem this does not include the DataFrames in the extensions.</p>
 </dd></dl>
 
 </div>

@@ -205,46 +205,30 @@ vector</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>region_agg</strong> : list,array or string, optional</p>
-<blockquote>
-<div><p>The aggregation vector or matrix for the regions (np.ndarray or
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>region_agg</strong> (<em>list,array or string, optional</em>) – The aggregation vector or matrix for the regions (np.ndarray or
 list). If string: aggregates to one total region and names is
-to the given string.</p>
-</div></blockquote>
-<p><strong>sector_agg</strong> : list,arrays or string, optional</p>
-<blockquote>
-<div><p>The aggregation vector or matrix for the sectors (np.ndarray or
+to the given string.</li>
+<li><strong>sector_agg</strong> (<em>list,arrays or string, optional</em>) – The aggregation vector or matrix for the sectors (np.ndarray or
 list).If string: aggregates to one total region and names is
-to the given string.</p>
-</div></blockquote>
-<p><strong>region_dict</strong> : dict, optional</p>
-<blockquote>
-<div><p>Information to reorder the aggregated regions</p>
-</div></blockquote>
-<p><strong>secotor_dict</strong> : dict, optional</p>
-<blockquote>
-<div><p>Information to reorder the aggregated sectors</p>
-</div></blockquote>
-<p><strong>inplace</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If True, aggregates the IOSystem in place (default),
-otherwise return a new IOSystem</p>
-</div></blockquote>
-<p><strong>TODO:pre_aggregation</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If True, resets the IO system before the aggregation. This
+to the given string.</li>
+<li><strong>region_dict</strong> (<em>dict, optional</em>) – Information to reorder the aggregated regions</li>
+<li><strong>secotor_dict</strong> (<em>dict, optional</em>) – Information to reorder the aggregated sectors</li>
+<li><strong>inplace</strong> (<em>boolean, optional</em>) – If True, aggregates the IOSystem in place (default),
+otherwise return a new IOSystem</li>
+<li><strong>TODO</strong> (<em>pre_aggregation : boolean, optional</em>) – If True, resets the IO system before the aggregation. This
 removes all calculated accounts (Footprints, coefficients)
 before the calculation. If False (default), all
 account which can be aggregated (ergo -  not the coefficients)
-are aggregated TODO: fill in coefficients.</p>
-</div></blockquote>
-<p><strong>TODO: switch for recalc coefficients</strong></p>
+are aggregated TODO: fill in coefficients.</li>
+<li><strong>TODO</strong> (<em>switch for recalc coefficients</em>)</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">IOSystem</p>
-<blockquote class="last">
-<div><p>Aggregated IOSystem (if inplace is False)</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Aggregated IOSystem (if inplace is False)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="../pymrio.core.html#pymrio.core.mriosystem.IOSystem" title="pymrio.core.mriosystem.IOSystem">IOSystem</a></p>
 </td>
 </tr>
 </tbody>

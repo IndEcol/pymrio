@@ -184,45 +184,33 @@ the tables are assumed to be in .txt format.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
-<blockquote>
-<div><p>path or ini file name for the data to load</p>
-</div></blockquote>
-<p><strong>recursive</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If True, load also the data in the subfolders and add them as
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<em>string</em>) – path or ini file name for the data to load</li>
+<li><strong>recursive</strong> (<em>boolean, optional</em>) – If True, load also the data in the subfolders and add them as
 extensions to the IOSystem (in that case path must point to the root).
 Only first order subfolders are considered (no subfolders in
 subfolders) and if a folder does not contain a ini file it’s skipped.
 Use the subini parameter in case of multiple ini files in a subfolder.
 Attribute name of the extension in the IOSystem are based on the
-subfolder name.  Default is False</p>
-</div></blockquote>
-<p><strong>ini</strong> : string, optional</p>
-<blockquote>
-<div><p>If there are several ini files in the root folder, take this one for
+subfolder name.  Default is False</li>
+<li><strong>ini</strong> (<em>string, optional</em>) – If there are several ini files in the root folder, take this one for
 loading the data If None (default) take the ini found in the folder,
-error if several are found</p>
-</div></blockquote>
-<p><strong>subini</strong> : dict, optional</p>
-<blockquote>
-<div><p>If there are multiple ini in the subfolder, use the ini given in the
+error if several are found</li>
+<li><strong>subini</strong> (<em>dict, optional</em>) – If there are multiple ini in the subfolder, use the ini given in the
 dict.  Format: ‘subfoldername’:’ininame’ If a key for a subfolder is
 not found or None (default), the ini found in the folder will be taken,
-error if several are found</p>
-</div></blockquote>
-<p><strong>include_core</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If False the load method does not include A, L and Z matrix. This
+error if several are found</li>
+<li><strong>include_core</strong> (<em>boolean, optional</em>) – If False the load method does not include A, L and Z matrix. This
 significantly reduces the required memory if the purpose is only
-to analyse the results calculated beforehand.</p>
-</div></blockquote>
+to analyse the results calculated beforehand.</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">IOSystem or Extension class depending on systemtype in the ini file</p>
-<blockquote class="last">
-<div><p>None in case of errors</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>IOSystem or Extension class depending on systemtype in the ini file</em></li>
+<li><em>None in case of errors</em></li>
+</ul>
+</p>
 </td>
 </tr>
 </tbody>
@@ -239,18 +227,17 @@ same parameter can as for .load can be used.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
-<blockquote>
-<div><p>path or ini file name for the data to load</p>
-</div></blockquote>
-<p><strong>**kwargs</strong> : key word arguments, optional</p>
-<blockquote>
-<div><p>This will be passed directly to the load method</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<em>string</em>) – path or ini file name for the data to load</li>
+<li><strong>**kwargs</strong> (<em>key word arguments, optional</em>) – This will be passed directly to the load method</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">IOSystem</p>
-<p class="last">None in case of errors</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>IOSystem</em></li>
+<li><em>None in case of errors</em></li>
+</ul>
+</p>
 </td>
 </tr>
 </tbody>
@@ -272,16 +259,18 @@ same parameter can as for .load can be used.</p>
 </div></blockquote>
 <p>The test system only contains Z, Y, F, FY. The rest can be calculated with
 calc_all()</p>
+<p class="rubric">Notes</p>
+<p>For development: This function can be used as an example of how to parse an IOSystem</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">IOSystem</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem" title="pymrio.core.mriosystem.IOSystem">IOSystem</a></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>For development: This function can be used as an example of how to parse an IOSystem</p>
 </dd></dl>
 
 </div>
@@ -294,54 +283,10 @@ calc_all()</p>
 <em class="property">class </em><code class="descclassname">pymrio.core.mriosystem.</code><code class="descname">CoreSystem</code><a class="headerlink" href="#pymrio.core.mriosystem.CoreSystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>This class is the base class for IOSystem and Extension</p>
-<p class="rubric">Methods</p>
-<table border="1" class="longtable docutils">
-<colgroup>
-<col width="10%" />
-<col width="90%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.copy" title="pymrio.core.mriosystem.CoreSystem.copy"><code class="xref py py-obj docutils literal"><span class="pre">copy</span></code></a>()</td>
-<td>Returns a deep copy of the system</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.get_DataFrame" title="pymrio.core.mriosystem.CoreSystem.get_DataFrame"><code class="xref py py-obj docutils literal"><span class="pre">get_DataFrame</span></code></a>([data,&nbsp;with_unit,&nbsp;with_population])</td>
-<td>Yields all panda.DataFrames or there names</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.get_Y_categories" title="pymrio.core.mriosystem.CoreSystem.get_Y_categories"><code class="xref py py-obj docutils literal"><span class="pre">get_Y_categories</span></code></a>([entries])</td>
-<td>Returns the names of y categories in the IOSystem as unique names in order</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.get_index" title="pymrio.core.mriosystem.CoreSystem.get_index"><code class="xref py py-obj docutils literal"><span class="pre">get_index</span></code></a>()</td>
-<td>Returns the pure index of the DataFrames in the system</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.get_regions" title="pymrio.core.mriosystem.CoreSystem.get_regions"><code class="xref py py-obj docutils literal"><span class="pre">get_regions</span></code></a>([entries])</td>
-<td>Returns the names of regions in the IOSystem as unique names in order</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.get_sectors" title="pymrio.core.mriosystem.CoreSystem.get_sectors"><code class="xref py py-obj docutils literal"><span class="pre">get_sectors</span></code></a>([entries])</td>
-<td>Returns the names of sectors in the IOSystem as unique names in order</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.reset_full" title="pymrio.core.mriosystem.CoreSystem.reset_full"><code class="xref py py-obj docutils literal"><span class="pre">reset_full</span></code></a>()</td>
-<td>Remove all accounts which can be recalculated.</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.reset_to_coefficients" title="pymrio.core.mriosystem.CoreSystem.reset_to_coefficients"><code class="xref py py-obj docutils literal"><span class="pre">reset_to_coefficients</span></code></a>()</td>
-<td>Keeps only the coefficient.</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.reset_to_flows" title="pymrio.core.mriosystem.CoreSystem.reset_to_flows"><code class="xref py py-obj docutils literal"><span class="pre">reset_to_flows</span></code></a>()</td>
-<td>Keeps only the absolute values.</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.save" title="pymrio.core.mriosystem.CoreSystem.save"><code class="xref py py-obj docutils literal"><span class="pre">save</span></code></a>(path[,&nbsp;table_format,&nbsp;sep,&nbsp;table_ext,&nbsp;…])</td>
-<td>Saves the system as text or binary pickle files.</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.set_Y_categories" title="pymrio.core.mriosystem.CoreSystem.set_Y_categories"><code class="xref py py-obj docutils literal"><span class="pre">set_Y_categories</span></code></a>(Y_categories)</td>
-<td>Sets new names for the Y_categories</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.set_regions" title="pymrio.core.mriosystem.CoreSystem.set_regions"><code class="xref py py-obj docutils literal"><span class="pre">set_regions</span></code></a>(regions)</td>
-<td>Sets new names for the regions</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem.set_sectors" title="pymrio.core.mriosystem.CoreSystem.set_sectors"><code class="xref py py-obj docutils literal"><span class="pre">set_sectors</span></code></a>(sectors)</td>
-<td>Sets new names for the sectors</td>
-</tr>
-</tbody>
-</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Thats only the base class - instantiation of this class makes no sense.</p>
+</div>
 <dl class="method">
 <dt id="pymrio.core.mriosystem.CoreSystem.copy">
 <code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.core.mriosystem.CoreSystem.copy" title="Permalink to this definition">¶</a></dt>
@@ -352,34 +297,30 @@ calc_all()</p>
 <dt id="pymrio.core.mriosystem.CoreSystem.get_DataFrame">
 <code class="descname">get_DataFrame</code><span class="sig-paren">(</span><em>data=False</em>, <em>with_unit=True</em>, <em>with_population=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.core.mriosystem.CoreSystem.get_DataFrame" title="Permalink to this definition">¶</a></dt>
 <dd><p>Yields all panda.DataFrames or there names</p>
+<p class="rubric">Notes</p>
+<p>For IOSystem this does not include the DataFrames in the extensions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>data</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If True, returns a generator which yields the DataFrames.
-If False, returns a generator which yields only the names of the DataFrames</p>
-</div></blockquote>
-<p><strong>with_unit: boolean, optional</strong></p>
-<blockquote>
-<div><p>If True, includes the ‘unit’ DataFrame
-If False, does not include the ‘unit’ DataFrame. The method than only yields the numerical data tables</p>
-</div></blockquote>
-<p><strong>with_population: boolean, optional</strong></p>
-<blockquote>
-<div><p>If True, includes the ‘population’ vector
-If False, does not include the ‘population’ vector.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<em>boolean, optional</em>) – If True, returns a generator which yields the DataFrames.
+If False, returns a generator which yields only the names of the DataFrames</li>
+<li><strong>with_unit</strong> (<em>boolean, optional</em>) – If True, includes the ‘unit’ DataFrame
+If False, does not include the ‘unit’ DataFrame. The method than only yields the numerical data tables</li>
+<li><strong>with_population</strong> (<em>boolean, optional</em>) – If True, includes the ‘population’ vector
+If False, does not include the ‘population’ vector.</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrames or string generator, depending on parameter data</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">DataFrames or string generator, depending on parameter data</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>For IOSystem this does not include the DataFrames in the extensions.</p>
 </dd></dl>
 
 <dl class="method">
@@ -390,17 +331,11 @@ If False, does not include the ‘population’ vector.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>entries</strong> : List, optional</p>
-<blockquote>
-<div><p>If given, retuns an list with None for all values not in entries.</p>
-</div></blockquote>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entries</strong> (<em>List, optional</em>) – If given, retuns an list with None for all values not in entries.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Index</p>
-<blockquote class="last">
-<div><p>List of categories, None if no attribute to determine list is available</p>
-</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of categories, None if no attribute to determine list is available</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Index</td>
 </tr>
 </tbody>
 </table>
@@ -420,17 +355,11 @@ If False, does not include the ‘population’ vector.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>entries</strong> : List, optional</p>
-<blockquote>
-<div><p>If given, retuns an list with None for all values not in entries.</p>
-</div></blockquote>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entries</strong> (<em>List, optional</em>) – If given, retuns an list with None for all values not in entries.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Index</p>
-<blockquote class="last">
-<div><p>List of regions, None if now attribute to determine list is available</p>
-</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of regions, None if now attribute to determine list is available</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Index</td>
 </tr>
 </tbody>
 </table>
@@ -444,17 +373,11 @@ If False, does not include the ‘population’ vector.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>entries</strong> : List, optional</p>
-<blockquote>
-<div><p>If given, retuns an list with None for all values not in entries.</p>
-</div></blockquote>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entries</strong> (<em>List, optional</em>) – If given, retuns an list with None for all values not in entries.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Index</p>
-<blockquote class="last">
-<div><p>List of sectors, None if no attribute to determine the list is available</p>
-</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of sectors, None if no attribute to determine the list is available</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Index</td>
 </tr>
 </tbody>
 </table>
@@ -486,44 +409,37 @@ recalculated after the aggregation.</p>
 <code class="descname">save</code><span class="sig-paren">(</span><em>path</em>, <em>table_format='txt'</em>, <em>sep='\t'</em>, <em>table_ext=None</em>, <em>float_format='%.12g'</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.core.mriosystem.CoreSystem.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the system as text or binary pickle files.</p>
 <p>Tables (dataframes) of the current system are saved as text or binary pickle files, meta data (all other attributes) and the specifications of the tables are saved in a ini file.</p>
+<p class="rubric">Notes</p>
+<p>For IOSystem this does not include the DataFrames in the extension (only the trade system itself).
+Use save_all to save the whole system.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
-<blockquote>
-<div><p>path for the saved data (will be created if necessary, data within will be overwritten).
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last">
+<li><p class="first"><strong>path</strong> (<em>string</em>) – path for the saved data (will be created if necessary, data within will be overwritten).
 The path can contain the name for the ini file, otherwise this will be based on the name attribute.</p>
-</div></blockquote>
-<p><strong>table_format</strong> : string</p>
-<blockquote>
-<div><p>Format to save the DataFrames:</p>
+</li>
+<li><p class="first"><strong>table_format</strong> (<em>string</em>) –</p>
+<p>Format to save the DataFrames:</p>
 <blockquote>
 <div><ul class="simple">
 <li>‘pkl’ : Binary pickle files, (alias: ‘pickle’, ‘bin’, ‘binary’)</li>
 <li>‘txt’ : Text files, (alis: ‘text’) default</li>
 </ul>
 </div></blockquote>
-</div></blockquote>
-<p><strong>table_ext</strong> : string, optional</p>
-<blockquote>
-<div><p>File extension, default depends on table_format(.pkl for pickle, .txt for text)</p>
-</div></blockquote>
-<p><strong>sep</strong> : string, optional</p>
-<blockquote>
-<div><p>Field delimiter for the output file, only for txt files</p>
-</div></blockquote>
-<p><strong>float_format</strong> : string, optional</p>
-<blockquote class="last">
-<div><p>Format for saving the DataFrames, default = ‘%.12g’, only for txt files</p>
-</div></blockquote>
+</li>
+<li><p class="first"><strong>table_ext</strong> (<em>string, optional</em>) – File extension, default depends on table_format(.pkl for pickle, .txt for text)</p>
+</li>
+<li><p class="first"><strong>sep</strong> (<em>string, optional</em>) – Field delimiter for the output file, only for txt files</p>
+</li>
+<li><p class="first"><strong>float_format</strong> (<em>string, optional</em>) – Format for saving the DataFrames, default = ‘%.12g’, only for txt files</p>
+</li>
+</ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>For IOSystem this does not include the DataFrames in the extension (only the trade system itself).
-Use save_all to save the whole system.</p>
 </dd></dl>
 
 <dl class="method">
@@ -534,12 +450,8 @@ Use save_all to save the whole system.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>Y_categories</strong> : list or dict</p>
-<blockquote class="last">
-<div><p>In case of dict: {‘old_name’ :  ‘new_name’} with a entry for each old_name which should be renamed
-In case of list: List of new names in order and complete without repetition</p>
-</div></blockquote>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Y_categories</strong> (<em>list or dict</em>) – In case of dict: {‘old_name’ :  ‘new_name’} with a entry for each old_name which should be renamed
+In case of list: List of new names in order and complete without repetition</td>
 </tr>
 </tbody>
 </table>
@@ -553,12 +465,8 @@ In case of list: List of new names in order and complete without repetition</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>regions</strong> : list or dict</p>
-<blockquote class="last">
-<div><p>In case of dict: {‘old_name’ :  ‘new_name’} with a entry for each old_name which should be renamed
-In case of list: List of new names in order and complete without repetition</p>
-</div></blockquote>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>regions</strong> (<em>list or dict</em>) – In case of dict: {‘old_name’ :  ‘new_name’} with a entry for each old_name which should be renamed
+In case of list: List of new names in order and complete without repetition</td>
 </tr>
 </tbody>
 </table>
@@ -572,12 +480,8 @@ In case of list: List of new names in order and complete without repetition</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>sectors</strong> : list or dict</p>
-<blockquote class="last">
-<div><p>In case of dict: {‘old_name’ :  ‘new_name’} with a entry for each old_name which should be renamed
-In case of list: List of new names in order and complete without repetition</p>
-</div></blockquote>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sectors</strong> (<em>list or dict</em>) – In case of dict: {‘old_name’ :  ‘new_name’} with a entry for each old_name which should be renamed
+In case of list: List of new names in order and complete without repetition</td>
 </tr>
 </tbody>
 </table>
@@ -591,122 +495,41 @@ In case of list: List of new names in order and complete without repetition</p>
 <dd><p>Bases: <a class="reference internal" href="#pymrio.core.mriosystem.CoreSystem" title="pymrio.core.mriosystem.CoreSystem"><code class="xref py py-class docutils literal"><span class="pre">pymrio.core.mriosystem.CoreSystem</span></code></a></p>
 <p>Class which gathers all information for one extension of the IOSystem</p>
 <p class="rubric">Notes</p>
-<p>For the total accounts (<a href="#id3"><span class="problematic" id="id4">D_</span></a>) also reginal (appendix _reg) and
+<p>For the total accounts (<a href="#id1"><span class="problematic" id="id2">D_</span></a>) also reginal (appendix _reg) and
 per capita (appendix _cap) are possible.</p>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="3%" />
-<col width="97%" />
-</colgroup>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
 <tbody valign="top">
-<tr class="row-odd"><td>name</td>
-<td>(string) Every extension must have a name. This can (recommended) be the name of the instance. However, for plotting and saving this can also be changed.  This name will also be used for saving the extension as prefix to the attributes.</td>
-</tr>
-<tr class="row-even"><td>F</td>
-<td>(pandas.DataFrame) Total direct impacts with columns as Z. Index with ([‘stressor’, ‘compartment’]). The second level ‘compartment’ is optional</td>
-</tr>
-<tr class="row-odd"><td>FY</td>
-<td>(pandas.DataFrame) Extension of final demand with columns a y and index as F</td>
-</tr>
-<tr class="row-even"><td>S</td>
-<td>(pandas.DataFrame) Direct impact (extensions) coefficients with multiindex as F</td>
-</tr>
-<tr class="row-odd"><td>M</td>
-<td>(pandas.DataFrame) Multipliers with multiindex as F</td>
-</tr>
-<tr class="row-even"><td>D_fp</td>
-<td>(pandas.DataFrame) Footprint of consumption,  further specification with _reg (per region) or _cap (per capita) possible</td>
-</tr>
-<tr class="row-odd"><td>D_terr</td>
-<td>(pandas.DataFrame) Territorial accounts, further specification with _reg (per region) or _cap (per capita) possible</td>
-</tr>
-<tr class="row-even"><td>D_imp</td>
-<td>(pandas.DataFrame) Import accounts (amount of ‘extension’ embodied in imports), further specification with _reg (per region) or _cap (per capita) possible</td>
-</tr>
-<tr class="row-odd"><td>D_exp</td>
-<td>(pandas.DataFrame) Export accounts (amount of ‘extension’ embodied in exports), further specification with _reg (per region) or _cap (per capita) possible</td>
-</tr>
-<tr class="row-even"><td>unit</td>
-<td>(pandas.DataFrame) Unit for each row of the extension</td>
-</tr>
-<tr class="row-odd"><td>iosystem</td>
-<td>(string) Note for the IOSystem, recommended to be ‘pxp’ or ‘ixi’ for product by product or industry by industry. However, this can be any string and can have more information if needed (eg for different technoloy assumptions) The string will be passed to the Extension</td>
-</tr>
-<tr class="row-even"><td>version</td>
-<td>(string) This can be used as a version tracking system.</td>
-</tr>
-<tr class="row-odd"><td>year</td>
-<td>(int) Baseyear of the extension data</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Methods</p>
-<table border="1" class="longtable docutils">
-<colgroup>
-<col width="10%" />
-<col width="90%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.Extension.calc_system" title="pymrio.core.mriosystem.Extension.calc_system"><code class="xref py py-obj docutils literal"><span class="pre">calc_system</span></code></a>(x,&nbsp;Y_agg[,&nbsp;L,&nbsp;population])</td>
-<td>Calculates the missing part of the extension plus accounts</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">copy</span></code>()</td>
-<td>Returns a deep copy of the system</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.Extension.diag_stressor" title="pymrio.core.mriosystem.Extension.diag_stressor"><code class="xref py py-obj docutils literal"><span class="pre">diag_stressor</span></code></a>(stressor[,&nbsp;name])</td>
-<td>Diagonalize one row of the stressor matrix for a flow analysis.</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_DataFrame</span></code>([data,&nbsp;with_unit,&nbsp;with_population])</td>
-<td>Yields all panda.DataFrames or there names</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_Y_categories</span></code>([entries])</td>
-<td>Returns the names of y categories in the IOSystem as unique names in order</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_index</span></code>()</td>
-<td>Returns the pure index of the DataFrames in the system</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_regions</span></code>([entries])</td>
-<td>Returns the names of regions in the IOSystem as unique names in order</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.Extension.get_row_data" title="pymrio.core.mriosystem.Extension.get_row_data"><code class="xref py py-obj docutils literal"><span class="pre">get_row_data</span></code></a>(row[,&nbsp;name])</td>
-<td>Returns a dict with all available data for a row in the extension</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.Extension.get_rows" title="pymrio.core.mriosystem.Extension.get_rows"><code class="xref py py-obj docutils literal"><span class="pre">get_rows</span></code></a>()</td>
-<td>Returns the name of the rows of the extension</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_sectors</span></code>([entries])</td>
-<td>Returns the names of sectors in the IOSystem as unique names in order</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.Extension.per_source" title="pymrio.core.mriosystem.Extension.per_source"><code class="xref py py-obj docutils literal"><span class="pre">per_source</span></code></a>([name])</td>
-<td>Returns a extension disaggregated into the regional source</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.Extension.plot_account" title="pymrio.core.mriosystem.Extension.plot_account"><code class="xref py py-obj docutils literal"><span class="pre">plot_account</span></code></a>(row[,&nbsp;per_capita,&nbsp;sector,&nbsp;…])</td>
-<td>Plots D_terr, D_fp, D_imp and D_exp for the specified row (account)</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.Extension.report_accounts" title="pymrio.core.mriosystem.Extension.report_accounts"><code class="xref py py-obj docutils literal"><span class="pre">report_accounts</span></code></a>(path[,&nbsp;per_region,&nbsp;…])</td>
-<td>Writes a report to the given path for the regional accounts</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">reset_full</span></code>()</td>
-<td>Remove all accounts which can be recalculated.</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">reset_to_coefficients</span></code>()</td>
-<td>Keeps only the coefficient.</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">reset_to_flows</span></code>()</td>
-<td>Keeps only the absolute values.</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(path[,&nbsp;table_format,&nbsp;sep,&nbsp;table_ext,&nbsp;…])</td>
-<td>Saves the system as text or binary pickle files.</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_Y_categories</span></code>(Y_categories)</td>
-<td>Sets new names for the Y_categories</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_regions</span></code>(regions)</td>
-<td>Sets new names for the regions</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_sectors</span></code>(sectors)</td>
-<td>Sets new names for the sectors</td>
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) – Every extension must have a name. This can (recommended) be the name
+of the instance. However, for plotting and saving this can also be
+changed.  This name will also be used for saving the extension as
+prefix to the attributes.</li>
+<li><strong>F</strong> (<em>pandas.DataFrame</em>) – Total direct impacts with columns as Z. Index with ([‘stressor’,
+‘compartment’]).
+The second level ‘compartment’ is optional</li>
+<li><strong>FY</strong> (<em>pandas.DataFrame</em>) – Extension of final demand with columns a y and index as F</li>
+<li><strong>S</strong> (<em>pandas.DataFrame</em>) – Direct impact (extensions) coefficients with multiindex as F</li>
+<li><strong>M</strong> (<em>pandas.DataFrame</em>) – Multipliers with multiindex as F</li>
+<li><strong>D_fp</strong> (<em>pandas.DataFrame</em>) – Footprint of consumption,  further specification with
+_reg (per region) or _cap (per capita) possible</li>
+<li><strong>D_terr</strong> (<em>pandas.DataFrame</em>) – Territorial accounts, further specification with _reg (per region) or
+_cap (per capita) possible</li>
+<li><strong>D_imp</strong> (<em>pandas.DataFrame</em>) – Import accounts (amount of ‘extension’ embodied in imports), further
+specification with _reg (per region) or _cap (per capita) possible</li>
+<li><strong>D_exp</strong> (<em>pandas.DataFrame</em>) – Export accounts (amount of ‘extension’ embodied in exports), further
+specification with _reg (per region) or _cap (per capita) possible</li>
+<li><strong>unit</strong> (<em>pandas.DataFrame</em>) – Unit for each row of the extension</li>
+<li><strong>iosystem</strong> (<em>string</em>) – Note for the IOSystem, recommended to be ‘pxp’ or ‘ixi’ for
+product by product or industry by industry.
+However, this can be any string and can have more information if needed
+(eg for different technoloy assumptions)
+The string will be passed to the Extension</li>
+<li><a class="reference internal" href="pymrio.html#module-pymrio.version" title="pymrio.version"><strong>version</strong></a> (<em>string</em>) – This can be used as a version tracking system.</li>
+<li><strong>year</strong> (<em>int</em>) – Baseyear of the extension data</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -733,35 +556,25 @@ per capita (appendix _cap) are possible.</p>
 </dl>
 </li>
 </ul>
+<p class="rubric">Notes</p>
+<p>Only attributes which are not None are recalculated (for D_* this is
+checked for each group (reg, cap, and w/o appendix)).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Industry output column vector</p>
-</div></blockquote>
-<p><strong>Y_agg</strong> : pandas.DataFrame or np.array</p>
-<blockquote>
-<div><p>The final demand aggregated (one category per country)</p>
-</div></blockquote>
-<p><strong>L</strong> : pandas.DataFrame or numpy.array, optional</p>
-<blockquote>
-<div><p>Leontief input output table L. If this is not given,
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>x</strong> (<em>pandas.DataFrame or numpy.array</em>) – Industry output column vector</li>
+<li><strong>Y_agg</strong> (<em>pandas.DataFrame or np.array</em>) – The final demand aggregated (one category per country)</li>
+<li><strong>L</strong> (<em>pandas.DataFrame or numpy.array, optional</em>) – Leontief input output table L. If this is not given,
 the method recalculates M based on D_fp (must be present in
-the extension).</p>
-</div></blockquote>
-<p><strong>population</strong> : pandas.DataFrame or np.array, optional</p>
-<blockquote class="last">
-<div><p>Row vector with population per region</p>
-</div></blockquote>
+the extension).</li>
+<li><strong>population</strong> (<em>pandas.DataFrame or np.array, optional</em>) – Row vector with population per region</li>
+</ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>Only attributes which are not None are recalculated (for D_* this is
-checked for each group (reg, cap, and w/o appendix)).</p>
 </dd></dl>
 
 <dl class="method">
@@ -772,23 +585,27 @@ checked for each group (reg, cap, and w/o appendix)).</p>
 to the full region/sector format. Footprints calculation based
 on this matrix show the flow of embodied stressors from the source
 region/sector (row index) to the final consumer (column index).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since the type of analysis based on the disaggregated matrix is based
+on flow, direct household emissions (FY) are not included.</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>stressor</strong> : str or int - valid index for one row of the F matrix</p>
-<blockquote>
-<div><p>This must be a tuple for a multiindex, a string otherwise.
-The stressor to diagonalize.</p>
-</div></blockquote>
-<p><strong>name</strong> : string (optional)</p>
-<blockquote>
-<div><p>The new name for the extension,
-if None (default): string based on the given stressor (row name)</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stressor</strong> (<em>str or int - valid index for one row of the F matrix</em>) – This must be a tuple for a multiindex, a string otherwise.
+The stressor to diagonalize.</li>
+<li><strong>name</strong> (<em>string (optional)</em>) – The new name for the extension,
+if None (default): string based on the given stressor (row name)</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Extension</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#pymrio.core.mriosystem.Extension" title="pymrio.core.mriosystem.Extension">Extension</a></p>
 </td>
 </tr>
 </tbody>
@@ -803,19 +620,18 @@ if None (default): string based on the given stressor (row name)</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>row</strong> : tuple, list, string</p>
-<blockquote>
-<div><p>A valid index for the extension DataFrames</p>
-</div></blockquote>
-<p><strong>name</strong> : string, optional</p>
-<blockquote>
-<div><p>If given, adds a key ‘name’ with the given value to the dict. In
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>row</strong> (<em>tuple, list, string</em>) – A valid index for the extension DataFrames</li>
+<li><strong>name</strong> (<em>string, optional</em>) – If given, adds a key ‘name’ with the given value to the dict. In
 that case the dict can be
-used directly to build a new extension.</p>
-</div></blockquote>
+used directly to build a new extension.</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict object with the data (pandas DataFrame)for the specific rows</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict object with the data (pandas DataFrame)for the specific rows</p>
 </td>
 </tr>
 </tbody>
@@ -838,24 +654,21 @@ aggregated to one (or several) sectors with the standard aggregation
 routine. The method here will be deleted in the next versions.</p>
 <p>The returned extension included F, FY if present in the original
 extension, and units.</p>
+<p class="rubric">Notes</p>
+<p>This method changes the order of the accounts lexicographically.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : string (optional)</p>
-<blockquote>
-<div><p>The new name for the extension,
-if None (default): original name + ‘per source region’</p>
-</div></blockquote>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string (optional)</em>) – The new name for the extension,
+if None (default): original name + ‘per source region’</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Extension</p>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#pymrio.core.mriosystem.Extension" title="pymrio.core.mriosystem.Extension">Extension</a></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>This method changes the order of the accounts lexicographically.</p>
 </dd></dl>
 
 <dl class="method">
@@ -867,53 +680,37 @@ depending on the ‘sector’ parameter.</p>
 <p>Per default the accounts are plotted as bar charts.
 However, any valid keyword for the pandas.DataFrame.plot
 method can be passed.</p>
+<p class="rubric">Notes</p>
+<p>This looks prettier with the seaborn module
+(import seaborn before calling this method)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>row</strong> : string, tuple or int</p>
-<blockquote>
-<div><p>A valid index for the row in the extension which
-should be plotted (one(!) row - no list allowed)</p>
-</div></blockquote>
-<p><strong>per_capita</strong> : boolean, optional</p>
-<blockquote>
-<div><p>Plot the per capita accounts instead of the absolute values
-default is False</p>
-</div></blockquote>
-<p><strong>sector: string, optional</strong></p>
-<blockquote>
-<div><p>Plot the results for a specific sector of the IO table. If
-None is given (default), the total regional accounts are plotted.</p>
-</div></blockquote>
-<p><strong>population</strong> : pandas.DataFrame or np.array, optional</p>
-<blockquote>
-<div><p>Vector with population per region. This must be given if
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>row</strong> (<em>string, tuple or int</em>) – A valid index for the row in the extension which
+should be plotted (one(!) row - no list allowed)</li>
+<li><strong>per_capita</strong> (<em>boolean, optional</em>) – Plot the per capita accounts instead of the absolute values
+default is False</li>
+<li><strong>sector</strong> (<em>string, optional</em>) – Plot the results for a specific sector of the IO table. If
+None is given (default), the total regional accounts are plotted.</li>
+<li><strong>population</strong> (<em>pandas.DataFrame or np.array, optional</em>) – Vector with population per region. This must be given if
 values should be plotted per_capita for a specific sector since
-these values are calculated on the fly.</p>
-</div></blockquote>
-<p><strong>file_name</strong> : path string, optional</p>
-<blockquote>
-<div><p>If given, saves the plot to the given filename</p>
-</div></blockquote>
-<p><strong>file_dpi</strong> : int, optional</p>
-<blockquote>
-<div><p>Dpi for saving the figure, default 600</p>
-</div></blockquote>
-<p><strong>**kwargs</strong> : key word arguments, optional</p>
-<blockquote>
-<div><p>This will be passed directly to the pd.DataFrame.plot method</p>
-</div></blockquote>
+these values are calculated on the fly.</li>
+<li><strong>file_name</strong> (<em>path string, optional</em>) – If given, saves the plot to the given filename</li>
+<li><strong>file_dpi</strong> (<em>int, optional</em>) – Dpi for saving the figure, default 600</li>
+<li><strong>**kwargs</strong> (<em>key word arguments, optional</em>) – This will be passed directly to the pd.DataFrame.plot method</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Axis as given by pandas.DataFrame.plot, None in case of errors</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Axis as given by pandas.DataFrame.plot, None in case of errors</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>This looks prettier with the seaborn module
-(import seaborn before calling this method)</p>
 </dd></dl>
 
 <dl class="method">
@@ -929,42 +726,23 @@ these values are calculated on the fly.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
-<blockquote>
-<div><p>Root path for the report</p>
-</div></blockquote>
-<p><strong>per_region</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If true, reports the accounts per region</p>
-</div></blockquote>
-<p><strong>per_capita</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If true, reports the accounts per capita
-If per_capita and per_region are False, nothing will be done</p>
-</div></blockquote>
-<p><strong>pic_size</strong> : int, optional</p>
-<blockquote>
-<div><p>size for the figures in px, 1000 by default</p>
-</div></blockquote>
-<p><strong>format</strong> : string, optional</p>
-<blockquote>
-<div><p>file format of the report:
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<em>string</em>) – Root path for the report</li>
+<li><strong>per_region</strong> (<em>boolean, optional</em>) – If true, reports the accounts per region</li>
+<li><strong>per_capita</strong> (<em>boolean, optional</em>) – If true, reports the accounts per capita
+If per_capita and per_region are False, nothing will be done</li>
+<li><strong>pic_size</strong> (<em>int, optional</em>) – size for the figures in px, 1000 by default</li>
+<li><strong>format</strong> (<em>string, optional</em>) – file format of the report:
 ‘rst’(default), ‘html’, ‘latex’, …
 except for rst all depend on the module docutils (all writer_name
-from docutils can be used as format)</p>
-</div></blockquote>
-<p><strong>ffname</strong> : string, optional</p>
-<blockquote>
-<div><p>root file name (without extension, per_capita or per_region will be
+from docutils can be used as format)</li>
+<li><strong>ffname</strong> (<em>string, optional</em>) – root file name (without extension, per_capita or per_region will be
 attached) and folder names If None gets passed (default), self.name
 with be modified to get a valid name for the operation system
-without blanks</p>
-</div></blockquote>
-<p><strong>**kwargs</strong> : key word arguments, optional</p>
-<blockquote class="last">
-<div><p>This will be passed directly to the pd.DataFrame.plot method
-(through the self.plot_account method)</p>
-</div></blockquote>
+without blanks</li>
+<li><strong>**kwargs</strong> (<em>key word arguments, optional</em>) – This will be passed directly to the pd.DataFrame.plot method
+(through the self.plot_account method)</li>
+</ul>
 </td>
 </tr>
 </tbody>
@@ -985,126 +763,33 @@ D_imp, D_exp</p>
 <p class="rubric">Notes</p>
 <p>The attributes and extension dictionary entries are pandas.DataFrame with
 an MultiIndex.  This index must have the specified level names.</p>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="3%" />
-<col width="97%" />
-</colgroup>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
 <tbody valign="top">
-<tr class="row-odd"><td>Z</td>
-<td>(pandas.DataFrame) Symetric input output table (flows) with country and sectors as MultiIndex with names ‘region’ and ‘sector’ for columns and index</td>
-</tr>
-<tr class="row-even"><td>Y</td>
-<td>(pandas.DataFrame) final demand with MultiIndex with index.names = ([‘region’, ‘sector’]) and column.names = ([‘region’, ‘category’])</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>(pandas.DataFrame) coefficient input output table, MultiTndex as Z</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>(pandas.DataFrame) Leontief, MultiTndex as Z</td>
-</tr>
-<tr class="row-odd"><td>unit</td>
-<td>(pandas.DataFrame) Unit for each row of Z</td>
-</tr>
-<tr class="row-even"><td>iosystem</td>
-<td>(string) Note for the IOSystem, recommended to be ‘pxp’ or ‘ixi’ for product by product or industry by industry. However, this can be any string and can have more information if needed (eg for different technoloy assumptions) The string will be passed to the IOSystem</td>
-</tr>
-<tr class="row-odd"><td>version</td>
-<td>(string) This can be used as a version tracking system.</td>
-</tr>
-<tr class="row-even"><td>year</td>
-<td>(string or int) Baseyear of the IOSystem</td>
-</tr>
-<tr class="row-odd"><td>price</td>
-<td>(string) Price system of the IO (current or constant prices)</td>
-</tr>
-<tr class="row-even"><td>name</td>
-<td>(string, optional) Name of the IOSystem, default is ‘IO’</td>
-</tr>
-<tr class="row-odd"><td><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs</td>
-<td>(dictonary) Extensions are given as dictionaries and will be passed to the Extension class.  The dict must contain a key with a value for ‘name’, this can be the same as the name of the dict.  For the further keys see class Extension</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Methods</p>
-<table border="1" class="longtable docutils">
-<colgroup>
-<col width="10%" />
-<col width="90%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.aggregate" title="pymrio.core.mriosystem.IOSystem.aggregate"><code class="xref py py-obj docutils literal"><span class="pre">aggregate</span></code></a>([region_agg,&nbsp;sector_agg,&nbsp;…])</td>
-<td>Aggregates the IO system.</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.calc_all" title="pymrio.core.mriosystem.IOSystem.calc_all"><code class="xref py py-obj docutils literal"><span class="pre">calc_all</span></code></a>()</td>
-<td>Calculates missing parts of the IOSystem and all extensions.</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.calc_extensions" title="pymrio.core.mriosystem.IOSystem.calc_extensions"><code class="xref py py-obj docutils literal"><span class="pre">calc_extensions</span></code></a>([extensions,&nbsp;Y_agg])</td>
-<td>Calculates the extension and their accounts</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.calc_system" title="pymrio.core.mriosystem.IOSystem.calc_system"><code class="xref py py-obj docutils literal"><span class="pre">calc_system</span></code></a>()</td>
-<td>Calculates the missing part of the core IOSystem</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">copy</span></code>()</td>
-<td>Returns a deep copy of the system</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_DataFrame</span></code>([data,&nbsp;with_unit,&nbsp;with_population])</td>
-<td>Yields all panda.DataFrames or there names</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_Y_categories</span></code>([entries])</td>
-<td>Returns the names of y categories in the IOSystem as unique names in order</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.get_extensions" title="pymrio.core.mriosystem.IOSystem.get_extensions"><code class="xref py py-obj docutils literal"><span class="pre">get_extensions</span></code></a>([data])</td>
-<td>Yields the extensions or their names</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_index</span></code>()</td>
-<td>Returns the pure index of the DataFrames in the system</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_regions</span></code>([entries])</td>
-<td>Returns the names of regions in the IOSystem as unique names in order</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_sectors</span></code>([entries])</td>
-<td>Returns the names of sectors in the IOSystem as unique names in order</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.remove_extension" title="pymrio.core.mriosystem.IOSystem.remove_extension"><code class="xref py py-obj docutils literal"><span class="pre">remove_extension</span></code></a>([ext])</td>
-<td>Remove extension from IOSystem</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.report_accounts" title="pymrio.core.mriosystem.IOSystem.report_accounts"><code class="xref py py-obj docutils literal"><span class="pre">report_accounts</span></code></a>(path[,&nbsp;per_region,&nbsp;…])</td>
-<td>Generates a report to the given path for all extension</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.reset_all_full" title="pymrio.core.mriosystem.IOSystem.reset_all_full"><code class="xref py py-obj docutils literal"><span class="pre">reset_all_full</span></code></a>()</td>
-<td>Removes all accounts that can be recalculated (IOSystem and extensions)</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.reset_all_to_coefficients" title="pymrio.core.mriosystem.IOSystem.reset_all_to_coefficients"><code class="xref py py-obj docutils literal"><span class="pre">reset_all_to_coefficients</span></code></a>()</td>
-<td>Resets the IOSystem and all extensions to coefficients.</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.reset_all_to_flows" title="pymrio.core.mriosystem.IOSystem.reset_all_to_flows"><code class="xref py py-obj docutils literal"><span class="pre">reset_all_to_flows</span></code></a>()</td>
-<td>Resets the IOSystem and all extensions to absolute flows</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">reset_full</span></code>()</td>
-<td>Remove all accounts which can be recalculated.</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">reset_to_coefficients</span></code>()</td>
-<td>Keeps only the coefficient.</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">reset_to_flows</span></code>()</td>
-<td>Keeps only the absolute values.</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(path[,&nbsp;table_format,&nbsp;sep,&nbsp;table_ext,&nbsp;…])</td>
-<td>Saves the system as text or binary pickle files.</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem.save_all" title="pymrio.core.mriosystem.IOSystem.save_all"><code class="xref py py-obj docutils literal"><span class="pre">save_all</span></code></a>(path[,&nbsp;table_format,&nbsp;sep,&nbsp;…])</td>
-<td>Saves the system and all extensions</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_Y_categories</span></code>(Y_categories)</td>
-<td>Sets new names for the Y_categories</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_regions</span></code>(regions)</td>
-<td>Sets new names for the regions</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_sectors</span></code>(sectors)</td>
-<td>Sets new names for the sectors</td>
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Z</strong> (<em>pandas.DataFrame</em>) – Symetric input output table (flows) with country and sectors as
+MultiIndex with names ‘region’ and ‘sector’ for columns and index</li>
+<li><strong>Y</strong> (<em>pandas.DataFrame</em>) – final demand with MultiIndex with index.names = ([‘region’, ‘sector’])
+and column.names = ([‘region’, ‘category’])</li>
+<li><strong>A</strong> (<em>pandas.DataFrame</em>) – coefficient input output table, MultiTndex as Z</li>
+<li><strong>L</strong> (<em>pandas.DataFrame</em>) – Leontief, MultiTndex as Z</li>
+<li><strong>unit</strong> (<em>pandas.DataFrame</em>) – Unit for each row of Z</li>
+<li><strong>iosystem</strong> (<em>string</em>) – Note for the IOSystem, recommended to be ‘pxp’ or ‘ixi’ for
+product by product or industry by industry.
+However, this can be any string and can have more information if needed
+(eg for different technoloy assumptions)
+The string will be passed to the IOSystem</li>
+<li><a class="reference internal" href="pymrio.html#module-pymrio.version" title="pymrio.version"><strong>version</strong></a> (<em>string</em>) – This can be used as a version tracking system.</li>
+<li><strong>year</strong> (<em>string</em><em> or </em><em>int</em>) – Baseyear of the IOSystem</li>
+<li><strong>price</strong> (<em>string</em>) – Price system of the IO (current or constant prices)</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em>) – Name of the IOSystem, default is ‘IO’</li>
+<li><strong>**kwargs</strong> (<em>dictonary</em>) – Extensions are given as dictionaries and will be passed to the
+Extension class.  The dict must contain a key with a value for ‘name’,
+this can be the same as the name of the dict.  For the further keys see
+class Extension</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1128,46 +813,30 @@ vector</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>region_agg</strong> : list,array or string, optional</p>
-<blockquote>
-<div><p>The aggregation vector or matrix for the regions (np.ndarray or
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>region_agg</strong> (<em>list,array or string, optional</em>) – The aggregation vector or matrix for the regions (np.ndarray or
 list). If string: aggregates to one total region and names is
-to the given string.</p>
-</div></blockquote>
-<p><strong>sector_agg</strong> : list,arrays or string, optional</p>
-<blockquote>
-<div><p>The aggregation vector or matrix for the sectors (np.ndarray or
+to the given string.</li>
+<li><strong>sector_agg</strong> (<em>list,arrays or string, optional</em>) – The aggregation vector or matrix for the sectors (np.ndarray or
 list).If string: aggregates to one total region and names is
-to the given string.</p>
-</div></blockquote>
-<p><strong>region_dict</strong> : dict, optional</p>
-<blockquote>
-<div><p>Information to reorder the aggregated regions</p>
-</div></blockquote>
-<p><strong>secotor_dict</strong> : dict, optional</p>
-<blockquote>
-<div><p>Information to reorder the aggregated sectors</p>
-</div></blockquote>
-<p><strong>inplace</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If True, aggregates the IOSystem in place (default),
-otherwise return a new IOSystem</p>
-</div></blockquote>
-<p><strong>TODO:pre_aggregation</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If True, resets the IO system before the aggregation. This
+to the given string.</li>
+<li><strong>region_dict</strong> (<em>dict, optional</em>) – Information to reorder the aggregated regions</li>
+<li><strong>secotor_dict</strong> (<em>dict, optional</em>) – Information to reorder the aggregated sectors</li>
+<li><strong>inplace</strong> (<em>boolean, optional</em>) – If True, aggregates the IOSystem in place (default),
+otherwise return a new IOSystem</li>
+<li><strong>TODO</strong> (<em>pre_aggregation : boolean, optional</em>) – If True, resets the IO system before the aggregation. This
 removes all calculated accounts (Footprints, coefficients)
 before the calculation. If False (default), all
 account which can be aggregated (ergo -  not the coefficients)
-are aggregated TODO: fill in coefficients.</p>
-</div></blockquote>
-<p><strong>TODO: switch for recalc coefficients</strong></p>
+are aggregated TODO: fill in coefficients.</li>
+<li><strong>TODO</strong> (<em>switch for recalc coefficients</em>)</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">IOSystem</p>
-<blockquote class="last">
-<div><p>Aggregated IOSystem (if inplace is False)</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Aggregated IOSystem (if inplace is False)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#pymrio.core.mriosystem.IOSystem" title="pymrio.core.mriosystem.IOSystem">IOSystem</a></p>
 </td>
 </tr>
 </tbody>
@@ -1192,16 +861,12 @@ extensions parameter)</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>extensions</strong> : list of strings, optional</p>
-<blockquote>
-<div><p>A list of key names of extensions which shall be calculated.
-Default: all dictionaries of IOSystem are assumed to be extensions</p>
-</div></blockquote>
-<p><strong>Y_agg</strong> : pandas.DataFrame or np.array, optional</p>
-<blockquote class="last">
-<div><p>The final demand aggregated (one category per country)
-Default: y is aggregated over all categories</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>extensions</strong> (<em>list of strings, optional</em>) – A list of key names of extensions which shall be calculated.
+Default: all dictionaries of IOSystem are assumed to be extensions</li>
+<li><strong>Y_agg</strong> (<em>pandas.DataFrame or np.array, optional</em>) – The final demand aggregated (one category per country)
+Default: y is aggregated over all categories</li>
+</ul>
 </td>
 </tr>
 </tbody>
@@ -1223,16 +888,13 @@ Default: y is aggregated over all categories</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>data</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If True, returns a generator which yields the extensions.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>boolean, optional</em>) – If True, returns a generator which yields the extensions.
 If False, returns a generator which yields the names of
-the extensions (default)</p>
-</div></blockquote>
-</td>
+the extensions (default)</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Generator for Extension or string</p>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Generator for Extension or string</td>
 </tr>
 </tbody>
 </table>
@@ -1248,14 +910,10 @@ IOSystem_name.Extension_name</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ext</strong> : string or list, optional</p>
-<blockquote class="last">
-<div><p>The extension to remove, this can be given as the name of the
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ext</strong> (<em>string or list, optional</em>) – The extension to remove, this can be given as the name of the
 instance or of Extension.name (the latter will be checked if no
 instance was found)
-If ext is None (default) all Extensions will be removed</p>
-</div></blockquote>
-</td>
+If ext is None (default) all Extensions will be removed</td>
 </tr>
 </tbody>
 </table>
@@ -1266,53 +924,34 @@ If ext is None (default) all Extensions will be removed</p>
 <code class="descname">report_accounts</code><span class="sig-paren">(</span><em>path</em>, <em>per_region=True</em>, <em>per_capita=False</em>, <em>pic_size=1000</em>, <em>format='rst'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.core.mriosystem.IOSystem.report_accounts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a report to the given path for all extension</p>
 <p>This method calls .report_accounts for all extensions</p>
+<p class="rubric">Notes</p>
+<p>This looks prettier with the seaborn module (import seaborn before
+calling this method)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
-<blockquote>
-<div><p>Root path for the report</p>
-</div></blockquote>
-<p><strong>per_region</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If true, reports the accounts per region</p>
-</div></blockquote>
-<p><strong>per_capita</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If true, reports the accounts per capita
-If per_capita and per_region are False, nothing will be done</p>
-</div></blockquote>
-<p><strong>pic_size</strong> : int, optional</p>
-<blockquote>
-<div><p>size for the figures in px, 1000 by default</p>
-</div></blockquote>
-<p><strong>format</strong> : string, optional</p>
-<blockquote>
-<div><p>file format of the report:
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<em>string</em>) – Root path for the report</li>
+<li><strong>per_region</strong> (<em>boolean, optional</em>) – If true, reports the accounts per region</li>
+<li><strong>per_capita</strong> (<em>boolean, optional</em>) – If true, reports the accounts per capita
+If per_capita and per_region are False, nothing will be done</li>
+<li><strong>pic_size</strong> (<em>int, optional</em>) – size for the figures in px, 1000 by default</li>
+<li><strong>format</strong> (<em>string, optional</em>) – file format of the report:
 ‘rst’(default), ‘html’, ‘latex’, …
 except for rst all depend on the module docutils (all writer_name
-from docutils can be used as format)</p>
-</div></blockquote>
-<p><strong>ffname</strong> : string, optional</p>
-<blockquote>
-<div><p>root file name (without extension, per_capita or per_region will be
+from docutils can be used as format)</li>
+<li><strong>ffname</strong> (<em>string, optional</em>) – root file name (without extension, per_capita or per_region will be
 attached) and folder names If None gets passed (default), self.name
 with be modified to get a valid name for the operation system
-without blanks</p>
-</div></blockquote>
-<p><strong>**kwargs</strong> : key word arguments, optional</p>
-<blockquote class="last">
-<div><p>This will be passed directly to the pd.DataFrame.plot method
-(through the self.plot_account method)</p>
-</div></blockquote>
+without blanks</li>
+<li><strong>**kwargs</strong> (<em>key word arguments, optional</em>) – This will be passed directly to the pd.DataFrame.plot method
+(through the self.plot_account method)</li>
+</ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>This looks prettier with the seaborn module (import seaborn before
-calling this method)</p>
 </dd></dl>
 
 <dl class="method">

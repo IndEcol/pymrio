@@ -207,35 +207,25 @@
 </dl>
 </li>
 </ul>
+<p class="rubric">Notes</p>
+<p>Only attributes which are not None are recalculated (for D_* this is
+checked for each group (reg, cap, and w/o appendix)).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : pandas.DataFrame or numpy.array</p>
-<blockquote>
-<div><p>Industry output column vector</p>
-</div></blockquote>
-<p><strong>Y_agg</strong> : pandas.DataFrame or np.array</p>
-<blockquote>
-<div><p>The final demand aggregated (one category per country)</p>
-</div></blockquote>
-<p><strong>L</strong> : pandas.DataFrame or numpy.array, optional</p>
-<blockquote>
-<div><p>Leontief input output table L. If this is not given,
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>x</strong> (<em>pandas.DataFrame or numpy.array</em>) – Industry output column vector</li>
+<li><strong>Y_agg</strong> (<em>pandas.DataFrame or np.array</em>) – The final demand aggregated (one category per country)</li>
+<li><strong>L</strong> (<em>pandas.DataFrame or numpy.array, optional</em>) – Leontief input output table L. If this is not given,
 the method recalculates M based on D_fp (must be present in
-the extension).</p>
-</div></blockquote>
-<p><strong>population</strong> : pandas.DataFrame or np.array, optional</p>
-<blockquote class="last">
-<div><p>Row vector with population per region</p>
-</div></blockquote>
+the extension).</li>
+<li><strong>population</strong> (<em>pandas.DataFrame or np.array, optional</em>) – Row vector with population per region</li>
+</ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>Only attributes which are not None are recalculated (for D_* this is
-checked for each group (reg, cap, and w/o appendix)).</p>
 </dd></dl>
 
 </div>
