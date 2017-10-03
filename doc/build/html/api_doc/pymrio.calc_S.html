@@ -1,63 +1,192 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pymrio.calc_S &mdash; pymrio 0.3.dev1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
     
-    <title>pymrio.calc_S &mdash; pymrio 0.2.2 documentation</title>
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="pymrio 0.3.dev1 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="../api_references.html"/>
+        <link rel="next" title="pymrio.calc_F" href="pymrio.calc_F.html"/>
+        <link rel="prev" title="pymrio.calc_L" href="pymrio.calc_L.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
     
-    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pymrio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.3.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../exploring.html">Exploring the IO System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api_references.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../api_references.html#data-input-and-output">Data input and output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api_references.html#exploring-the-io-system">Exploring the IO System</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api_references.html#calculations">Calculations</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../api_references.html#top-level-methods">Top level methods</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../api_references.html#low-level-matrix-calculations">Low level matrix calculations</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pymrio.calc_x.html">pymrio.calc_x</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pymrio.calc_Z.html">pymrio.calc_Z</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pymrio.calc_A.html">pymrio.calc_A</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pymrio.calc_L.html">pymrio.calc_L</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">pymrio.calc_S</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pymrio.calc_F.html">pymrio.calc_F</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pymrio.calc_M.html">pymrio.calc_M</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pymrio.calc_e.html">pymrio.calc_e</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pymrio.calc_accounts.html">pymrio.calc_accounts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api_references.html#modifiying-the-io-system-and-its-extensions">Modifiying the IO System and its Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api_references.html#report">Report</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api_references.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api_references.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pymrio</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
     
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.2.2',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pymrio 0.2.2 documentation" href="../index.html" />
-    <link rel="up" title="API Reference" href="../api_references.html" />
-    <link rel="next" title="pymrio.calc_F" href="pymrio.calc_F.html" />
-    <link rel="prev" title="pymrio.calc_L" href="pymrio.calc_L.html" />
-<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
-<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
-<!--[if lte IE 6]>
-<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
-<![endif]-->
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../api_references.html">API Reference</a> &raquo;</li>
+        
+      <li>pymrio.calc_S</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api_doc/pymrio.calc_S.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
 
-  </head>
-  <body role="document">
-
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="pymrio.calc_F.html" title="pymrio.calc_F"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="pymrio.calc_L.html" title="pymrio.calc_L"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../api_references.html" accesskey="U">API Reference</a> &raquo;</li> 
-      </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="pymrio-calc-s">
 <h1>pymrio.calc_S<a class="headerlink" href="#pymrio-calc-s" title="Permalink to this headline">¶</a></h1>
@@ -82,7 +211,7 @@
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
 <blockquote class="last">
 <div><p>Direct impact coefficients S
-The type is determined by the type of F. 
+The type is determined by the type of F.
 If DataFrame index/columns as F</p>
 </div></blockquote>
 </td>
@@ -94,53 +223,76 @@ If DataFrame index/columns as F</p>
 </div>
 
 
+           </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="pymrio.calc_L.html"
-                        title="previous chapter">pymrio.calc_L</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="pymrio.calc_F.html"
-                        title="next chapter">pymrio.calc_F</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pymrio.calc_F.html" class="btn btn-neutral float-right" title="pymrio.calc_F" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pymrio.calc_L.html" class="btn btn-neutral" title="pymrio.calc_L" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="pymrio.calc_F.html" title="pymrio.calc_F"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="pymrio.calc_L.html" title="pymrio.calc_L"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">pymrio 0.2.2 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../api_references.html" >API Reference</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2014, Konstantin Stadler.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
-    </div>
-  </body>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.3.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

@@ -1,0 +1,1185 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pymrio.tools package &mdash; pymrio 0.3.dev1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="pymrio 0.3.dev1 documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pymrio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.3.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploring.html">Exploring the IO System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_references.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pymrio</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>pymrio.tools package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/pymrio.tools.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pymrio-tools-package">
+<h1>pymrio.tools package<a class="headerlink" href="#pymrio-tools-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pymrio.tools.iomath">
+<span id="pymrio-tools-iomath-module"></span><h2>pymrio.tools.iomath module<a class="headerlink" href="#module-pymrio.tools.iomath" title="Permalink to this headline">¶</a></h2>
+<p>Mathematical functions for input output calculations</p>
+<p>All methods here should follow the functional programming paradigm</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To avoid namespace pollution everythin here starts with <a href="#id1"><span class="problematic" id="id2">calc_</span></a></p>
+</div>
+<dl class="function">
+<dt id="pymrio.tools.iomath.calc_A">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">calc_A</code><span class="sig-paren">(</span><em>Z</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.calc_A" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the A matrix (coefficients) from Z and x</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>Z</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Symmetric input output table (flows)</p>
+</div></blockquote>
+<p><strong>x</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Industry output column vector</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
+<blockquote class="last">
+<div><p>Symmetric input output table (coefficients) A
+The type is determined by the type of Z.
+If DataFrame index/columns as Z</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.iomath.calc_F">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">calc_F</code><span class="sig-paren">(</span><em>S</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.calc_F" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate total direct impacts from the impact coefficients</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>S</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Direct impact coefficients S</p>
+</div></blockquote>
+<p><strong>x</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Industry output column vector</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
+<blockquote class="last">
+<div><p>Total direct impacts F
+The type is determined by the type of S.
+If DataFrame index/columns as S</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.iomath.calc_L">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">calc_L</code><span class="sig-paren">(</span><em>A</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.calc_L" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the Leontief L from A</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>A</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Symmetric input output table (coefficients)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
+<blockquote class="last">
+<div><p>Leontief input output table L
+The type is determined by the type of A.
+If DataFrame index/columns as A</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.iomath.calc_M">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">calc_M</code><span class="sig-paren">(</span><em>S</em>, <em>L</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.calc_M" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate multipliers of the extensions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>L</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Leontief input output table L</p>
+</div></blockquote>
+<p><strong>S</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Direct impact coefficients</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
+<blockquote class="last">
+<div><p>Multipliers M
+The type is determined by the type of D.
+If DataFrame index/columns as D</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.iomath.calc_S">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">calc_S</code><span class="sig-paren">(</span><em>F</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.calc_S" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate extensions/factor inputs coefficients</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>F</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Total direct impacts</p>
+</div></blockquote>
+<p><strong>x</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Industry output column vector</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
+<blockquote class="last">
+<div><p>Direct impact coefficients S
+The type is determined by the type of F.
+If DataFrame index/columns as F</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.iomath.calc_Z">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">calc_Z</code><span class="sig-paren">(</span><em>A</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.calc_Z" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the Z matrix (flows) from A and x</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>A</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Symmetric input output table (coefficients)</p>
+</div></blockquote>
+<p><strong>x</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Industry output column vector</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
+<blockquote class="last">
+<div><p>Symmetric input output table (flows) Z
+The type is determined by the type of A.
+If DataFrame index/columns as A</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.iomath.calc_accounts">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">calc_accounts</code><span class="sig-paren">(</span><em>S</em>, <em>L</em>, <em>Y</em>, <em>nr_sectors</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.calc_accounts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate sector specific footprints, terr, imp and exp accounts</p>
+<p>The total industry output x for the calculation
+is recalculated from L and y</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>L</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Leontief input output table L</p>
+</div></blockquote>
+<p><strong>S</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Direct impact coefficients</p>
+</div></blockquote>
+<p><strong>Y</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Final demand: aggregated across categories or just one category, one
+column per country</p>
+</div></blockquote>
+<p><strong>nr_sectors</strong> : int</p>
+<blockquote>
+<div><p>Number of sectors in the MRIO</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Tuple</p>
+<blockquote class="last">
+<div><p>(D_fp, D_terr, D_imp, D_exp)</p>
+<p>Format: D_row x L_col (=nr_countries*nr_sectors)</p>
+<ul class="simple">
+<li>D_fp        Footprint per sector and country</li>
+<li>D_terr      Total factur use per sector and country</li>
+<li><dl class="first docutils">
+<dt>D_imp       Total global factor use to satisfy total final demand in</dt>
+<dd>the country per sector</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>D_exp       Total factor use in one country to satisfy final demand</dt>
+<dd>in all other countries (per sector)</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.iomath.calc_e">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">calc_e</code><span class="sig-paren">(</span><em>M</em>, <em>Y</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.calc_e" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate total impacts (footprints of consumption Y)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>M</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Multipliers</p>
+</div></blockquote>
+<p><strong>Y</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Final consumption</p>
+</div></blockquote>
+<p><strong>TODO - this must be completely redone (D, check for dataframe, …)</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Multipliers m
+The type is determined by the type of M.
+If DataFrame index/columns as M</p>
+</div></blockquote>
+<p class="last">The calcubased on multipliers M and finald demand Y</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.iomath.calc_x">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">calc_x</code><span class="sig-paren">(</span><em>Z</em>, <em>Y</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.calc_x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the industry output x from the Z and Y matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>Z</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Symmetric input output table (flows)</p>
+</div></blockquote>
+<p><strong>Y</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>final demand with categories (1.order) for each country (2.order)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
+<blockquote class="last">
+<div><p>Industry output x as column vector
+The type is determined by the type of Z. If DataFrame index as Z</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.iomath.calc_x_from_L">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">calc_x_from_L</code><span class="sig-paren">(</span><em>L</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.calc_x_from_L" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the industry output x from L and a y vector</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>L</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>Symmetric input output Leontief table</p>
+</div></blockquote>
+<p><strong>y</strong> : pandas.DataFrame or numpy.array</p>
+<blockquote>
+<div><p>a column vector of the total final demand</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
+<blockquote class="last">
+<div><p>Industry output x as column vector
+The type is determined by the type of L. If DataFrame index as L</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.iomath.recalc_M">
+<code class="descclassname">pymrio.tools.iomath.</code><code class="descname">recalc_M</code><span class="sig-paren">(</span><em>S</em>, <em>D_fp</em>, <em>Y</em>, <em>nr_sectors</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.iomath.recalc_M" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Multipliers based on footprints.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>D_fp</strong> : pandas.DataFrame or numpy array</p>
+<blockquote>
+<div><p>Footprint per sector and country</p>
+</div></blockquote>
+<p><strong>Y</strong> : pandas.DataFrame or numpy array</p>
+<blockquote>
+<div><p>Final demand: aggregated across categories or just one category, one
+column per country. This will be diagonalized per country block.
+The diagonolized form must be invertable for this method to work.</p>
+</div></blockquote>
+<p><strong>nr_sectors</strong> : int</p>
+<blockquote>
+<div><p>Number of sectors in the MRIO</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas.DataFrame or numpy.array</p>
+<blockquote class="last">
+<div><p>Multipliers M
+The type is determined by the type of D_fp.
+If DataFrame index/columns as D_fp</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pymrio.tools.ioparser">
+<span id="pymrio-tools-ioparser-module"></span><h2>pymrio.tools.ioparser module<a class="headerlink" href="#module-pymrio.tools.ioparser" title="Permalink to this headline">¶</a></h2>
+<p>Various parser for available MRIOs and files in a similar format</p>
+<p>KST 20140903</p>
+<dl class="exception">
+<dt id="pymrio.tools.ioparser.ParserError">
+<em class="property">exception </em><code class="descclassname">pymrio.tools.ioparser.</code><code class="descname">ParserError</code><a class="headerlink" href="#pymrio.tools.ioparser.ParserError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
+<p>Base class for errors concerning parsing of IO source files</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pymrio.tools.ioparser.ParserWarning">
+<em class="property">exception </em><code class="descclassname">pymrio.tools.ioparser.</code><code class="descname">ParserWarning</code><a class="headerlink" href="#pymrio.tools.ioparser.ParserWarning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">UserWarning</span></code></p>
+<p>Base class for warnings concerning parsing of IO source files</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.ioparser.parse_exio_ext">
+<code class="descclassname">pymrio.tools.ioparser.</code><code class="descname">parse_exio_ext</code><span class="sig-paren">(</span><em>file</em>, <em>index_col</em>, <em>name</em>, <em>drop_compartment=True</em>, <em>version=None</em>, <em>year=None</em>, <em>iosystem=None</em>, <em>sep='</em>, <em>'</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioparser.parse_exio_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse an EXIOBASE like extension file into pymrio.Extension</p>
+<p>EXIOBASE like extensions files are assumed to have two
+rows which are used as columns multiindex (region and sector)
+and up to three columns for the row index (see Parameters).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>file</strong> : string</p>
+<blockquote>
+<div><p>File to parse</p>
+</div></blockquote>
+<p><strong>index_col</strong> : int</p>
+<blockquote>
+<div><p>The number of columns (1 to 3) at the beginning of the file
+to use as the index. The order of the index_col must be
+- 1 index column: [‘stressor’]
+- 2 index columns: [‘stressor’, ‘unit’]
+- 3 index columns: [‘stressor’, ‘compartment’, ‘unit’]
+- &gt; 3: everything up to three index columns will be removed</p>
+</div></blockquote>
+<p><strong>name</strong> : string</p>
+<blockquote>
+<div><p>Name of the extension</p>
+</div></blockquote>
+<p><strong>drop_compartment</strong> : boolean, optional</p>
+<blockquote>
+<div><p>If True (default) removes the compartment from the index.</p>
+</div></blockquote>
+<p><strong>version</strong> : string, optional</p>
+<blockquote>
+<div><p>see pymrio.Extension</p>
+</div></blockquote>
+<p><strong>iosystem</strong> : string, optional</p>
+<blockquote>
+<div><p>see pymrio.Extension</p>
+</div></blockquote>
+<p><strong>year</strong> : string or int</p>
+<blockquote>
+<div><p>see pymrio.Extension</p>
+</div></blockquote>
+<p><strong>sep</strong> : string, optional</p>
+<blockquote>
+<div><p>Delimiter to use; default ‘,’</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pymrio.Extension</p>
+<blockquote class="last">
+<div><p>with F (and unit if available)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>So far this only parses factor of production extensions F (not
+final demand extensions FY nor coeffiecents S).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.ioparser.parse_exiobase2">
+<code class="descclassname">pymrio.tools.ioparser.</code><code class="descname">parse_exiobase2</code><span class="sig-paren">(</span><em>path</em>, <em>charact=None</em>, <em>iosystem=None</em>, <em>version='exiobase 2.2.2'</em>, <em>popvector='exio2'</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioparser.parse_exiobase2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the exiobase 2.2.2 source files for the IOSystem</p>
+<p>The function parse product by product and industry by industry source file
+in the coefficient form (A and S).</p>
+<p>Filenames are hardcoded in the parser - for any other function the code has
+to be adopted. Check git comments to find older verions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
+<blockquote>
+<div><p>Path to the EXIOBASE source files</p>
+</div></blockquote>
+<p><strong>charact</strong> : string, optional</p>
+<blockquote>
+<div><p>Filename with path to the characterisation matrices for the extensions
+(xls).  This is provided together with the EXIOBASE system and given as
+a xls file. The four sheets  Q_factorinputs, Q_emission, Q_materials
+and Q_resources are read and used to generate one new extensions with
+the impacts</p>
+</div></blockquote>
+<p><strong>iosystem</strong> : string, optional</p>
+<blockquote>
+<div><p>Note for the IOSystem, recommended to be ‘pxp’ or ‘ixi’ for
+product by product or industry by industry.
+However, this can be any string and can have more information if needed
+(eg for different technology assumptions)
+The string will be passed to the IOSystem.</p>
+</div></blockquote>
+<p><strong>version</strong> : string, optional</p>
+<blockquote>
+<div><p>This can be used as a version tracking system. Default: exiobase 2.2.2</p>
+</div></blockquote>
+<p><strong>popvector</strong> : string or pd.DataFrame, optional</p>
+<blockquote>
+<div><p>The population vector for the countries.  This can be given as
+pd.DataFrame(index = population, columns = countrynames) or, (default)
+will be taken from the pymrio module. If popvector = None no population
+data will be passed to the IOSystem.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">IOSystem</p>
+<blockquote>
+<div><p>A IOSystem with the parsed exiobase 2 data</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ParserError</strong></p>
+<blockquote class="last">
+<div><p>If the exiobase source files are not complete in the given path</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.ioparser.parse_exiobase3">
+<code class="descclassname">pymrio.tools.ioparser.</code><code class="descname">parse_exiobase3</code><span class="sig-paren">(</span><em>zip_file</em>, <em>path_in_zip=''</em>, <em>version='3.0'</em>, <em>iosystem=None</em>, <em>year=None</em>, <em>charact=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioparser.parse_exiobase3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the exiobase 3 source files for the IOSystem</p>
+<p>The function parse product by product and industry by industry source file
+with flow matrices (Z).</p>
+<p>Currently EXIOBASE 3 is delivered in the format year/some_zip_file.zip
+This file must be passed (parameter zip_file). Within the zip_file the
+structure changed during the last versions of the EXIOBASE 3 development.
+Some versions have the data stored in a subfolder with in the zip file,
+in other versions the data is directly in the root of the file. The
+parameter path_in_zip allows to specify the relative folder within the
+zip file.</p>
+<p>TODO: popvector (see exio2 parser), charac</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>zip_file</strong> : string</p>
+<blockquote>
+<div><p>Zip file containing EXIO3 (abs or relative path)</p>
+</div></blockquote>
+<p><strong>path_in_zip</strong> : string, optional</p>
+<blockquote>
+<div><p>Relative path to the data within the zipfile. Default: root (‘’)</p>
+</div></blockquote>
+<p><strong>version</strong> : string, optional</p>
+<blockquote>
+<div><p>The version defines the filename in EXIOBASE.
+For example:</p>
+<blockquote>
+<div><p>mrIOT3.0.txt for EXIOBASE3 requires the
+version parameter to be “3.0”,
+mrIOT_3_1.txt requires version to be “_3_1”
+version parameter to be “3.0”</p>
+</div></blockquote>
+</div></blockquote>
+<p><strong>charact</strong> : string, optional</p>
+<blockquote>
+<div><p>Filename with path to the characterisation matrices for the extensions
+(xls).  This is provided together with the EXIOBASE system and given as
+a xls file. The four sheets  Q_factorinputs, Q_emission, Q_materials
+and Q_resources are read and used to generate one new extensions
+with the impacts</p>
+</div></blockquote>
+<p><strong>iosystem</strong> : string, optional</p>
+<blockquote>
+<div><p>Note for the IOSystem, recommended to be ‘pxp’ or ‘ixi’ for
+product by product or industry by industry.
+However, this can be any string and can have more information if needed
+(eg for different technology assumptions)
+The string will be passed to the IOSystem.</p>
+</div></blockquote>
+<p><strong>year</strong> : string or int</p>
+<blockquote>
+<div><p>see pymrio.Extension</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">IOSystem</p>
+<blockquote>
+<div><p>A IOSystem with the parsed exiobase 3 data</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ParserError</strong></p>
+<blockquote class="last">
+<div><p>If the exiobase source files are not
+complete in the given path or EXIOBASE files missing TODO</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.ioparser.parse_wiod">
+<code class="descclassname">pymrio.tools.ioparser.</code><code class="descname">parse_wiod</code><span class="sig-paren">(</span><em>path</em>, <em>year=None</em>, <em>names=('isic'</em>, <em>'c_codes')</em>, <em>version='year12'</em>, <em>popvector=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioparser.parse_wiod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the wiod source files for the IOSystem</p>
+<p>WIOD provides the MRIO tables in excel - format (xlsx) at
+<a class="reference external" href="http://www.wiod.org/new_site/database/wiots.htm">http://www.wiod.org/new_site/database/wiots.htm</a> (release November 2013).
+To use WIOD in pymrio these (for the year of analysis) must be downloaded.
+The interindustry matrix of these files gets parsed in IOSystem.Z, the
+additional information is included as factor_input extension (value
+added,…)</p>
+<p>The folder with these xslx must than be passed to the WIOD parsing
+function. This folder may contain folders with the extension data. Every
+folder within the wiod root folder will be parsed for extension data and
+will be added to the IOSystem. The WIOD database offers the download of
+the environmental extensions as zip files. These can be read directly by
+the parser. In case a zip file and a folder with the same name are
+available, the data is read from the folder. If the zip files are
+extracted into folder, the folders must have the same name as the
+corresponding zip file (without the ‘zip’ extension).</p>
+<p>If a WIOD SEA file is present (at the root of path or in a folder named
+‘SEA’ - only one file!), the labor data of this file gets included in the
+factor_input extension (calculated for the the three skill levels
+available). The monetary data in this file is not added because it is only
+given in national currency.</p>
+<p>Since the “World Input-Output Tables in previous years’ prices” are still
+under construction (20141129), no parser for these is provided.</p>
+<p>Some of the meta-parameter of the IOSystem are set automatically based on
+the values given in the first four cells and the name of the WIOD data
+files (base year, version, price, iosystem).
+These can be overwritten afterwards if needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : string</p>
+<blockquote>
+<div><p>Path to the folder with the WIOD source files. In case that the path
+to a specific file is given, only this will be parsed irrespective of
+the values given in year.</p>
+</div></blockquote>
+<p><strong>year</strong> : int, str, optional</p>
+<blockquote>
+<div><p>Which year in the path should be parsed. The years can be given with
+four or two digits (eg [2012 or 12]). If the given path contains a
+specific file, the value of year will not be used (but inferred from
+the meta data)- otherwise it must be given For the monetary data the
+parser searches for files with ‘wiot - two digit year’.</p>
+</div></blockquote>
+<p><strong>names</strong> : string or tuple, optional</p>
+<blockquote>
+<div><p>WIOD provides three different sector/final demand categories naming
+schemes. These can can be specified for the IOSystem. Pass:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>‘isic’: ISIC rev 3 Codes - available for interindustry flows
+and final demand rows.</li>
+<li>‘full’: Full names - available for final demand rows and
+columns (categories) and interindustry flows.</li>
+<li>‘c_codes’ : WIOD specific sector numbers, available for final
+demand rows and columns (categories) and interindustry flows.</li>
+</ol>
+</div></blockquote>
+<p>Internally, the parser relies on 1) for the interindustry flows and 3)
+for the final demand categories. This is the default and will also be
+used if just ‘isic’ gets passed (‘c_codes’ also replace ‘isic’ if this
+was passed for final demand categories). To specify different finial
+consumption category names, pass a tuple with (sectors/interindustry
+classification, fd categories), eg (‘isic’, ‘full’). Names are case
+insensitive and passing the first character is sufficient.</p>
+</div></blockquote>
+<p><strong>version</strong> : str, optional</p>
+<blockquote>
+<div><p>Version information to be stored in the parsed database.</p>
+</div></blockquote>
+<p><strong>TODO popvector</strong> : TO BE IMPLEMENTED (consistent with EXIOBASE)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first">IOSystem</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ParserError</strong></p>
+<blockquote class="last">
+<div><p>If the WIOD source file are not complete or inconsistent</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pymrio.tools.ioutil">
+<span id="pymrio-tools-ioutil-module"></span><h2>pymrio.tools.ioutil module<a class="headerlink" href="#module-pymrio.tools.ioutil" title="Permalink to this headline">¶</a></h2>
+<p>Utility function for pymrio</p>
+<p>KST 20140502</p>
+<dl class="function">
+<dt id="pymrio.tools.ioutil.build_agg_matrix">
+<code class="descclassname">pymrio.tools.ioutil.</code><code class="descname">build_agg_matrix</code><span class="sig-paren">(</span><em>agg_vector</em>, <em>pos_dict=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioutil.build_agg_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Agg. matrix based on mapping given in input as numerical or str vector.</p>
+<p>The aggregation matrix has the from nxm with</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-n</span></kbd></td>
+<td>new classificaction</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-m</span></kbd></td>
+<td>old classification</td></tr>
+</tbody>
+</table>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>agg_vector</strong> : list or vector like numpy ndarray</p>
+<blockquote>
+<div><blockquote>
+<div><p>This can be row or column vector.
+Length m with position given for n and -1 if values
+should not be included
+or
+length m with id_string for the aggregation</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>pos_dict <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
+<dd><p class="first last">(only possible if agg_vector is given as string)
+output order for the new matrix
+must be given as dict with
+‘string in agg_vector’ = pos
+(as int, -1 if value should not be included in the aggregation)</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>Example 1:</strong></p>
+<blockquote>
+<div><p>input vector: np.array([0, 1, 1, 2]) or [‘a’, ‘b’, ‘b’, ‘c’]</p>
+<p>agg matrix:</p>
+<blockquote>
+<div><p>m0  m1  m2  m3</p>
+</div></blockquote>
+<p>n0 1   0   0   0
+n1 0   1   1   0
+n2 0   0   0   1</p>
+</div></blockquote>
+<p><strong>Example 2:</strong></p>
+<blockquote class="last">
+<div><dl class="docutils">
+<dt>input vector: np.array([1, 0, 0, 2]) or</dt>
+<dd><p class="first last">([‘b’, ‘a’, ‘a’, ‘c’], dict(a=0,b=1,c=2))</p>
+</dd>
+</dl>
+<p>agg matrix:</p>
+<blockquote>
+<div><p>m0  m1  m2  m3</p>
+</div></blockquote>
+<p>n0 0   1   1   0
+n1 1   0   0   0
+n2 0   0   0   1</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.ioutil.build_agg_vec">
+<code class="descclassname">pymrio.tools.ioutil.</code><code class="descname">build_agg_vec</code><span class="sig-paren">(</span><em>agg_vec</em>, <em>**source</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioutil.build_agg_vec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds an combined aggregation vector based on various classifications</p>
+<p>This function build an aggregation vector based on the order in agg_vec.
+The naming and actual mapping is given in source, either explicitly or by
+pointing to a folder with the mapping.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s1">&#39;EU&#39;</span><span class="p">,</span> <span class="s1">&#39;OECD&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span><span class="p">)</span>
+<span class="go">[&#39;EU&#39;, &#39;EU&#39;, &#39;EU&#39;, &#39;OECD&#39;, &#39;REST&#39;, &#39;REST&#39;]</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s1">&#39;OECD&#39;</span><span class="p">,</span> <span class="s1">&#39;EU&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">miss</span><span class="o">=</span><span class="s1">&#39;RoW&#39;</span><span class="p">)</span>
+<span class="go">[&#39;OECD&#39;, &#39;EU&#39;, &#39;OECD&#39;, &#39;OECD&#39;, &#39;RoW&#39;, &#39;RoW&#39;]</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s1">&#39;EU&#39;</span><span class="p">,</span> <span class="s1">&#39;orig_regions&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span><span class="p">)</span>
+<span class="go">[&#39;EU&#39;, &#39;EU&#39;, &#39;EU&#39;, &#39;reg4&#39;, &#39;reg5&#39;, &#39;reg6&#39;]</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">build_agg_vec</span><span class="p">([</span><span class="s1">&#39;supreg1&#39;</span><span class="p">,</span> <span class="s1">&#39;other&#39;</span><span class="p">],</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>       <span class="n">other</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;other1&#39;</span><span class="p">,</span> <span class="s1">&#39;other1&#39;</span><span class="p">,</span> <span class="s1">&#39;other2&#39;</span><span class="p">,</span> <span class="s1">&#39;other2&#39;</span><span class="p">])</span>
+<span class="go">[&#39;supreg1&#39;, &#39;supreg1&#39;, &#39;other1&#39;, &#39;other1&#39;, &#39;other2&#39;, &#39;other2&#39;]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>agg_vec</strong> : list</p>
+<blockquote>
+<div><p>A list of sector or regions to which the IOSystem shall be aggregated.
+The order in agg_vec is important:
+If a string was assigned to one specific entry it will not be
+overwritten if it is given in the next vector, e.g.  [‘EU’, ‘OECD’]
+would aggregate first into EU and the remaining one into OECD, whereas
+[‘OECD’, ‘EU’] would first aggregate all countries into OECD and than
+the remaining countries into EU.</p>
+</div></blockquote>
+<p><strong>source</strong> : list or string</p>
+<blockquote>
+<div><p>Definition of the vectors in agg_vec.  The input vectors (either in the
+file or given as list for the entries in agg_vec) must be as long as
+the desired output with a string for every position which should be
+aggregated and None for position which should not be used.</p>
+<p>Special keywords:</p>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>path <span class="classifier-delimiter">:</span> <span class="classifier">Path to a folder with concordance matrices.</span></dt>
+<dd><p class="first">The files in the folder can have any extension but must be
+in text format (tab separated) with one entry per row.
+The last column in the file will be taken as aggregation
+vectors (other columns can be used for documentation).
+Values must be given for every entry in the original
+classification (string None for all values not used) If
+the same entry is given in source and as text file in
+path than the one in source will be used.</p>
+<p>Two special path entries are available so far:</p>
+<ul class="simple">
+<li>‘exio2’
+Concordance matrices for EXIOBASE 2.0</li>
+<li>‘test’
+Concordance matrices for the test IO system</li>
+</ul>
+<p class="last">If a entry is not found in source and no path is given
+the current directory will be searched for the definition.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">miss : Entry to use for missing values, default: ‘REST’</p>
+</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list (aggregation vector)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.ioutil.concate_extension">
+<code class="descclassname">pymrio.tools.ioutil.</code><code class="descname">concate_extension</code><span class="sig-paren">(</span><em>*extensions</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioutil.concate_extension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenate extensions</p>
+<p class="rubric">Notes</p>
+<p>The method assumes that the first index is the name of the
+stressor/impact/input type. To provide a consistent naming this is renamed
+to ‘indicator’ if they differ. All other index names (‘compartments’, …)
+are added to the concatenated extensions and set to NaN for missing values.</p>
+<p class="rubric">Notes</p>
+<p>Attributes which are not DataFrames will be set to None if they differ
+between the extensions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>extensions</strong> : Extensions</p>
+<blockquote>
+<div><p>The Extensions to concatenate as multiple parameters</p>
+</div></blockquote>
+<p><strong>name</strong> : string</p>
+<blockquote>
+<div><p>Name of the new extension</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Concatenated extension</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.ioutil.diagonalize_blocks">
+<code class="descclassname">pymrio.tools.ioutil.</code><code class="descname">diagonalize_blocks</code><span class="sig-paren">(</span><em>arr</em>, <em>blocksize</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioutil.diagonalize_blocks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Diagonalize sections of columns of an array for the whole array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>arr</strong> : numpy array</p>
+<blockquote>
+<div><p>Input array</p>
+</div></blockquote>
+<p><strong>blocksize</strong> : int</p>
+<blockquote>
+<div><p>number of rows/colums forming one block</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">numpy ndarray with shape (columns ‘arr’ * blocksize,</p>
+<blockquote class="last">
+<div><p>columns ‘arr’ * blocksize)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.ioutil.is_vector">
+<code class="descclassname">pymrio.tools.ioutil.</code><code class="descname">is_vector</code><span class="sig-paren">(</span><em>inp</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioutil.is_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the input can be interpreted as a ‘true’ vector</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>inp</strong> : numpy.ndarray or something that can be converted into ndarray</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Boolean</p>
+<blockquote class="last">
+<div><p>True for vectors: ndim = 1 or ndim = 2 and shape of one axis = 1
+False for all other arrays
+None if inp is not a ndarray and cant be converted to one</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.ioutil.set_block">
+<code class="descclassname">pymrio.tools.ioutil.</code><code class="descname">set_block</code><span class="sig-paren">(</span><em>arr</em>, <em>arr_block</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioutil.set_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the diagonal blocks of an array to an given array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>arr</strong> : numpy ndarray</p>
+<blockquote>
+<div><p>the original array</p>
+</div></blockquote>
+<p><strong>block_arr</strong> : numpy ndarray</p>
+<blockquote>
+<div><p>the block array for the new diagonal</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">numpy ndarray (the modified array)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pymrio.tools.ioutil.unique_element">
+<code class="descclassname">pymrio.tools.ioutil.</code><code class="descname">unique_element</code><span class="sig-paren">(</span><em>ll</em><span class="sig-paren">)</span><a class="headerlink" href="#pymrio.tools.ioutil.unique_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns unique elements from a list preserving the original order</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pymrio.tools">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pymrio.tools" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Konstantin Stadler.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.3.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
