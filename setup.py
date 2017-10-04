@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-import os
 
 exec(open('pymrio/version.py').read())
 
@@ -15,7 +14,7 @@ setup(
     version=__version__,  # noqa
     packages=find_packages(),
     include_package_data=True,
-    package_data = {
+    package_data={
         '': ['*.txt', '*.dat', '*.doc', '*.rst'],
     },
     install_requires=['pandas >= 0.17.0'],
