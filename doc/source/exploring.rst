@@ -5,12 +5,19 @@ Exploring the IO System
 The string representation of IO system as well as the extensions provides some
 information about available attributes.
 
->>> import pymrio as pmr
->>> mrio = pmr.load_test()
->>> str(mrio)
+.. code python::
 
-and
+    import pymrio
+    mrio = pymrio.load_test()
+    
+    print(mrio)
+    print(mrio.emissions)
 
->>> str(mrio.emissions)
+The output of the description changes depending on the calculated accounts:    
+
+.. code python::
+    
+    mrio.calc_all()
+    print(mrio)
 
 Further information can be found in the API Reference.

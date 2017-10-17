@@ -6,8 +6,9 @@ Changelog
 v0.3.d1 (Sep 29, 2017)
 **********************
 
-Work toward pep8 compatibility
-
+- downloaders for EORA26 and WIOD
+- codebase fully pep8 compliant
+- restructured the documentation
 
 **********************
 v0.2.2 (May 27, 2016)
