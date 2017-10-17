@@ -21,7 +21,7 @@ Session.vim
 /.cache
 /dist/
 /pymrio.egg-info/
-/build/
+/**/build/
 /__pycache__
 /tests/__pycache__/
 /.cache

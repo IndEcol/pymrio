@@ -19,6 +19,25 @@ Test system
 
     load_test
 
+Download MRIO databases    
+===========================
+
+Download publicly EE MRIO databases from the web. 
+This is currently implemented for the WIOD_ and EORA26_ database 
+(EXIOBASE_ requires registration before downloading).
+
+
+.. _EXIOBASE: http://www.exiobase.eu/
+.. _WIOD: http://www.wiod.org/home
+.. _EORA26: http://www.worldmrio.com/simplified/
+
+.. autosummary::
+    :toctree: api_doc/
+
+    download_wiod2013
+    download_eora26
+
+
 Raw data
 ========
 
