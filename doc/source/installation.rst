@@ -23,6 +23,7 @@ Dependencies
 - pandas
 - numpy
 - matplotlib
+- requests 
 
 ************************
 Recommended Dependencies
