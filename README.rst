@@ -1,49 +1,117 @@
+############
 pymrio
-======
+############
 
-A python module for automating input output calculations and generating reports.
+pymrio is an open source tool for analysing global environmental extended multi-regional input-output tables (EE MRIOs). 
 
-This is work in progress, so far only tested for the EXIOBASE 2.0 system (CREEA project). However, in principal pymrio can handle any symetric mrio table (e.g. WIOD, EXIOBASE 1.0).
+It aims to provide a high-level abstraction layer to available global EE MRIO databases in order to simplify common EE MRIO data tasks. Pymrio includes automatic download functions and parsers for available EE MRIO databases like EXIOBASE, WIOD and EORA26. It automatically checks parsed EE MRIOs for missing data necessary for calculating standard EE MRIO accounts (such as footprint, territorial, impacts embodied in trade) and calculates all missing tables. Various data visualization methods help to explore the dataset by comparing the different accounts across countries. 
 
-Usage
------
+Further functions include:
 
-A small test mrio is included in the package. To use it call
+- analysis methods to identify where certain impacts occurr
+- modifying region/sector classification
+- restructuring extensions
+- export to various formats
+- visualization routines and 
+- automated report generation
+
+Where to get it
+===============
+
+The full source code is available on Github at: https://github.com/konstantinstadler/pymrio
+
+
+pymrio is registered at PyPI. Install it by:
+
+.. code:: bash
+
+    pip install pymrio --upgrade
+
+Quickstart    
+==========
+
+A small test mrio is included in the package. 
+
+To use it call
+
+.. code:: python
 
     import pymrio
     test_mrio = pymrio.load_test()
 
-The test_mrio consists of a transaction matrix and two extension types.
+The test mrio consists of six regions and eight sectors:  
 
-Check the [documentation] (http://konstantinstadler.github.io/pymrio/index.html) and the tutorials for further information:
-
-Tutorial 1: [Basic intro] (http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_basic_introduction.ipynb)
-
-Tutorial 2: [EXIOBASE 2] (http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_exiobase_tutorial.ipynb)
-
-Tutorial 3: [Use without parser] (http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_directly_assign_attributes.ipynb)
-
-Installation
-------------
-
-Up to now now pymrio doesn't have a installation routine. Just download the package from the source repository (download zip on right toolstrip), unzip and add the folder to your python path. 
-
-    import sys
-    _pymrio_path = r'S:\pymrio-master'  
-    if not _pymrio_path in sys.path:
-        sys.path.append(_pymrio_path)
-    del _pymrio_path
-
-    import pymrio
+.. code:: python
 
 
-Dependencies
-------------
+    print(test_mrio.get_sectors())
+    print(test_mrio.get_regions())
 
-- Python 3.0 or later
-- pandas 0.15 or later
-- numpy
-- scipy
-- matplotlib
-- docutils (only for generating reports in html format)
-- py.test (for running the unit tests)
+The test mrio includes tables flow tables and some satellite accounts. 
+To show these:
+
+.. code:: python
+
+    test_mrio.Z
+    test_mrio.emissions.F
+    
+However, some tables necessary for calculating footprints (like test_mrio.A or test_mrio.emissions.S) are missing. pymrio automatically identifies which tables are missing and calculates them: 
+
+.. code:: python
+
+    test_mrio.calc_all()
+
+Now, all accounts are calculated, including footprints and emissions embodied in trade:
+
+.. code:: python
+
+    test_mrio.A
+    test_mrio.emissions.D_fp
+    test_mrio.emissions.D_exp
+
+To visualize the accounts:
+
+
+.. code:: python
+
+    import matplotlib as plt
+    test_mrio.emissions.plot_account('emission_type1')
+    plt.show()
+
+Everything can be saved with
+
+.. code:: python
+    
+    test_mrio.save_all('some/folder')
+
+See the documentation and tutorials for further examples.
+
+
+Tutorials
+=========
+
+Some tutorials showing the capabilities of pymrio:
+
+#) basic introduction: http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_basic_introduction.ipynb
+#) EXIOBASE 2: http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_exiobase_tutorial.ipynb
+#) Directly assign IO attributes: http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_directly_assign_attributes.ipynb
+
+Contributing
+=============
+
+Want to contribute? Great!
+Please check `CONTRIBUTING.rst`_ if you want to help to improve coco.
+  
+.. _CONTRIBUTING.rst: https://github.com/konstantinstadler/pymrio/blob/master/CONTRIBUTING.rst
+   
+Communication, issues, bugs and enhancements
+============================================
+
+Please use the issue tracker for documenting bugs, proposing enhancements and all other communication related to coco.
+
+You can follow me on twitter_ or mastodon_ to get the latest news about all my open-source and research projects (and occasionally some random retweets).
+
+.. _twitter: https://twitter.com/kst_stadler
+.. _mastodon: https://mastodon.rocks/@kstadler
+
+
