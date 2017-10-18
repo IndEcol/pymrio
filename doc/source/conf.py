@@ -34,6 +34,8 @@ sys.path.insert(0, os.path.abspath('../../..'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'nbsphinx',
+    'IPython.sphinxext.ipython_console_highlighting',
     'sphinx.ext.mathjax',
     'sphinx.ext.coverage',
     'sphinx.ext.autosummary',
@@ -44,7 +46,7 @@ napoleon_use_param = False
 napoleon_use_ivar = True
 
 # automatically generate api references
-autosummary_generate = True
+autosummary_generate = ['api_references.rst']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -83,7 +85,7 @@ release = '0.3.dev1'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = []
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.

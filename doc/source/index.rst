@@ -10,6 +10,7 @@ Contents:
 
    intro
    installation
+   notebooks/autodownload
    development
    changelog
    exploring
