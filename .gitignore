@@ -26,4 +26,4 @@ Session.vim
 /tests/__pycache__/
 /.cache
 /.idea
-/doc/.ipynb_checkpoints/
+/**/.ipynb_checkpoints/
