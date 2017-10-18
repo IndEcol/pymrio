@@ -4,4 +4,4 @@ matplotlib >= 2.0.0
 requests >= 2.18
 sphinx>=1.4
 ipykernel
-nbspinx
+nbsphinx
