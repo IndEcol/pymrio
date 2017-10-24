@@ -11,7 +11,7 @@ import warnings
 import pandas as pd
 import numpy as np
 import zipfile
-import collections
+from collections import namedtuple
 
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
@@ -456,7 +456,7 @@ def parse_exiobase3(zip_file,
 
     zip_file = os.path.abspath(zip_file)
 
-    file_data = collections.namedtuple(
+    file_data = namedtuple(
         'file_data', [
             'file_name',
             # nr of rows containing index on the top of the table (for columns)
@@ -677,7 +677,7 @@ def parse_exiobase3(zip_file,
                     **dict(core_data, **extension))
 
 
-def parse_wiod(path, year=None, names=('isic', 'c_codes'), 
+def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                popvector=None):
     """ Parse the wiod source files for the IOSystem
 
@@ -718,7 +718,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
         Path to the folder with the WIOD source files. In case that the path
         to a specific file is given, only this will be parsed irrespective of
         the values given in year.
-    year : int or str 
+    year : int or str
         Which year in the path should be parsed. The years can be given with
         four or two digits (eg [2012 or 12]). If the given path contains a
         specific file, the value of year will not be used (but inferred from
@@ -792,7 +792,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     root_path = os.path.split(wiot_file)[0]
     if not os.path.exists(wiot_file):
         raise ParserError('WIOD file not found in the specified folder.')
-    
+
     meta_rec = MRIOMetaData(storage_folder=root_path)
 
     # wiot file structure
@@ -835,7 +835,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     meta_rec.change_meta('system', wiot_iosystem)
     _wiot_unit = wiot_data.iloc[
             wiot_meta['unit'], wiot_meta['col']].rstrip(')').lstrip('(')
-    
+
     # remove meta data, empty rows, total column
     wiot_data.iloc[0:wiot_meta['end_row'], wiot_meta['col']] = np.NaN
     wiot_data.drop(wiot_empty_top_rows,
@@ -1372,3 +1372,160 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet='DATA'):
             'SEA extension raw data file not found - '
             'SEA-Extension not included', ParserWarning)
         return None, None
+
+def parse_eora26(path, year, price='bp', country_names='eora'):
+    """ Parse the Eora26 database
+
+    Note
+    ----
+    
+    This parser deletes the statistical disrecpancy columns from
+    the parsed Eora system.
+
+    Parameters
+    ----------
+
+    path : string
+       Path to the eora raw storage folder or a specific eora zip file to
+       parse.  There are several options to specify the data for parsing:
+
+       1) Pass the name of eora zip file. In this case the parameters 'year'
+          and 'price' will not be used
+       2) Pass a folder which eiter contains eora zip files or unpacked eora
+          data In that case, a year must be given
+       3) Pass a folder which contains subfolders in the format 'YYYY', e.g.
+          '1998' This subfolder can either contain an Eora zip file or an
+          unpacked Eora system
+
+    year : int or str
+        4 digit year spec
+
+    price : str, optional
+        'bp' or 'pp'
+
+    country_names: str, optional
+        Which country names to use:
+        'eora' = Eora flavoured ISO 3 varian
+        'full' = Full country names as provided by Eora
+        Passing the first letter suffice.
+
+
+    """
+    # Path manipulation, should work cross platform
+    path = path.rstrip('\\')
+    path = path.encode('unicode-escape')
+    path = os.path.abspath(path)
+
+    if country_names[0].lower() == 'e':
+        country_names = 'eora'
+    elif country_names[0].lower() == 'f':
+        country_names = 'full'
+    else:
+        raise ParserError('Parameter country_names must be eora or full')
+
+    eora_zip_ext = '.zip'
+    is_zip = False
+
+    # determine which eora file to be parsed
+    if os.path.splitext(path)[1] == eora_zip_ext:
+        # case direct pass of eora zipfile
+        if 'pp' in path:
+            price='pp'
+        else:
+            price='bp'
+        eora_loc = path.decode()
+        is_zip = True
+    else:
+        if str(year) in os.listdir(path):
+            path = os.path.join(path, str(year))
+        eora_file_list = [fl.decode() for fl in os.listdir(path)
+                          if os.path.splitext(fl)[1] == eora_zip_ext.encode(
+                              'unicode-escape')
+                          and
+                          str(year).encode('unicode-escape') in fl]
+        if len(eora_file_list) > 1:
+            raise ParserError('Multiple files for a given year '
+                              'found (specify a specific file in paramters)')
+        elif len(eora_file_list) == 1:
+            eora_loc = eora_file_list[0]
+            is_zip = True
+        else:
+            eora_loc = path.decode()
+            is_zip = False
+
+    # Eora file specs
+    eora_sep = '\t'
+    ZY_col = namedtuple('ZY', 'full eora system name')(0,1,2,3)
+    eora_files = {
+        # 'Z': 'Eora26_{year}_{price}_T.txt'.format(
+            # year=str(year), price=price), 
+        # 'Q': 'Eora26_{year}_{price}_Q.txt'.format(
+            # year=str(year), price=price),
+        'QY': 'Eora26_{year}_{price}_QY.txt'.format(
+            year=str(year), price=price),
+        'VA': 'Eora26_{year}_{price}_VA.txt'.format(
+            year=str(year), price=price),
+        'Y': 'Eora26_{year}_{price}_FD.txt'.format(
+            year=str(year), price=price),
+        'labels_Z': 'labels_T.txt', 
+        'labels_Y': 'labels_FD.txt', 
+        'labels_Q': 'labels_Q.txt', 
+        'labels_VA': 'labels_VA.txt', 
+        }
+
+    header = namedtuple('header', 'index columns')
+
+    eora_header_spec = {
+        # 'Z': header(index='labels_Z', columns='labels_Z'),
+        # 'Q': header(index='labels_Q', columns='labels_Z'),
+        'QY': header(index='labels_Q', columns='labels_Y'),
+        'VA': header(index='labels_VA', columns='labels_Z'),
+        'Y': header(index='labels_Z', columns='labels_Y'),
+        }
+           
+
+    # if is_zip:
+        # pass
+    # else:
+    # Z = pd.read_table(
+        # os.path.join(eora_loc, eora_file_spec['Z']),
+        # sep=eora_file_spec['sep'])
+    # Y = pd.read_table(
+        # os.path.join(eora_loc, eora_file_spec['Y']),
+        # header=None,
+        # sep=eora_file_spec['sep'])
+    # labelY = pd.read_table(
+        # os.path.join(eora_loc, eora_file_spec['labels_Y']),
+        # header=None,
+        # sep=eora_file_spec['sep'])
+
+    eora_data = {
+        key:pd.read_table(
+            os.path.join(eora_loc, filename),
+            sep=eora_sep,
+            header=None
+            ) for
+        key, filename in eora_files.items()} 
+
+    eora_data['labels_Z'] = eora_data[
+        'labels_Z'].loc[:, [getattr(ZY_col, country_names), ZY_col.name]]
+    eora_data['labels_Y'] = eora_data[
+        'labels_Y'].loc[:, [getattr(ZY_col, country_names), ZY_col.name]]
+    eora_data['labels_Q'] = eora_data['labels_Q'].iloc[:, :1]
+
+
+    for key in eora_header_spec.keys():
+        eora_data[key].columns = (
+            eora_data[eora_header_spec[key].columns].set_index(list(
+                eora_data[eora_header_spec[key].columns])).index)
+        eora_data[key].index = (
+            eora_data[eora_header_spec[key].index].set_index(list(
+                eora_data[eora_header_spec[key].index])).index)
+
+    # TODO: names for index and columns depending on data
+    # TODO: read path or zip file
+
+
+    return locals()
+    
+
