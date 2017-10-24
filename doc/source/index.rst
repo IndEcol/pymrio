@@ -11,6 +11,7 @@ Contents:
    intro
    installation
    notebooks/autodownload
+   notebooks/working_with_wiod
    development
    changelog
    exploring

@@ -45,6 +45,7 @@ Raw data
     :toctree: api_doc/
 
     parse_exiobase2
+    parse_wiod
 
 Save data
 =========

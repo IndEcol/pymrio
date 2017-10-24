@@ -718,7 +718,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
         Path to the folder with the WIOD source files. In case that the path
         to a specific file is given, only this will be parsed irrespective of
         the values given in year.
-    year : int, str, optional
+    year : int or str 
         Which year in the path should be parsed. The years can be given with
         four or two digits (eg [2012 or 12]). If the given path contains a
         specific file, the value of year will not be used (but inferred from
@@ -1075,7 +1075,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     wiod = IOSystem(Z=Z, Y=Y,
                     iosystem=wiot_iosystem,
                     unit=Z_unit,
-                    version=version,
+                    meta=meta_rec,
                     **ext)
 
     # Replace sector/final demand category names
