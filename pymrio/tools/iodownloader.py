@@ -107,6 +107,7 @@ def _download_urls(url_list, storage_folder, overwrite_existing,
                 lf.write(chunk)
 
         meta_handler._add_fileio('Downloaded {} to {}'.format(url, filename))
+        meta_handler.save()
 
     return meta_handler
 
@@ -171,7 +172,7 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
     meta = MRIOMetaData(storage_folder=storage_folder,
                         description='WIOD metadata file for pymrio',
                         mrio_name='WIOD',
-                        system='ixi',
+                        # system='ixi', # Don’t set system here - is included in the wiod tables
                         version='data13')
 
     meta = _download_urls(url_list=restricted_wiod_io_urls + satellite_urls,

@@ -40,7 +40,7 @@ class CoreSystem():
 
     Note
     ----
-    Thats only the base class - instantiation of this class makes no sense.
+    Thats is only a base class - do not make an instance of this class.
 
     """
 
@@ -514,16 +514,19 @@ class Extension(CoreSystem):
         specification with _reg (per region) or _cap (per capita) possible
     unit : pandas.DataFrame
         Unit for each row of the extension
-    iosystem : string
+    iosystem : string, DEPRECATED
         Note for the IOSystem, recommended to be 'pxp' or 'ixi' for
         product by product or industry by industry.
         However, this can be any string and can have more information if needed
         (eg for different technoloy assumptions)
         The string will be passed to the Extension
-    version : string
+        Will be removed in future versions - all data in meta
+    version : string, DEPRECATED
         This can be used as a version tracking system.
-    year : int
+        Will be removed in future versions - all data in meta
+    year : int, DEPRECATED
         Baseyear of the extension data
+        Will be removed in future versions - all data in meta
 
     """
 
@@ -1267,14 +1270,20 @@ class IOSystem(CoreSystem):
         However, this can be any string and can have more information if needed
         (eg for different technoloy assumptions)
         The string will be passed to the IOSystem
-    version : string
+    meta : class
+        Meta class handler
+    version : string, DEPRECATED
         This can be used as a version tracking system.
-    year : string or int
+        Will be removed in future versions - all data in meta
+    year : string or int, DEPRECATED
         Baseyear of the IOSystem
-    price : string
+        Will be removed in future versions - all data in meta
+    price : string, DEPRECATED
         Price system of the IO (current or constant prices)
-    name : string, optional
+        Will be removed in future versions - all data in meta
+    name : string, optional, DEPRECATED
         Name of the IOSystem, default is 'IO'
+        Will be removed in future versions - all data in meta
 
     **kwargs : dictonary
         Extensions are given as dictionaries and will be passed to the
@@ -1286,7 +1295,7 @@ class IOSystem(CoreSystem):
 
     def __init__(self, Z=None, Y=None, A=None, x=None, L=None,
                  unit=None, population=None, iosystem=None, version=None,
-                 year=None, price=None, name='IO', **kwargs):
+                 year=None, price=None, meta=None, name='IO', **kwargs):
         """ Init function - see docstring class """
         self.Z = Z
         self.Y = Y
@@ -1301,6 +1310,8 @@ class IOSystem(CoreSystem):
         self.version = version
         self.year = year
         self.price = price
+        self.meta = meta
+
         for ext in kwargs:
             setattr(self, ext, Extension(**kwargs[ext]))
 

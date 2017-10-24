@@ -28,7 +28,8 @@ class MRIOMetaData(object):
             The parameters 'description', 'mrio_name', 'system', and
             'version' should be set during the establishment of the meta data
             file.  If the meta data file already exists and they are given
-            again, the corresponding entry will be overwritten (with a note in
+            again, the corresponding entry will be overwritten if 
+            replace_existing_meta_content is set to True (with a note in
             the 'History' field.)
 
         Parameters
@@ -90,6 +91,7 @@ class MRIOMetaData(object):
                 ])
             self._add_fileio("Created metadata file {}".format(
                 self._metadata_file))
+            self.save()
 
     def __repr__(self):
         return ("MRIOMetaData(storage_folder={}, "
@@ -135,7 +137,6 @@ class MRIOMetaData(object):
             0, "{time} - {etype} -  {entry}".format(time=self._time(),
                                                     etype=entry_type.upper(),
                                                     entry=entry))
-        self._write_content()
 
     @property
     def metadata(self):
@@ -203,7 +204,8 @@ class MRIOMetaData(object):
             self._content = json.load(mdf,
                                       object_pairs_hook=OrderedDict)
 
-    def _write_content(self):
+    def save(self):
+        """ Saves the current status of the metadata """
         with open(self._metadata_file, 'w') as mdf:
             json.dump(self._content, mdf, indent=4)
 

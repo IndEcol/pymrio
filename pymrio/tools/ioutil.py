@@ -28,7 +28,6 @@ def is_vector(inp):
         False for all other arrays
         None if inp is not a ndarray and cant be converted to one
     """
-
     if not isinstance(inp, np.ndarray):
         try:
             inp = np.asarray(inp)

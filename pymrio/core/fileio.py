@@ -14,6 +14,7 @@ from pymrio.core.constants import PYMRIO_PATH
 
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
+from pymrio.tools.iometadata import MRIOMetaData
 
 
 def load_all(path, **kwargs):
@@ -333,6 +334,9 @@ def load_test():
                               row_header=2, col_header=3, unit_col=2),
         )
 
+
+    meta_rec = MRIOMetaData(storage_folder=PYMRIO_PATH['test_mrio'])
+
     # read the data into a dicts as pandas.DataFrame
     data = {key: pd.read_table(
                  os.path.join(PYMRIO_PATH['test_mrio'],
@@ -340,6 +344,8 @@ def load_test():
                  index_col=list(range(test_system[key].col_header)),
                  header=list(range(test_system[key].row_header)))
             for key in test_system}
+
+    meta_rec._add_fileio('Load test_mrio from {}'.format(PYMRIO_PATH['test_mrio']))
 
     # distribute the data into dics which can be passed to
     # the IOSystem. To do so, some preps are necessary:
@@ -389,6 +395,7 @@ def load_test():
                     Z=data['Z'],
                     Y=data['Y'],
                     unit=trade['unit'],
+                    meta=meta_rec,
                     factor_inputs=factor_inputs,
                     emissions=emissions,
                     population=popdata)

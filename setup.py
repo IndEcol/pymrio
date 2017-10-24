@@ -15,7 +15,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        '': ['*.txt', '*.dat', '*.doc', '*.rst'],
+        '': ['*.txt', '*.dat', '*.doc', '*.rst', '*.json'],
     },
     install_requires=['pandas >= 0.17.0'],
     classifiers=[

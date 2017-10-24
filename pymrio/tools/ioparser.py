@@ -15,6 +15,7 @@ import collections
 
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
+from pymrio.tools.iometadata import MRIOMetaData
 
 # Constants and global variables
 from pymrio.core.constants import PYMRIO_PATH
@@ -676,8 +677,8 @@ def parse_exiobase3(zip_file,
                     **dict(core_data, **extension))
 
 
-def parse_wiod(path, year=None, names=('isic', 'c_codes'),
-               version='year12', popvector=None):
+def parse_wiod(path, year=None, names=('isic', 'c_codes'), 
+               popvector=None):
     """ Parse the wiod source files for the IOSystem
 
     WIOD provides the MRIO tables in excel - format (xlsx) at
@@ -730,7 +731,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
             1) 'isic': ISIC rev 3 Codes - available for interindustry flows
                and final demand rows.
             2) 'full': Full names - available for final demand rows and
-               columns (categories) and interindustry flows.
+               final demand columns (categories) and interindustry flows.
             3) 'c_codes' : WIOD specific sector numbers, available for final
                demand rows and columns (categories) and interindustry flows.
 
@@ -741,8 +742,6 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
         consumption category names, pass a tuple with (sectors/interindustry
         classification, fd categories), eg ('isic', 'full'). Names are case
         insensitive and passing the first character is sufficient.
-    version : str, optional
-        Version information to be stored in the parsed database.
     TODO popvector : TO BE IMPLEMENTED (consistent with EXIOBASE)
 
     Yields
@@ -793,6 +792,8 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     root_path = os.path.split(wiot_file)[0]
     if not os.path.exists(wiot_file):
         raise ParserError('WIOD file not found in the specified folder.')
+    
+    meta_rec = MRIOMetaData(storage_folder=root_path)
 
     # wiot file structure
     wiot_meta = {
@@ -826,13 +827,15 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                               sheetname=wiot_sheet,
                               header=None)
 
+    meta_rec._add_fileio('WIOD data load from {}'.format(wiot_file))
     # get meta data
     wiot_year = wiot_data.iloc[wiot_meta['year'], wiot_meta['col']][-4:]
     wiot_iosystem = wiot_data.iloc[
             wiot_meta['iosystem'], wiot_meta['col']].rstrip(')').lstrip('(')
+    meta_rec.change_meta('system', wiot_iosystem)
     _wiot_unit = wiot_data.iloc[
             wiot_meta['unit'], wiot_meta['col']].rstrip(')').lstrip('(')
-
+    
     # remove meta data, empty rows, total column
     wiot_data.iloc[0:wiot_meta['end_row'], wiot_meta['col']] = np.NaN
     wiot_data.drop(wiot_empty_top_rows,
@@ -972,8 +975,8 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                       'iosystem': wiot_iosystem,
                       'unit': _F_sea_unit,
                       'name': 'SEA',
-                      'version': version
                       }
+        meta_rec._add_fileio('SEA file extension parsed from {}'.format(root_path))
 
     # Environmental extensions, names follow the name given
     # in the meta sheet (except for CO2 to get a better description).
@@ -1050,7 +1053,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
             _FY = _dl_ex['FY']
 
             _FY.columns = pd.MultiIndex.from_product([
-                                _FY.columns, _ss_FY_pressure_column])
+                                _FY.columns, [_ss_FY_pressure_column]])
             _FY = _FY_template.append(_FY)
             _FY.fillna(0, inplace=True)
             _FY.index.names = _dl_ex['F'].index.names
@@ -1065,8 +1068,8 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                     'iosystem': wiot_iosystem,
                     'unit': _dl_ex['unit'],
                     'name': dl_envext_para[ik_ext]['name'],
-                    'version': version
                     }
+            meta_rec._add_fileio('Extension {} parsed from {}'.format(ik_ext, root_path))
 
     # Build system
     wiod = IOSystem(Z=Z, Y=Y,
@@ -1083,11 +1086,11 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     if ll_names[0] == 'c':
         dd_sec_rename = wiot_sector_lookup.c_code.to_dict()
     elif ll_names[0] == 'i':
-        dd_sec_rename = wiot_sector_lookup.isic.to_dict()
+        dd_sec_rename = wiot_sector_lookup.code.to_dict()
     elif ll_names[0] == 'f':
         dd_sec_rename = wiot_sector_lookup.sector_names.to_dict()
     else:
-        dd_sec_rename = wiot_sector_lookup.isic.to_dict()
+        dd_sec_rename = wiot_sector_lookup.code.to_dict()
         warnings.warn('Parameter for names not understood - '
                       'used ISIC codes as sector names')
 
