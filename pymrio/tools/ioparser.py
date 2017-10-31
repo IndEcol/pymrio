@@ -6,6 +6,7 @@ KST 20140903
 """
 
 import os
+import re
 import logging
 import warnings
 import pandas as pd
@@ -33,6 +34,31 @@ class ParserError(Exception):
 class ParserWarning(UserWarning):
     """ Base class for warnings concerning parsing of IO source files """
     pass
+
+IDX_NAMES = {
+    'Z_col': ['region', 'sector'],
+    'Z_row': ['region', 'sector'],
+    'Z_row_unit': ['region', 'sector', 'unit'],
+    'A_col': ['region', 'sector'],
+    'A_row': ['region', 'sector'],
+    'A_row_unit': ['region', 'sector', 'unit'],
+    'Y_col1': ['region'],
+    'Y_col2': ['region', 'category'],
+    'Y_row': ['region', 'sector'],
+    'Y_row_unit': ['region', 'sector', 'unit'],
+    'F_col': ['region', 'sector'],
+    'F_row_single': ['stressor'],
+    'F_row_unit': ['stressor', 'unit'],
+    'F_row_comp_unit': ['stressor', 'compartment', 'unit'],
+    'F_row_src_unit': ['stressor', 'source', 'unit'],
+    'F_row_src': ['stressor', 'source'],
+    'VA_row_single': ['inputtype'],
+    'VA_row_unit': ['inputtype', 'unit'],
+    'VA_row_unit_cat': ['inputtype', 'category'],
+    'unit': ['unit'],
+    '_reg_sec_unit': ['region', 'sector', 'unit'],
+    }
+
 
 
 # Top level functions
@@ -229,16 +255,17 @@ def parse_exiobase2(path, charact=None, iosystem=None,
             for key in files_exio}
 
     logging.debug('Refine multiindex')
-    data['A'].index.names = ['region', 'sector', 'unit']
-    data['A'].columns.names = ['region', 'sector']
+    data['A'].index.names = IDX_NAMES['A_row_unit']
+    data['A'].columns.names = IDX_NAMES['A_col']
     data['unit'] = pd.DataFrame(
         data['A'].iloc[:, 0].
         reset_index(level='unit').unit)
     logging.debug('Refine units')
     data['unit'].unit = data['unit'].unit.str.replace('/.*', '')
     data['A'].reset_index(level='unit', drop=True, inplace=True)
-    data['Y'].index.names = ['region', 'sector', 'unit']
-    data['Y'].columns.names = ['region', 'category']
+    data['Y'].index.names = IDX_NAMES['Y_row_unit']
+    data['Y'].columns.names = IDX_NAMES['Y_col2']
+
     data['Y'].reset_index(level='unit', drop=True, inplace=True)
     ext_unit = dict()
     for key in ['S_fac', 'S_emissions', 'S_materials',
@@ -757,12 +784,12 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
 
     # Path manipulation, should work cross platform
     path = path.rstrip('\\')
-    path = path.encode('unicode-escape')
+    path = path.rstrip('/')
     path = os.path.abspath(path)
 
     # wiot start and end
-    wiot_ext = b'.xlsx'
-    wiot_start = b'wiot'
+    wiot_ext = '.xlsx'
+    wiot_start = 'wiot'
 
     # determine which wiod file to be parsed
     if not os.path.isdir(path):
@@ -778,7 +805,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
             raise ParserError('No year specified '
                               '(either specify a specific file '
                               'or a path and year)')
-        year_two_digit = str(year)[-2:].encode('unicode-escape')
+        year_two_digit = str(year)[-2:]
         wiot_file_list = [fl for fl in os.listdir(path)
                           if (fl[:6] == wiot_start + year_two_digit and
                           os.path.splitext(fl)[1] == wiot_ext)]
@@ -788,7 +815,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
 
         wiot_file = os.path.join(path, wiot_file_list[0])
 
-    wiot_file = wiot_file.decode()
+    wiot_file = wiot_file
     root_path = os.path.split(wiot_file)[0]
     if not os.path.exists(wiot_file):
         raise ParserError('WIOD file not found in the specified folder.')
@@ -827,7 +854,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                               sheetname=wiot_sheet,
                               header=None)
 
-    meta_rec._add_fileio('WIOD data load from {}'.format(wiot_file))
+    meta_rec._add_fileio('WIOD data parsed from {}'.format(wiot_file))
     # get meta data
     wiot_year = wiot_data.iloc[wiot_meta['year'], wiot_meta['col']][-4:]
     wiot_iosystem = wiot_data.iloc[
@@ -914,7 +941,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     Z.set_index([wiot_header['region'],
                 wiot_header['code']], inplace=True, drop=False)
     Z = Z.iloc[max(index_wiot_headers)+1:, max(index_wiot_headers)+1:]
-    Z.index.names = ['region', 'sector']
+    Z.index.names = IDX_NAMES['Z_col']
     Z.columns = Z.index
 
     indexY_col_head = Y.iloc[[wiot_header['region'],
@@ -1250,11 +1277,11 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     df_F.fillna(0, inplace=True)
     df_FY.fillna(0, inplace=True)
 
-    df_F.columns.names = ['region', 'sector']
-    df_F.index.names = ['stressor']
+    df_F.columns.names = IDX_NAMES['F_col']
+    df_F.index.names = IDX_NAMES['F_row_single']
 
-    df_FY.columns.names = ['region']
-    df_FY.index.names = ['stressor']
+    df_FY.columns.names = IDX_NAMES['FY_col_reg']
+    df_FY.index.names = IDX_NAMES['FY_row_single']
 
     # build the unit df
     df_unit = pd.DataFrame(index=df_F.index, columns=['unit'])
@@ -1352,8 +1379,8 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet='DATA'):
 
         ds_use_sea.fillna(value=0, inplace=True)
         df_use_sea = ds_use_sea.unstack(level=['Country', 'Code'])[str(year)]
-        df_use_sea.index.names = ['inputtype']
-        df_use_sea.columns.names = ['region', 'sector']
+        df_use_sea.index.names = IDX_NAMES['VA_row1']
+        df_use_sea.columns.names = IDX_NAMES['F_col']
         df_use_sea = df_use_sea.astype('float')
 
         df_unit = pd.DataFrame(
@@ -1373,12 +1400,13 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet='DATA'):
             'SEA-Extension not included', ParserWarning)
         return None, None
 
-def parse_eora26(path, year, price='bp', country_names='eora'):
+
+def parse_eora26(path, year=None, price='bp', country_names='eora'):
     """ Parse the Eora26 database
 
     Note
     ----
-    
+
     This parser deletes the statistical disrecpancy columns from
     the parsed Eora system.
 
@@ -1398,7 +1426,8 @@ def parse_eora26(path, year, price='bp', country_names='eora'):
           unpacked Eora system
 
     year : int or str
-        4 digit year spec
+        4 digit year spec. This will not be used if a zip file
+        is specified in 'path'
 
     price : str, optional
         'bp' or 'pp'
@@ -1413,7 +1442,7 @@ def parse_eora26(path, year, price='bp', country_names='eora'):
     """
     # Path manipulation, should work cross platform
     path = path.rstrip('\\')
-    path = path.encode('unicode-escape')
+    path = path.rstrip('/')
     path = os.path.abspath(path)
 
     if country_names[0].lower() == 'e':
@@ -1423,109 +1452,183 @@ def parse_eora26(path, year, price='bp', country_names='eora'):
     else:
         raise ParserError('Parameter country_names must be eora or full')
 
+    row_name = 'ROW'
     eora_zip_ext = '.zip'
     is_zip = False
 
     # determine which eora file to be parsed
     if os.path.splitext(path)[1] == eora_zip_ext:
         # case direct pass of eora zipfile
-        if 'pp' in path:
-            price='pp'
-        else:
-            price='bp'
-        eora_loc = path.decode()
+        year = re.search(r'\d\d\d\d', 
+                         os.path.basename(path)).group(0)
+        price = re.search(r'bp|pp', 
+                         os.path.basename(path)).group(0)
+        eora_loc = path
+        root_path = os.path.split(path)[0]
         is_zip = True
     else:
+        root_path = path
         if str(year) in os.listdir(path):
             path = os.path.join(path, str(year))
-        eora_file_list = [fl.decode() for fl in os.listdir(path)
-                          if os.path.splitext(fl)[1] == eora_zip_ext.encode(
-                              'unicode-escape')
+
+        eora_file_list = [fl for fl in os.listdir(path)
+                          if os.path.splitext(fl)[1] == eora_zip_ext
                           and
-                          str(year).encode('unicode-escape') in fl]
+                          str(year) in fl and 
+                          str(price) in fl
+                          ]
+
         if len(eora_file_list) > 1:
             raise ParserError('Multiple files for a given year '
                               'found (specify a specific file in paramters)')
         elif len(eora_file_list) == 1:
-            eora_loc = eora_file_list[0]
+            eora_loc = os.path.join(path, eora_file_list[0])
             is_zip = True
         else:
-            eora_loc = path.decode()
+            # Just a path was given, no zip file found,
+            # continue with only the path information - assumed an 
+            # unpacked zip file
+            eora_loc = path
             is_zip = False
+
+    meta_rec = MRIOMetaData(storage_folder=root_path)
 
     # Eora file specs
     eora_sep = '\t'
-    ZY_col = namedtuple('ZY', 'full eora system name')(0,1,2,3)
+    ZY_col = namedtuple('ZY', 'full eora system name')(0, 1, 2, 3)
+
     eora_files = {
-        # 'Z': 'Eora26_{year}_{price}_T.txt'.format(
-            # year=str(year), price=price), 
-        # 'Q': 'Eora26_{year}_{price}_Q.txt'.format(
-            # year=str(year), price=price),
+        'Z': 'Eora26_{year}_{price}_T.txt'.format(
+            year=str(year), price=price),
+        'Q': 'Eora26_{year}_{price}_Q.txt'.format(
+            year=str(year), price=price),
         'QY': 'Eora26_{year}_{price}_QY.txt'.format(
             year=str(year), price=price),
         'VA': 'Eora26_{year}_{price}_VA.txt'.format(
             year=str(year), price=price),
         'Y': 'Eora26_{year}_{price}_FD.txt'.format(
             year=str(year), price=price),
-        'labels_Z': 'labels_T.txt', 
-        'labels_Y': 'labels_FD.txt', 
-        'labels_Q': 'labels_Q.txt', 
-        'labels_VA': 'labels_VA.txt', 
+        'labels_Z': 'labels_T.txt',
+        'labels_Y': 'labels_FD.txt',
+        'labels_Q': 'labels_Q.txt',
+        'labels_VA': 'labels_VA.txt',
         }
 
-    header = namedtuple('header', 'index columns')
+    header = namedtuple('header', 'index columns index_names, column_names')
 
     eora_header_spec = {
-        # 'Z': header(index='labels_Z', columns='labels_Z'),
-        # 'Q': header(index='labels_Q', columns='labels_Z'),
-        'QY': header(index='labels_Q', columns='labels_Y'),
-        'VA': header(index='labels_VA', columns='labels_Z'),
-        'Y': header(index='labels_Z', columns='labels_Y'),
+        'Z': header(index='labels_Z',
+                    columns='labels_Z',
+                    index_names=IDX_NAMES['Z_row'],
+                    column_names=IDX_NAMES['Z_col'],
+                    ),
+        'Q': header(index='labels_Q',
+                    columns='labels_Z',
+                    index_names=IDX_NAMES['F_row_src'],
+                    column_names=IDX_NAMES['F_col']),
+        'QY': header(index='labels_Q',
+                     columns='labels_Y',
+                     index_names=IDX_NAMES['F_row_src'],
+                     column_names=IDX_NAMES['Y_col2'],
+                     ),
+        'VA': header(index='labels_VA',
+                     columns='labels_Z',
+                     index_names=IDX_NAMES['VA_row_unit_cat'],
+                     column_names=IDX_NAMES['F_col']
+                     ),
+        'Y': header(index='labels_Z',
+                    columns='labels_Y',
+                    index_names=IDX_NAMES['Y_row'],
+                    column_names=IDX_NAMES['Y_col2'],
+                    ),
         }
-           
 
-    # if is_zip:
-        # pass
-    # else:
-    # Z = pd.read_table(
-        # os.path.join(eora_loc, eora_file_spec['Z']),
-        # sep=eora_file_spec['sep'])
-    # Y = pd.read_table(
-        # os.path.join(eora_loc, eora_file_spec['Y']),
-        # header=None,
-        # sep=eora_file_spec['sep'])
-    # labelY = pd.read_table(
-        # os.path.join(eora_loc, eora_file_spec['labels_Y']),
-        # header=None,
-        # sep=eora_file_spec['sep'])
-
-    eora_data = {
-        key:pd.read_table(
-            os.path.join(eora_loc, filename),
-            sep=eora_sep,
-            header=None
-            ) for
-        key, filename in eora_files.items()} 
+    if is_zip:
+        zip_file = zipfile.ZipFile(eora_loc)
+        eora_data = {
+            key: pd.read_table(
+                zip_file.open(filename),
+                sep=eora_sep,
+                header=None
+                ) for
+            key, filename in eora_files.items()}
+        zip_file.close()
+    else:
+        eora_data = {
+            key: pd.read_table(
+                os.path.join(eora_loc, filename),
+                sep=eora_sep,
+                header=None
+                ) for
+            key, filename in eora_files.items()}
+    meta_rec._add_fileio(
+        'Eora26 for {year}-{price} data parsed from {loc}'.format(
+            year=year, price=price, loc=eora_loc))
 
     eora_data['labels_Z'] = eora_data[
         'labels_Z'].loc[:, [getattr(ZY_col, country_names), ZY_col.name]]
     eora_data['labels_Y'] = eora_data[
         'labels_Y'].loc[:, [getattr(ZY_col, country_names), ZY_col.name]]
-    eora_data['labels_Q'] = eora_data['labels_Q'].iloc[:, :1]
+    eora_data['labels_VA'] = eora_data[
+        'labels_VA'].iloc[:, :len(eora_header_spec['VA'].column_names)]
+    labQ = eora_data[
+        'labels_Q'].iloc[:, :len(eora_header_spec['Q'].column_names)]
+    labQ.columns = IDX_NAMES['F_row_src']
+    Q_unit = labQ['stressor'].str.extract(r'\((.*)\)', expand=False)
+    Q_unit.columns = IDX_NAMES['unit']
 
+    labQ['stressor'] = labQ['stressor'].str.replace(r'\s\((.*)\)', '')
+    eora_data['labels_Q'] = labQ
 
     for key in eora_header_spec.keys():
         eora_data[key].columns = (
             eora_data[eora_header_spec[key].columns].set_index(list(
                 eora_data[eora_header_spec[key].columns])).index)
+        eora_data[key].columns.names = eora_header_spec[key].column_names
         eora_data[key].index = (
             eora_data[eora_header_spec[key].index].set_index(list(
                 eora_data[eora_header_spec[key].index])).index)
+        eora_data[key].index.names = eora_header_spec[key].index_names
 
-    # TODO: names for index and columns depending on data
-    # TODO: read path or zip file
+        try:
+            meta_rec._add_modify(
+                'Remove Rest of the World ({name}) '
+                'row from {table} - loosing {amount}'.format(
+                    name=row_name,
+                    table=key,
+                    amount=eora_data[key].loc[:, row_name].sum().values[0]))
+            eora_data[key].drop(row_name, axis=1, inplace=True)
+        except KeyError:
+            pass
 
+        try:
+            meta_rec._add_modify(
+                'Remove Rest of the World ({name}) column '
+                'from {table} - loosing {amount}'.format(
+                    name=row_name,
+                    table=key,
+                    amount=eora_data[key].loc[row_name, :].sum().values[0]))
+            eora_data[key].drop(row_name, axis=0, inplace=True)
+        except KeyError:
+            pass
+
+    Q_unit.index = eora_data['Q'].index
+
+    eora = IOSystem(
+        Z=eora_data['Z'],
+        Y=eora_data['Y'],
+        Q={
+            'name': 'Q',
+            'unit': Q_unit,
+            'F': eora_data['Q'],
+            'FY': eora_data['QY']
+            },
+        VA={
+            'name': 'VA',
+            'F': eora_data['VA'],
+             },
+        meta=meta_rec)
+
+    # TODO: check units for VA, Y, Z
 
     return locals()
-    
-
