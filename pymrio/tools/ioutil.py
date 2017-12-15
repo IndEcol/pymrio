@@ -3,9 +3,11 @@ Utility function for pymrio
 
 KST 20140502
 """
+import logging
+import os
 
 import numpy as np
-import os
+import pandas as pd
 
 from pymrio.core.constants import PYMRIO_PATH
 
@@ -199,7 +201,6 @@ def set_block(arr, arr_block):
         raise ValueError('Block array can not be filled as '
                          'diagonal blocks in the given array')
 
-    col_ind = 0
     arr_out = arr.copy()
 
     for row_ind in range(int(nr_row/nr_row_block)):
@@ -470,3 +471,79 @@ def build_agg_vec(agg_vec, **source):
     [_rep(out, ind, miss_val) for ind, val in enumerate(out) if not val]
 
     return out
+
+
+def find_first_number(ll):
+    """ Returns nr of first entry parseable to float in ll, None otherwise"""
+    for nr, entry in enumerate(ll):
+        try:
+            float(entry)
+        except (ValueError, TypeError) as e:
+            pass
+        else:
+            return nr
+    return None
+
+
+def sniff_csv_format(csvfile,
+                     potential_sep=['\t', ',', ';', '|', '-', '_'],
+                     max_test_lines=10):
+    """ Tries to get the separator, nr of index cols and header rows in a csv file
+
+    Parameters
+    ----------
+
+    csvfile: str
+        Path to a csv file
+
+    potential_sep: list, optional
+        List of potential separators (delimiters) to test.
+        Default: '\t', ',', ';', '|', '-', '_'
+
+    max_test_lines: int, optional
+        How many lines to test, default: 10 or available lines in csvfile
+
+    Returns
+    -------
+        dict with
+            sep: string (separator)
+            nr_index_col: int
+            nr_header_row: int
+
+        Entries are set to None if inconsistent information in the file
+    """
+    test_lines = []
+    with open(csvfile, 'r') as ff:
+        for i in range(max_test_lines):
+            line = ff.readline()
+            if line == '':
+                break
+            test_lines.append(line[:-1])
+
+    sep_aly_lines = [sorted([(line.count(sep), sep)
+                     for sep in potential_sep if line.count(sep) > 0],
+                     key=lambda x: x[0], reverse=True) for line in test_lines]
+
+    for nr, (count, sep) in enumerate(sep_aly_lines[0]):
+        for line in sep_aly_lines:
+            if line[nr][0] == count:
+                break
+        else:
+            sep = None
+
+        if sep:
+            break
+
+    nr_header_row = None
+    nr_index_col = None
+
+    if sep:
+        nr_index_col = find_first_number(test_lines[-1].split(sep))
+        if nr_index_col:
+            for nr_header_row, line in enumerate(test_lines):
+                if find_first_number(line.split(sep)) == nr_index_col:
+                    break
+
+    return dict(sep=sep,
+                nr_header_row=nr_header_row,
+                nr_index_col=nr_index_col)

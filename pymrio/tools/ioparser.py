@@ -59,10 +59,8 @@ IDX_NAMES = {
     '_reg_sec_unit': ['region', 'sector', 'unit'],
     }
 
-
-
 # Top level functions
-def parse_exio_ext(file, index_col, name, drop_compartment=True,
+def parse_exio_ext(ext_file, index_col, name, drop_compartment=True,
                    version=None, year=None, iosystem=None, sep=','):
     """ Parse an EXIOBASE like extension file into pymrio.Extension
 
@@ -78,7 +76,7 @@ def parse_exio_ext(file, index_col, name, drop_compartment=True,
     Parameters
     ----------
 
-    file : string
+    ext_file : string
         File to parse
 
     index_col : int
@@ -114,10 +112,10 @@ def parse_exio_ext(file, index_col, name, drop_compartment=True,
 
     """
 
-    file = os.path.abspath(file)
+    ext_file = os.path.abspath(ext_file)
 
     F = pd.read_table(
-        file,
+        ext_file,
         header=[0, 1],
         index_col=list(range(index_col)),
         sep=sep)
@@ -1408,7 +1406,13 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     ----
 
     This parser deletes the statistical disrecpancy columns from
-    the parsed Eora system.
+    the parsed Eora system (reports the amount of loss in the
+    meta recors).
+
+    Eora does not provide any information on the unit of the
+    monetary values. Based on personal communication the unit
+    is set to Mill USD manually.
+
 
     Parameters
     ----------
@@ -1459,10 +1463,10 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     # determine which eora file to be parsed
     if os.path.splitext(path)[1] == eora_zip_ext:
         # case direct pass of eora zipfile
-        year = re.search(r'\d\d\d\d', 
+        year = re.search(r'\d\d\d\d',
                          os.path.basename(path)).group(0)
-        price = re.search(r'bp|pp', 
-                         os.path.basename(path)).group(0)
+        price = re.search(r'bp|pp',
+                          os.path.basename(path)).group(0)
         eora_loc = path
         root_path = os.path.split(path)[0]
         is_zip = True
@@ -1474,7 +1478,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
         eora_file_list = [fl for fl in os.listdir(path)
                           if os.path.splitext(fl)[1] == eora_zip_ext
                           and
-                          str(year) in fl and 
+                          str(year) in fl and
                           str(price) in fl
                           ]
 
@@ -1486,7 +1490,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
             is_zip = True
         else:
             # Just a path was given, no zip file found,
-            # continue with only the path information - assumed an 
+            # continue with only the path information - assumed an
             # unpacked zip file
             eora_loc = path
             is_zip = False
@@ -1614,9 +1618,18 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
 
     Q_unit.index = eora_data['Q'].index
 
+    meta_rec.note('Set Eora moneatry units to Mill USD manually')
+    Z_unit = pd.DataFrame(data=['Mill USD'] * len(eora_data['Z'].index),
+                          index=eora_data['Z'].index,
+                          columns=['unit'])
+    VA_unit = pd.DataFrame(data=['Mill USD'] * len(eora_data['VA'].index),
+                           index=eora_data['VA'].index,
+                           columns=['unit'])
+
     eora = IOSystem(
         Z=eora_data['Z'],
         Y=eora_data['Y'],
+        unit=Z_unit,
         Q={
             'name': 'Q',
             'unit': Q_unit,
@@ -1626,6 +1639,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
         VA={
             'name': 'VA',
             'F': eora_data['VA'],
+            'unit': VA_unit,
              },
         meta=meta_rec)
 
