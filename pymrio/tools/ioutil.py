@@ -5,6 +5,7 @@ KST 20140502
 """
 import logging
 import os
+import zipfile
 
 import numpy as np
 import pandas as pd
@@ -484,16 +485,16 @@ def find_first_number(ll):
             return nr
     return None
 
-
-def sniff_csv_format(csvfile,
+def sniff_csv_format(csv_file,
                      potential_sep=['\t', ',', ';', '|', '-', '_'],
-                     max_test_lines=10):
+                     max_test_lines=10,
+                     zip_file=None):
     """ Tries to get the separator, nr of index cols and header rows in a csv file
 
     Parameters
     ----------
 
-    csvfile: str
+    csv_file: str
         Path to a csv file
 
     potential_sep: list, optional
@@ -501,7 +502,12 @@ def sniff_csv_format(csvfile,
         Default: '\t', ',', ';', '|', '-', '_'
 
     max_test_lines: int, optional
-        How many lines to test, default: 10 or available lines in csvfile
+        How many lines to test, default: 10 or available lines in csv_file
+
+    zip_file: str, optional
+        Path to a zip file containing the csv file (if any, default: None).
+        If a zip file is given, the path given at 'csv_file' is assumed
+        to be the path to the file within the zip_file.
 
     Returns
     -------
@@ -512,13 +518,28 @@ def sniff_csv_format(csvfile,
 
         Entries are set to None if inconsistent information in the file
     """
-    test_lines = []
-    with open(csvfile, 'r') as ff:
+
+    def read_first_lines(filehandle):
+        lines = []
         for i in range(max_test_lines):
             line = ff.readline()
             if line == '':
                 break
-            test_lines.append(line[:-1])
+            try:
+                line = line.decode('utf-8')
+            except AttributeError:
+                pass
+            lines.append(line[:-1])
+        return lines
+
+
+    if zip_file:
+        with zipfile.ZipFile(zip_file, 'r') as zz: 
+            with zz.open(csv_file, 'r') as ff:
+                test_lines = read_first_lines(ff)
+    else:
+        with open(csv_file, 'r') as ff:
+            test_lines = read_first_lines(ff)
 
     sep_aly_lines = [sorted([(line.count(sep), sep)
                      for sep in potential_sep if line.count(sep) > 0],

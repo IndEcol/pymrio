@@ -46,11 +46,12 @@ from pymrio.core.fileio import load_all
 from pymrio.core.fileio import load
 from pymrio.core.fileio import load_test
 
-from pymrio.tools.ioparser import parse_exio_ext
-from pymrio.tools.ioparser import parse_exiobase2
-from pymrio.tools.ioparser import parse_exiobase3
-from pymrio.tools.ioparser import parse_wiod
-from pymrio.tools.ioparser import parse_eora26
+from pymrio.tools.ioparser import *
+# from pymrio.tools.ioparser import parse_exio_ext
+# from pymrio.tools.ioparser import parse_exiobase2
+# from pymrio.tools.ioparser import parse_exiobase3
+# from pymrio.tools.ioparser import parse_wiod
+# from pymrio.tools.ioparser import parse_eora26
 
 from pymrio.tools.iodownloader import download_eora26
 from pymrio.tools.iodownloader import download_wiod2013

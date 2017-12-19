@@ -9,6 +9,8 @@ import os
 import re
 import logging
 import warnings
+import re
+
 import pandas as pd
 import numpy as np
 import zipfile
@@ -17,6 +19,7 @@ from collections import namedtuple
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
 from pymrio.tools.iometadata import MRIOMetaData
+from pymrio.tools.ioutil import sniff_csv_format
 
 # Constants and global variables
 from pymrio.core.constants import PYMRIO_PATH
@@ -156,6 +159,213 @@ def parse_exio_ext(ext_file, index_col, name, drop_compartment=True,
                      version=version,
                      year=year,
                      )
+
+
+def get_exiobase_version(filename):
+    """ Returns the EXIOBASE version for the given filename, None if not found """
+    try: 
+        ver_match = re.search(r'(\d+\w*(\.|\-|\_))*\d+\w*', filename)
+        version = ver_match.string[ver_match.start():ver_match.end()]
+    except AttributeError:
+        version = None
+
+    return version
+
+
+def get_exiobase_files(path, coefficients=True):
+    """ Gets the EXIOBASE files in path (which can be a zip file)
+
+    Parameters
+    ----------
+    path: str
+        Path to exiobase files or zip file
+    coefficients: boolean, optional
+        If True (default), considers the mrIot file as A matrix, 
+        and the extensions as S matrices. Otherwise as Z and F, respectively
+
+    Returns
+    -------
+    dict of dict
+    """
+    file_data = namedtuple(
+        'file_data', [
+            'file_name',
+            # nr of rows containing index on the top of the table (for columns)
+            'index_rows',
+            # nr of cols containing index on the left of the table (for rows)
+            'index_col',
+            # column containing the unit for the table (couting starts at zero)
+            'unit_col',
+            # delimiter
+            'sep'
+            ])
+
+    if coefficients:
+        exio_core_regex = dict(
+            # don’t match file if starting with _
+            A=re.compile('(?<!\_)mrIot.*txt'),
+            Y=re.compile('(?<!\_)mrFinalDemand.*txt'),
+            S_factor_inputs=re.compile('(?<!\_)mrFactorInputs.*txt'),
+            S_emissions=re.compile('(?<!\_)mrEmissions.*txt'),
+            S_materials=re.compile('(?<!\_)mrMaterials.*txt'),
+            S_resources=re.compile('(?<!\_)mrResources.*txt'),
+            FY_emissions=re.compile('(?<!\_)mrFDEmissions.*txt'),
+            FY_materials=re.compile('(?<!\_)mrFDMaterials.*txt'),
+            )
+    else:
+        exio_core_regex = dict(
+            # don’t match file if starting with _
+            Z=re.compile('(?<!\_)mrIot.*txt'),
+            Y=re.compile('(?<!\_)mrFinalDemand.*txt'),
+            F_fac=re.compile('(?<!\_)mrFactorInputs.*txt'),
+            F_emissions=re.compile('(?<!\_)mrEmissions.*txt'),
+            F_materials=re.compile('(?<!\_)mrMaterials.*txt'),
+            F_resources=re.compile('(?<!\_)mrResources.*txt'),
+            FY_emissions=re.compile('(?<!\_)mrFDEmissions.*txt'),
+            FY_materials=re.compile('(?<!\_)mrFDMaterials.*txt'),
+            )
+
+
+    if os.path.splitext(path)[1] == '.zip':
+        iszip = True
+        zz = zipfile.ZipFile(path)
+        filelist = [info.filename for info in zz.infolist()]
+        zz.close()
+    else:
+        iszip = False
+        filelist = []
+        for root, directories, filenames in os.walk(path):
+            for filename in filenames:
+                filelist.append(os.path.relpath(
+                    os.path.join(root, filename),
+                    path))
+                # filelist.append(filename)
+
+    exio_files = dict()
+    for kk, vv in exio_core_regex.items():
+        found_file = [vv.search(ff).string for ff in filelist
+                      if vv.search(ff)]
+        if len(found_file) > 1:
+            logging.warning(
+                "Multiple files found for {}: {}"
+                " - USING THE FIRST ONE".format(kk, found_file))
+            found_file = found_file[0:1]
+        elif len(found_file) == 0:
+            continue
+        else:
+            if iszip:
+                format_para = sniff_csv_format(found_file[0],
+                                               zip_file=path)
+            else:
+                format_para = sniff_csv_format(os.path.join(path,
+                                                            found_file[0]))
+            exio_files[kk] = dict(
+                root_repo=path,
+                file_path=found_file[0],
+                version=get_exiobase_version(os.path.basename(found_file[0])),
+                index_rows=format_para['nr_header_row'],
+                index_col=format_para['nr_index_col'],
+                unit_col=format_para['nr_index_col'] - 1,
+                sep=format_para['sep'])
+
+    return exio_files
+
+def parse_exiobase(path, charact=None, iosystem=None,
+                   version='exiobase 2.2.2', popvector='exio2'):
+    """ Generic EXIOBASE parser
+    """
+    path = path.rstrip('\\')
+    path = os.path.abspath(path)
+
+    exio_files = get_exiobase_files(path)
+    if not version:
+        version = '&'.join({dd.get('aversion', '') for dd in exio_files.values()})
+
+
+    core_components = ['A', 'Y', 'Z']
+
+    core_data = dict()
+    ext_data = dict()
+    for tt, tpara in exio_files.items():
+        logging.info("Read EXIOBASE data from {}".format(tpara['file_path']))
+        raw_data = pd.read_table(
+            os.path.join(tpara['root_repo'], tpara['file_path']),
+            index_col=list(range(tpara['index_col'])),
+            header=list(range(tpara['index_rows'])))
+        if tt in core_components:
+            core_data[tt] = raw_data
+        else:
+            ext_data[tt] = raw_data
+
+    for table in core_data:
+        core_data[table].index.names = ['region', 'sector', 'unit']
+        if table == 'A' or table == 'Z':
+            core_data[table].columns.names = ['region', 'sector']
+            _unit = pd.DataFrame(
+                    core_data[table].iloc[:, 0]).reset_index(
+                        level='unit').unit
+            _unit = pd.DataFrame(_unit)
+            _unit.columns = ['unit']
+        if table == 'Y':
+            core_data[table].columns.names = ['region', 'category']
+        core_data[table].reset_index(level='unit', drop=True, inplace=True)
+
+    core_data['unit'] = _unit
+
+    mon_unit = core_data['unit'].iloc[0,0]
+    if '/' in mon_unit:
+        mon_unit = mon_unit.split('/')[0]
+        core_data['unit'].unit = mon_unit
+
+    extensions = dict() 
+    for tt, tpara in exio_files.items():
+        if tt in core_components:
+            continue        
+        ext_name = '_'.join(tt.split('_')[1:])
+        table_type = tt.split('_')[0]
+
+        if tpara['index_col'] == 3:
+            ext_data[tt].index.names = [
+                'stressor', 'compartment', 'unit']
+        elif tpara['index_col'] == 2:
+            ext_data[tt].index.names = [
+                'stressor', 'unit']
+        else:
+            raise ParserError('Unknown EXIOBASE file structure')
+
+        if table_type == 'FY':
+            ext_data[tt].columns.names=[
+                'region', 'category']
+        else:
+            ext_data[tt].columns.names=[
+                'region', 'sector']
+        try:
+            _unit = pd.DataFrame(
+                ext_data[tt].iloc[:, 0]
+            ).reset_index(level='unit').unit
+        except IndexError:
+            _unit = pd.DataFrame(
+                ext_data[tt].iloc[:, 0])
+            _unit.columns = ['unit']
+            _unit['unit'] = 'undef'
+            _unit.reset_index(level='unit', drop=True, inplace=True)
+            _unit = pd.DataFrame(_unit)
+            _unit.columns = ['unit']
+        _unit = pd.DataFrame(_unit)
+        _unit.columns = ['unit']
+        _new_unit = _unit.unit.str.replace('/'+mon_unit, '')
+        _new_unit[_new_unit == ''] = _unit.unit[
+            _new_unit == ''].str.replace('/', '')
+        _unit.unit = _new_unit
+
+        ext_data[tt].reset_index(level='unit', drop=True, inplace=True)
+        ext_dict = extensions.get(ext_name, dict())
+        ext_dict.update({table_type: ext_data[tt], 
+                         'unit': _unit})
+        extensions.update({ext_name: ext_dict})
+
+    return locals()
+
 
 
 def parse_exiobase2(path, charact=None, iosystem=None,
@@ -536,7 +746,6 @@ def parse_exiobase3(zip_file,
                     index_col=list(range(core_files[exio_table].index_col)),
                     header=list(range(core_files[exio_table].index_rows)))
                  for exio_table in core_files}
-    # zip_file.close()
 
     extension = dict()
     for ext_type in extension_files:
@@ -552,6 +761,7 @@ def parse_exiobase3(zip_file,
             for exio_table in extension_files[ext_type]
             }
         extension[ext_type]['name'] = ext_type
+
     zip_file.close()
 
     # adjust index
