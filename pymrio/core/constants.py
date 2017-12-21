@@ -23,4 +23,11 @@ PYMRIO_PATH = {
 GENERIC_NAMES = {
         'sector': 'sec',
         'region': 'reg',
+        'iosys': 'IOSystem',
+        'ext': 'Extension',
         }
+
+DEFAULT_FILE_NAMES = {
+    'filepara': 'file_parameters.json',
+    'metadata': 'metadata.json'
+}

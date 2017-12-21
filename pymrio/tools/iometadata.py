@@ -8,7 +8,7 @@ import logging
 
 from collections import OrderedDict
 
-DEFAULT_METADATA_FILENAME = 'metadata.json'
+from pymrio.core.constants import DEFAULT_FILE_NAMES
 
 
 class MRIOMetaData(object):
@@ -41,7 +41,7 @@ class MRIOMetaData(object):
             Path or file for loading a previously saved metadata file and/or
             saving additional metadata.  This can be the full file path or just
             the storage folder.  In the latter case, the filename defined in
-            DEFAULT_METADATA_FILENAME (currently 'metadata.json') is assumed.
+            DEFAULT_FILE_NAMES['metadata'] (currently 'metadata.json') is assumed.
 
         description: str, optional
             Description of the metadata file purpose and mrio,
@@ -76,11 +76,11 @@ class MRIOMetaData(object):
                 self._metadata_file = location
             elif os.path.isdir(location):
                 self._metadata_file = os.path.abspath(
-                    os.path.join(location, DEFAULT_METADATA_FILENAME))
+                    os.path.join(location, DEFAULT_FILE_NAMES['metadata']))
             else:
                 if os.path.splitext(location)[1] == '':
                     self._metadata_file = os.path.abspath(
-                        os.path.join(location, DEFAULT_METADATA_FILENAME))
+                        os.path.join(location, DEFAULT_FILE_NAMES['metadata']))
                 else:
                     self._metadata_file = location
         else:
@@ -135,22 +135,22 @@ class MRIOMetaData(object):
                                           metafile=self._metadata_file,
                                           hist=hist))
 
-    def note(self, entry, log=True):
+    def note(self, entry):
         """ Add the passed string as note to the history
 
         If log is True (default), also log the string by logging.info
         """
         self._add_history(entry_type='NOTE', entry=entry)
 
-    def _add_fileio(self, entry, log=True):
+    def _add_fileio(self, entry):
         """ Add the passed string as FILEIO to the history """
         self._add_history(entry_type='FILEIO', entry=entry)
 
-    def _add_modify(self, entry, log=True):
+    def _add_modify(self, entry):
         """ Add the passed string as MODIFICATION to the history """
         self._add_history(entry_type='MODIFICATION', entry=entry)
 
-    def _add_history(self, entry_type, entry, log=True):
+    def _add_history(self, entry_type, entry):
         """ Generic method to add entry as entry_type to the history """
         meta_string = "{time} - {etype} -  {entry}".format(
             time=self._time(),
@@ -248,13 +248,13 @@ class MRIOMetaData(object):
             Path or file for saving the metadata.
             This can be the full file path or just the storage folder.
             In the latter case, the filename defined in
-            DEFAULT_METADATA_FILENAME (currently 'metadata.json') is assumed.
+            DEFAULT_FILE_NAMES['metadata'] (currently 'metadata.json') is assumed.
 
         """
         if location:
             if os.path.splitext(location)[1] == '':
                 self._metadata_file = os.path.abspath(
-                    os.path.join(location, DEFAULT_METADATA_FILENAME))
+                    os.path.join(location, DEFAULT_FILE_NAMES['metadata']))
             else:
                 self._metadata_file = location
 

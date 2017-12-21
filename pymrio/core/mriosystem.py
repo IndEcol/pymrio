@@ -12,6 +12,7 @@ import logging
 import numpy as np
 import pandas as pd
 import configparser
+import json
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import string
@@ -33,6 +34,8 @@ from pymrio.tools.iomath import recalc_M
 
 import pymrio.tools.ioutil as ioutil
 
+from pymrio.core.constants import DEFAULT_FILE_NAMES
+from pymrio.core.constants import GENERIC_NAMES
 
 # Abstract classes
 class CoreSystem():
@@ -267,6 +270,110 @@ class CoreSystem():
 
     def save(self, path, table_format='txt', sep='\t',
              table_ext=None, float_format='%.12g'):
+        """ Developing version for saving with json instead of ini for meta
+
+
+        Parameters
+        ----------
+        path : string
+            path for the saved data (will be created if necessary, data
+            within will be overwritten).
+
+        table_format : string
+            Format to save the DataFrames:
+
+                - 'pkl' : Binary pickle files,
+                          alias: 'pickle', 'bin', 'binary'
+                - 'txt' : Text files (default), alias: 'text', 'csv'
+
+        table_ext : string, optional
+            File extension,
+            default depends on table_format(.pkl for pickle, .txt for text)
+
+        sep : string, optional
+            Field delimiter for the output file, only for txt files. 
+            Default: tab ('\t')
+
+        float_format : string, optional
+            Format for saving the DataFrames,
+            default = '%.12g', only for txt files
+        """
+
+        path = path.rstrip('\\')
+        path = os.path.abspath(path)
+
+        para_file_path = os.path.join(path, DEFAULT_FILE_NAMES['filepara'])
+        file_para = dict()
+        file_para['files'] = dict()
+
+        meta_file_path = os.path.join(path, DEFAULT_FILE_NAMES['metadata'])
+
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
+
+        if table_format in ['text', 'csv', 'txt']:
+            table_format = 'txt'
+        elif table_format in ['pickle', 'bin', 'binary', 'pkl']:
+            table_format = 'pkl'
+        else:
+            logging.error('Unknown table format TODO: raise LoadingERROR')
+            return None
+
+        if not table_ext:
+            if table_format == 'txt':
+                table_ext = '.txt'
+            if table_format == 'pkl':
+                table_ext = '.pkl'
+
+        if str(type(self)) == "<class 'pymrio.core.mriosystem.IOSystem'>":
+            file_para['systemtype'] = GENERIC_NAMES['iosys']
+        elif str(type(self)) == "<class 'pymrio.core.mriosystem.Extension'>":
+            file_para['systemtype'] = GENERIC_NAMES['ext']
+            file_para['name'] = self.name
+        else:
+            logging.warn('Unknown system type TODO raise LoadINGWARN')
+            file_para['systemtype'] = 'undef'
+
+        for df, df_name in zip(self.get_DataFrame(data=True),
+                               self.get_DataFrame()):
+            if type(df.index) is pd.MultiIndex:
+                nr_index_col = len(df.index.levels)
+            else:
+                nr_index_col = 1
+
+            if type(df.columns) is pd.MultiIndex:
+                nr_header = len(df.columns.levels)
+            else:
+                nr_header = 1
+
+            save_file = df_name + table_ext
+            save_file_with_path = os.path.join(path, save_file)
+            logging.info('Save file {}'.format(save_file_with_path))
+            if table_format == 'txt':
+                df.to_csv(save_file_with_path, sep=sep,
+                          float_format=float_format)
+            else:
+                df.to_pickle(save_file_with_path)
+
+            file_para['files'][df_name] = dict()
+            file_para['files'][df_name]['name'] = save_file
+            file_para['files'][df_name]['nr_index_col'] = str(nr_index_col)
+            file_para['files'][df_name]['nr_header'] = str(nr_header)
+
+        with open(para_file_path, 'w') as pf:
+            json.dump(file_para, pf, indent=4)
+
+        if file_para['systemtype'] == GENERIC_NAMES['iosys']:
+            if not self.meta:
+                self.meta = MRIOMetaData(mrio_name=self.name,
+                                         location=path)
+
+            self.meta._add_fileio("Saved {} to {}".format(self.name, path)) 
+            self.meta.save(location=path)
+
+
+    def OLDsaveini(self, path, table_format='txt', sep='\t',
+             table_ext=None, float_format='%.12g'):
         """ Saves the system as text or binary pickle files.
 
         Tables (dataframes) of the current system are saved as text or
@@ -316,6 +423,8 @@ class CoreSystem():
             os.makedirs(path, exist_ok=True)
 
         if table_format == 'text':
+            table_format = 'txt'
+        if table_format == 'csv':
             table_format = 'txt'
         if table_format == 'pickle':
             table_format = 'pkl'
@@ -1302,15 +1411,16 @@ class IOSystem(CoreSystem):
         self.x = x
         self.A = A
         self.L = L
-        self.name = name
         self.unit = unit
         self.population = population
 
+        self.name = name
         self.iosystem = iosystem
         self.version = version
         self.year = year
         self.price = price
-        self.meta = meta
+
+        self.meta = meta  #TODO: make sure that a metadata is established and fill with the previous metadat from above
 
         for ext in kwargs:
             setattr(self, ext, Extension(**kwargs[ext]))
@@ -1535,8 +1645,7 @@ class IOSystem(CoreSystem):
             ext_path = os.path.join(path, ext_name)
             if not os.path.exists(ext_path):
                 os.makedirs(ext_path, exist_ok=True)
-            ext_ini_file = os.path.join(ext_path, ext_name + '.ini')
-            ext.save(path=ext_ini_file,
+            ext.save(path=ext_path,
                      table_format=table_format,
                      sep=sep,
                      table_ext=table_ext,

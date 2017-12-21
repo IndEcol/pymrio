@@ -4,6 +4,12 @@
     "system": "pxp",
     "version": "v1",
     "history": [
+        "20171221 17:03:36 - FILEIO -  Saved IO to /home/konstans/proj/pymrio_dev/savetest",
+        "20171221 17:03:12 - FILEIO -  Load test_mrio from /home/konstans/proj/pymrio/pymrio/mrio_models/test_mrio",
+        "20171221 17:02:45 - FILEIO -  Saved IO to /home/konstans/proj/pymrio_dev/savetest",
+        "20171221 17:02:44 - FILEIO -  Load test_mrio from /home/konstans/proj/pymrio/pymrio/mrio_models/test_mrio",
+        "20171221 17:02:27 - FILEIO -  Saved IO to /home/konstans/proj/pymrio_dev/savetest",
+        "20171221 17:02:25 - FILEIO -  Load test_mrio from /home/konstans/proj/pymrio/pymrio/mrio_models/test_mrio",
         "20171024 12:11:47 - FILEIO -  Created metadata file ../test_mrio/metadata.json"
     ]
 }

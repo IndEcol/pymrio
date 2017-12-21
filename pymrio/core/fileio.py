@@ -6,6 +6,7 @@ Methods to load previously save mrios
 import collections
 import configparser
 import logging
+import json
 import re
 import pandas as pd
 import os
@@ -16,9 +17,130 @@ from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
 from pymrio.tools.iometadata import MRIOMetaData
 
+from pymrio.core.constants import DEFAULT_FILE_NAMES
+from pymrio.core.constants import GENERIC_NAMES
 
-def load_all(path, **kwargs):
-    """ Loads the whole IOSystem with Extensions given in path
+
+def load_all(path, include_core=True, subfolders=None):
+    """ Loads a full IO system with all extension in path
+
+    By default, all subfolders containing a json parameter file
+    (as defined in DEFAULT_FILE_NAMES['filepara']: metadata.json)
+    are parsed. If only a subset should be used, pass a to subfolders
+    giving the names of these.
+    """
+    def clean(varStr):
+        """ get valid python name from folder
+        """
+        return re.sub('\W|^(?=\d)', '_', varStr)
+
+    io = load(path, include_core=include_core)
+
+    if subfolders is None:
+        subfolders = [d for d in os.listdir(path)
+                      if os.path.isdir(os.path.join(path, d))]
+
+    for subfolder_name in subfolders:
+        subfolder_full = os.path.join(path, subfolder_name)
+
+        if os.path.isfile(os.path.join(subfolder_full,
+                                       DEFAULT_FILE_NAMES['filepara'])):
+            ext = load(subfolder_full, include_core=include_core)
+            setattr(io, clean(subfolder_name), ext)
+            io.meta._add_fileio("Added satellite account "
+                                "from {}".format(subfolder_full))
+        else:
+            continue
+
+    return io
+
+
+def load(path, include_core=True):
+    """ Loads a IOSystem or Extension previously saved with pymrio
+
+    This function can be used to load a IOSystem or Extension specified in a
+    ini file. DataFrames (tables) are loaded from text or binary pickle files.
+    For the latter, the extension .pkl or .pickle is assumed, in all other case
+    the tables are assumed to be in .txt format.
+
+    Parameters
+    ----------
+
+    path : string
+        path or ini file name for the data to load
+
+    include_core : boolean, optional
+        If False the load method does not include A, L and Z matrix. This
+        significantly reduces the required memory if the purpose is only
+        to analyse the results calculated beforehand.
+
+    Returns
+    -------
+
+        IOSystem or Extension class depending on systemtype in the json file
+        None in case of errors
+
+    """
+    path = path.rstrip('\\')
+    path = os.path.abspath(path)
+
+    if not os.path.exists(path):
+        logging.error('Given path does not exist TODO change to fileio error')
+        return None
+
+    para_file_path = os.path.join(path, DEFAULT_FILE_NAMES['filepara'])
+    if not os.path.isfile(para_file_path):
+        logging.error('No parameter file found TODO change to fileio error')
+        return None
+
+    with open(para_file_path, 'r') as pf:
+        file_para = json.load(pf)
+
+    if file_para['systemtype'] == GENERIC_NAMES['iosys']:
+        meta_file_path = os.path.join(path, DEFAULT_FILE_NAMES['metadata'])
+        ret_system = IOSystem(meta=MRIOMetaData(location = meta_file_path))
+        ret_system.meta._add_fileio("Loaded IO system from {}".format(path))
+    elif file_para['systemtype'] == GENERIC_NAMES['ext']:
+        ret_system = Extension(file_para['name'])
+    else:
+        logging.error('System not defined in json file parameter file TODO raise error')
+        return None
+
+    for key in file_para['files']:
+        if not include_core:
+            if key in ['A', 'L', 'Z']:
+                continue
+
+        file_name = file_para['files'][key]['name']
+        full_file_name = os.path.join(path, file_name)
+        nr_index_col = file_para['files'][key]['nr_index_col']
+        nr_header = file_para['files'][key]['nr_header']
+        logging.info('Load data from {}'.format(full_file_name)) # TODO METADATA
+
+        _index_col = list(range(int(nr_index_col)))
+        _header = list(range(int(nr_header)))
+
+        if _index_col == [0]:
+            _index_col = 0
+        if _header == [0]:
+            _header = 0
+
+        if (os.path.splitext(full_file_name)[1] == '.pkl' or
+                os.path.splitext(full_file_name)[1] == '.pickle'):
+            setattr(ret_system, key,
+                    pd.read_pickle(full_file_name))
+        else:
+            setattr(ret_system, key,
+                    pd.read_table(full_file_name,
+                                  index_col=_index_col,
+                                  header=_header))
+
+    return ret_system
+
+def _load_all_ini_based_io(path, **kwargs):
+    """ DEPRECATED: For convert a previous version to the new json format
+
+    Loads the whole IOSystem with Extensions given in path
 
     This just calls pymrio.load with recursive = True. Apart from that the
     same parameter can as for .load can be used.
@@ -35,12 +157,14 @@ def load_all(path, **kwargs):
     IOSystem
     None in case of errors
     """
-    return load(path, recursive=True, **kwargs)
+    return load_ini_based_io(path, recursive=True, **kwargs)
 
 
-def load(path, recursive=False, ini=None,
+def _load_ini_based_io(path, recursive=False, ini=None,
          subini={}, include_core=True, only_coefficients=False):
-    """ Loads a IOSystem or Extension from a ini files
+    """ DEPRECATED: For convert a previous version to the new json format
+
+    Loads a IOSystem or Extension from a ini files
 
     This function can be used to load a IOSystem or Extension specified in a
     ini file. DataFrames (tables) are loaded from text or binary pickle files.
@@ -335,7 +459,7 @@ def load_test():
         )
 
 
-    meta_rec = MRIOMetaData(storage_folder=PYMRIO_PATH['test_mrio'])
+    meta_rec = MRIOMetaData(location=PYMRIO_PATH['test_mrio'])
 
     # read the data into a dicts as pandas.DataFrame
     data = {key: pd.read_table(

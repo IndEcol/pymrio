@@ -42,9 +42,7 @@ from pymrio.version import __version__
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
 
-from pymrio.core.fileio import load_all
-from pymrio.core.fileio import load
-from pymrio.core.fileio import load_test
+from pymrio.core.fileio import *
 
 from pymrio.tools.ioparser import *
 # from pymrio.tools.ioparser import parse_exio_ext
