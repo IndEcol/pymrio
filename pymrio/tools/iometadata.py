@@ -4,6 +4,7 @@
 import datetime
 import json
 import os
+import logging
 
 from collections import OrderedDict
 
@@ -15,12 +16,12 @@ class MRIOMetaData(object):
                  mrio_name=None,
                  system=None,
                  version=None,
+                 logger_function=logging.info,
                  METADATA_FILENAME='metadata.json'):
 
         """ Organzises the MRIO meta data
 
-        The meta data is stored in a json file. This file
-        is created if it does not exist in the given storage_folder.
+        The meta data is stored in a json file. 
 
         Note
         -----
@@ -63,11 +64,19 @@ class MRIOMetaData(object):
         METADATA_FILENAME: str, optional
             Name of the metadata file, default: metadata.json
 
+        logger_function: func, optional
+            Function accepting strings.
+            The info string written to the metadata is also 
+            passed to this function. By default, the funtion
+            is set to logging.info. Set to None for no output.
+
         """
         self._storage_folder = storage_folder
         self._METADATA_FILENAME = METADATA_FILENAME
         self._metadata_file = os.path.abspath(
             os.path.join(storage_folder, METADATA_FILENAME))
+
+        self.logger = logger_function if logger_function else lambda x: None
 
         if os.path.isfile(self._metadata_file):
             self._read_content()
@@ -79,6 +88,7 @@ class MRIOMetaData(object):
                 self.change_meta('system', system)
             if version:
                 self.change_meta('version', version)
+            
         else:
             if not description:
                 description = 'Metadata file for pymrio'
@@ -89,9 +99,7 @@ class MRIOMetaData(object):
                 ('version', version),
                 ('history', []),
                 ])
-            self._add_fileio("Created metadata file {}".format(
-                self._metadata_file))
-            self.save()
+            self.logger("Start recording metadata")
 
     def __repr__(self):
         return ("MRIOMetaData(storage_folder={}, "
@@ -118,25 +126,28 @@ class MRIOMetaData(object):
                                           metafile=self._metadata_file,
                                           hist=hist))
 
-    def note(self, entry):
+    def note(self, entry, log=True):
         """ Add the passed string as note to the history
+
+        If log is True (default), also log the string by logging.info
         """
         self._add_history(entry_type='NOTE', entry=entry)
 
-    def _add_fileio(self, entry):
+    def _add_fileio(self, entry, log=True):
         """ Add the passed string as FILEIO to the history """
         self._add_history(entry_type='FILEIO', entry=entry)
 
-    def _add_modify(self, entry):
+    def _add_modify(self, entry, log=True):
         """ Add the passed string as MODIFICATION to the history """
         self._add_history(entry_type='MODIFICATION', entry=entry)
 
-    def _add_history(self, entry_type, entry):
+    def _add_history(self, entry_type, entry, log=True):
         """ Generic method to add entry as entry_type to the history """
-        self._content['history'].insert(
-            0, "{time} - {etype} -  {entry}".format(time=self._time(),
-                                                    etype=entry_type.upper(),
-                                                    entry=entry))
+        meta_string = "{time} - {etype} -  {entry}".format(time=self._time(),
+                                                           etype=entry_type.upper(),
+                                                           entry=entry)
+        self._content['history'].insert( 0, meta_string)
+        self.logger(meta_string)
 
     @property
     def metadata(self):
@@ -181,7 +192,7 @@ class MRIOMetaData(object):
     def version(self):
         return self._content['version']
 
-    def change_meta(self, para, new_value):
+    def change_meta(self, para, new_value, log=True):
         if para == 'history':
             raise ValueError(
                 "History can only be extended - use method 'note'")
@@ -204,7 +215,7 @@ class MRIOMetaData(object):
             self._content = json.load(mdf,
                                       object_pairs_hook=OrderedDict)
 
-    def save(self):
+    def save(self, log=True):
         """ Saves the current status of the metadata """
         with open(self._metadata_file, 'w') as mdf:
             json.dump(self._content, mdf, indent=4)
