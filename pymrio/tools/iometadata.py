@@ -8,11 +8,12 @@ import logging
 
 from collections import OrderedDict
 
-DEFAULT_METADATA_FILENAME='metadata.json'
+DEFAULT_METADATA_FILENAME = 'metadata.json'
+
 
 class MRIOMetaData(object):
 
-    def __init__(self, 
+    def __init__(self,
                  location=None,
                  description=None,
                  mrio_name=None,
@@ -22,14 +23,14 @@ class MRIOMetaData(object):
 
         """ Organzises the MRIO meta data
 
-        The meta data is stored in a json file. 
+        The meta data is stored in a json file.
 
         Note
         -----
             The parameters 'description', 'mrio_name', 'system', and
             'version' should be set during the establishment of the meta data
             file.  If the meta data file already exists and they are given
-            again, the corresponding entry will be overwritten if 
+            again, the corresponding entry will be overwritten if
             replace_existing_meta_content is set to True (with a note in
             the 'History' field.)
 
@@ -37,11 +38,10 @@ class MRIOMetaData(object):
         -----------
 
         location: str, valid path, optional
-            Path or file for loading a previously saved metadata file
-            and/or saving additional metadata.
-            This can be the full file path or just the storage folder.
-            In the latter case, the filename defined in DEFAULT_METADATA_FILENAME
-            (currently 'metadata.json') is assumed.
+            Path or file for loading a previously saved metadata file and/or
+            saving additional metadata.  This can be the full file path or just
+            the storage folder.  In the latter case, the filename defined in
+            DEFAULT_METADATA_FILENAME (currently 'metadata.json') is assumed.
 
         description: str, optional
             Description of the metadata file purpose and mrio,
@@ -66,7 +66,7 @@ class MRIOMetaData(object):
 
         logger_function: func, optional
             Function accepting strings.
-            The info string written to the metadata is also 
+            The info string written to the metadata is also
             passed to this function. By default, the funtion
             is set to logging.info. Set to None for no output.
 
@@ -78,7 +78,7 @@ class MRIOMetaData(object):
                 self._metadata_file = os.path.abspath(
                     os.path.join(location, DEFAULT_METADATA_FILENAME))
             else:
-                if os.path.splitext(location)[1] == '':  
+                if os.path.splitext(location)[1] == '':
                     self._metadata_file = os.path.abspath(
                         os.path.join(location, DEFAULT_METADATA_FILENAME))
                 else:
@@ -99,7 +99,7 @@ class MRIOMetaData(object):
                 self.change_meta('system', system)
             if version:
                 self.change_meta('version', version)
-            
+
         else:
             if not description:
                 description = 'Metadata for pymrio'
@@ -152,10 +152,12 @@ class MRIOMetaData(object):
 
     def _add_history(self, entry_type, entry, log=True):
         """ Generic method to add entry as entry_type to the history """
-        meta_string = "{time} - {etype} -  {entry}".format(time=self._time(),
-                                                           etype=entry_type.upper(),
-                                                           entry=entry)
-        self._content['history'].insert( 0, meta_string)
+        meta_string = "{time} - {etype} -  {entry}".format(
+            time=self._time(),
+            etype=entry_type.upper(),
+            entry=entry)
+
+        self._content['history'].insert(0, meta_string)
         self.logger(meta_string)
 
     @property
@@ -219,38 +221,38 @@ class MRIOMetaData(object):
     def _time(self):
         return '{:%Y%m%d %H:%M:%S}'.format(datetime.datetime.now())
 
-    def _read_content(self, metadatafile):
+    def _read_content(self):
         """ Reads metadata from location
 
-        This function is called during the init process and 
-        should not be used in isolation: it overwrites 
+        This function is called during the init process and
+        should not be used in isolation: it overwrites
         unsafed metadata.
         """
-        with open(metadatafile, 'r') as mdf:
+        with open(self._metadata_file, 'r') as mdf:
             self._content = json.load(mdf,
                                       object_pairs_hook=OrderedDict)
 
-
     def save(self, location=None):
-        """ Saves the current status of the metadata 
+        """ Saves the current status of the metadata
 
         This saves the metadata at the location of the previously loaded
         metadata or at the file/path given in location.
 
-        Specify a location if the metadata should be stored in a different location
-        or was never stored before. Subsequent saves will use the location set here.
+        Specify a location if the metadata should be stored in a different
+        location or was never stored before. Subsequent saves will use the
+        location set here.
 
         Parameters
         ----------
         filename: str, optional
             Path or file for saving the metadata.
             This can be the full file path or just the storage folder.
-            In the latter case, the filename defined in DEFAULT_METADATA_FILENAME
-            (currently 'metadata.json') is assumed.
-        
+            In the latter case, the filename defined in
+            DEFAULT_METADATA_FILENAME (currently 'metadata.json') is assumed.
+
         """
         if location:
-            if os.path.splitext(location)[1] == '':  
+            if os.path.splitext(location)[1] == '':
                 self._metadata_file = os.path.abspath(
                     os.path.join(location, DEFAULT_METADATA_FILENAME))
             else:
