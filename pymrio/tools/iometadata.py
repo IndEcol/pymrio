@@ -8,16 +8,17 @@ import logging
 
 from collections import OrderedDict
 
+DEFAULT_METADATA_FILENAME='metadata.json'
 
 class MRIOMetaData(object):
 
-    def __init__(self, storage_folder,
+    def __init__(self, 
+                 location=None,
                  description=None,
                  mrio_name=None,
                  system=None,
                  version=None,
-                 logger_function=logging.info,
-                 METADATA_FILENAME='metadata.json'):
+                 logger_function=logging.info):
 
         """ Organzises the MRIO meta data
 
@@ -25,7 +26,6 @@ class MRIOMetaData(object):
 
         Note
         -----
-
             The parameters 'description', 'mrio_name', 'system', and
             'version' should be set during the establishment of the meta data
             file.  If the meta data file already exists and they are given
@@ -36,9 +36,12 @@ class MRIOMetaData(object):
         Parameters
         -----------
 
-        storage_folder: str, valid path
-            Path to the mrio containing a metadata file name as given in
-            the parameter 'METADATA_FILENAME'
+        location: str, valid path, optional
+            Path or file for loading a previously saved metadata file
+            and/or saving additional metadata.
+            This can be the full file path or just the storage folder.
+            In the latter case, the filename defined in DEFAULT_METADATA_FILENAME
+            (currently 'metadata.json') is assumed.
 
         description: str, optional
             Description of the metadata file purpose and mrio,
@@ -61,9 +64,6 @@ class MRIOMetaData(object):
             Will be set the first time the metadata file gets established;
             subsequent changes are recorded in 'history'.
 
-        METADATA_FILENAME: str, optional
-            Name of the metadata file, default: metadata.json
-
         logger_function: func, optional
             Function accepting strings.
             The info string written to the metadata is also 
@@ -71,15 +71,26 @@ class MRIOMetaData(object):
             is set to logging.info. Set to None for no output.
 
         """
-        self._storage_folder = storage_folder
-        self._METADATA_FILENAME = METADATA_FILENAME
-        self._metadata_file = os.path.abspath(
-            os.path.join(storage_folder, METADATA_FILENAME))
+        if location:
+            if os.path.isfile(location):
+                self._metadata_file = location
+            elif os.path.isdir(location):
+                self._metadata_file = os.path.abspath(
+                    os.path.join(location, DEFAULT_METADATA_FILENAME))
+            else:
+                if os.path.splitext(location)[1] == '':  
+                    self._metadata_file = os.path.abspath(
+                        os.path.join(location, DEFAULT_METADATA_FILENAME))
+                else:
+                    self._metadata_file = location
+        else:
+            self._metadata_file = None
 
         self.logger = logger_function if logger_function else lambda x: None
 
         if os.path.isfile(self._metadata_file):
             self._read_content()
+            self.logger("Read metadata from {}".format(self._metadata_file))
             if description:
                 self.change_meta('description', description)
             if mrio_name:
@@ -91,7 +102,7 @@ class MRIOMetaData(object):
             
         else:
             if not description:
-                description = 'Metadata file for pymrio'
+                description = 'Metadata for pymrio'
             self._content = OrderedDict([
                 ('description', description),
                 ('mrio_name', mrio_name),
@@ -102,9 +113,7 @@ class MRIOMetaData(object):
             self.logger("Start recording metadata")
 
     def __repr__(self):
-        return ("MRIOMetaData(storage_folder={}, "
-                "METADATA_FILENAME={})".format(self._storage_folder,
-                                               self._METADATA_FILENAME))
+        return (self.__str__())
 
     def __str__(self):
         nr_hist_lines_show = 10
@@ -210,15 +219,48 @@ class MRIOMetaData(object):
     def _time(self):
         return '{:%Y%m%d %H:%M:%S}'.format(datetime.datetime.now())
 
-    def _read_content(self):
-        with open(self._metadata_file, 'r') as mdf:
+    def _read_content(self, metadatafile):
+        """ Reads metadata from location
+
+        This function is called during the init process and 
+        should not be used in isolation: it overwrites 
+        unsafed metadata.
+        """
+        with open(metadatafile, 'r') as mdf:
             self._content = json.load(mdf,
                                       object_pairs_hook=OrderedDict)
 
-    def save(self, log=True):
-        """ Saves the current status of the metadata """
-        with open(self._metadata_file, 'w') as mdf:
-            json.dump(self._content, mdf, indent=4)
+
+    def save(self, location=None):
+        """ Saves the current status of the metadata 
+
+        This saves the metadata at the location of the previously loaded
+        metadata or at the file/path given in location.
+
+        Specify a location if the metadata should be stored in a different location
+        or was never stored before. Subsequent saves will use the location set here.
+
+        Parameters
+        ----------
+        filename: str, optional
+            Path or file for saving the metadata.
+            This can be the full file path or just the storage folder.
+            In the latter case, the filename defined in DEFAULT_METADATA_FILENAME
+            (currently 'metadata.json') is assumed.
+        
+        """
+        if location:
+            if os.path.splitext(location)[1] == '':  
+                self._metadata_file = os.path.abspath(
+                    os.path.join(location, DEFAULT_METADATA_FILENAME))
+            else:
+                self._metadata_file = location
+
+        if self._metadata_file:
+            with open(self._metadata_file, 'w') as mdf:
+                json.dump(self._content, mdf, indent=4)
+        else:
+            logging.error("No metadata file given for storing the file")
 
     def __call__(self, note=None):
         """ Shortcut for showing and adding notes
@@ -231,25 +273,3 @@ class MRIOMetaData(object):
             self.note(entry=note)
 
         print(self.__str__())
-
-
-def load_metadata(location):
-    """ Loads metadata file from location
-
-    If location is a path, assumes the filename
-    'metadata.json'
-    """
-
-    if not os.path.exists(location):
-        raise FileNotFoundError('Could not find {}'.format(location))
-
-    if os.path.isfile(location):
-        meta = MRIOMetaData(storage_folder=os.path.dirname(location),
-                            METADATA_FILENAME=os.path.basename(location))
-    else:
-        meta = MRIOMetaData(storage_folder=location)
-
-    meta._add_fileio(
-        'Load metadata file from {} without IO data'.format(location))
-
-    return meta
