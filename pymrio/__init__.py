@@ -57,7 +57,7 @@ from pymrio.tools.iodownloader import download_eora26
 from pymrio.tools.iodownloader import download_wiod2013
 from pymrio.tools.iodownloader import download_exiobase2
 
-from pymrio.tools.iometadata import load_metadata
+from pymrio.tools.iometadata import MRIOMetaData
 
 from pymrio.tools.ioutil import concate_extension
 from pymrio.tools.ioutil import build_agg_vec

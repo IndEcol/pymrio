@@ -169,7 +169,7 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
                                          os.path.basename(url)).group(2)
                                in years]
 
-    meta = MRIOMetaData(storage_folder=storage_folder,
+    meta = MRIOMetaData(location=storage_folder,
                         description='WIOD metadata file for pymrio',
                         mrio_name='WIOD',
                         # system='ixi', # Don’t set system here - is included in the wiod tables
@@ -180,6 +180,7 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
                           overwrite_existing=overwrite_existing,
                           meta_handler=meta)
 
+    meta.save()
     return meta
 
 
@@ -269,7 +270,7 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
                             in prices
                             ]
 
-    meta = MRIOMetaData(storage_folder=storage_folder,
+    meta = MRIOMetaData(location=storage_folder,
                         description='Eora metadata file for pymrio',
                         mrio_name='Eora',
                         system='ixi',
@@ -284,6 +285,7 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
     # phase=re.findall('v\d+\.', version_number)[0][1:-1]
     # loop=re.findall('\.\d+', version_number)[0][1:]
     # if len(loop) == 2: loop = '0' + loop
+    meta.save()
 
     return meta
 

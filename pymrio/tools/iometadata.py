@@ -88,7 +88,7 @@ class MRIOMetaData(object):
 
         self.logger = logger_function if logger_function else lambda x: None
 
-        if os.path.isfile(self._metadata_file):
+        if self._metadata_file and os.path.isfile(self._metadata_file):
             self._read_content()
             self.logger("Read metadata from {}".format(self._metadata_file))
             if description:

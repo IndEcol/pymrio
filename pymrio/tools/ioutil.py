@@ -9,6 +9,7 @@ import zipfile
 
 import numpy as np
 import pandas as pd
+from collections import namedtuple
 
 from pymrio.core.constants import PYMRIO_PATH
 
@@ -43,6 +44,27 @@ def is_vector(inp):
         return True
     else:
         return False
+
+
+def get_repo_content(path):
+    """ List of files in a repo (path or zip)
+
+    Returns a namedtuple with .iszip and .filelist
+    """
+    if os.path.splitext(path)[1] == '.zip':
+        iszip = True
+        zz = zipfile.ZipFile(path)
+        filelist = [info.filename for info in zz.infolist()]
+        zz.close()
+    else:
+        iszip = False
+        filelist = []
+        for root, directories, filenames in os.walk(path):
+            for filename in filenames:
+                filelist.append(os.path.relpath(
+                    os.path.join(root, filename),
+                    path))
+    return namedtuple('repocontent', ['iszip', 'filelist'])(iszip, filelist)
 
 
 def build_agg_matrix(agg_vector, pos_dict=None):
