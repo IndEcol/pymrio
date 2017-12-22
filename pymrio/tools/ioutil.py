@@ -416,7 +416,6 @@ def build_agg_vec(agg_vec, **source):
         ['OECD', 'EU'] would first aggregate all countries into OECD and than
         the remaining countries into EU.
 
-
     source : list or string
         Definition of the vectors in agg_vec.  The input vectors (either in the
         file or given as list for the entries in agg_vec) must be as long as

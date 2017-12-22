@@ -36,6 +36,8 @@ import pymrio.tools.ioutil as ioutil
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES
 from pymrio.core.constants import GENERIC_NAMES
+from pymrio.tools.iometadata import MRIOMetaData
+
 
 # Abstract classes
 class CoreSystem():
@@ -291,7 +293,7 @@ class CoreSystem():
             default depends on table_format(.pkl for pickle, .txt for text)
 
         sep : string, optional
-            Field delimiter for the output file, only for txt files. 
+            Field delimiter for the output file, only for txt files.
             Default: tab ('\t')
 
         float_format : string, optional
@@ -368,135 +370,8 @@ class CoreSystem():
                 self.meta = MRIOMetaData(mrio_name=self.name,
                                          location=path)
 
-            self.meta._add_fileio("Saved {} to {}".format(self.name, path)) 
+            self.meta._add_fileio("Saved {} to {}".format(self.name, path))
             self.meta.save(location=path)
-
-
-    def OLDsaveini(self, path, table_format='txt', sep='\t',
-             table_ext=None, float_format='%.12g'):
-        """ Saves the system as text or binary pickle files.
-
-        Tables (dataframes) of the current system are saved as text or
-        binary pickle files, meta data (all other attributes) and the
-        specifications of the tables are saved in a ini file.
-
-        Notes
-        -----
-        For IOSystem this does not include the DataFrames in the
-        extension (only the trade system itself).
-        Use save_all to save the whole system.
-
-        Parameters
-        ----------
-        path : string
-            path for the saved data (will be created if necessary, data
-            within will be overwritten).
-            The path can contain the name for the ini file, otherwise
-            this will be based on the name attribute.
-
-        table_format : string
-            Format to save the DataFrames:
-
-                - 'pkl' : Binary pickle files,
-                          alias: 'pickle', 'bin', 'binary'
-                - 'txt' : Text files (default), alias: 'text'
-
-        table_ext : string, optional
-            File extension,
-            default depends on table_format(.pkl for pickle, .txt for text)
-
-        sep : string, optional
-            Field delimiter for the output file, only for txt files
-
-        float_format : string, optional
-            Format for saving the DataFrames,
-            default = '%.12g', only for txt files
-        """
-        path = path.rstrip('\\')
-        path = os.path.abspath(path)
-
-        ini_file_name = self.name + '.ini'
-        if os.path.splitext(path)[1] == '.ini':
-            (path, ini_file_name) = os.path.split(path)
-
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
-
-        if table_format == 'text':
-            table_format = 'txt'
-        if table_format == 'csv':
-            table_format = 'txt'
-        if table_format == 'pickle':
-            table_format = 'pkl'
-        if table_format == 'bin':
-            table_format = 'pkl'
-        if table_format == 'binary':
-            table_format = 'pkl'
-        if table_format != 'txt' and table_format != 'pkl':
-            logging.error('Unknown table format')
-            return None
-
-        if not table_ext:
-            if table_format == 'txt':
-                table_ext = '.txt'
-            if table_format == 'pkl':
-                table_ext = '.pkl'
-
-        io_ini = configparser.RawConfigParser()
-        io_ini.optionxform = lambda option: option
-        io_ini['systemtype'] = dict()
-        io_ini['meta'] = dict()
-        io_ini['files'] = dict()
-
-        if str(type(self)) == "<class 'pymrio.core.mriosystem.IOSystem'>":
-            io_ini['systemtype']['systemtype'] = 'IOSystem'
-        elif str(type(self)) == "<class 'pymrio.core.mriosystem.Extension'>":
-            io_ini['systemtype']['systemtype'] = 'Extension'
-        else:
-            logging.warn('Unknown system type')
-            io_ini['systemtype']['systemtype'] = 'undef'
-
-        meta_data = [k for k in self.__dict__.keys()
-                     if not (k in self.get_DataFrame() or str(type(
-                         getattr(self, k))) == "<class 'pymrio.Extension'>")]
-
-        for k in meta_data:
-            if k[0:2] == '__':
-                continue
-            if getattr(self, k) is None:
-                continue
-            io_ini['meta'][k] = str(getattr(self, k))
-
-        for df, df_name in zip(self.get_DataFrame(data=True),
-                               self.get_DataFrame()):
-            if type(df.index) is pd.MultiIndex:
-                nr_index_col = len(df.index.levels)
-            else:
-                nr_index_col = 1
-
-            if type(df.columns) is pd.MultiIndex:
-                nr_header = len(df.columns.levels)
-            else:
-                nr_header = 1
-
-            save_file = df_name + table_ext
-            save_file_with_path = os.path.join(path, save_file)
-            logging.info('Save file {}'.format(save_file_with_path))
-            if table_format == 'txt':
-                df.to_csv(save_file_with_path, sep=sep,
-                          float_format=float_format)
-            else:
-                df.to_pickle(save_file_with_path)
-
-            io_ini['files'][df_name] = save_file
-            io_ini['files'][df_name + '_nr_index_col'] = str(nr_index_col)
-            io_ini['files'][df_name + '_nr_header'] = str(nr_header)
-
-        with open(os.path.join(path, ini_file_name), 'w') as _savefile:
-            io_ini.write(_savefile)
-
-        logging.info('Successfully saved - description at {}'.format(
-            os.path.join(path, ini_file_name)))
 
     def set_regions(self, regions):
         """ Sets new names for the regions
@@ -525,6 +400,8 @@ class CoreSystem():
         except:
             pass
 
+        self.meta._add_modify("Changed country names")
+
     def set_sectors(self, sectors):
         """ Sets new names for the sectors
 
@@ -551,6 +428,7 @@ class CoreSystem():
                     df.rename(index=sectors, columns=sectors, inplace=True)
         except:
             pass
+        self.meta._add_modify("Changed sector names")
 
     def set_Y_categories(self, Y_categories):
         """ Sets new names for the Y_categories
@@ -580,6 +458,8 @@ class CoreSystem():
                               inplace=True)
         except:
             pass
+
+        self.meta._add_modify("Changed Y category names")
 
 
 # API classes
@@ -721,23 +601,29 @@ class Extension(CoreSystem):
 
         if self.F is None:
             self.F = calc_F(self.S, x)
-            logging.info('Total direct impacts calculated')
+            logging.debug(
+                '{} - Total direct impacts calculated'.format(self.name))
 
         if self.S is None:
             self.S = calc_S(self.F, x)
-            logging.info('Factors of production coefficients S calculated')
+            logging.debug(
+                '{} - Factors of production coefficients S calculated'.format(
+                    self.name))
 
         if self.M is None:
             if L is not None:
                 self.M = calc_M(self.S, L)
-                logging.info('Multipliers M calculated based on L')
+                logging.debug(
+                    '{} - Multipliers M calculated based on L'.format(
+                        self.name))
             else:
                 try:
                     self.M = recalc_M(self.S, self.D_fp,
                                       Y=Y_agg,
                                       nr_sectors=self.get_sectors().size)
-                    logging.info(
-                        'Multipliers M calculated based on D_fp and Y')
+                    logging.debug(
+                        '{} - Multipliers M calculated based on '
+                        'D_fp and Y'.format(self.name))
                 except Exception as ex:
                     logging.warn(
                             'Recalculation of M not possible - cause: {}'.
@@ -763,13 +649,16 @@ class Extension(CoreSystem):
             else:
                 self.D_fp, self.D_terr, self.D_imp, self.D_exp = (
                     calc_accounts(self.S, L, Y_agg, self.get_sectors().size))
-                logging.info('Accounts D calculated')
+                logging.debug(
+                    '{} - Accounts D calculated'.format(self.name))
 
         if ((self.D_fp is None) or
                 (self.D_terr is None) or
                 (self.D_imp is None) or
                 (self.D_exp is None)):
-                    logging.info('Aggregation accounts not calculated')
+                    logging.warning(
+                        '{} - Aggregation accounts not calculated'.format(
+                            self.name))
                     return
 
         # aggregate to country
@@ -808,7 +697,8 @@ class Extension(CoreSystem):
                         self.D_exp.sum(level=0, axis=1).
                         reindex_axis(self.get_regions(), axis=1))
 
-            logging.info('Accounts D for regions calculated')
+            logging.debug(
+                '{} - Accounts D for regions calculated'.format(self.name))
 
         # calc accounts per capita if population data is available
         if population is not None:
@@ -836,7 +726,8 @@ class Extension(CoreSystem):
                 self.D_imp_cap.columns = self.D_imp_reg.columns
                 self.D_exp_cap.columns = self.D_exp_reg.columns
 
-                logging.info('Accounts D per capita calculated')
+                logging.debug(
+                    '{} - Accounts D per capita calculated'.format(self.name))
 
     def plot_account(self, row, per_capita=False, sector=None,
                      file_name=False, file_dpi=600,
@@ -1343,6 +1234,7 @@ class Extension(CoreSystem):
         except AttributeError:
             # If no unit in stressor, self.unit.columns break
             ext_diag.unit = None
+
         return ext_diag
 
 
@@ -1420,7 +1312,7 @@ class IOSystem(CoreSystem):
         self.year = year
         self.price = price
 
-        self.meta = meta  #TODO: make sure that a metadata is established and fill with the previous metadat from above
+        self.meta = meta  # TODO: make sure that a metadata is established and fill with the previous metadat from above
 
         for ext in kwargs:
             setattr(self, ext, Extension(**kwargs[ext]))
@@ -1463,24 +1355,24 @@ class IOSystem(CoreSystem):
                 self.L = calc_L(self.A)
                 logging.info('Leontief matrix L calculated')
             self.x = calc_x_from_L(self.L, self.Y.sum(axis=1))
-            logging.info('Industry Output x calculated')
+            self.meta._add_modify('Industry Output x calculated')
 
         # this chains of ifs catch cases 1 and 2
         if self.Z is None:
             self.Z = calc_Z(self.A, self.x)
-            logging.info('Flow matrix Z calculated')
+            self.meta._add_modify('Flow matrix Z calculated')
 
         if self.x is None:
             self.x = calc_x(self.Z, self.Y)
-            logging.info('Industry output x calculated')
+            self.meta._add_modify('Industry output x calculated')
 
         if self.A is None:
                 self.A = calc_A(self.Z, self.x)
-                logging.info('Coefficient matrix A calculated')
+                self.meta._add_modify('Coefficient matrix A calculated')
 
         if self.L is None:
                 self.L = calc_L(self.A)
-                logging.info('Leontief matrix L calculated')
+                self.meta._add_modify('Leontief matrix L calculated')
 
     def calc_extensions(self, extensions=None, Y_agg=None):
         """ Calculates the extension and their accounts
@@ -1505,7 +1397,7 @@ class IOSystem(CoreSystem):
             extensions = [extensions]
 
         if not Y_agg:  # this is needed in every loop iteration below
-            logging.info('Calculating aggregated final demand')
+            self.meta._add_modify('Calculating aggregated final demand')
             # Y_agg = util.agg_columns(self.Y, self.get_Y_categories().size)
             try:
                 Y_agg = self.Y.sum(level='region',
@@ -1517,8 +1409,9 @@ class IOSystem(CoreSystem):
                                                          axis=1)
 
         for ext_name in extensions:
+            self.meta._add_modify(
+                'Calculating accounts for extension {}'.format(ext_name))
             ext = getattr(self, ext_name)
-            logging.info('**Calculating extension {}**'.format(ext.name))
             ext.calc_system(x=self.x,
                             L=self.L,
                             Y_agg=Y_agg,
@@ -1606,6 +1499,7 @@ class IOSystem(CoreSystem):
         """
         self.reset_full()
         [ee.reset_full() for ee in self.get_extensions(data=True)]
+        self.meta._add_modify("Reset all calculated data")
 
     def reset_all_to_flows(self):
         """ Resets the IOSystem and all extensions to absolute flows
@@ -1615,6 +1509,7 @@ class IOSystem(CoreSystem):
         """
         self.reset_to_flows()
         [ee.reset_to_flows() for ee in self.get_extensions(data=True)]
+        self.meta._add_modify("Reset full system to absolute flows")
 
     def reset_all_to_coefficients(self):
         """ Resets the IOSystem and all extensions to coefficients.
@@ -1624,6 +1519,7 @@ class IOSystem(CoreSystem):
         """
         self.reset_to_coefficients()
         [ee.reset_to_coefficients() for ee in self.get_extensions(data=True)]
+        self.meta._add_modify("Reset full system to coefficients")
 
     def save_all(self, path, table_format='txt', sep='\t',
                  table_ext=None, float_format='%.12g'):
@@ -1800,14 +1696,14 @@ class IOSystem(CoreSystem):
 
         # Aggregate
 
-        logging.info('Aggregate final demand y')
+        self.meta._add_modify('Aggregate final demand y')
         self.Y = pd.DataFrame(
                     data=conc.dot(self.Y).dot(conc_y.T),
                     index=mi_reg_sec,
                     columns=mi_reg_Ycat,
                     )
 
-        logging.info('Aggregate transaction matrix Z')
+        self.meta._add_modify('Aggregate transaction matrix Z')
         self.Z = pd.DataFrame(
                     data=conc.dot(self.Z).dot(conc.T),
                     index=mi_reg_sec,
@@ -1822,12 +1718,12 @@ class IOSystem(CoreSystem):
                         index=mi_reg_sec,
                         columns=self.x.columns,
                         )
-            logging.info('Aggregate industry output x')
+            self.meta._add_modify('Aggregate industry output x')
         except:
             self.x = calc_x(self.Z, self.Y)
 
         if self.population is not None:
-            logging.info('Aggregate population vector')
+            self.meta._add_modify('Aggregate population vector')
             self.population = pd.DataFrame(
                 data=region_conc.dot(self.population.T).T,
                 columns=names_regions,
@@ -1835,7 +1731,7 @@ class IOSystem(CoreSystem):
                 )
 
         for extension in self.get_extensions(data=True):
-            logging.info('Aggregate extensions...')
+            self.meta._add_modify('Aggregate extensions...')
             extension.reset_to_flows()
             st_redo_unit = False
             for ik_name, ik_df in zip(
@@ -1924,3 +1820,5 @@ class IOSystem(CoreSystem):
                         self.get_extensions(data=True)):
                     if exdata.name == ee:
                         del self.__dict__[exinstancename]
+            finally:
+                self.meta._add_modify("Removed extension {}".format(ee))
