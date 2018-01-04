@@ -31,3 +31,8 @@ DEFAULT_FILE_NAMES = {
     'filepara': 'file_parameters.json',
     'metadata': 'metadata.json'
 }
+
+MISSING_AGG_ENTRY = {
+    'region': 'Unspecified region',
+    'sector': 'Unspecified sector',
+}

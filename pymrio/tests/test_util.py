@@ -2,6 +2,7 @@
 
 import os
 import sys
+import numpy as np
 from unittest.mock import mock_open, patch
 from collections import namedtuple
 
@@ -13,6 +14,8 @@ sys.path.insert(0, _pymriopath + '/../../')
 
 from pymrio.tools.ioutil import find_first_number          # noqa
 from pymrio.tools.ioutil import sniff_csv_format           # noqa
+from pymrio.tools.ioutil import build_agg_matrix           # noqa
+from pymrio.tools.ioutil import build_agg_vec           # noqa
 
 
 @pytest.fixture()
@@ -75,7 +78,7 @@ def csv_test_files_content():
 
 
 def test_find_first_number():
-    """ Some tests for finding the first number """
+    """ Some tests for finding the first number in a sequence"""
     assert find_first_number([0, 1, 2, 3]) == 0
     assert find_first_number(['a', 1, 2, 3]) == 1
     assert find_first_number(['a', 1, 'c', 3]) == 1
@@ -85,6 +88,8 @@ def test_find_first_number():
 
 
 def test_dev_read(csv_test_files_content):
+    """ Tests the csv sniffer
+    """
     for tests in csv_test_files_content.test_contents:
         with patch('builtins.open',
                    mock_open(read_data=tests.text),
@@ -93,3 +98,23 @@ def test_dev_read(csv_test_files_content):
         assert res['sep'] == tests.sep
         assert res['nr_index_col'] == tests.index_col
         assert res['nr_header_row'] == tests.header_rows
+
+def test_build_agg_matrix():
+    """ Tests building the aggreagation matrix
+    """
+
+    am_num = build_agg_matrix([1, 0, 0, 1, 0])
+    expected = np.array([[0.,  1.,  1.,  0.,  1.],
+                         [1.,  0.,  0.,  1.,  0.]])
+    am_str = build_agg_matrix(['r2', 'r1', 'r1', 'r2', 'r1'],
+                              pos_dict={'r1':0, 'r2':1})
+
+    np.testing.assert_allclose(am_num, expected)
+    np.testing.assert_allclose(am_str, expected)
+
+def test_build_agg_vec():
+    """ Simple test based on the test mrio
+    """
+    vec = build_agg_vec(['OECD', 'EU'], path = 'test', miss='RoW')
+    expected = ['OECD', 'EU', 'OECD', 'OECD', 'RoW', 'RoW']
+    assert vec == expected

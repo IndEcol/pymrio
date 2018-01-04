@@ -36,6 +36,7 @@ import pymrio.tools.ioutil as ioutil
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES
 from pymrio.core.constants import GENERIC_NAMES
+from pymrio.core.constants import MISSING_AGG_ENTRY
 from pymrio.tools.iometadata import MRIOMetaData
 
 
@@ -1335,6 +1336,7 @@ class IOSystem(CoreSystem):
         """
         self.calc_system()
         self.calc_extensions()
+        return self
 
     def calc_system(self):
         """
@@ -1548,7 +1550,7 @@ class IOSystem(CoreSystem):
                      float_format=float_format)
 
     def aggregate(self, region_agg=None, sector_agg=None,
-                  region_dict=None, sector_dict=None,
+                  region_names=None, sector_names=None,
                   inplace=True, pre_aggregation=False):
         """ Aggregates the IO system.
 
@@ -1570,21 +1572,39 @@ class IOSystem(CoreSystem):
 
             Parameters
             ----------
-            region_agg : list,array or string, optional
+            region_agg : list, array or string, optional
                 The aggregation vector or matrix for the regions (np.ndarray or
                 list). If string: aggregates to one total region and names is
                 to the given string.
-            sector_agg : list,arrays or string, optional
+                Pandas Dataframe with columns 'orignal' and 'aggregated'.
+                This is the output from the country_converter.agg_conc
+            sector_agg : list, arrays or string, optional
                 The aggregation vector or matrix for the sectors (np.ndarray or
                 list).If string: aggregates to one total region and names is
                 to the given string.
-            region_dict : dict, optional
-                Information to reorder the aggregated regions
-            secotor_dict : dict, optional
-                Information to reorder the aggregated sectors
+            region_names : list, optional
+                TODO Improve docstring
+                Names for the aggregated regions.
+                If concordance matrix - in order of rows in there
+                If concordance vector - in order or numerical values in the vector
+                If string based - some order as the passed string
+                Not considered if passing a DataFrame - give the names
+                in the column 'aggregated'
+
+            sector_names : list, optional
+                TODO Improve docstring
+                Names for the aggregated sectors
+                If concordance matrix - in order of rows in there
+                If concordance vector - in order or numerical values in the vector
+                If string based - some order as the passed string
+                Not considered if passing a DataFrame - give the names
+                in the column 'aggregated'
+
             inplace : boolean, optional
                 If True, aggregates the IOSystem in place (default),
-                otherwise return a new IOSystem
+                otherwise aggregation happens on a copy of the IOSystem.
+                Regardless of the setting, the IOSystem is returned to
+                allow for chained operations.
             TODO:pre_aggregation : boolean, optional
                 If True, resets the IO system before the aggregation. This
                 removes all calculated accounts (Footprints, coefficients)
@@ -1608,18 +1628,44 @@ class IOSystem(CoreSystem):
 
         self.reset_to_flows()
 
+        if type(region_names) is str:
+            region_names = [region_names]
+        if type(sector_names) is str:
+            sector_names = [sector_names]
+
+        if type(region_agg) is pd.DataFrame:
+            if (('original' not in region_agg.columns) or
+                    ('aggregated' not in region_agg.columns)):
+                raise ValueError('Passed DataFrame must include the columns '
+                                 '"original" and "aggregated"')
+            region_agg = (region_agg
+                          .set_index('original')
+                          .reindex(self.get_regions(),
+                                   fill_value=MISSING_AGG_ENTRY['region'])
+                          .loc[:, 'aggregated'])
+
+        if type(sector_agg) is pd.DataFrame:
+            if (('original' not in sector_agg.columns) or
+                    ('aggregated' not in sector_agg.columns)):
+                raise ValueError('Passed DataFrame must include the columns '
+                                 '"original" and "aggregated"')
+            sector_agg = (sector_agg
+                          .set_index('original')
+                          .reindex(self.get_sectors(),
+                                   fill_value=MISSING_AGG_ENTRY['sector'])
+                          .loc[:, 'aggregated'])
+
+        # fill the aggregation matrix with 1:1 mapping
+        # if input not given and get names if not given
         _same_regions = False
         _same_sectors = False
-
-        # fill the aggregation matrix with 1:1 mapping if input not given
-        # and get names if not given
-        if not region_agg:
+        if region_agg is None:
             region_agg = self.get_regions()
-            names_regions = self.get_regions()
+            region_names = region_names or self.get_regions()
             _same_regions = True
-        if not sector_agg:
+        if sector_agg is None:
             sector_agg = self.get_sectors()
-            names_sectors = self.get_sectors()
+            sector_names = sector_names or self.get_sectors()
             _same_sectors = True
 
         # capture total aggregation case
@@ -1629,58 +1675,62 @@ class IOSystem(CoreSystem):
             sector_agg = [sector_agg] * len(self.get_sectors())
 
         if ioutil.is_vector(region_agg):
-            region_conc = ioutil.build_agg_matrix(region_agg, region_dict)
+            region_conc = ioutil.build_agg_matrix(region_agg)
         else:
             region_conc = region_agg
         if ioutil.is_vector(sector_agg):
-            sector_conc = ioutil.build_agg_matrix(sector_agg, sector_dict)
+            sector_conc = ioutil.build_agg_matrix(sector_agg)
         else:
             sector_conc = sector_agg
 
         # build the new names
-        if not _same_regions:
-            if region_dict:
-                names_regions = sorted(region_dict,
-                                       key=lambda x: region_dict[x])
-            else:
+        if (not _same_regions) and (not region_names):
                 if isinstance(region_agg, np.ndarray):
                     region_agg = region_agg.flatten().tolist()
                 if type(region_agg[0]) is str:
-                    names_regions = ioutil.unique_element(region_agg)
+                    region_names = ioutil.unique_element(region_agg)
                 else:
                     # rows in the concordance matrix give the new number of
                     # regions
-                    # TODO fails: DEFINE GENERIC_NAMES
-                    names_regions = [GENERIC_NAMES['region'] +
-                                     str(nr) for nr in
-                                     range(region_conc.shape[0])]
+                    region_names = [GENERIC_NAMES['region'] +
+                                    str(nr) for nr in
+                                    range(region_conc.shape[0])]
 
-        if not _same_sectors:
-            if sector_dict:
-                names_sectors = sorted(
-                        sector_dict, key=lambda x: sector_dict[x])
-            else:
+        if (not _same_sectors) and (not sector_names):
                 if isinstance(sector_agg, np.ndarray):
                     sector_agg = (sector_agg.flatten().tolist())
                 if type(sector_agg[0]) is str:
-                    names_sectors = ioutil.unique_element(sector_agg)
+                    sector_names = ioutil.unique_element(sector_agg)
                 else:
-                    # TODO fails: DEFINE GENERIC_NAMES
-                    names_sectors = [GENERIC_NAMES['sector'] +
-                                     str(nr) for nr in
-                                     range(sector_conc.shape[0])]
+                    sector_names = [GENERIC_NAMES['sector'] +
+                                    str(nr) for nr in
+                                    range(sector_conc.shape[0])]
+
+        # Assert right shapes
+        if not sector_conc.shape[1] == len(self.get_sectors()):
+            raise ValueError('Sector aggregation does not '
+                             'correspond to the number of sectors.')
+        if not region_conc.shape[1] == len(self.get_regions()):
+            raise ValueError('Region aggregation does not '
+                             'correspond to the number of regions.')
+        if not len(sector_names) == sector_conc.shape[0]:
+            raise ValueError('New sector names do not '
+                             'match sector aggregation.')
+        if not len(region_names) == region_conc.shape[0]:
+            raise ValueError('New region names do not '
+                             'match region aggregation.')
 
         # build pandas.MultiIndex for the aggregated system
-        _reg_list_for_sec = [[r] * sector_conc.shape[0] for r in names_regions]
+        _reg_list_for_sec = [[r] * sector_conc.shape[0] for r in region_names]
         _reg_list_for_sec = [entry for entrylist in
                              _reg_list_for_sec for entry in entrylist]
 
         _reg_list_for_Ycat = [[r] * len(self.get_Y_categories()) for r in
-                              names_regions]
+                              region_names]
         _reg_list_for_Ycat = [entry for entrylist in
                               _reg_list_for_Ycat for entry in entrylist]
 
-        _sec_list = list(names_sectors) * region_conc.shape[0]
+        _sec_list = list(sector_names) * region_conc.shape[0]
         _Ycat_list = list(self.get_Y_categories()) * region_conc.shape[0]
 
         mi_reg_sec = pd.MultiIndex.from_arrays(
@@ -1695,7 +1745,6 @@ class IOSystem(CoreSystem):
         conc_y = np.kron(region_conc, np.eye(len(self.get_Y_categories())))
 
         # Aggregate
-
         self.meta._add_modify('Aggregate final demand y')
         self.Y = pd.DataFrame(
                     data=conc.dot(self.Y).dot(conc_y.T),
@@ -1710,23 +1759,23 @@ class IOSystem(CoreSystem):
                     columns=mi_reg_sec,
                     )
 
-        try:
-            # x can also be obtained from the aggregated Z, but aggregate if
-            # available
+        if self.x is not None:
+            # x could also be obtained from the
+            # aggregated Z, but aggregate if available
             self.x = pd.DataFrame(
                         data=conc.dot(self.x),
                         index=mi_reg_sec,
                         columns=self.x.columns,
                         )
             self.meta._add_modify('Aggregate industry output x')
-        except:
+        else:
             self.x = calc_x(self.Z, self.Y)
 
         if self.population is not None:
             self.meta._add_modify('Aggregate population vector')
             self.population = pd.DataFrame(
                 data=region_conc.dot(self.population.T).T,
-                columns=names_regions,
+                columns=region_names,
                 index=self.population.index,
                 )
 
@@ -1789,8 +1838,7 @@ class IOSystem(CoreSystem):
                         # could fail if no unit available
                         extension.unit = None
         self.calc_extensions()
-        if not inplace:
-            return self
+        return self
 
     def remove_extension(self, ext=None):
         """ Remove extension from IOSystem
