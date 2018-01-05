@@ -10,6 +10,7 @@ To avoid namespace pollution everythin here starts with calc_
 
 import pandas as pd
 import numpy as np
+import warnings
 
 import pymrio.tools.ioutil as ioutil
 
@@ -113,7 +114,11 @@ def calc_A(Z, x):
     if (type(x) is not np.ndarray) and (x == 0):
         recix = 0
     else:
-        recix = 1/x
+        with warnings.catch_warnings(): 
+            # catch the divide by zero warning
+            # we deal wit that by setting to 0 afterwards
+            warnings.simplefilter('ignore')
+            recix = 1/x
         recix[recix == np.inf] = 0
         recix = recix.reshape((1, -1))
     # use numpy broadcasting - factor ten faster
