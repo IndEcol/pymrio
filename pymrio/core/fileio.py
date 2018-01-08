@@ -98,12 +98,13 @@ def load(path, include_core=True):
 
     if file_para['systemtype'] == GENERIC_NAMES['iosys']:
         meta_file_path = os.path.join(path, DEFAULT_FILE_NAMES['metadata'])
-        ret_system = IOSystem(meta=MRIOMetaData(location = meta_file_path))
+        ret_system = IOSystem(meta=MRIOMetaData(location=meta_file_path))
         ret_system.meta._add_fileio("Loaded IO system from {}".format(path))
     elif file_para['systemtype'] == GENERIC_NAMES['ext']:
         ret_system = Extension(file_para['name'])
     else:
-        logging.error('System not defined in json file parameter file TODO raise error')
+        # TODO ERROR
+        logging.error('System not defined in json file parameter file')
         return None
 
     for key in file_para['files']:
@@ -115,7 +116,8 @@ def load(path, include_core=True):
         full_file_name = os.path.join(path, file_name)
         nr_index_col = file_para['files'][key]['nr_index_col']
         nr_header = file_para['files'][key]['nr_header']
-        logging.info('Load data from {}'.format(full_file_name)) # TODO METADATA
+        # TODO METADATA
+        logging.info('Load data from {}'.format(full_file_name))
 
         _index_col = list(range(int(nr_index_col)))
         _header = list(range(int(nr_header)))
@@ -136,6 +138,7 @@ def load(path, include_core=True):
                                   header=_header))
 
     return ret_system
+
 
 def _load_all_ini_based_io(path, **kwargs):
     """ DEPRECATED: For convert a previous version to the new json format
@@ -161,7 +164,8 @@ def _load_all_ini_based_io(path, **kwargs):
 
 
 def _load_ini_based_io(path, recursive=False, ini=None,
-         subini={}, include_core=True, only_coefficients=False):
+                       subini={}, include_core=True,
+                       only_coefficients=False):
     """ DEPRECATED: For convert a previous version to the new json format
 
     Loads a IOSystem or Extension from a ini files
@@ -458,7 +462,6 @@ def load_test():
                               row_header=2, col_header=3, unit_col=2),
         )
 
-
     meta_rec = MRIOMetaData(location=PYMRIO_PATH['test_mrio'])
 
     # read the data into a dicts as pandas.DataFrame
@@ -469,7 +472,8 @@ def load_test():
                  header=list(range(test_system[key].row_header)))
             for key in test_system}
 
-    meta_rec._add_fileio('Load test_mrio from {}'.format(PYMRIO_PATH['test_mrio']))
+    meta_rec._add_fileio('Load test_mrio from {}'.format(
+        PYMRIO_PATH['test_mrio']))
 
     # distribute the data into dics which can be passed to
     # the IOSystem. To do so, some preps are necessary:

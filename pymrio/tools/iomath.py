@@ -114,7 +114,7 @@ def calc_A(Z, x):
     if (type(x) is not np.ndarray) and (x == 0):
         recix = 0
     else:
-        with warnings.catch_warnings(): 
+        with warnings.catch_warnings():
             # catch the divide by zero warning
             # we deal wit that by setting to 0 afterwards
             warnings.simplefilter('ignore')
@@ -146,7 +146,7 @@ def calc_L(A):
         If DataFrame index/columns as A
 
     """
-    I = np.eye(A.shape[0])
+    I = np.eye(A.shape[0])   # noqa
     if type(A) is pd.DataFrame:
         return pd.DataFrame(np.linalg.inv(I-A),
                             index=A.index, columns=A.columns)

@@ -9,7 +9,6 @@ import os
 import re
 import logging
 import warnings
-import re
 
 import pandas as pd
 import numpy as np
@@ -39,6 +38,7 @@ class ParserWarning(UserWarning):
     """ Base class for warnings concerning parsing of IO source files """
     pass
 
+
 IDX_NAMES = {
     'Z_col': ['region', 'sector'],
     'Z_row': ['region', 'sector'],
@@ -62,6 +62,7 @@ IDX_NAMES = {
     'unit': ['unit'],
     '_reg_sec_unit': ['region', 'sector', 'unit'],
     }
+
 
 # Top level functions
 def parse_exio_ext(ext_file, index_col, name, drop_compartment=True,
@@ -163,8 +164,10 @@ def parse_exio_ext(ext_file, index_col, name, drop_compartment=True,
 
 
 def get_exiobase_version(filename):
-    """ Returns the EXIOBASE version for the given filename, None if not found """
-    try: 
+    """ Returns the EXIOBASE version for the given filename,
+        None if not found
+    """
+    try:
         ver_match = re.search(r'(\d+\w*(\.|\-|\_))*\d+\w*', filename)
         version = ver_match.string[ver_match.start():ver_match.end()]
         if re.search('\_\d\d\d\d', version[-5:]):
@@ -183,7 +186,7 @@ def get_exiobase_files(path, coefficients=True):
     path: str
         Path to exiobase files or zip file
     coefficients: boolean, optional
-        If True (default), considers the mrIot file as A matrix, 
+        If True (default), considers the mrIot file as A matrix,
         and the extensions as S matrices. Otherwise as Z and F, respectively
 
     Returns
@@ -247,12 +250,13 @@ def get_exiobase_files(path, coefficients=True):
 
     return exio_files
 
+
 def generic_exiobase_parser(exio_files, system=None):
     """ Generic EXIOBASE parser
 
-    This is used internally by parse_exiobaseXXX functions to 
+    This is used internally by parse_exiobaseXXX functions to
     parse exiobase files. In most cases, these top-level functions
-    should just work, but in case of archived exiobase versions 
+    should just work, but in case of archived exiobase versions
     it might be necessary to use low-level function here.
 
     Parameters:
@@ -265,9 +269,9 @@ def generic_exiobase_parser(exio_files, system=None):
 
     """
 
-    version = ' & '.join({dd.get('version', '') 
-                        for dd in exio_files.values() if dd.get('version','')})
-
+    version = ' & '.join({dd.get('version', '')
+                          for dd in exio_files.values()
+                          if dd.get('version', '')})
 
     meta_rec = MRIOMetaData(system=system,
                             mrio_name="EXIOBASE",
@@ -319,15 +323,15 @@ def generic_exiobase_parser(exio_files, system=None):
 
     core_data['unit'] = _unit
 
-    mon_unit = core_data['unit'].iloc[0,0]
+    mon_unit = core_data['unit'].iloc[0, 0]
     if '/' in mon_unit:
         mon_unit = mon_unit.split('/')[0]
         core_data['unit'].unit = mon_unit
 
-    extensions = dict() 
+    extensions = dict()
     for tt, tpara in exio_files.items():
         if tt in core_components:
-            continue        
+            continue
         ext_name = '_'.join(tt.split('_')[1:])
         table_type = tt.split('_')[0]
 
@@ -341,10 +345,10 @@ def generic_exiobase_parser(exio_files, system=None):
             raise ParserError('Unknown EXIOBASE file structure')
 
         if table_type == 'FY':
-            ext_data[tt].columns.names=[
+            ext_data[tt].columns.names = [
                 'region', 'category']
         else:
-            ext_data[tt].columns.names=[
+            ext_data[tt].columns.names = [
                 'region', 'sector']
         try:
             _unit = pd.DataFrame(
@@ -367,7 +371,7 @@ def generic_exiobase_parser(exio_files, system=None):
 
         ext_data[tt].reset_index(level='unit', drop=True, inplace=True)
         ext_dict = extensions.get(ext_name, dict())
-        ext_dict.update({table_type: ext_data[tt], 
+        ext_dict.update({table_type: ext_data[tt],
                          'unit': _unit,
                          'name': ext_name})
         extensions.update({ext_name: ext_dict})
@@ -405,11 +409,10 @@ def _get_MRIO_system(path):
     return system
 
 
-
 def parse_exiobase1(path):
     """ Parse the exiobase1 raw data files.
 
-    This function works with 
+    This function works with
 
     - pxp_ita_44_regions_coeff_txt
     - ixi_fpa_44_regions_coeff_txt
@@ -436,6 +439,7 @@ def parse_exiobase1(path):
     io = generic_exiobase_parser(exio_files, system=system)
     return io
 
+
 def parse_exiobase2(path, charact=True, popvector='exio2'):
     """ Parse the exiobase 2.2.2 source files for the IOSystem
 
@@ -457,7 +461,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         the impacts.
         If set to True, the characterisation file found in path is used (
         can be in the zip or extracted). If a string, it is assumed that
-        it points to valid characterisation file. If False or None, no 
+        it points to valid characterisation file. If False or None, no
         characterisation file will be used.
     popvector : string or pd.DataFrame, optional
         The population vector for the countries.  This can be given as
@@ -504,7 +508,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         Q_head_row = dict()
         Q_head_col_rowname = dict()
         Q_head_col_rowunit = dict()
-        Q_head_col_metadata = dict()
+        # Q_head_col_metadata = dict()
         # number of cols containing row headers at the beginning
         Q_head_col['Q_emission'] = 4
         # number of rows containing col headers at the top - this will be
@@ -531,7 +535,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         Q_head_col_rowunit['Q_resources'] = 1
         Q_head_col_rowunit['Q_materials'] = 1
 
-        if charact is str: 
+        if charact is str:
             charac_data = {Qname: pd.read_excel(
                            charact,
                            sheet_name=Qname,
@@ -541,8 +545,8 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         else:
             _content = get_repo_content(path)
             charac_regex = re.compile('(?<!\_)characterisation.*xlsx')
-            charac_files = [ff for ff in _content.filelist if 
-                            re.search(charac_regex, ff)] 
+            charac_files = [ff for ff in _content.filelist if
+                            re.search(charac_regex, ff)]
             if len(charac_files) > 1:
                 raise ParserError(
                     "Found multiple characcterisation files "
@@ -557,7 +561,8 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
                         charac_data = {Qname: pd.read_excel(
                                        zz.open(charac_files[0]),
                                        sheet_name=Qname,
-                                       skiprows=list(range(0, Q_head_row[Qname])),
+                                       skiprows=list(
+                                           range(0, Q_head_row[Qname])),
                                        header=None)
                                        for Qname in Qsheets}
 
@@ -633,13 +638,14 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
 
     return io
 
+
 def __parse_exiobase3(zip_file,
-                    path_in_zip='',
-                    version='3.0',
-                    iosystem=None,
-                    year=None,
-                    charact=None):
-    """ PRELIMINARY VERSION OF THE PARSER - THIS WILL CHANGE/ADOPT TO GENERIC PARSER
+                      path_in_zip='',
+                      version='3.0',
+                      iosystem=None,
+                      year=None,
+                      charact=None):
+    """ PRELIMINARY VERSION OF THE PARSER - WILL CHANGE/ADOPT TO GENERIC PARSER
     Parse the exiobase 3 source files for the IOSystem
 
     The function parse product by product and industry by industry source file
@@ -1035,7 +1041,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     if not os.path.exists(wiot_file):
         raise ParserError('WIOD file not found in the specified folder.')
 
-    meta_rec = MRIOMetaData(storage_folder=root_path)
+    meta_rec = MRIOMetaData(location=root_path)
 
     # wiot file structure
     wiot_meta = {
@@ -1107,7 +1113,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
 
     if _lastZcol != _lastZrow:
         raise ParserError(
-            'Interindustry matrix no symetric in the WIOD source file')
+            'Interindustry matrix not symetric in the WIOD source file')
     else:
         Zshape = (_lastZrow, _lastZcol)
 
@@ -1162,7 +1168,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     indexY_col_head = Y.iloc[[wiot_header['region'],
                               wiot_header['c_code']], :]
     Y.columns = pd.MultiIndex.from_arrays(indexY_col_head.values,
-                                          names=Z.index.names)
+                                          names=IDX_NAMES['Y_col2'])
     Y = Y.iloc[max(index_wiot_headers)+1:, :]
     Y.index = Z.index
 
@@ -1218,7 +1224,8 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                       'unit': _F_sea_unit,
                       'name': 'SEA',
                       }
-        meta_rec._add_fileio('SEA file extension parsed from {}'.format(root_path))
+        meta_rec._add_fileio('SEA file extension parsed from {}'.format(
+            root_path))
 
     # Environmental extensions, names follow the name given
     # in the meta sheet (except for CO2 to get a better description).
@@ -1311,7 +1318,8 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                     'unit': _dl_ex['unit'],
                     'name': dl_envext_para[ik_ext]['name'],
                     }
-            meta_rec._add_fileio('Extension {} parsed from {}'.format(ik_ext, root_path))
+            meta_rec._add_fileio('Extension {} parsed from {}'.format(
+                ik_ext, root_path))
 
     # Build system
     wiod = IOSystem(Z=Z, Y=Y,
@@ -1495,8 +1503,8 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     df_F.columns.names = IDX_NAMES['F_col']
     df_F.index.names = IDX_NAMES['F_row_single']
 
-    df_FY.columns.names = IDX_NAMES['FY_col_reg']
-    df_FY.index.names = IDX_NAMES['FY_row_single']
+    df_FY.columns.names = IDX_NAMES['Y_col1']
+    df_FY.index.names = IDX_NAMES['F_row_single']
 
     # build the unit df
     df_unit = pd.DataFrame(index=df_F.index, columns=['unit'])
@@ -1594,7 +1602,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet='DATA'):
 
         ds_use_sea.fillna(value=0, inplace=True)
         df_use_sea = ds_use_sea.unstack(level=['Country', 'Code'])[str(year)]
-        df_use_sea.index.names = IDX_NAMES['VA_row1']
+        df_use_sea.index.names = IDX_NAMES['VA_row_single']
         df_use_sea.columns.names = IDX_NAMES['F_col']
         df_use_sea = df_use_sea.astype('float')
 
@@ -1693,8 +1701,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
             path = os.path.join(path, str(year))
 
         eora_file_list = [fl for fl in os.listdir(path)
-                          if os.path.splitext(fl)[1] == eora_zip_ext
-                          and
+                          if os.path.splitext(fl)[1] == eora_zip_ext and
                           str(year) in fl and
                           str(price) in fl
                           ]
@@ -1712,7 +1719,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
             eora_loc = path
             is_zip = False
 
-    meta_rec = MRIOMetaData(storage_folder=root_path)
+    meta_rec = MRIOMetaData(location=root_path)
 
     # Eora file specs
     eora_sep = '\t'

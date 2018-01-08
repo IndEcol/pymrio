@@ -30,13 +30,8 @@ def is_vector(inp):
     Boolean
         True for vectors: ndim = 1 or ndim = 2 and shape of one axis = 1
         False for all other arrays
-        None if inp is not a ndarray and cant be converted to one
     """
-    if not isinstance(inp, np.ndarray):
-        try:
-            inp = np.asarray(inp)
-        except:
-            return None
+    inp = np.asarray(inp)
     nr_dim = np.ndim(inp)
     if nr_dim == 1:
         return True
@@ -506,6 +501,7 @@ def find_first_number(ll):
             return nr
     return None
 
+
 def sniff_csv_format(csv_file,
                      potential_sep=['\t', ',', ';', '|', '-', '_'],
                      max_test_lines=10,
@@ -553,9 +549,8 @@ def sniff_csv_format(csv_file,
             lines.append(line[:-1])
         return lines
 
-
     if zip_file:
-        with zipfile.ZipFile(zip_file, 'r') as zz: 
+        with zipfile.ZipFile(zip_file, 'r') as zz:
             with zz.open(csv_file, 'r') as ff:
                 test_lines = read_first_lines(ff)
     else:

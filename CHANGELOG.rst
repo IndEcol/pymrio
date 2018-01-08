@@ -9,6 +9,7 @@ v0.3.d1 (Sep 29, 2017)
 - downloaders for EORA26 and WIOD
 - codebase fully pep8 compliant
 - restructured the documentation
+- method set_sectors() and set_regions() renamed to rename_sectors() and rename_regions()
 
 **********************
 v0.2.2 (May 27, 2016)

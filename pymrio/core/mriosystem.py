@@ -11,7 +11,7 @@ import copy
 import logging
 import numpy as np
 import pandas as pd
-import configparser
+# import configparser
 import json
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -67,6 +67,7 @@ class CoreSystem():
                 with_unit=False,
                 with_population=False)
          if key not in self.__basic__]
+        return self
 
     def reset_to_flows(self):
         """ Keeps only the absolute values.
@@ -78,6 +79,7 @@ class CoreSystem():
         # Development note: The attributes which should be removed are
         # defined in self.__non_agg_attributes__
         [setattr(self, key, None) for key in self.__non_agg_attributes__]
+        return self
 
     def reset_to_coefficients(self):
         """ Keeps only the coefficient.
@@ -93,6 +95,7 @@ class CoreSystem():
              with_unit=False,
              with_population=False)
          if key not in self.__coefficients__]
+        return self
 
     def copy(self):
         """ Returns a deep copy of the system """
@@ -309,7 +312,7 @@ class CoreSystem():
         file_para = dict()
         file_para['files'] = dict()
 
-        meta_file_path = os.path.join(path, DEFAULT_FILE_NAMES['metadata'])
+        # meta_file_path = os.path.join(path, DEFAULT_FILE_NAMES['metadata'])
 
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
@@ -319,7 +322,8 @@ class CoreSystem():
         elif table_format in ['pickle', 'bin', 'binary', 'pkl']:
             table_format = 'pkl'
         else:
-            logging.error('Unknown table format TODO: raise LoadingERROR')
+            raise ValueError('Unknown table format "{}" - '
+                             'must be "txt" or "pkl"'.format(table_format))
             return None
 
         if not table_ext:
@@ -334,7 +338,8 @@ class CoreSystem():
             file_para['systemtype'] = GENERIC_NAMES['ext']
             file_para['name'] = self.name
         else:
-            logging.warn('Unknown system type TODO raise LoadINGWARN')
+            logging.warn('Unknown system type {} - set to "undef"'.format(
+                str(type(self))))
             file_para['systemtype'] = 'undef'
 
         for df, df_name in zip(self.get_DataFrame(data=True),
@@ -373,8 +378,9 @@ class CoreSystem():
 
             self.meta._add_fileio("Saved {} to {}".format(self.name, path))
             self.meta.save(location=path)
+        return self
 
-    def set_regions(self, regions):
+    def rename_regions(self, regions):
         """ Sets new names for the regions
 
         Parameters
@@ -402,8 +408,9 @@ class CoreSystem():
             pass
 
         self.meta._add_modify("Changed country names")
+        return self
 
-    def set_sectors(self, sectors):
+    def rename_sectors(self, sectors):
         """ Sets new names for the sectors
 
         Parameters
@@ -430,6 +437,7 @@ class CoreSystem():
         except:
             pass
         self.meta._add_modify("Changed sector names")
+        return self
 
     def set_Y_categories(self, Y_categories):
         """ Sets new names for the Y_categories
@@ -461,6 +469,7 @@ class CoreSystem():
             pass
 
         self.meta._add_modify("Changed Y category names")
+        return self
 
 
 # API classes
@@ -626,7 +635,7 @@ class Extension(CoreSystem):
                         '{} - Multipliers M calculated based on '
                         'D_fp and Y'.format(self.name))
                 except Exception as ex:
-                    logging.warn(
+                    logging.debug(
                             'Recalculation of M not possible - cause: {}'.
                             format(ex))
 
@@ -646,21 +655,14 @@ class Extension(CoreSystem):
                 (self.D_imp is None) or
                 (self.D_exp is None)):
             if L is None:
-                logging.warn('Not possilbe to calculate D accounts')
+                logging.debug(
+                    'Not possilbe to calculate D accounts - L not present')
+                return
             else:
                 self.D_fp, self.D_terr, self.D_imp, self.D_exp = (
                     calc_accounts(self.S, L, Y_agg, self.get_sectors().size))
                 logging.debug(
                     '{} - Accounts D calculated'.format(self.name))
-
-        if ((self.D_fp is None) or
-                (self.D_terr is None) or
-                (self.D_imp is None) or
-                (self.D_exp is None)):
-                    logging.warning(
-                        '{} - Aggregation accounts not calculated'.format(
-                            self.name))
-                    return
 
         # aggregate to country
         if ((self.D_fp_reg is None) or (self.D_terr_reg is None) or
@@ -729,6 +731,7 @@ class Extension(CoreSystem):
 
                 logging.debug(
                     '{} - Accounts D per capita calculated'.format(self.name))
+        return self
 
     def plot_account(self, row, per_capita=False, sector=None,
                      file_name=False, file_dpi=600,
@@ -1313,7 +1316,9 @@ class IOSystem(CoreSystem):
         self.year = year
         self.price = price
 
-        self.meta = meta  # TODO: make sure that a metadata is established and fill with the previous metadat from above
+        # TODO: make sure that a metadata is established
+        # and filled with the previous metadat from above
+        self.meta = meta
 
         for ext in kwargs:
             setattr(self, ext, Extension(**kwargs[ext]))
@@ -1376,6 +1381,8 @@ class IOSystem(CoreSystem):
                 self.L = calc_L(self.A)
                 self.meta._add_modify('Leontief matrix L calculated')
 
+        return self
+
     def calc_extensions(self, extensions=None, Y_agg=None):
         """ Calculates the extension and their accounts
 
@@ -1419,6 +1426,7 @@ class IOSystem(CoreSystem):
                             Y_agg=Y_agg,
                             population=self.population
                             )
+        return self
 
     def report_accounts(self, path, per_region=True,
                         per_capita=False, pic_size=1000,
@@ -1502,6 +1510,7 @@ class IOSystem(CoreSystem):
         self.reset_full()
         [ee.reset_full() for ee in self.get_extensions(data=True)]
         self.meta._add_modify("Reset all calculated data")
+        return self
 
     def reset_all_to_flows(self):
         """ Resets the IOSystem and all extensions to absolute flows
@@ -1512,6 +1521,7 @@ class IOSystem(CoreSystem):
         self.reset_to_flows()
         [ee.reset_to_flows() for ee in self.get_extensions(data=True)]
         self.meta._add_modify("Reset full system to absolute flows")
+        return self
 
     def reset_all_to_coefficients(self):
         """ Resets the IOSystem and all extensions to coefficients.
@@ -1522,6 +1532,7 @@ class IOSystem(CoreSystem):
         self.reset_to_coefficients()
         [ee.reset_to_coefficients() for ee in self.get_extensions(data=True)]
         self.meta._add_modify("Reset full system to coefficients")
+        return self
 
     def save_all(self, path, table_format='txt', sep='\t',
                  table_ext=None, float_format='%.12g'):
@@ -1548,6 +1559,7 @@ class IOSystem(CoreSystem):
                      sep=sep,
                      table_ext=table_ext,
                      float_format=float_format)
+        return self
 
     def aggregate(self, region_agg=None, sector_agg=None,
                   region_names=None, sector_names=None,
@@ -1586,7 +1598,7 @@ class IOSystem(CoreSystem):
                 TODO Improve docstring
                 Names for the aggregated regions.
                 If concordance matrix - in order of rows in there
-                If concordance vector - in order or numerical values in the vector
+                If concordance vector - in order or num. values in the vector
                 If string based - some order as the passed string
                 Not considered if passing a DataFrame - give the names
                 in the column 'aggregated'
@@ -1595,7 +1607,7 @@ class IOSystem(CoreSystem):
                 TODO Improve docstring
                 Names for the aggregated sectors
                 If concordance matrix - in order of rows in there
-                If concordance vector - in order or numerical values in the vector
+                If concordance vector - in order or num. values in the vector
                 If string based - some order as the passed string
                 Not considered if passing a DataFrame - give the names
                 in the column 'aggregated'
@@ -1862,7 +1874,7 @@ class IOSystem(CoreSystem):
         for ee in ext:
             try:
                 del self.__dict__[ee]
-            except:
+            except KeyError:
                 for exinstancename, exdata in zip(
                         self.get_extensions(data=False),
                         self.get_extensions(data=True)):
@@ -1870,3 +1882,5 @@ class IOSystem(CoreSystem):
                         del self.__dict__[exinstancename]
             finally:
                 self.meta._add_modify("Removed extension {}".format(ee))
+
+        return self

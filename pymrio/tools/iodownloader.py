@@ -172,7 +172,8 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
     meta = MRIOMetaData(location=storage_folder,
                         description='WIOD metadata file for pymrio',
                         mrio_name='WIOD',
-                        # system='ixi', # Don’t set system here - is included in the wiod tables
+                        # Don’t set system here (included in WIOD)
+                        # system='ixi',
                         version='data13')
 
     meta = _download_urls(url_list=restricted_wiod_io_urls + satellite_urls,

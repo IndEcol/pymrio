@@ -99,6 +99,7 @@ def test_dev_read(csv_test_files_content):
         assert res['nr_index_col'] == tests.index_col
         assert res['nr_header_row'] == tests.header_rows
 
+
 def test_build_agg_matrix():
     """ Tests building the aggreagation matrix
     """
@@ -107,14 +108,15 @@ def test_build_agg_matrix():
     expected = np.array([[0.,  1.,  1.,  0.,  1.],
                          [1.,  0.,  0.,  1.,  0.]])
     am_str = build_agg_matrix(['r2', 'r1', 'r1', 'r2', 'r1'],
-                              pos_dict={'r1':0, 'r2':1})
+                              pos_dict={'r1': 0, 'r2': 1})
 
     np.testing.assert_allclose(am_num, expected)
     np.testing.assert_allclose(am_str, expected)
 
+
 def test_build_agg_vec():
     """ Simple test based on the test mrio
     """
-    vec = build_agg_vec(['OECD', 'EU'], path = 'test', miss='RoW')
+    vec = build_agg_vec(['OECD', 'EU'], path='test', miss='RoW')
     expected = ['OECD', 'EU', 'OECD', 'OECD', 'RoW', 'RoW']
     assert vec == expected

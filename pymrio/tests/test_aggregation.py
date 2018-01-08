@@ -17,6 +17,7 @@ sys.path.insert(0, _pymriopath + '/../../')
 
 import pymrio  # noqa
 
+
 def test_aggreation_regions():
     """ Testing aggregation of regions in various ways
     """
@@ -31,14 +32,14 @@ def test_aggreation_regions():
     reg_agg_vec3 = ['a', 'a', 'a', 'b', 'b', 'b']
 
     reg_agg_df = pd.DataFrame(
-         data= [('reg1', 'a'),
-                ('reg5', 'b'),
-                ('reg3', 'a'),
-                ('reg4', 'b'),
-                ('reg2', 'a'),
-                ('reg6', 'b')],
-        index=range(6),
-        columns=['original', 'aggregated'])
+         data=[('reg1', 'a'),
+               ('reg5', 'b'),
+               ('reg3', 'a'),
+               ('reg4', 'b'),
+               ('reg2', 'a'),
+               ('reg6', 'b')],
+         index=range(6),
+         columns=['original', 'aggregated'])
 
     io = pymrio.load_test()
     io.calc_all()
@@ -96,7 +97,9 @@ def test_numerical_aggreation_sectors():
     io.aggregate(sector_agg=sec_agg)
 
     np.testing.assert_allclose(manual_agg.values,
-                               io.emissions.D_terr.xs('sec2', level='sector', axis=1))
+                               io.emissions.D_terr.xs('sec2',
+                                                      level='sector',
+                                                      axis=1))
 
 
 def test_wrong_inputs():
@@ -123,16 +126,17 @@ def test_wrong_inputs():
 
     with pytest.raises(ValueError) as VA_region_name:
         reg_agg = range(len(io.get_regions()))
-        _ = io.aggregate(region_agg=reg_agg,
+        _ = io.aggregate(region_agg=reg_agg,     # noqa
                          region_names=['a', 'b'],
                          inplace=False)
     assert 'region aggregation' in str(VA_region_name.value).lower()
+
 
 def test_total_agg():
     """ Testing aggregation to total values
     """
     io = pymrio.load_test().calc_all()
     np.testing.assert_allclose(io.emissions.D_fp.sum(axis=1).to_frame().values,
-                               io.aggregate(region_agg='global',
-                                            sector_agg='total').emissions.D_fp.values)
-   
+                               io.aggregate(
+                                   region_agg='global',
+                                   sector_agg='total').emissions.D_fp.values)

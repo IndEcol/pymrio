@@ -39,9 +39,11 @@ class MRIOMetaData(object):
 
         location: str, valid path, optional
             Path or file for loading a previously saved metadata file and/or
-            saving additional metadata.  This can be the full file path or just
-            the storage folder.  In the latter case, the filename defined in
-            DEFAULT_FILE_NAMES['metadata'] (currently 'metadata.json') is assumed.
+            saving additional metadata (the method 'save' will use this
+            location by default).  This can be the full file path or just the
+            storage folder.  In the latter case, the filename defined in
+            DEFAULT_FILE_NAMES['metadata'] (currently 'metadata.json') is
+            assumed.
 
         description: str, optional
             Description of the metadata file purpose and mrio,
@@ -248,7 +250,8 @@ class MRIOMetaData(object):
             Path or file for saving the metadata.
             This can be the full file path or just the storage folder.
             In the latter case, the filename defined in
-            DEFAULT_FILE_NAMES['metadata'] (currently 'metadata.json') is assumed.
+            DEFAULT_FILE_NAMES['metadata'] (currently 'metadata.json') is
+            assumed.
 
         """
         if location:
