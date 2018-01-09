@@ -101,9 +101,8 @@ pymrio is under acitive deveopment. Open points include:
 
 - parser for other available MRIOs
 
-    * EXIOBASE 1 (http://www.exiobase.eu)
     * OPEN:EU (http://www.oneplaneteconomynetwork.org/)
-    * ...
+    * OECD MRIOs
 
 - improve test cases
 - graphical output
