@@ -1,5 +1,5 @@
-pymrio.Extension.calc_system
-============================
+pymrio\.Extension\.calc\_system
+===============================
 
 .. currentmodule:: pymrio
 

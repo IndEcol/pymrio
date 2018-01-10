@@ -1,5 +1,5 @@
-pymrio.calc_accounts
-====================
+pymrio\.calc\_accounts
+======================
 
 .. currentmodule:: pymrio
 

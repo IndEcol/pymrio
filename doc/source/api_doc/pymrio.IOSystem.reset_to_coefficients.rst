@@ -1,5 +1,5 @@
-pymrio.IOSystem.reset_to_coefficients
-=====================================
+pymrio\.IOSystem\.reset\_to\_coefficients
+=========================================
 
 .. currentmodule:: pymrio
 

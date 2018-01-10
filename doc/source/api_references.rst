@@ -193,9 +193,9 @@ Renaming
 .. autosummary::
    :toctree: api_doc/
 
-   IOSystem.set_regions
-   IOSystem.set_sectors
-   IOSystem.set_Y_categories
+   IOSystem.rename_regions
+   IOSystem.rename_sectors
+   IOSystem.rename_Y_categories
 
 ******
 Report

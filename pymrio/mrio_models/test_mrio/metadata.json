@@ -1,6 +1,6 @@
 {
     "description": "test mrio for pymrio",
-    "mrio_name": "testmrio",
+    "name": "testmrio",
     "system": "pxp",
     "version": "v1",
     "history": [

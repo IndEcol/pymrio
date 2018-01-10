@@ -1,5 +1,5 @@
-pymrio.Extension.per_source
-===========================
+pymrio\.Extension\.per\_source
+==============================
 
 .. currentmodule:: pymrio
 

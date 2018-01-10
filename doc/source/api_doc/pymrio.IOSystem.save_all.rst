@@ -1,5 +1,5 @@
-pymrio.IOSystem.save_all
-========================
+pymrio\.IOSystem\.save\_all
+===========================
 
 .. currentmodule:: pymrio
 

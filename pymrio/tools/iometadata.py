@@ -16,7 +16,7 @@ class MRIOMetaData(object):
     def __init__(self,
                  location=None,
                  description=None,
-                 mrio_name=None,
+                 name=None,
                  system=None,
                  version=None,
                  logger_function=logging.info):
@@ -27,7 +27,7 @@ class MRIOMetaData(object):
 
         Note
         -----
-            The parameters 'description', 'mrio_name', 'system', and
+            The parameters 'description', 'name', 'system', and
             'version' should be set during the establishment of the meta data
             file.  If the meta data file already exists and they are given
             again, the corresponding entry will be overwritten if
@@ -51,7 +51,7 @@ class MRIOMetaData(object):
             Will be set the first time the metadata file gets established;
             subsequent changes are recorded in 'history'.
 
-        mrio_name: str, optional
+        name: str, optional
             Name of the mrio (e.g. wiod, exiobase)
             Will be set the first time the metadata file gets established;
             subsequent changes are recorded in 'history'.
@@ -95,8 +95,8 @@ class MRIOMetaData(object):
             self.logger("Read metadata from {}".format(self._metadata_file))
             if description:
                 self.change_meta('description', description)
-            if mrio_name:
-                self.change_meta('mrio_name', mrio_name)
+            if name:
+                self.change_meta('name', name)
             if system:
                 self.change_meta('system', system)
             if version:
@@ -107,7 +107,7 @@ class MRIOMetaData(object):
                 description = 'Metadata for pymrio'
             self._content = OrderedDict([
                 ('description', description),
-                ('mrio_name', mrio_name),
+                ('name', name),
                 ('system', system),
                 ('version', version),
                 ('history', []),
@@ -131,7 +131,7 @@ class MRIOMetaData(object):
                 "Version: {ver}\n"
                 "File: {metafile}\n"
                 "History:\n{hist}".format(desc=self.description,
-                                          mrio=self.mrio_name,
+                                          mrio=self.name,
                                           system=self.system,
                                           ver=self.version,
                                           metafile=self._metadata_file,
@@ -194,8 +194,8 @@ class MRIOMetaData(object):
         return self._content['description']
 
     @property
-    def mrio_name(self):
-        return self._content['mrio_name']
+    def name(self):
+        return self._content['name']
 
     @property
     def system(self):
@@ -206,19 +206,35 @@ class MRIOMetaData(object):
         return self._content['version']
 
     def change_meta(self, para, new_value, log=True):
+        """ Changes the meta data 
+
+        Parameters
+        ----------
+        para: str
+            Meta data entry to change
+
+        new_value: str
+            New value
+
+        log: boolean, optional
+            If True (default) records the meta data change
+            in the history
+
+        """
         if para == 'history':
             raise ValueError(
-                "History can only be extended - use method 'note'")
-        old_value = self._content[para]
+                'History can only be extended - use method "note"')
+        old_value = getattr(self._content, para, None)
         if new_value == old_value:
             return
         self._content[para] = new_value
-        self._add_history(entry_type="METADATA_CHANGE",
-                          entry="Changed parameter '{para}' "
-                                "from '{old}' to '{new}'".format(
-                                    para=para,
-                                    old=old_value,
-                                    new=new_value))
+        if old_value and log:
+            self._add_history(entry_type="METADATA_CHANGE",
+                              entry='Changed parameter "{para}" '
+                                    'from "{old}" to "{new}"'.format(
+                                        para=para,
+                                        old=old_value,
+                                        new=new_value))
 
     def _time(self):
         return '{:%Y%m%d %H:%M:%S}'.format(datetime.datetime.now())

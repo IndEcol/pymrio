@@ -1,5 +1,5 @@
-pymrio.calc_M
-=============
+pymrio\.calc\_M
+===============
 
 .. currentmodule:: pymrio
 

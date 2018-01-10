@@ -274,7 +274,7 @@ def generic_exiobase_parser(exio_files, system=None):
                           if dd.get('version', '')})
 
     meta_rec = MRIOMetaData(system=system,
-                            mrio_name="EXIOBASE",
+                            name="EXIOBASE",
                             version=version)
 
     if len(version) == 0:
@@ -544,7 +544,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
                            for Qname in Qsheets}
         else:
             _content = get_repo_content(path)
-            charac_regex = re.compile('(?<!\_)characterisation.*xlsx')
+            charac_regex = re.compile('(?<!\_)(?<!\.)characterisation.*xlsx')
             charac_files = [ff for ff in _content.filelist if
                             re.search(charac_regex, ff)]
             if len(charac_files) > 1:
@@ -573,6 +573,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
                                    skiprows=list(range(0, Q_head_row[Qname])),
                                    header=None)
                                    for Qname in Qsheets}
+
 
         _unit = dict()
         # temp for the calculated impacts which than
@@ -869,7 +870,7 @@ def __parse_exiobase3(zip_file,
         Q_head_col_rowunit['Q_materials'] = 1
 
         charac_data = {Qname: pd.read_excel(charact,
-                       sheetname=Qname,
+                       sheet_name=Qname,
                        skiprows=list(range(0, Q_head_row[Qname])),
                        header=None)
                        for Qname in Qsheets}
@@ -1072,7 +1073,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     # Wiod has an unfortunate file structure with overlapping metadata and
     # header. In order to deal with that first the full file is read.
     wiot_data = pd.read_excel(wiot_file,
-                              sheetname=wiot_sheet,
+                              sheet_name=wiot_sheet,
                               header=None)
 
     meta_rec._add_fileio('WIOD data parsed from {}'.format(wiot_file))
@@ -1323,7 +1324,6 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
 
     # Build system
     wiod = IOSystem(Z=Z, Y=Y,
-                    iosystem=wiot_iosystem,
                     unit=Z_unit,
                     meta=meta_rec,
                     **ext)
@@ -1447,7 +1447,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         else:
             ff_excel = pd.ExcelFile(os.path.join(pf_env, pff_read))
         if str(year) in ff_excel.sheet_names:
-            df_env = ff_excel.parse(sheetname=str(year),
+            df_env = ff_excel.parse(sheet_name=str(year),
                                     index_col=None,
                                     header=0
                                     )
@@ -1562,7 +1562,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet='DATA'):
         sea_file = os.path.join(_SEA_folder, sorted(sea_folder_content)[0])
 
         df_sea = pd.read_excel(sea_file,
-                               sheetname=data_sheet,
+                               sheet_name=data_sheet,
                                header=0,
                                index_col=[0, 1, 2, 3])
 
@@ -1867,4 +1867,4 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
              },
         meta=meta_rec)
 
-    return locals()
+    return eora

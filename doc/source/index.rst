@@ -6,15 +6,15 @@ pymrio - multi regional input output analysis in python
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    intro
    installation
-   notebooks/autodownload
-   notebooks/working_with_wiod
+   math
+   Automatic MRIO download <notebooks/autodownload>
+   handling
    development
    changelog
-   exploring
    terminology
    api_references
 

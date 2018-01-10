@@ -15,8 +15,10 @@ GENERIC_NAMES	fileio.py	/^from pymrio.core.constants import GENERIC_NAMES$/;"	i
 GENERIC_NAMES	mriosystem.py	/^from pymrio.core.constants import GENERIC_NAMES$/;"	i
 IOSystem	fileio.py	/^from pymrio.core.mriosystem import IOSystem$/;"	i
 IOSystem	mriosystem.py	/^class IOSystem(CoreSystem):$/;"	c
+MISSING_AGG_ENTRY	constants.py	/^MISSING_AGG_ENTRY = {$/;"	v
+MISSING_AGG_ENTRY	mriosystem.py	/^from pymrio.core.constants import MISSING_AGG_ENTRY$/;"	i
 MRIOMetaData	fileio.py	/^from pymrio.tools.iometadata import MRIOMetaData$/;"	i
-OLDsaveini	mriosystem.py	/^    def OLDsaveini(self, path, table_format='txt', sep='\\t',$/;"	m	class:CoreSystem
+MRIOMetaData	mriosystem.py	/^from pymrio.tools.iometadata import MRIOMetaData$/;"	i
 PYMRIO_PATH	constants.py	/^PYMRIO_PATH = {$/;"	v
 PYMRIO_PATH	fileio.py	/^from pymrio.core.constants import PYMRIO_PATH$/;"	i
 __init__	mriosystem.py	/^    def __init__(self, Z=None, Y=None, A=None, x=None, L=None,$/;"	m	class:IOSystem
@@ -24,6 +26,8 @@ __init__	mriosystem.py	/^    def __init__(self, name, F=None, FY=None, S=None, M
 __str__	mriosystem.py	/^    def __str__(self):$/;"	m	class:Extension	file:
 __str__	mriosystem.py	/^    def __str__(self):$/;"	m	class:IOSystem	file:
 __str__	mriosystem.py	/^    def __str__(self, startstr='System with: '):$/;"	m	class:CoreSystem	file:
+_load_all_ini_based_io	fileio.py	/^def _load_all_ini_based_io(path, **kwargs):$/;"	f
+_load_ini_based_io	fileio.py	/^def _load_ini_based_io(path, recursive=False, ini=None,$/;"	f
 aggregate	mriosystem.py	/^    def aggregate(self, region_agg=None, sector_agg=None,$/;"	m	class:IOSystem
 calc_A	mriosystem.py	/^from pymrio.tools.iomath import calc_A$/;"	i
 calc_F	mriosystem.py	/^from pymrio.tools.iomath import calc_F$/;"	i
@@ -38,12 +42,12 @@ calc_system	mriosystem.py	/^    def calc_system(self):$/;"	m	class:IOSystem
 calc_system	mriosystem.py	/^    def calc_system(self, x, Y_agg, L=None, population=None):$/;"	m	class:Extension
 calc_x	mriosystem.py	/^from pymrio.tools.iomath import calc_x$/;"	i
 calc_x_from_L	mriosystem.py	/^from pymrio.tools.iomath import calc_x_from_L$/;"	i
-clean	fileio.py	/^                def clean(varStr):$/;"	f	function:load_ini_based_io
+clean	fileio.py	/^                def clean(varStr):$/;"	f	function:_load_ini_based_io
+clean	fileio.py	/^    def clean(varStr):$/;"	f	function:load_all
 clean	mriosystem.py	/^                def clean(varStr):$/;"	f	function:Extension.report_accounts
 collections	fileio.py	/^import collections$/;"	i
 collections	mriosystem.py	/^import collections$/;"	i
 configparser	fileio.py	/^import configparser$/;"	i
-configparser	mriosystem.py	/^import configparser$/;"	i
 copy	mriosystem.py	/^    def copy(self):$/;"	m	class:CoreSystem
 copy	mriosystem.py	/^import copy$/;"	i
 dc	mriosystem.py	/^                    import docutils.core as dc$/;"	i
@@ -59,10 +63,10 @@ get_row_data	mriosystem.py	/^    def get_row_data(self, row, name=None):$/;"	m	c
 get_rows	mriosystem.py	/^    def get_rows(self):$/;"	m	class:Extension
 get_sectors	mriosystem.py	/^    def get_sectors(self, entries=None):$/;"	m	class:CoreSystem
 ioutil	mriosystem.py	/^import pymrio.tools.ioutil as ioutil$/;"	i
+json	fileio.py	/^import json$/;"	i
 json	mriosystem.py	/^import json$/;"	i
-load	fileio.py	/^def load(path, recursive=False, include_core=True):$/;"	f
-load_all_ini_based_io	fileio.py	/^def load_all_ini_based_io(path, **kwargs):$/;"	f
-load_ini_based_io	fileio.py	/^def load_ini_based_io(path, recursive=False, ini=None,$/;"	f
+load	fileio.py	/^def load(path, include_core=True):$/;"	f
+load_all	fileio.py	/^def load_all(path, include_core=True, subfolders=None):$/;"	f
 load_test	fileio.py	/^def load_test():$/;"	f
 logging	fileio.py	/^import logging$/;"	i
 logging	mriosystem.py	/^import logging$/;"	i
@@ -82,6 +86,9 @@ re	fileio.py	/^import re$/;"	i
 re	mriosystem.py	/^import re$/;"	i
 recalc_M	mriosystem.py	/^from pymrio.tools.iomath import recalc_M$/;"	i
 remove_extension	mriosystem.py	/^    def remove_extension(self, ext=None):$/;"	m	class:IOSystem
+rename_Y_categories	mriosystem.py	/^    def rename_Y_categories(self, Y_categories):$/;"	m	class:CoreSystem
+rename_regions	mriosystem.py	/^    def rename_regions(self, regions):$/;"	m	class:CoreSystem
+rename_sectors	mriosystem.py	/^    def rename_sectors(self, sectors):$/;"	m	class:CoreSystem
 report_accounts	mriosystem.py	/^    def report_accounts(self, path, per_region=True, per_capita=False,$/;"	m	class:Extension
 report_accounts	mriosystem.py	/^    def report_accounts(self, path, per_region=True,$/;"	m	class:IOSystem
 reset_all_full	mriosystem.py	/^    def reset_all_full(self):$/;"	m	class:IOSystem
@@ -92,9 +99,6 @@ reset_to_coefficients	mriosystem.py	/^    def reset_to_coefficients(self):$/;"	m
 reset_to_flows	mriosystem.py	/^    def reset_to_flows(self):$/;"	m	class:CoreSystem
 save	mriosystem.py	/^    def save(self, path, table_format='txt', sep='\\t',$/;"	m	class:CoreSystem
 save_all	mriosystem.py	/^    def save_all(self, path, table_format='txt', sep='\\t',$/;"	m	class:IOSystem
-set_Y_categories	mriosystem.py	/^    def set_Y_categories(self, Y_categories):$/;"	m	class:CoreSystem
-set_regions	mriosystem.py	/^    def set_regions(self, regions):$/;"	m	class:CoreSystem
-set_sectors	mriosystem.py	/^    def set_sectors(self, sectors):$/;"	m	class:CoreSystem
 string	mriosystem.py	/^import string$/;"	i
 time	mriosystem.py	/^import time$/;"	i
 tools	mriosystem.py	/^import pymrio.tools.ioutil as ioutil$/;"	i

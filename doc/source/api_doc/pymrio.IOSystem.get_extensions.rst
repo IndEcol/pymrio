@@ -1,5 +1,5 @@
-pymrio.IOSystem.get_extensions
-==============================
+pymrio\.IOSystem\.get\_extensions
+=================================
 
 .. currentmodule:: pymrio
 

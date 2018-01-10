@@ -79,7 +79,7 @@ def calc_Z(A, x):
         If DataFrame index/columns as A
 
     """
-    if type(x) is pd.DataFrame:
+    if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
         x = x.values
     x = x.reshape((1, -1))   # use numpy broadcasting - much faster
     # (but has to ensure that x is a row vector)
@@ -109,7 +109,7 @@ def calc_A(Z, x):
         If DataFrame index/columns as Z
 
     """
-    if type(x) is pd.DataFrame:
+    if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
         x = x.values
     if (type(x) is not np.ndarray) and (x == 0):
         recix = 0

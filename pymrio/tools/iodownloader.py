@@ -171,9 +171,8 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
 
     meta = MRIOMetaData(location=storage_folder,
                         description='WIOD metadata file for pymrio',
-                        mrio_name='WIOD',
-                        # Don’t set system here (included in WIOD)
-                        # system='ixi',
+                        name='WIOD',
+                        system='ixi',
                         version='data13')
 
     meta = _download_urls(url_list=restricted_wiod_io_urls + satellite_urls,
@@ -273,7 +272,7 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
 
     meta = MRIOMetaData(location=storage_folder,
                         description='Eora metadata file for pymrio',
-                        mrio_name='Eora',
+                        name='Eora',
                         system='ixi',
                         version=version_number)
 
@@ -290,6 +289,17 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
 
     return meta
 
+def download_exiobase1():
+    """ Downloading exiobase not implemented (registration required
+    """
+    print("EXIOBASE 1 requires registration prior to download. "
+          "Please register at www.exiobase.eu and download the "
+          "EXIOBASE MRIO files "
+          "pxp_ita_44_regions_coeff_txt or "
+          "ixi_fpa_44_regions_coeff_txt "
+          "manually (tab Data Download - EXIOBASE 1 (full data set)."
+          )
+    return None
 
 def download_exiobase2():
     """ Downloading exiobase not implemented (registration required

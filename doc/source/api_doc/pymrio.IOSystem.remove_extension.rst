@@ -1,5 +1,5 @@
-pymrio.IOSystem.remove_extension
-================================
+pymrio\.IOSystem\.remove\_extension
+===================================
 
 .. currentmodule:: pymrio
 

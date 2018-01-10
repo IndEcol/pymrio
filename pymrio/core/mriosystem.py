@@ -97,9 +97,22 @@ class CoreSystem():
          if key not in self.__coefficients__]
         return self
 
-    def copy(self):
-        """ Returns a deep copy of the system """
+    def copy(self, new_name=None):
+        """ Returns a deep copy of the system 
+
+        Parameters
+        -----------
+
+        new_name: str, optional
+            Set a new meta name parameter.
+            Default: <old_name>_copy
+        """
         _tmp = copy.deepcopy(self)
+        if not new_name:
+            new_name = self.meta.name + '_copy'
+        _tmp.meta.note('IOSystem copy {new} based on {old}'.format(
+            new=new_name, old=self.meta.name))
+        _tmp.meta.change_meta('name', new_name, log=False) 
         return _tmp
 
     def get_Y_categories(self, entries=None):
@@ -373,7 +386,7 @@ class CoreSystem():
 
         if file_para['systemtype'] == GENERIC_NAMES['iosys']:
             if not self.meta:
-                self.meta = MRIOMetaData(mrio_name=self.name,
+                self.meta = MRIOMetaData(name=self.name,
                                          location=path)
 
             self.meta._add_fileio("Saved {} to {}".format(self.name, path))
@@ -439,7 +452,7 @@ class CoreSystem():
         self.meta._add_modify("Changed sector names")
         return self
 
-    def set_Y_categories(self, Y_categories):
+    def rename_Y_categories(self, Y_categories):
         """ Sets new names for the Y_categories
 
         Parameters
@@ -530,8 +543,7 @@ class Extension(CoreSystem):
     """
 
     def __init__(self, name, F=None, FY=None, S=None, M=None, D_fp=None,
-                 D_terr=None, D_imp=None, D_exp=None, unit=None,
-                 iosystem=None, version=None, year=None, **kwargs):
+                 D_terr=None, D_imp=None, D_exp=None, unit=None, **kwargs):
         """ Init function - see docstring class """
         self.name = name
         self.F = F
@@ -543,9 +555,6 @@ class Extension(CoreSystem):
         self.D_imp = D_imp
         self.D_exp = D_exp
         self.unit = unit
-        self.iosystem = iosystem
-        self.version = version
-        self.year = year
 
         for ext in kwargs:
             setattr(self, ext, kwargs[ext])
@@ -645,10 +654,10 @@ class Extension(CoreSystem):
             # ext['FY'], self.get_Y_categories().size)
             try:
                 FY_agg = (self.FY.sum(level='region', axis=1).
-                          reindex_axis(self.get_regions(), axis=1))
+                          reindex(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
                 FY_agg = (self.FY.sum(level=0, axis=1).
-                          reindex_axis(self.get_regions(), axis=1))
+                          reindex(self.get_regions(), axis=1))
 
         if ((self.D_fp is None) or
                 (self.D_terr is None) or
@@ -670,35 +679,35 @@ class Extension(CoreSystem):
             try:
                 self.D_fp_reg = (
                         self.D_fp.sum(level='region', axis=1).
-                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+                        reindex(self.get_regions(), axis=1) + FY_agg)
             except (AssertionError, KeyError):
                 self.D_fp_reg = (
                         self.D_fp.sum(level=0, axis=1).
-                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+                        reindex(self.get_regions(), axis=1) + FY_agg)
             try:
                 self.D_terr_reg = (
                         self.D_terr.sum(level='region', axis=1).
-                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+                        reindex(self.get_regions(), axis=1) + FY_agg)
             except (AssertionError, KeyError):
                 self.D_terr_reg = (
                         self.D_terr.sum(level=0, axis=1).
-                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+                        reindex(self.get_regions(), axis=1) + FY_agg)
             try:
                 self.D_imp_reg = (
                         self.D_imp.sum(level='region', axis=1).
-                        reindex_axis(self.get_regions(), axis=1))
+                        reindex(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
                 self.D_imp_reg = (
                         self.D_imp.sum(level=0, axis=1).
-                        reindex_axis(self.get_regions(), axis=1))
+                        reindex(self.get_regions(), axis=1))
             try:
                 self.D_exp_reg = (
                         self.D_exp.sum(level='region', axis=1).
-                        reindex_axis(self.get_regions(), axis=1))
+                        reindex(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
                 self.D_exp_reg = (
                         self.D_exp.sum(level=0, axis=1).
-                        reindex_axis(self.get_regions(), axis=1))
+                        reindex(self.get_regions(), axis=1))
 
             logging.debug(
                 '{} - Accounts D for regions calculated'.format(self.name))
@@ -1269,7 +1278,7 @@ class IOSystem(CoreSystem):
         Leontief, MultiTndex as Z
     unit : pandas.DataFrame
         Unit for each row of Z
-    iosystem : string
+    system : string
         Note for the IOSystem, recommended to be 'pxp' or 'ixi' for
         product by product or industry by industry.
         However, this can be any string and can have more information if needed
@@ -1299,8 +1308,9 @@ class IOSystem(CoreSystem):
     """
 
     def __init__(self, Z=None, Y=None, A=None, x=None, L=None,
-                 unit=None, population=None, iosystem=None, version=None,
-                 year=None, price=None, meta=None, name='IO', **kwargs):
+                 unit=None, population=None, system=None, version=None,
+                 year=None, price=None, meta=None, name=None, description=None, 
+                 **kwargs):
         """ Init function - see docstring class """
         self.Z = Z
         self.Y = Y
@@ -1310,15 +1320,25 @@ class IOSystem(CoreSystem):
         self.unit = unit
         self.population = population
 
-        self.name = name
-        self.iosystem = iosystem
-        self.version = version
-        self.year = year
-        self.price = price
 
-        # TODO: make sure that a metadata is established
-        # and filled with the previous metadat from above
-        self.meta = meta
+        if meta:
+            self.meta = meta
+            self.meta.change_meta('name', name)
+            self.meta.change_meta('system', system)
+            self.meta.change_meta('year', year)
+            self.meta.change_meta('price', price)
+            self.meta.change_meta('version', version)
+            self.meta.change_meta('description', description)
+        else:
+            self.meta = MRIOMetaData(
+                description=description,
+                name=name,
+                system=system,
+                version=version
+            )
+
+        if not getattr(self.meta, 'name', None):
+            self.meta.change_meta('name', 'IO')
 
         for ext in kwargs:
             setattr(self, ext, Extension(**kwargs[ext]))
@@ -1331,6 +1351,13 @@ class IOSystem(CoreSystem):
 
     def __str__(self):
         return super().__str__("IO System with parameters: ")
+
+    @property
+    def name(self):
+        try:
+            return self.meta.name
+        except AttributeError:
+            return 'undef'
 
     def calc_all(self):
         """
@@ -1410,12 +1437,12 @@ class IOSystem(CoreSystem):
             # Y_agg = util.agg_columns(self.Y, self.get_Y_categories().size)
             try:
                 Y_agg = self.Y.sum(level='region',
-                                   axis=1).reindex_axis(self.get_regions(),
-                                                        axis=1)
+                                   axis=1).reindex(self.get_regions(),
+                                                   axis=1)
             except (AssertionError, KeyError):
                 Y_agg = self.Y.sum(level=0,
-                                   axis=1,).reindex_axis(self.get_regions(),
-                                                         axis=1)
+                                   axis=1,).reindex(self.get_regions(),
+                                                    axis=1)
 
         for ext_name in extensions:
             self.meta._add_modify(

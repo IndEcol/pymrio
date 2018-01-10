@@ -14,7 +14,6 @@ Further functions include:
 - export to various formats
 - visualization routines and 
 - automated report generation
-
   
 .. _EXIOBASE: http://www.exiobase.eu/
 .. _WIOD: http://www.wiod.org/home
@@ -95,11 +94,8 @@ See the documentation and tutorials for further examples.
 Tutorials
 =========
 
-Some tutorials showing the capabilities of pymrio:
+TODO: Point to documentation
 
-#) basic introduction: http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_basic_introduction.ipynb
-#) EXIOBASE 2: http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_exiobase_tutorial.ipynb
-#) Directly assign IO attributes: http://nbviewer.ipython.org/github/konstantinstadler/pymrio/blob/master/doc/notebooks/pymrio_directly_assign_attributes.ipynb
 
 Contributing
 =============
@@ -114,9 +110,8 @@ Communication, issues, bugs and enhancements
 
 Please use the issue tracker for documenting bugs, proposing enhancements and all other communication related to coco.
 
-You can follow me on twitter_ or mastodon_ to get the latest news about all my open-source and research projects (and occasionally some random retweets).
+You can follow me on twitter_ to get the latest news about all my open-source and research projects (and occasionally some random retweets).
 
 .. _twitter: https://twitter.com/kst_stadler
-.. _mastodon: https://mastodon.rocks/@kstadler
 
 
