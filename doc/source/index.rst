@@ -10,12 +10,12 @@ Contents:
 
    intro
    installation
+   terminology
    math
    Automatic MRIO download <notebooks/autodownload>
    handling
    development
    changelog
-   terminology
    api_references
 
 

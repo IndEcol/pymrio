@@ -102,9 +102,17 @@ pymrio is under acitive deveopment. Open points include:
 - parser for other available MRIOs
 
     * OPEN:EU (http://www.oneplaneteconomynetwork.org/)
-    * OECD MRIOs
+    * OECD MRIO
 
 - improve test cases
+- wrapper for time series analysis
+  
+    * calculate timeseries
+    * extract timeseries data
+
+- reorder sectors/regions
+- automatic sector aggregation (perhaps as a separate package similar to the country converter)
+- country parameter file (GDP, GDP PPP, Population, area) for normalization of results (similar to the pop vector currently implemented for EXIOBASE 2)
 - graphical output
 
     * flow maps of impacts embodied in trade flows
