@@ -110,7 +110,7 @@ Contributing
 =============
 
 Want to contribute? Great!
-Please check `CONTRIBUTING.rst`_ if you want to help to improve coco.
+Please check `CONTRIBUTING.rst`_ if you want to help to improve pymrio.
   
 .. _CONTRIBUTING.rst: https://github.com/konstantinstadler/pymrio/blob/master/CONTRIBUTING.rst
    
