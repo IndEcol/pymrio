@@ -127,8 +127,10 @@ You can follow me on twitter_ to get the latest news about all my open-source an
 .. _twitter: https://twitter.com/kst_stadler
 
 .. _downloading: http://pymrio.readthedocs.io/en/latest/notebooks/autodownload.html
+.. _parsing: http://pymrio.readthedocs.io/en/latest/handling.html
 .. _documentation: http://pymrio.readthedocs.io/en/latest/
 .. _tutorials: http://pymrio.readthedocs.io/en/latest/handling.html
+
 .. _EXIOBASE: http://www.exiobase.eu/
 .. _WIOD: http://www.wiod.org/home
 .. _EORA26: http://www.worldmrio.com/simplified/
