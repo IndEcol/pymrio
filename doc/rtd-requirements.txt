@@ -1,0 +1,8 @@
+pandas >= 0.17.0
+numpy >= 0.12.0
+matplotlib >= 2.0.0
+requests >= 2.18
+sphinx >= 1.6.4
+sphinx_rtd_theme >= 0.2.4
+ipykernel
+nbsphinx

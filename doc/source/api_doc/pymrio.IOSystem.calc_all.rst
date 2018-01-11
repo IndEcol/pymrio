@@ -1,5 +1,5 @@
-pymrio.IOSystem.calc_all
-========================
+pymrio\.IOSystem\.calc\_all
+===========================
 
 .. currentmodule:: pymrio
 

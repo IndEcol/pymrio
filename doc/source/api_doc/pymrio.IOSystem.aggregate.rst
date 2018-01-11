@@ -1,5 +1,5 @@
-pymrio.IOSystem.aggregate
-=========================
+pymrio\.IOSystem\.aggregate
+===========================
 
 .. currentmodule:: pymrio
 

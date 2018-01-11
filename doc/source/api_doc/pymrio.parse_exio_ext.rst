@@ -1,5 +1,5 @@
-pymrio.parse_exio_ext
-=====================
+pymrio\.parse\_exio\_ext
+========================
 
 .. currentmodule:: pymrio
 

@@ -19,6 +19,25 @@ Test system
 
     load_test
 
+Download MRIO databases    
+===========================
+
+Download publicly EE MRIO databases from the web. 
+This is currently implemented for the WIOD_ and EORA26_ database 
+(EXIOBASE_ requires registration before downloading).
+
+
+.. _EXIOBASE: http://www.exiobase.eu/
+.. _WIOD: http://www.wiod.org/home
+.. _EORA26: http://www.worldmrio.com/simplified/
+
+.. autosummary::
+    :toctree: api_doc/
+
+    download_wiod2013
+    download_eora26
+
+
 Raw data
 ========
 
@@ -26,6 +45,7 @@ Raw data
     :toctree: api_doc/
 
     parse_exiobase2
+    parse_wiod
 
 Save data
 =========
@@ -133,6 +153,24 @@ numpy array.
    calc_accounts
 
 
+*********************************
+Metadata and history recording
+*********************************
+  
+   
+Each pymrio core system object contains a field 'meta' which stores meta data as well as changes to the MRIO system. This data is stored as json file in the root of a saved MRIO data and accessible through the attribute '.meta'.
+
+.. autosummary::
+   :toctree: api_doc/
+    
+   MRIOMetaData
+   MRIOMetaData.note
+   MRIOMetaData.history
+   MRIOMetaData.modification_history
+   MRIOMetaData.note_history
+   MRIOMetaData.file_io_history
+   MRIOMetaData.save
+
 *******************************************
 Modifiying the IO System and its Extensions
 *******************************************
@@ -156,7 +194,7 @@ Analysing the source of impacts
 .. autosummary::
    :toctree: api_doc/
 
-   Extension.per_source
+   Extension.diag_stressor
 
 Changing extensions
 ===================
@@ -173,9 +211,9 @@ Renaming
 .. autosummary::
    :toctree: api_doc/
 
-   IOSystem.set_regions
-   IOSystem.set_sectors
-   IOSystem.set_Y_categories
+   IOSystem.rename_regions
+   IOSystem.rename_sectors
+   IOSystem.rename_Y_categories
 
 ******
 Report

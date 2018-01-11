@@ -1,0 +1,91 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+EORA26_CONFIG	iodownloader.py	/^EORA26_CONFIG = {$/;"	v
+Extension	ioparser.py	/^from pymrio.core.mriosystem import Extension$/;"	i
+IOSystem	ioparser.py	/^from pymrio.core.mriosystem import IOSystem$/;"	i
+MRIOMetaData	iodownloader.py	/^from pymrio.tools.iometadata import MRIOMetaData$/;"	i
+MRIOMetaData	iometadata.py	/^class MRIOMetaData(object):$/;"	c
+OrderedDict	iometadata.py	/^from collections import OrderedDict$/;"	i
+PYMRIO_PATH	ioparser.py	/^from pymrio.core.constants import PYMRIO_PATH$/;"	i
+PYMRIO_PATH	ioutil.py	/^from pymrio.core.constants import PYMRIO_PATH$/;"	i
+ParserError	ioparser.py	/^class ParserError(Exception):$/;"	c
+ParserWarning	ioparser.py	/^class ParserWarning(UserWarning):$/;"	c
+WIOD_CONFIG	iodownloader.py	/^WIOD_CONFIG = {$/;"	v
+__call__	iometadata.py	/^    def __call__(self, note=None):$/;"	m	class:MRIOMetaData	file:
+__get_WIOD_SEA_extension	ioparser.py	/^def __get_WIOD_SEA_extension(root_path, year, data_sheet='DATA'):$/;"	f	file:
+__get_WIOD_env_extension	ioparser.py	/^def __get_WIOD_env_extension(root_path, year, ll_co, para):$/;"	f	file:
+__init__	iometadata.py	/^    def __init__(self, storage_folder,$/;"	m	class:MRIOMetaData
+__repr__	iometadata.py	/^    def __repr__(self):$/;"	m	class:MRIOMetaData	file:
+__str__	iometadata.py	/^    def __str__(self):$/;"	m	class:MRIOMetaData	file:
+_add_fileio	iometadata.py	/^    def _add_fileio(self, entry):$/;"	m	class:MRIOMetaData
+_add_history	iometadata.py	/^    def _add_history(self, entry_type, entry):$/;"	m	class:MRIOMetaData
+_add_modify	iometadata.py	/^    def _add_modify(self, entry):$/;"	m	class:MRIOMetaData
+_download_urls	iodownloader.py	/^def _download_urls(url_list, storage_folder, overwrite_existing,$/;"	f
+_get_history_type	iometadata.py	/^    def _get_history_type(self, history_type):$/;"	m	class:MRIOMetaData
+_get_url_datafiles	iodownloader.py	/^def _get_url_datafiles(url_db_view, url_db_content,$/;"	f
+_read_content	iometadata.py	/^    def _read_content(self):$/;"	m	class:MRIOMetaData
+_rep	ioutil.py	/^    def _rep(ll, ii, vv): ll[ii] = vv$/;"	f	function:build_agg_vec
+_time	iometadata.py	/^    def _time(self):$/;"	m	class:MRIOMetaData
+_write_content	iometadata.py	/^    def _write_content(self):$/;"	m	class:MRIOMetaData
+build_agg_matrix	ioutil.py	/^def build_agg_matrix(agg_vector, pos_dict=None):$/;"	f
+build_agg_vec	ioutil.py	/^def build_agg_vec(agg_vec, **source):$/;"	f
+calc_A	iomath.py	/^def calc_A(Z, x):$/;"	f
+calc_F	iomath.py	/^def calc_F(S, x):$/;"	f
+calc_L	iomath.py	/^def calc_L(A):$/;"	f
+calc_M	iomath.py	/^def calc_M(S, L):$/;"	f
+calc_S	iomath.py	/^def calc_S(F, x):$/;"	f
+calc_Z	iomath.py	/^def calc_Z(A, x):$/;"	f
+calc_accounts	iomath.py	/^def calc_accounts(S, L, Y, nr_sectors):$/;"	f
+calc_e	iomath.py	/^def calc_e(M, Y):$/;"	f
+calc_x	iomath.py	/^def calc_x(Z, Y):$/;"	f
+calc_x_from_L	iomath.py	/^def calc_x_from_L(L, y):$/;"	f
+change_meta	iometadata.py	/^    def change_meta(self, para, new_value):$/;"	m	class:MRIOMetaData
+collections	ioparser.py	/^import collections$/;"	i
+concate_extension	ioutil.py	/^def concate_extension(*extensions, name):$/;"	f
+datetime	iometadata.py	/^import datetime$/;"	i
+description	iometadata.py	/^    def description(self):$/;"	m	class:MRIOMetaData
+diagonalize_blocks	ioutil.py	/^def diagonalize_blocks(arr, blocksize):$/;"	f
+download_eora26	iodownloader.py	/^def download_eora26(storage_folder, years=None, prices=['bp'],$/;"	f
+download_exiobase2	iodownloader.py	/^def download_exiobase2():$/;"	f
+download_wiod2013	iodownloader.py	/^def download_wiod2013(storage_folder, years=None, overwrite_existing=False,$/;"	f
+file_io_history	iometadata.py	/^    def file_io_history(self):$/;"	m	class:MRIOMetaData
+history	iometadata.py	/^    def history(self):$/;"	m	class:MRIOMetaData
+ioutil	iomath.py	/^import pymrio.tools.ioutil as ioutil$/;"	i
+is_vector	ioutil.py	/^def is_vector(inp):$/;"	f
+json	iometadata.py	/^import json$/;"	i
+load_metadata	iometadata.py	/^def load_metadata(location):$/;"	f
+logging	ioparser.py	/^import logging$/;"	i
+metadata	iometadata.py	/^    def metadata(self):$/;"	m	class:MRIOMetaData
+modification_history	iometadata.py	/^    def modification_history(self):$/;"	m	class:MRIOMetaData
+mrio_name	iometadata.py	/^    def mrio_name(self):$/;"	m	class:MRIOMetaData
+namedtuple	iodownloader.py	/^from collections import namedtuple$/;"	i
+note	iometadata.py	/^    def note(self, entry):$/;"	m	class:MRIOMetaData
+note_history	iometadata.py	/^    def note_history(self):$/;"	m	class:MRIOMetaData
+np	iomath.py	/^import numpy as np$/;"	i
+np	ioparser.py	/^import numpy as np$/;"	i
+np	ioutil.py	/^import numpy as np$/;"	i
+os	iodownloader.py	/^import os$/;"	i
+os	iometadata.py	/^import os$/;"	i
+os	ioparser.py	/^import os$/;"	i
+os	ioutil.py	/^import os$/;"	i
+parse_exio_ext	ioparser.py	/^def parse_exio_ext(file, index_col, name, drop_compartment=True,$/;"	f
+parse_exiobase2	ioparser.py	/^def parse_exiobase2(path, charact=None, iosystem=None,$/;"	f
+parse_exiobase3	ioparser.py	/^def parse_exiobase3(zip_file,$/;"	f
+parse_wiod	ioparser.py	/^def parse_wiod(path, year=None, names=('isic', 'c_codes'),$/;"	f
+pd	iomath.py	/^import pandas as pd$/;"	i
+pd	ioparser.py	/^import pandas as pd$/;"	i
+pymrio	iomath.py	/^import pymrio.tools.ioutil as ioutil$/;"	i
+re	iodownloader.py	/^import re$/;"	i
+recalc_M	iomath.py	/^def recalc_M(S, D_fp, Y, nr_sectors):$/;"	f
+requests	iodownloader.py	/^import requests$/;"	i
+set_block	ioutil.py	/^def set_block(arr, arr_block):$/;"	f
+system	iometadata.py	/^    def system(self):$/;"	m	class:MRIOMetaData
+tools	iomath.py	/^import pymrio.tools.ioutil as ioutil$/;"	i
+unique_element	ioutil.py	/^def unique_element(ll):$/;"	f
+version	iometadata.py	/^    def version(self):$/;"	m	class:MRIOMetaData
+warnings	ioparser.py	/^import warnings$/;"	i
+zipfile	ioparser.py	/^import zipfile$/;"	i

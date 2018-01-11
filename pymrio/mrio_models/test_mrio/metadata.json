@@ -1,0 +1,9 @@
+{
+    "description": "test mrio for pymrio",
+    "name": "testmrio",
+    "system": "pxp",
+    "version": "v1",
+    "history": [
+        "20171024 12:11:47 - FILEIO -  Created metadata file ../test_mrio/metadata.json"
+    ]
+}

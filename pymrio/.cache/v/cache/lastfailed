@@ -1,1 +1,9 @@
-{}
+{
+  "__init__.py": true,
+  "core/__init__.py": true,
+  "core/constants.py": true,
+  "core/fileio.py": true,
+  "core/mriosystem.py": true,
+  "tests/full_run.py": true,
+  "tests/test_math.py": true
+}

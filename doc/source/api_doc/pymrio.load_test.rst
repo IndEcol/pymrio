@@ -1,5 +1,5 @@
-pymrio.load_test
-================
+pymrio\.load\_test
+==================
 
 .. currentmodule:: pymrio
 

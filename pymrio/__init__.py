@@ -1,18 +1,18 @@
-""" 
-Pymrio - A python module for automating input output calculations and generating reports
-========================================================================================
+"""
+Pymrio - A python module for automating io calculations and generating reports
+==============================================================================
 
 The classes and tools in this module should work with any symetric IO system.
 
-The main class of the module (IOSystem) has attributes .A, .L, ... 
-corresponding to a standard IO classification. 
-Data can be assigned directly to the attributes or by calling the 
+The main class of the module (IOSystem) has attributes .A, .L, ...
+corresponding to a standard IO classification.
+Data can be assigned directly to the attributes or by calling the
 parsing or load functions.
 
 Data storage
 ------------
-Txt files together with a ini file are used for storing data. In addition, 
-the IOSystem with all data can also be pickled (binary). 
+Txt files together with a ini file are used for storing data. In addition,
+the IOSystem with all data can also be pickled (binary).
 Conversion to hdf5 and mat should be implemented...
 
 Misc
@@ -25,37 +25,33 @@ Dependencies:
 - scipy
 - pandas
 - matplotlib
-- docutils (only for IOSystem.report* if format is html and tex - not 
+- docutils (only for IOSystem.report* if format is html and tex - not
             imported otherwise)
 
-:Authors: Konstantin Stadler 
+:Authors: Konstantin Stadler
 
-:license: BSD 2-Clause License
+:license: BSD 3-Clause License
 
 """
 
 import sys
+import logging
 
-
-# check for correct python version number
-if sys.version_info.major < 3: 
-    logging.warn('This package requires Python 3.0 or later.')
-
-# version
-__version__ = '0.2.2'
-
-# import public functionality 
+from pymrio.version import __version__
 
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
 
-from pymrio.core.fileio import load_all
-from pymrio.core.fileio import load
-from pymrio.core.fileio import load_test
+from pymrio.core.fileio import *
 
-from pymrio.tools.ioparser import parse_exio_ext
-from pymrio.tools.ioparser import parse_exiobase2
-from pymrio.tools.ioparser import parse_exiobase3
+from pymrio.tools.ioparser import *
+
+from pymrio.tools.iodownloader import download_eora26
+from pymrio.tools.iodownloader import download_wiod2013
+from pymrio.tools.iodownloader import download_exiobase2
+from pymrio.tools.iodownloader import download_exiobase1
+
+from pymrio.tools.iometadata import MRIOMetaData
 
 from pymrio.tools.ioutil import concate_extension
 from pymrio.tools.ioutil import build_agg_vec
@@ -71,6 +67,3 @@ from pymrio.tools.iomath import calc_F
 from pymrio.tools.iomath import calc_M
 from pymrio.tools.iomath import calc_e
 from pymrio.tools.iomath import calc_accounts
-
-
-#__all__ = ['spam', 'grok']

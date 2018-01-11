@@ -1,5 +1,5 @@
-pymrio.IOSystem.get_DataFrame
-=============================
+pymrio\.IOSystem\.get\_DataFrame
+================================
 
 .. currentmodule:: pymrio
 

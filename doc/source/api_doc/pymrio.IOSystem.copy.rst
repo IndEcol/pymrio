@@ -1,5 +1,5 @@
-pymrio.IOSystem.copy
-====================
+pymrio\.IOSystem\.copy
+======================
 
 .. currentmodule:: pymrio
 

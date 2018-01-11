@@ -1,5 +1,5 @@
-pymrio.IOSystem.report_accounts
-===============================
+pymrio\.IOSystem\.report\_accounts
+==================================
 
 .. currentmodule:: pymrio
 

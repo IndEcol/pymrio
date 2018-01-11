@@ -1,5 +1,5 @@
-pymrio.IOSystem.reset_to_flows
-==============================
+pymrio\.IOSystem\.reset\_to\_flows
+==================================
 
 .. currentmodule:: pymrio
 

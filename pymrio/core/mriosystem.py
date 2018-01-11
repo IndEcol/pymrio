@@ -1,37 +1,49 @@
-""" 
+"""
 Generic classes for pymrio
 
-Classes and function here should not be used directly. Use the API methods from the pymrio module instead.
+Classes and function here should not be used directly.
+Use the API methods from the pymrio module instead.
 
 """
 
-import os
+import collections
 import copy
+import json
 import logging
-import numpy as np
-import pandas as pd
-import configparser
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+import os
+import re
 import string
 import time
-import collections
-import re
+import warnings
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
+from pymrio.tools.iomath import calc_A
+from pymrio.tools.iomath import calc_F
+from pymrio.tools.iomath import calc_L
+from pymrio.tools.iomath import calc_M
+from pymrio.tools.iomath import calc_S
+from pymrio.tools.iomath import calc_Z
+from pymrio.tools.iomath import calc_accounts
 from pymrio.tools.iomath import calc_x
 from pymrio.tools.iomath import calc_x_from_L
-from pymrio.tools.iomath import calc_Z
-from pymrio.tools.iomath import calc_A
-from pymrio.tools.iomath import calc_L
-from pymrio.tools.iomath import calc_S
-from pymrio.tools.iomath import calc_F
-from pymrio.tools.iomath import calc_M
-from pymrio.tools.iomath import calc_e
-from pymrio.tools.iomath import calc_accounts
 from pymrio.tools.iomath import recalc_M
 
 import pymrio.tools.ioutil as ioutil
+
+from pymrio.core.constants import DEFAULT_FILE_NAMES
+from pymrio.core.constants import GENERIC_NAMES
+from pymrio.core.constants import MISSING_AGG_ENTRY
+from pymrio.tools.iometadata import MRIOMetaData
+
+
+# internal functions
+def _warn_deprecation(message):
+    warnings.warn(message, DeprecationWarning, stacklevel=2)
+
 
 # Abstract classes
 class CoreSystem():
@@ -39,61 +51,77 @@ class CoreSystem():
 
     Note
     ----
-    Thats only the base class - instantiation of this class makes no sense.
-    
+    Thats is only a base class - do not make an instance of this class.
+
     """
 
-    def __str__(self, startstr = 'System with: '):
-        parastr = ', '.join([attr for attr in 
-                            self.__dict__ 
-                            if self.__dict__[attr] is not None 
-                                and '__' not in attr])
+    def __str__(self, startstr='System with: '):
+        parastr = ', '.join([attr for attr in
+                            self.__dict__
+                            if self.__dict__[attr] is not None and
+                            '__' not in attr])
         return startstr + parastr
+
     def reset_full(self):
         """ Remove all accounts which can be recalculated.
-
         """
         # Attriubtes to keep must be defined in the init: __basic__
-        [setattr(self,key,None) 
-                for key in self.get_DataFrame(
-                    data = False, 
-                    with_unit = False,
-                    with_population = False)
-                if key not in self.__basic__]
+        [setattr(self, key, None)
+         for key in self.get_DataFrame(
+                data=False,
+                with_unit=False,
+                with_population=False)
+         if key not in self.__basic__]
+        return self
 
     def reset_to_flows(self):
-        """ Keeps only the absolute values. 
-        
+        """ Keeps only the absolute values.
+
         This removes all attributes which can not be aggregated and must be
         recalculated after the aggregation.
 
         """
         # Development note: The attributes which should be removed are
-        # defined in self.__non_agg_attributes__ 
-        [setattr(self,key,None) for key in self.__non_agg_attributes__]
+        # defined in self.__non_agg_attributes__
+        [setattr(self, key, None) for key in self.__non_agg_attributes__]
+        return self
 
     def reset_to_coefficients(self):
         """ Keeps only the coefficient.
 
-        This can be used to recalculate the IO tables for a new finald demand. 
+        This can be used to recalculate the IO tables for a new finald demand.
 
         """
-        # Development note: The coefficient attributes are 
-            # defined in self.__coefficients__
-        [setattr(self,key,None) 
-                for key in self.get_DataFrame(
-                    data = False, 
-                    with_unit = False,
-                    with_population = False)
-                if key not in self.__coefficients__]
+        # Development note: The coefficient attributes are
+        # defined in self.__coefficients__
+        [setattr(self, key, None)
+         for key in self.get_DataFrame(
+             data=False,
+             with_unit=False,
+             with_population=False)
+         if key not in self.__coefficients__]
+        return self
 
-    def copy(self):
-        """ Returns a deep copy of the system """
+    def copy(self, new_name=None):
+        """ Returns a deep copy of the system
+
+        Parameters
+        -----------
+
+        new_name: str, optional
+            Set a new meta name parameter.
+            Default: <old_name>_copy
+        """
         _tmp = copy.deepcopy(self)
+        if not new_name:
+            new_name = self.meta.name + '_copy'
+        _tmp.meta.note('IOSystem copy {new} based on {old}'.format(
+            new=new_name, old=self.meta.name))
+        _tmp.meta.change_meta('name', new_name, log=False)
         return _tmp
 
-    def get_Y_categories(self, entries = None):
-        """ Returns the names of y categories in the IOSystem as unique names in order
+    def get_Y_categories(self, entries=None):
+        """ Returns names of y cat. of the IOSystem as unique names in order
 
         Parameters
         ----------
@@ -103,18 +131,22 @@ class CoreSystem():
         Returns
         -------
         Index
-            List of categories, None if no attribute to determine list is available
+            List of categories, None if no attribute to determine
+            list is available
         """
         possible_dataframes = ['Y', 'FY']
-        
+
         for df in possible_dataframes:
-            if (df in self.__dict__) and (getattr(self,df) is not None):
+            if (df in self.__dict__) and (getattr(self, df) is not None):
                 try:
-                    ind = getattr(self, df).columns.get_level_values('category').unique()
+                    ind = getattr(self, df).columns.get_level_values(
+                        'category').unique()
                 except (AssertionError, KeyError):
-                    ind = getattr(self, df).columns.get_level_values(1).unique()
+                    ind = getattr(self, df).columns.get_level_values(
+                        1).unique()
                 if entries:
-                    if type(entries) is str: entries = [entries]
+                    if type(entries) is str:
+                        entries = [entries]
                     ind = ind.tolist()
                     return [None if ee not in entries else ee for ee in ind]
                 else:
@@ -126,18 +158,20 @@ class CoreSystem():
     def get_index(self):
         """ Returns the pure index of the DataFrames in the system """
 
-        possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'FY', 'M', 'S', 
+        possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'FY', 'M', 'S',
                                'D_fp', 'D_terr',  'D_imp', 'D_exp',
-                               'D_fp_reg', 'D_terr_reg',  'D_imp_reg', 'D_exp_reg',
-                               'D_fp_cap', 'D_terr_cap',  'D_imp_cap', 'D_exp_cap', ]
+                               'D_fp_reg', 'D_terr_reg',
+                               'D_imp_reg', 'D_exp_reg',
+                               'D_fp_cap', 'D_terr_cap',
+                               'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
-            if (df in self.__dict__) and (getattr(self,df) is not None):
+            if (df in self.__dict__) and (getattr(self, df) is not None):
                 return getattr(self, df).index
         else:
             logging.warn("No attributes available to get regions")
             return None
 
-    def get_regions(self, entries = None):
+    def get_regions(self, entries=None):
         """ Returns the names of regions in the IOSystem as unique names in order
 
         Parameters
@@ -147,22 +181,29 @@ class CoreSystem():
 
         Returns
         -------
-        Index 
-            List of regions, None if now attribute to determine list is available
+        Index
+            List of regions,
+            None if now attribute to determine list is available
 
         """
-        possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'FY', 'M', 'S', 
+        possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'FY', 'M', 'S',
                                'D_fp', 'D_terr',  'D_imp', 'D_exp',
-                               'D_fp_reg', 'D_terr_reg',  'D_imp_reg', 'D_exp_reg',
-                               'D_fp_cap', 'D_terr_cap',  'D_imp_cap', 'D_exp_cap', ]
+                               'D_fp_reg', 'D_terr_reg',
+                               'D_imp_reg', 'D_exp_reg',
+                               'D_fp_cap', 'D_terr_cap',
+                               'D_imp_cap', 'D_exp_cap', ]
+
         for df in possible_dataframes:
-            if (df in self.__dict__) and (getattr(self,df) is not None):
+            if (df in self.__dict__) and (getattr(self, df) is not None):
                 try:
-                    ind = getattr(self, df).columns.get_level_values('region').unique()
+                    ind = getattr(self, df).columns.get_level_values(
+                        'region').unique()
                 except (AssertionError, KeyError):
-                    ind = getattr(self, df).columns.get_level_values(0).unique()
+                    ind = getattr(self, df).columns.get_level_values(
+                        0).unique()
                 if entries:
-                    if type(entries) is str: entries = [entries]
+                    if type(entries) is str:
+                        entries = [entries]
                     ind = ind.tolist()
                     return [None if ee not in entries else ee for ee in ind]
                 else:
@@ -171,8 +212,8 @@ class CoreSystem():
             logging.warn("No attributes available to get regions")
             return None
 
-    def get_sectors(self, entries = None):
-        """ Returns the names of sectors in the IOSystem as unique names in order
+    def get_sectors(self, entries=None):
+        """ Names of sectors in the IOSystem as unique names in order
 
         Parameters
         ----------
@@ -182,21 +223,27 @@ class CoreSystem():
         Returns
         -------
         Index
-            List of sectors, None if no attribute to determine the list is available
+            List of sectors,
+            None if no attribute to determine the list is available
 
         """
-        possible_dataframes = ['A', 'L', 'Z', 'F', 'M', 'S',  
+        possible_dataframes = ['A', 'L', 'Z', 'F', 'M', 'S',
                                'D_fp', 'D_terr',  'D_imp', 'D_exp',
-                               'D_fp_reg', 'D_terr_reg',  'D_imp_reg', 'D_exp_reg',
-                               'D_fp_cap', 'D_terr_cap',  'D_imp_cap', 'D_exp_cap', ]
+                               'D_fp_reg', 'D_terr_reg',
+                               'D_imp_reg', 'D_exp_reg',
+                               'D_fp_cap', 'D_terr_cap',
+                               'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
-            if (df in self.__dict__) and (getattr(self,df) is not None):
+            if (df in self.__dict__) and (getattr(self, df) is not None):
                 try:
-                    ind = getattr(self, df).columns.get_level_values('sector').unique()
+                    ind = getattr(self, df).columns.get_level_values(
+                        'sector').unique()
                 except (AssertionError, KeyError):
-                    ind = getattr(self, df).columns.get_level_values(1).unique()
+                    ind = getattr(self, df).columns.get_level_values(
+                        1).unique()
                 if entries:
-                    if type(entries) is str: entries = [entries]
+                    if type(entries) is str:
+                        entries = [entries]
                     ind = ind.tolist()
                     return [None if ee not in entries else ee for ee in ind]
                 else:
@@ -205,9 +252,9 @@ class CoreSystem():
             logging.warn("No attributes available to get sectors")
             return None
 
-    def get_DataFrame(self, data=False, with_unit = True, with_population = True):
+    def get_DataFrame(self, data=False, with_unit=True, with_population=True):
         """ Yields all panda.DataFrames or there names
-        
+
         Notes
         -----
         For IOSystem this does not include the DataFrames in the extensions.
@@ -216,11 +263,13 @@ class CoreSystem():
         ----------
         data : boolean, optional
             If True, returns a generator which yields the DataFrames.
-            If False, returns a generator which yields only the names of the DataFrames
+            If False, returns a generator which
+            yields only the names of the DataFrames
 
         with_unit: boolean, optional
             If True, includes the 'unit' DataFrame
-            If False, does not include the 'unit' DataFrame. The method than only yields the numerical data tables
+            If False, does not include the 'unit' DataFrame.
+            The method than only yields the numerical data tables
 
         with_population: boolean, optional
             If True, includes the 'population' vector
@@ -233,92 +282,86 @@ class CoreSystem():
         """
 
         for key in self.__dict__:
-            if (key is 'unit') and not with_unit: continue
-            if (key is 'population') and not with_population: continue
-            if type(self.__dict__[key]) is pd.DataFrame: 
+            if (key is 'unit') and not with_unit:
+                continue
+            if (key is 'population') and not with_population:
+                continue
+            if type(self.__dict__[key]) is pd.DataFrame:
                 if data:
                     yield getattr(self, key)
                 else:
                     yield key
 
-    def save(self, path, table_format = 'txt', sep = '\t', table_ext = None, float_format = '%.12g'):
-        """ Saves the system as text or binary pickle files.
-    
-        Tables (dataframes) of the current system are saved as text or binary pickle files, meta data (all other attributes) and the specifications of the tables are saved in a ini file.
+    def save(self, path, table_format='txt', sep='\t',
+             table_ext=None, float_format='%.12g'):
+        """ Developing version for saving with json instead of ini for meta
 
-        Notes
-        -----
-        For IOSystem this does not include the DataFrames in the extension (only the trade system itself). 
-        Use save_all to save the whole system.
 
         Parameters
         ----------
         path : string
-            path for the saved data (will be created if necessary, data within will be overwritten).
-            The path can contain the name for the ini file, otherwise this will be based on the name attribute.
+            path for the saved data (will be created if necessary, data
+            within will be overwritten).
 
         table_format : string
             Format to save the DataFrames:
-                
-                - 'pkl' : Binary pickle files, (alias: 'pickle', 'bin', 'binary')
-                - 'txt' : Text files, (alis: 'text') default
+
+                - 'pkl' : Binary pickle files,
+                          alias: 'pickle', 'bin', 'binary'
+                - 'txt' : Text files (default), alias: 'text', 'csv'
 
         table_ext : string, optional
-            File extension, default depends on table_format(.pkl for pickle, .txt for text)
+            File extension,
+            default depends on table_format(.pkl for pickle, .txt for text)
 
         sep : string, optional
-            Field delimiter for the output file, only for txt files
+            Field delimiter for the output file, only for txt files.
+            Default: tab ('\t')
 
         float_format : string, optional
-            Format for saving the DataFrames, default = '%.12g', only for txt files
+            Format for saving the DataFrames,
+            default = '%.12g', only for txt files
         """
+
         path = path.rstrip('\\')
         path = os.path.abspath(path)
-        
-        ini_file_name = self.name + '.ini'
-        if os.path.splitext(path)[1] == '.ini':
-            (path,ini_file_name) = os.path.split(path)
-            
-        
+
+        para_file_path = os.path.join(path, DEFAULT_FILE_NAMES['filepara'])
+        file_para = dict()
+        file_para['files'] = dict()
+
+        # meta_file_path = os.path.join(path, DEFAULT_FILE_NAMES['metadata'])
+
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
 
-        if table_format == 'text' : table_format = 'txt'
-        if table_format == 'pickle' : table_format = 'pkl'
-        if table_format == 'bin' : table_format = 'pkl'
-        if table_format == 'binary' : table_format = 'pkl'
-        if table_format != 'txt' and table_format != 'pkl':
-            logging.error('Unknown table format')
+        if table_format in ['text', 'csv', 'txt']:
+            table_format = 'txt'
+        elif table_format in ['pickle', 'bin', 'binary', 'pkl']:
+            table_format = 'pkl'
+        else:
+            raise ValueError('Unknown table format "{}" - '
+                             'must be "txt" or "pkl"'.format(table_format))
             return None
 
         if not table_ext:
-            if table_format == 'txt': table_ext = '.txt'
-            if table_format == 'pkl': table_ext = '.pkl'
+            if table_format == 'txt':
+                table_ext = '.txt'
+            if table_format == 'pkl':
+                table_ext = '.pkl'
 
-        io_ini = configparser.RawConfigParser()
-        io_ini.optionxform = lambda option: option
-        io_ini['systemtype'] = dict()
-        io_ini['meta'] = dict()
-        io_ini['files'] = dict()
-
-        if str(type(self)) ==  "<class 'pymrio.core.mriosystem.IOSystem'>":
-            io_ini['systemtype']['systemtype'] = 'IOSystem'
-        elif str(type(self)) ==  "<class 'pymrio.core.mriosystem.Extension'>":
-            io_ini['systemtype']['systemtype'] = 'Extension'
+        if str(type(self)) == "<class 'pymrio.core.mriosystem.IOSystem'>":
+            file_para['systemtype'] = GENERIC_NAMES['iosys']
+        elif str(type(self)) == "<class 'pymrio.core.mriosystem.Extension'>":
+            file_para['systemtype'] = GENERIC_NAMES['ext']
+            file_para['name'] = self.name
         else:
-            logging.warn('Unknown system type')
-            io_ini['systemtype']['systemtype'] = 'undef'
+            logging.warn('Unknown system type {} - set to "undef"'.format(
+                str(type(self))))
+            file_para['systemtype'] = 'undef'
 
-        meta_data = [k for k in self.__dict__.keys() 
-                        if not (k in self.get_DataFrame() 
-                        or str(type(getattr(self,k))) == "<class 'pymrio.Extension'>")]
-        
-        for k in meta_data:
-            if k[0:2] == '__': continue
-            if getattr(self,k) is None: continue
-            io_ini['meta'][k] = str(getattr(self,k))
-
-        for df,df_name in zip(self.get_DataFrame(data = True), self.get_DataFrame()):
+        for df, df_name in zip(self.get_DataFrame(data=True),
+                               self.get_DataFrame()):
             if type(df.index) is pd.MultiIndex:
                 nr_index_col = len(df.index.levels)
             else:
@@ -328,95 +371,123 @@ class CoreSystem():
                 nr_header = len(df.columns.levels)
             else:
                 nr_header = 1
-            
+
             save_file = df_name + table_ext
-            save_file_with_path = os.path.join(path,save_file)
+            save_file_with_path = os.path.join(path, save_file)
             logging.info('Save file {}'.format(save_file_with_path))
             if table_format == 'txt':
-                df.to_csv(save_file_with_path, sep=sep, float_format = float_format)
+                df.to_csv(save_file_with_path, sep=sep,
+                          float_format=float_format)
             else:
                 df.to_pickle(save_file_with_path)
-            
-            io_ini['files'][df_name] = save_file
-            io_ini['files'][df_name + '_nr_index_col'] = str(nr_index_col)
-            io_ini['files'][df_name + '_nr_header'] = str(nr_header)
 
-        with open (os.path.join(path, ini_file_name), 'w') as _savefile:
-            io_ini.write(_savefile) 
+            file_para['files'][df_name] = dict()
+            file_para['files'][df_name]['name'] = save_file
+            file_para['files'][df_name]['nr_index_col'] = str(nr_index_col)
+            file_para['files'][df_name]['nr_header'] = str(nr_header)
 
-        logging.info('Successfully saved - description at {}'.format(os.path.join(path, ini_file_name)))
+        with open(para_file_path, 'w') as pf:
+            json.dump(file_para, pf, indent=4)
 
-    def set_regions(self, regions):
+        if file_para['systemtype'] == GENERIC_NAMES['iosys']:
+            if not self.meta:
+                self.meta = MRIOMetaData(name=self.name,
+                                         location=path)
+
+            self.meta._add_fileio("Saved {} to {}".format(self.name, path))
+            self.meta.save(location=path)
+        return self
+
+    def rename_regions(self, regions):
         """ Sets new names for the regions
 
         Parameters
         ----------
         regions : list or dict
-            In case of dict: {'old_name' :  'new_name'} with a entry for each old_name which should be renamed
-            In case of list: List of new names in order and complete without repetition
+            In case of dict: {'old_name' :  'new_name'} with a
+                entry for each old_name which should be renamed
+            In case of list: List of new names in order and complete
+                without repetition
 
         """
 
-        if type(regions) is list: 
-            regions = {old:new for old,new in zip(self.get_regions(), regions)}
+        if type(regions) is list:
+            regions = {old: new for old, new in
+                       zip(self.get_regions(), regions)}
 
         for df in self.get_DataFrame(data=True):
             df.rename(index=regions, columns=regions, inplace=True)
 
-        try: 
+        try:
             for ext in self.get_extensions(data=True):
                 for df in ext.get_DataFrame(data=True):
                     df.rename(index=regions, columns=regions, inplace=True)
         except:
-            pass  
+            pass
 
-    def set_sectors(self, sectors):
+        self.meta._add_modify("Changed country names")
+        return self
+
+    def rename_sectors(self, sectors):
         """ Sets new names for the sectors
 
         Parameters
         ----------
         sectors : list or dict
-            In case of dict: {'old_name' :  'new_name'} with a entry for each old_name which should be renamed
-            In case of list: List of new names in order and complete without repetition
+            In case of dict: {'old_name' :  'new_name'} with an
+                entry for each old_name which should be renamed
+            In case of list: List of new names in order and
+                complete without repetition
 
         """
 
-        if type(sectors) is list: 
-            sectors = {old:new for old,new in zip(self.get_sectors(), sectors)}
+        if type(sectors) is list:
+            sectors = {old: new for old, new in
+                       zip(self.get_sectors(), sectors)}
 
         for df in self.get_DataFrame(data=True):
             df.rename(index=sectors, columns=sectors, inplace=True)
 
-        try: 
+        try:
             for ext in self.get_extensions(data=True):
                 for df in ext.get_DataFrame(data=True):
                     df.rename(index=sectors, columns=sectors, inplace=True)
         except:
-            pass  
+            pass
+        self.meta._add_modify("Changed sector names")
+        return self
 
-    def set_Y_categories(self, Y_categories):
+    def rename_Y_categories(self, Y_categories):
         """ Sets new names for the Y_categories
 
         Parameters
         ----------
         Y_categories : list or dict
-            In case of dict: {'old_name' :  'new_name'} with a entry for each old_name which should be renamed
-            In case of list: List of new names in order and complete without repetition
+            In case of dict: {'old_name' :  'new_name'} with an
+                entry for each old_name which should be renamed
+            In case of list: List of new names in order and
+                complete without repetition
 
         """
 
-        if type(Y_categories) is list: 
-            Y_categories = {old:new for old,new in zip(self.get_Y_categories(), Y_categories)}
+        if type(Y_categories) is list:
+            Y_categories = {old: new for old, new in
+                            zip(self.get_Y_categories(), Y_categories)}
 
         for df in self.get_DataFrame(data=True):
             df.rename(index=Y_categories, columns=Y_categories, inplace=True)
 
-        try: 
+        try:
             for ext in self.get_extensions(data=True):
                 for df in ext.get_DataFrame(data=True):
-                    df.rename(index=Y_categories, columns=Y_categories, inplace=True)
+                    df.rename(index=Y_categories,
+                              columns=Y_categories,
+                              inplace=True)
         except:
-            pass  
+            pass
+
+        self.meta._add_modify("Changed Y category names")
+        return self
 
 
 # API classes
@@ -425,8 +496,8 @@ class Extension(CoreSystem):
 
     Notes
     -----
-    
-    For the total accounts (D_) also reginal (appendix _reg) and 
+
+    For the total accounts (D_) also reginal (appendix _reg) and
     per capita (appendix _cap) are possible.
 
     Attributes
@@ -436,46 +507,48 @@ class Extension(CoreSystem):
         of the instance. However, for plotting and saving this can also be
         changed.  This name will also be used for saving the extension as
         prefix to the attributes.
-    F : pandas.DataFrame     
+    F : pandas.DataFrame
         Total direct impacts with columns as Z. Index with (['stressor',
         'compartment']).
         The second level 'compartment' is optional
-    FY : pandas.DataFrame       
+    FY : pandas.DataFrame
         Extension of final demand with columns a y and index as F
-    S : pandas.DataFrame        
+    S : pandas.DataFrame
         Direct impact (extensions) coefficients with multiindex as F
-    M : pandas.DataFrame        
+    M : pandas.DataFrame
         Multipliers with multiindex as F
-    D_fp : pandas.DataFrame        
-        Footprint of consumption,  further specification with 
-        _reg (per region) or _cap (per capita) possible 
-    D_terr : pandas.DataFrame        
+    D_fp : pandas.DataFrame
+        Footprint of consumption,  further specification with
+        _reg (per region) or _cap (per capita) possible
+    D_terr : pandas.DataFrame
         Territorial accounts, further specification with _reg (per region) or
-        _cap (per capita) possible      
-    D_imp : pandas.DataFrame        
+        _cap (per capita) possible
+    D_imp : pandas.DataFrame
         Import accounts (amount of 'extension' embodied in imports), further
-        specification with _reg (per region) or _cap (per capita) possible           
-    D_exp : pandas.DataFrame        
+        specification with _reg (per region) or _cap (per capita) possible
+    D_exp : pandas.DataFrame
         Export accounts (amount of 'extension' embodied in exports), further
-        specification with _reg (per region) or _cap (per capita) possible           
-    unit : pandas.DataFrame    
+        specification with _reg (per region) or _cap (per capita) possible
+    unit : pandas.DataFrame
         Unit for each row of the extension
-    iosystem : string
+    iosystem : string, DEPRECATED
         Note for the IOSystem, recommended to be 'pxp' or 'ixi' for
         product by product or industry by industry.
         However, this can be any string and can have more information if needed
         (eg for different technoloy assumptions)
         The string will be passed to the Extension
-    version : string
-        This can be used as a version tracking system. 
-    year : int
+        Will be removed in future versions - all data in meta
+    version : string, DEPRECATED
+        This can be used as a version tracking system.
+        Will be removed in future versions - all data in meta
+    year : int, DEPRECATED
         Baseyear of the extension data
+        Will be removed in future versions - all data in meta
 
     """
 
-    def __init__(self, name, F = None, FY = None, S = None, M = None, D_fp =
-            None, D_terr = None, D_imp = None, D_exp = None, unit = None,
-            iosystem = None, version = None, year = None, **kwargs):
+    def __init__(self, name, F=None, FY=None, S=None, M=None, D_fp=None,
+                 D_terr=None, D_imp=None, D_exp=None, unit=None, **kwargs):
         """ Init function - see docstring class """
         self.name = name
         self.F = F
@@ -487,23 +560,24 @@ class Extension(CoreSystem):
         self.D_imp = D_imp
         self.D_exp = D_exp
         self.unit = unit
-        self.iosystem = iosystem
-        self.version = version
-        self.year = year
-        
+
         for ext in kwargs:
             setattr(self, ext, kwargs[ext])
 
         # Internal attributes
         self.__basic__ = ['F', 'FY']  # minimal necessary to calc the rest
-        self.__D_accounts__ = ['D_fp', 'D_terr', 'D_imp', 'D_exp', 
-                'D_fp_reg', 'D_terr_reg', 'D_imp_reg', 'D_exp_reg', 
-                'D_fp_cap', 'D_terr_cap', 'D_imp_cap', 'D_exp_cap']
+        self.__D_accounts__ = ['D_fp', 'D_terr', 'D_imp', 'D_exp',
+                               'D_fp_reg', 'D_terr_reg',
+                               'D_imp_reg', 'D_exp_reg',
+                               'D_fp_cap', 'D_terr_cap',
+                               'D_imp_cap', 'D_exp_cap']
         self.__non_agg_attributes__ = ['S', 'M',
-                'D_fp_reg', 'D_terr_reg', 'D_imp_reg', 'D_exp_reg', 
-                'D_fp_cap', 'D_terr_cap', 'D_imp_cap', 'D_exp_cap']
+                                       'D_fp_reg', 'D_terr_reg',
+                                       'D_imp_reg', 'D_exp_reg',
+                                       'D_fp_cap', 'D_terr_cap',
+                                       'D_imp_cap', 'D_exp_cap']
 
-        self.__coefficients__ = ['S', 'M']    # TODO check FY
+        self.__coefficients__ = ['S', 'M']
 
         # check if all accounts are available
         for acc in self.__D_accounts__:
@@ -515,19 +589,19 @@ class Extension(CoreSystem):
                 "Extension {} with parameters: "
                 ).format(self.name)
 
-    def calc_system(self, x, Y_agg, L=None,  population = None ):
-        """ Calculates the missing part of the extension plus accounts 
-        
-        
+    def calc_system(self, x, Y_agg, L=None, population=None):
+        """ Calculates the missing part of the extension plus accounts
+
+
         This method uses y aggregated across specified y categories
-        
+
         Calculates:
 
-        - for each sector and country: 
+        - for each sector and country:
             D, M, D_fp, D_terr_sector, D_imp_sector, D_exp_sector
-        - for each region:  
-            D_fp_reg, D_terr_reg, D_imp_reg, D_exp_reg, 
-        - for each region (if population vector is given): 
+        - for each region:
+            D_fp_reg, D_terr_reg, D_imp_reg, D_exp_reg,
+        - for each region (if population vector is given):
             D_fp_cap, D_terr_cap, D_imp_cap, D_exp_cap
 
         Notes
@@ -543,7 +617,7 @@ class Extension(CoreSystem):
             The final demand aggregated (one category per country)
         L : pandas.DataFrame or numpy.array, optional
             Leontief input output table L. If this is not given,
-            the method recalculates M based on D_fp (must be present in 
+            the method recalculates M based on D_fp (must be present in
             the extension).
         population : pandas.DataFrame or np.array, optional
             Row vector with population per region
@@ -551,56 +625,58 @@ class Extension(CoreSystem):
 
         if self.F is None:
             self.F = calc_F(self.S, x)
-            logging.info('Total direct impacts calculated')
+            logging.debug(
+                '{} - Total direct impacts calculated'.format(self.name))
 
         if self.S is None:
             self.S = calc_S(self.F, x)
-            logging.info('Factors of production coefficients S calculated')
+            logging.debug(
+                '{} - Factors of production coefficients S calculated'.format(
+                    self.name))
 
         if self.M is None:
             if L is not None:
                 self.M = calc_M(self.S, L)
-                logging.info('Multipliers M calculated based on L')
+                logging.debug(
+                    '{} - Multipliers M calculated based on L'.format(
+                        self.name))
             else:
                 try:
-                    self.M = recalc_M(self.S, self.D_fp, 
-                                  Y=Y_agg, nr_sectors=self.get_sectors().size)
-                    logging.info(
-                        'Multipliers M calculated based on D_fp and Y')
+                    self.M = recalc_M(self.S, self.D_fp,
+                                      Y=Y_agg,
+                                      nr_sectors=self.get_sectors().size)
+                    logging.debug(
+                        '{} - Multipliers M calculated based on '
+                        'D_fp and Y'.format(self.name))
                 except Exception as ex:
-                    logging.warn(
+                    logging.debug(
                             'Recalculation of M not possible - cause: {}'.
                             format(ex))
 
-
-
         FY_agg = 0
         if self.FY is not None:
-            #FY_agg = ioutil.agg_columns(ext['FY'], self.get_Y_categories().size)
+            # FY_agg = ioutil.agg_columns(
+            # ext['FY'], self.get_Y_categories().size)
             try:
                 FY_agg = (self.FY.sum(level='region', axis=1).
-                      reindex_axis(self.get_regions(), axis=1))
+                          reindex(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
                 FY_agg = (self.FY.sum(level=0, axis=1).
-                      reindex_axis(self.get_regions(), axis=1))
+                          reindex(self.get_regions(), axis=1))
 
-        if ((self.D_fp is None) or 
-                (self.D_terr is None) or 
-                (self.D_imp is None) or 
+        if ((self.D_fp is None) or
+                (self.D_terr is None) or
+                (self.D_imp is None) or
                 (self.D_exp is None)):
             if L is None:
-                logging.warn('Not possilbe to calculate D accounts')
+                logging.debug(
+                    'Not possilbe to calculate D accounts - L not present')
+                return
             else:
                 self.D_fp, self.D_terr, self.D_imp, self.D_exp = (
                     calc_accounts(self.S, L, Y_agg, self.get_sectors().size))
-                logging.info('Accounts D calculated')
-
-        if ((self.D_fp is None) or 
-                (self.D_terr is None) or 
-                (self.D_imp is None) or 
-                (self.D_exp is None)):
-                    logging.info('Aggregation accounts not calculated')
-                    return
+                logging.debug(
+                    '{} - Accounts D calculated'.format(self.name))
 
         # aggregate to country
         if ((self.D_fp_reg is None) or (self.D_terr_reg is None) or
@@ -608,44 +684,47 @@ class Extension(CoreSystem):
             try:
                 self.D_fp_reg = (
                         self.D_fp.sum(level='region', axis=1).
-                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+                        reindex(self.get_regions(), axis=1) + FY_agg)
             except (AssertionError, KeyError):
                 self.D_fp_reg = (
                         self.D_fp.sum(level=0, axis=1).
-                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+                        reindex(self.get_regions(), axis=1) + FY_agg)
             try:
                 self.D_terr_reg = (
                         self.D_terr.sum(level='region', axis=1).
-                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+                        reindex(self.get_regions(), axis=1) + FY_agg)
             except (AssertionError, KeyError):
                 self.D_terr_reg = (
                         self.D_terr.sum(level=0, axis=1).
-                        reindex_axis(self.get_regions(), axis=1) + FY_agg)
+                        reindex(self.get_regions(), axis=1) + FY_agg)
             try:
                 self.D_imp_reg = (
                         self.D_imp.sum(level='region', axis=1).
-                        reindex_axis(self.get_regions(), axis=1))
+                        reindex(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
                 self.D_imp_reg = (
                         self.D_imp.sum(level=0, axis=1).
-                        reindex_axis(self.get_regions(), axis=1))
+                        reindex(self.get_regions(), axis=1))
             try:
                 self.D_exp_reg = (
                         self.D_exp.sum(level='region', axis=1).
-                        reindex_axis(self.get_regions(), axis=1))
+                        reindex(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
                 self.D_exp_reg = (
                         self.D_exp.sum(level=0, axis=1).
-                        reindex_axis(self.get_regions(), axis=1))
+                        reindex(self.get_regions(), axis=1))
 
-            logging.info('Accounts D for regions calculated')
+            logging.debug(
+                '{} - Accounts D for regions calculated'.format(self.name))
 
         # calc accounts per capita if population data is available
         if population is not None:
             if type(population) is pd.DataFrame:
                 # check for right order:
-                if population.columns.tolist() != self.D_fp_reg.columns.tolist():
-                    logging.warning('Population regions are inconsistent with IO regions')
+                if (population.columns.tolist() !=
+                        self.D_fp_reg.columns.tolist()):
+                    logging.warning(
+                        'Population regions are inconsistent with IO regions')
                 population = population.values
 
             if ((self.D_fp_cap is None) or (self.D_terr_cap is None) or
@@ -664,34 +743,37 @@ class Extension(CoreSystem):
                 self.D_imp_cap.columns = self.D_imp_reg.columns
                 self.D_exp_cap.columns = self.D_exp_reg.columns
 
-                logging.info('Accounts D per capita calculated')
+                logging.debug(
+                    '{} - Accounts D per capita calculated'.format(self.name))
+        return self
 
-    def plot_account(self, row, per_capita = False, sector = None,
-            file_name = False, file_dpi = 600,  population = None, **kwargs):
+    def plot_account(self, row, per_capita=False, sector=None,
+                     file_name=False, file_dpi=600,
+                     population=None, **kwargs):
         """ Plots D_terr, D_fp, D_imp and D_exp for the specified row (account)
 
         Plot either the total country accounts or for a specific sector,
         depending on the 'sector' parameter.
 
         Per default the accounts are plotted as bar charts.
-        However, any valid keyword for the pandas.DataFrame.plot 
+        However, any valid keyword for the pandas.DataFrame.plot
         method can be passed.
 
         Notes
         -----
-            This looks prettier with the seaborn module 
+            This looks prettier with the seaborn module
             (import seaborn before calling this method)
 
         Parameters
         ----------
         row : string, tuple or int
-            A valid index for the row in the extension which 
+            A valid index for the row in the extension which
             should be plotted (one(!) row - no list allowed)
         per_capita : boolean, optional
             Plot the per capita accounts instead of the absolute values
             default is False
-        sector: string, optional 
-            Plot the results for a specific sector of the IO table. If 
+        sector: string, optional
+            Plot the results for a specific sector of the IO table. If
             None is given (default), the total regional accounts are plotted.
         population : pandas.DataFrame or np.array, optional
             Vector with population per region. This must be given if
@@ -701,7 +783,7 @@ class Extension(CoreSystem):
             If given, saves the plot to the given filename
         file_dpi : int, optional
             Dpi for saving the figure, default 600
-            
+
         **kwargs : key word arguments, optional
             This will be passed directly to the pd.DataFrame.plot method
 
@@ -710,37 +792,39 @@ class Extension(CoreSystem):
         Axis as given by pandas.DataFrame.plot, None in case of errors
 
         """
-
-        if type(per_capita) is not bool:  # necessary if row is given for 
-                                          # Multiindex without brackets
+        # necessary if row is given for Multiindex without brackets
+        if type(per_capita) is not bool:
             logging.error('per_capita parameter must be boolean')
             return None
-        
-        if type(row) is int: row = self.D_fp.ix[row].name
-        
+
+        if type(row) is int:
+            row = self.D_fp.ix[row].name
+
         name_row = (str(row).
-                replace('(', '').
-                replace(')', '').
-                replace("'", "").
-                replace('[', '').
-                replace(']', ''))
-        if sector: 
+                    replace('(', '').
+                    replace(')', '').
+                    replace("'", "").
+                    replace('[', '').
+                    replace(']', ''))
+        if sector:
             graph_name = name_row + ' for sector ' + sector
         else:
             graph_name = name_row + ' total account'
-        if per_capita: graph_name = graph_name + ' - per capita'
+        if per_capita:
+            graph_name = graph_name + ' - per capita'
 
         graph_name = self.name + ' - ' + graph_name
 
         if self.unit is not None:
             try:
-                # for multiindex the entry is given with header, for single index
-                # just the entry
-                y_label_name = (name_row + 
-                                ' (' + 
-                                str(self.unit.ix[row, 'unit'].tolist()[0]) + ')')
+                # for multiindex the entry is given with header,
+                # for single index just the entry
+                y_label_name = (name_row +
+                                ' (' +
+                                str(self.unit.ix[row, 'unit'].tolist()[0]) +
+                                ')')
             except:
-                y_label_name = (name_row + ' (' + 
+                y_label_name = (name_row + ' (' +
                                 str(self.unit.ix[row, 'unit']) + ')')
         else:
             y_label_name = name_row
@@ -770,33 +854,36 @@ class Extension(CoreSystem):
                 accounts['Imports'] = 'D_imp_reg'
                 accounts['Exports'] = 'D_exp_reg'
 
-        data_row = pd.DataFrame(columns = [key for key in accounts])
+        data_row = pd.DataFrame(columns=[key for key in accounts])
         for key in accounts:
             if sector:
                 try:
                     _data = pd.DataFrame(
-                             getattr(self, accounts[key]).xs(key=sector, axis=1,
-                                 level='sector').ix[row].T)
+                             getattr(self, accounts[key]).xs(
+                                 key=sector, axis=1, level='sector').ix[row].T)
                 except (AssertionError, KeyError):
                     _data = pd.DataFrame(
-                             getattr(self, accounts[key]).xs(key=sector, axis=1,
-                                 level=1).ix[row].T)
+                             getattr(self, accounts[key]).xs(
+                                 key=sector, axis=1, level=1).ix[row].T)
 
                 if per_capita:
                     if population is not None:
                         if type(population) is pd.DataFrame:
                             # check for right order:
-                            if population.columns.tolist() != self.D_fp_reg.columns.tolist():
-                                logging.warning('Population regions are inconsistent with IO regions')
+                            if (population.columns.tolist() !=
+                                    self.D_fp_reg.columns.tolist()):
+                                logging.warning(
+                                    'Population regions are inconsistent '
+                                    'with IO regions')
                             population = population.values
-                            population = population.reshape((-1,1))
+                            population = population.reshape((-1, 1))
                             _data = _data / population
                     else:
-                        logging.error('Population must be given for sector results per capita')
+                        logging.error('Population must be given for sector '
+                                      'results per capita')
                         return
             else:
-                 _data = pd.DataFrame(
-                         getattr(self, accounts[key]).ix[row].T)
+                _data = pd.DataFrame(getattr(self, accounts[key]).ix[row].T)
             _data.columns = [key]
             data_row[key] = _data[key]
 
@@ -816,16 +903,16 @@ class Extension(CoreSystem):
             plt.savefig(file_name, dpi=file_dpi)
         return ax
 
-    def report_accounts(self, path, per_region = True, per_capita = False, 
-                pic_size = 1000, format='rst', ffname = None,  **kwargs):
-        """ Writes a report to the given path for the regional accounts 
+    def report_accounts(self, path, per_region=True, per_capita=False,
+                        pic_size=1000, format='rst', ffname=None,  **kwargs):
+        """ Writes a report to the given path for the regional accounts
 
-        The report consists of a text file and a folder with the pics 
+        The report consists of a text file and a folder with the pics
         (both names following parameter name)
 
         Notes
         ----
-            This looks prettier with the seaborn module 
+            This looks prettier with the seaborn module
             (import seaborn before calling this method)
 
 
@@ -840,10 +927,10 @@ class Extension(CoreSystem):
             If per_capita and per_region are False, nothing will be done
         pic_size : int, optional
             size for the figures in px, 1000 by default
-        format : string, optional     
+        format : string, optional
             file format of the report:
-            'rst'(default), 'html', 'latex', ...  
-            except for rst all depend on the module docutils (all writer_name 
+            'rst'(default), 'html', 'latex', ...
+            except for rst all depend on the module docutils (all writer_name
             from docutils can be used as format)
         ffname : string, optional
             root file name (without extension, per_capita or per_region will be
@@ -854,18 +941,18 @@ class Extension(CoreSystem):
             This will be passed directly to the pd.DataFrame.plot method
             (through the self.plot_account method)
 
-        """ 
+        """
 
         if not per_region and not per_capita:
             return
 
         _plt = plt.isinteractive()
         _rcParams = mpl.rcParams.copy()
-        rcParams={
-        'figure.figsize' : (10, 5),
-        'figure.dpi' : 350,
-        'axes.titlesize' : 20,
-        'axes.labelsize' : 20,
+        rcParams = {
+            'figure.figsize': (10, 5),
+            'figure.dpi': 350,
+            'axes.titlesize': 20,
+            'axes.labelsize': 20,
         }
         plt.ioff()
 
@@ -878,13 +965,15 @@ class Extension(CoreSystem):
             ffname = self.name.replace(' ', '_')
             ffname = "".join([r for r in ffname if r in valid_char])
 
-        rep_spec=collections.namedtuple('rep_spec', 
-                            ['make', 'spec_string', 'is_per_capita'])
-          
-        reports_to_write = {'per region accounts':rep_spec(per_region, 
-                                                '_per_region', False), 
-                            'per capita accounts':rep_spec(per_capita, 
-                                                '_per_capita', True)}
+        rep_spec = collections.namedtuple('rep_spec',
+                                          ['make',
+                                           'spec_string',
+                                           'is_per_capita'])
+
+        reports_to_write = {'per region accounts': rep_spec(
+            per_region, '_per_region', False),
+                            'per capita accounts': rep_spec(
+            per_capita, '_per_capita', True)}
         logging.info('Write report for {}'.format(self.name))
         fig_name_list = []
         for arep in reports_to_write:
@@ -910,39 +999,43 @@ class Extension(CoreSystem):
 
             for row in self.get_rows():
                 name_row = (str(row).
-                        replace('(', '').
-                        replace(')', '').
-                        replace("'", "").
-                        replace(' ', '_').
-                        replace(', ', '_').
-                        replace('__', '_'))
+                            replace('(', '').
+                            replace(')', '').
+                            replace("'", "").
+                            replace(' ', '_').
+                            replace(', ', '_').
+                            replace('__', '_'))
                 graph_name = (self.name + ' - ' + str(row).
-                                                replace('(', '').
-                                                replace(')', '').
-                                                replace("'", ""))
+                              replace('(', '').
+                              replace(')', '').
+                              replace("'", ""))
 
                 # get valid file name
-                clean = lambda varStr: re.sub('\W|^(?=\d)', '_', varStr) 
-                file_name = (clean(name_row + reports_to_write[arep].spec_string))
-                file_name = re.sub('_+', '_', file_name)  # possibility of still having __ in there
+                def clean(varStr):
+                    return re.sub('\W|^(?=\d)', '_', varStr)
+                file_name = (clean(name_row +
+                                   reports_to_write[arep].spec_string))
+                # possibility of still having __ in there:
+                file_name = re.sub('_+', '_', file_name)
 
                 # restrict file length
                 file_name = file_name[:50]
 
-                file_name_nr = lambda a,c: a + '_' + str(c)
+                def file_name_nr(a, c):
+                    return a + '_' + str(c)
                 _loopco = 0
                 while file_name_nr(file_name, _loopco) in fig_name_list:
                     _loopco += 1
                 file_name = file_name_nr(file_name, _loopco)
                 fig_name_list.append(file_name)
                 file_name = file_name + '.png'
-                
-                file_name = os.path.join(subfolder, file_name)
-                file_name_rel = './' + os.path.relpath(file_name, start = path)
 
-                self.plot_account(row, file_name = file_name, 
-                                  per_capita = reports_to_write[arep].
-                                    is_per_capita, **kwargs)
+                file_name = os.path.join(subfolder, file_name)
+                file_name_rel = './' + os.path.relpath(file_name, start=path)
+
+                self.plot_account(row, file_name=file_name,
+                                  per_capita=reports_to_write[arep].
+                                  is_per_capita, **kwargs)
                 plt.close()
 
                 report_txt.append(graph_name)
@@ -952,44 +1045,44 @@ class Extension(CoreSystem):
                 report_txt.append('   :width: {} \n'.format(int(pic_size)))
 
             # write report file and convert to given format
-            report_txt.append('\nReport written on ' 
-                        + time.strftime("%Y%m%d %H%M%S") )
+            report_txt.append('\nReport written on ' +
+                              time.strftime("%Y%m%d %H%M%S"))
             fin_txt = '\n'.join(report_txt)
             if format is not 'rst':
                 try:
                     import docutils.core as dc
-                    if format == 'tex': 
+                    if format == 'tex':
                         format == 'latex'
-                    fin_txt = dc.publish_string(fin_txt, 
-                            writer_name=format, 
-                            settings_overrides={'output_encoding':'unicode'})
+                    fin_txt = dc.publish_string(
+                        fin_txt, writer_name=format,
+                        settings_overrides={'output_encoding': 'unicode'})
                 except:
                     logging.warn(
                         'Module docutils not available - write rst instead')
                     format = 'rst'
-            format_str = {'latex':'tex', 
-                          'tex':'tex', 
-                          'rst':'txt', 
-                          'txt':'txt', 
-                          'html':'html'}
+            format_str = {'latex': 'tex',
+                          'tex': 'tex',
+                          'rst': 'txt',
+                          'txt': 'txt',
+                          'html': 'html'}
             _repfile = curr_ffname + '.' + format_str.get(format, str(format))
             with open(os.path.join(path, _repfile), 'w') as out_file:
                 out_file.write(fin_txt)
             logging.info('Report for {what} written to {file_where}'.
-                    format(what = arep, file_where = str(_repfile)))
+                         format(what=arep, file_where=str(_repfile)))
 
         # restore plot status
         mpl.rcParams.update(_rcParams)
-        if _plt: 
-            plt.ion() 
+        if _plt:
+            plt.ion()
 
     def get_rows(self):
         """ Returns the name of the rows of the extension"""
-        possible_dataframes = ['F', 'FY', 'M', 'S', 
+        possible_dataframes = ['F', 'FY', 'M', 'S',
                                'D_fp', 'D_terr',  'D_imp', 'D_exp',
-                               'D_fp_reg', 'D_terr_reg',  
+                               'D_fp_reg', 'D_terr_reg',
                                'D_imp_reg', 'D_exp_reg',
-                               'D_fp_cap', 'D_terr_cap',  
+                               'D_fp_cap', 'D_terr_cap',
                                'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
@@ -998,7 +1091,7 @@ class Extension(CoreSystem):
             logging.warn("No attributes available to get row names")
             return None
 
-    def get_row_data(self, row, name = None):
+    def get_row_data(self, row, name=None):
         """ Returns a dict with all available data for a row in the extension
 
         Parameters
@@ -1007,104 +1100,25 @@ class Extension(CoreSystem):
             A valid index for the extension DataFrames
         name : string, optional
             If given, adds a key 'name' with the given value to the dict. In
-            that case the dict can be 
+            that case the dict can be
             used directly to build a new extension.
 
         Returns
         -------
         dict object with the data (pandas DataFrame)for the specific rows
         """
-        retdict = {}        
-        for rowname, data in zip(self.get_DataFrame(), 
+        retdict = {}
+        for rowname, data in zip(self.get_DataFrame(),
                                  self.get_DataFrame(data=True)):
             retdict[rowname] = pd.DataFrame(data.ix[row])
         if name:
             retdict['name'] = name
         return retdict
 
-    def per_source(self, name = None):
-        """ Returns a extension disaggregated into the regional source 
-
-        DEPRECATED: The new method 'build_flow_matrix' is more powerful
-        and calculate per source region and per source sector. These can be 
-        aggregated to one (or several) sectors with the standard aggregation
-        routine. The method here will be deleted in the next versions.
-
-        The returned extension included F, FY if present in the original
-        extension, and units.
-
-        Notes
-        -----
-            This method changes the order of the accounts lexicographically.
-
-        Parameters
-        ----------
-        name : string (optional)
-            The new name for the extension, 
-            if None (default): original name + 'per source region'
-
-        Returns
-        -------
-        Extension
-        """
-        if not name: name = self.name + " per source region"
-        persou = Extension(name)
-        persou.version = self.version
-        persou.iosystem = self.iosystem
-        persou.year = self.year
-        
-        # build the disaggregated index and allocate new arrays
-        new_index_list = []
-        for origind in self.F.index:
-            # ensure list for index
-            if type(origind) is str: 
-                origind = [origind, ]
-            else:
-                origind = list(origind)
-            new_index_list = (new_index_list + 
-                    [origind + [reg] for reg in self.get_regions()])
-        
-        new_index_names = list(self.F.index.names)
-        new_index_names.append('region')
-        new_mi = pd.MultiIndex.from_tuples(
-                [tuple(entry) for entry in new_index_list], 
-                 names = new_index_names)
-
-        persou.F = pd.DataFrame(data = 0, 
-                                index = new_mi, 
-                                columns = self.F.columns)
-
-        # fill new array with data
-        persou.F = persou.F.swaplevel(0, -1, axis=0)
-        for reg in self.get_regions():
-            persou.F.loc[reg, reg] = self.F[reg].values
-        persou.F = persou.F.swaplevel(0, -1, axis=0)
-
-        ## same for FY
-        if 'FY' in self.get_DataFrame():
-            persou.FY = pd.DataFrame(data = 0, 
-                                     index = new_mi, 
-                                     columns = self.FY.columns)       
-            persou.FY = persou.FY.swaplevel(0, -1, axis=0)
-            for reg in self.get_regions():
-                persou.FY.loc[reg, reg] = self.FY[reg].values
-            persou.FY = persou.FY.swaplevel(0, -1, axis=0)
-
-        # update the units
-        persou.unit = pd.DataFrame(data = 0, 
-                                   index = new_mi, 
-                                   columns = self.unit.columns)
-        persou.unit.reset_index('region', inplace=True)
-        persou.unit.update(self.unit)
-        persou.unit.set_index('region', append = True, 
-                              inplace = True, drop = True)
-
-        return persou
-
-    def diag_stressor(self, stressor, name = None):
+    def diag_stressor(self, stressor, name=None):
         """ Diagonalize one row of the stressor matrix for a flow analysis.
 
-        This method takes one row of the F matrix and diagonalize 
+        This method takes one row of the F matrix and diagonalize
         to the full region/sector format. Footprints calculation based
         on this matrix show the flow of embodied stressors from the source
         region/sector (row index) to the final consumer (column index).
@@ -1114,7 +1128,7 @@ class Extension(CoreSystem):
 
         Since the type of analysis based on the disaggregated matrix is based
         on flow, direct household emissions (FY) are not included.
- 
+
         Parameters
         ----------
         stressor : str or int - valid index for one row of the F matrix
@@ -1122,7 +1136,7 @@ class Extension(CoreSystem):
             The stressor to diagonalize.
 
         name : string (optional)
-            The new name for the extension, 
+            The new name for the extension,
             if None (default): string based on the given stressor (row name)
 
         Returns
@@ -1131,34 +1145,32 @@ class Extension(CoreSystem):
 
         """
         if type(stressor) is int:
-           stressor = self.F.index[stressor] 
-        if len(stressor) == 1: stressor = stressor[0]
-        if not name: 
+            stressor = self.F.index[stressor]
+        if len(stressor) == 1:
+            stressor = stressor[0]
+        if not name:
             if type(stressor) is str:
                 name = stressor
             else:
-                name = '_'.join(stressor)
+                name = '_'.join(stressor) + '_diag'
 
         ext_diag = Extension(name)
-        ext_diag.version = self.version
-        ext_diag.iosystem = self.iosystem
-        ext_diag.year = self.year
 
         ext_diag.F = pd.DataFrame(
                 index=self.F.columns,
                 columns=self.F.columns,
-                data=np.diag(self.F.loc[stressor,:])
+                data=np.diag(self.F.loc[stressor, :])
                 )
-        try: 
+        try:
             ext_diag.unit = pd.DataFrame(
                     index=ext_diag.F.index,
                     columns=self.unit.columns,
-                    data=self.unit.loc[stressor].unit )
+                    data=self.unit.loc[stressor].unit)
         except AttributeError:
             # If no unit in stressor, self.unit.columns break
             ext_diag.unit = None
-        return ext_diag
 
+        return ext_diag
 
 
 class IOSystem(CoreSystem):
@@ -1171,63 +1183,84 @@ class IOSystem(CoreSystem):
 
     Notes
     -----
-        The attributes and extension dictionary entries are pandas.DataFrame with
-        an MultiIndex.  This index must have the specified level names.
+        The attributes and extension dictionary entries are pandas.DataFrame
+        with an MultiIndex.  This index must have the specified level names.
 
     Attributes
     ----------
     Z : pandas.DataFrame
         Symetric input output table (flows) with country and sectors as
         MultiIndex with names 'region' and 'sector' for columns and index
-    Y : pandas.DataFrame   
+    Y : pandas.DataFrame
         final demand with MultiIndex with index.names = (['region', 'sector'])
         and column.names = (['region', 'category'])
-    A : pandas.DataFrame   
+    A : pandas.DataFrame
         coefficient input output table, MultiTndex as Z
-    L : pandas.DataFrame    
+    L : pandas.DataFrame
         Leontief, MultiTndex as Z
-    unit : pandas.DataFrame    
+    unit : pandas.DataFrame
         Unit for each row of Z
-    iosystem : string
+    system : string
         Note for the IOSystem, recommended to be 'pxp' or 'ixi' for
         product by product or industry by industry.
         However, this can be any string and can have more information if needed
         (eg for different technoloy assumptions)
         The string will be passed to the IOSystem
-    version : string
-        This can be used as a version tracking system. 
-    year : string or int
+    meta : class
+        Meta class handler
+    version : string, DEPRECATED
+        This can be used as a version tracking system.
+        Will be removed in future versions - all data in meta
+    year : string or int, DEPRECATED
         Baseyear of the IOSystem
-    price : string
+        Will be removed in future versions - all data in meta
+    price : string, DEPRECATED
         Price system of the IO (current or constant prices)
-    name : string, optional
+        Will be removed in future versions - all data in meta
+    name : string, optional, DEPRECATED
         Name of the IOSystem, default is 'IO'
+        Will be removed in future versions - all data in meta
 
     **kwargs : dictonary
         Extensions are given as dictionaries and will be passed to the
         Extension class.  The dict must contain a key with a value for 'name',
         this can be the same as the name of the dict.  For the further keys see
         class Extension
-    
+
     """
 
-    def __init__(self, Z = None, Y = None, A = None, x = None, L = None, 
-            unit = None, population = None, iosystem = None, version = None, 
-            year = None, price = None, name = 'IO', **kwargs):
+    def __init__(self, Z=None, Y=None, A=None, x=None, L=None,
+                 unit=None, population=None, system=None, version=None,
+                 year=None, price=None, meta=None, name=None, description=None,
+                 **kwargs):
         """ Init function - see docstring class """
         self.Z = Z
         self.Y = Y
         self.x = x
         self.A = A
         self.L = L
-        self.name = name
         self.unit = unit
         self.population = population
 
-        self.iosystem = iosystem
-        self.version = version
-        self.year = year
-        self.price = price
+        if meta:
+            self.meta = meta
+            self.meta.change_meta('name', name)
+            self.meta.change_meta('system', system)
+            self.meta.change_meta('year', year)
+            self.meta.change_meta('price', price)
+            self.meta.change_meta('version', version)
+            self.meta.change_meta('description', description)
+        else:
+            self.meta = MRIOMetaData(
+                description=description,
+                name=name,
+                system=system,
+                version=version
+            )
+
+        if not getattr(self.meta, 'name', None):
+            self.meta.change_meta('name', 'IO')
+
         for ext in kwargs:
             setattr(self, ext, Extension(**kwargs[ext]))
 
@@ -1240,6 +1273,13 @@ class IOSystem(CoreSystem):
     def __str__(self):
         return super().__str__("IO System with parameters: ")
 
+    @property
+    def name(self):
+        try:
+            return self.meta.name
+        except AttributeError:
+            return 'undef'
+
     def calc_all(self):
         """
         Calculates missing parts of the IOSystem and all extensions.
@@ -1249,15 +1289,16 @@ class IOSystem(CoreSystem):
         """
         self.calc_system()
         self.calc_extensions()
+        return self
 
     def calc_system(self):
-        """ 
+        """
         Calculates the missing part of the core IOSystem
 
-        The method checks Z, x, A, L and calculates all which are None 
+        The method checks Z, x, A, L and calculates all which are None
         """
 
-        # Possible cases: 
+        # Possible cases:
         # 1) Z given, rest can be None and calculated
         # 2) A and x given, rest can be calculated
         # 3) A and y given, calc L (if not given) - calc x and the rest
@@ -1269,28 +1310,30 @@ class IOSystem(CoreSystem):
                 self.L = calc_L(self.A)
                 logging.info('Leontief matrix L calculated')
             self.x = calc_x_from_L(self.L, self.Y.sum(axis=1))
-            logging.info('Industry Output x calculated')
+            self.meta._add_modify('Industry Output x calculated')
 
         # this chains of ifs catch cases 1 and 2
         if self.Z is None:
             self.Z = calc_Z(self.A, self.x)
-            logging.info('Flow matrix Z calculated')
+            self.meta._add_modify('Flow matrix Z calculated')
 
         if self.x is None:
             self.x = calc_x(self.Z, self.Y)
-            logging.info('Industry output x calculated')
+            self.meta._add_modify('Industry output x calculated')
 
-        if self.A is None: 
+        if self.A is None:
                 self.A = calc_A(self.Z, self.x)
-                logging.info('Coefficient matrix A calculated')
+                self.meta._add_modify('Coefficient matrix A calculated')
 
         if self.L is None:
                 self.L = calc_L(self.A)
-                logging.info('Leontief matrix L calculated')
+                self.meta._add_modify('Leontief matrix L calculated')
 
-    def calc_extensions(self, extensions = None, Y_agg = None):
-        """ Calculates the extension and their accounts 
-        
+        return self
+
+    def calc_extensions(self, extensions=None, Y_agg=None):
+        """ Calculates the extension and their accounts
+
         For the calculation, y is aggregated across specified y categories
         The method calls .calc_system of each extension (or these given in the
         extensions parameter)
@@ -1298,38 +1341,43 @@ class IOSystem(CoreSystem):
         Parameters
         ----------
         extensions : list of strings, optional
-            A list of key names of extensions which shall be calculated. 
+            A list of key names of extensions which shall be calculated.
             Default: all dictionaries of IOSystem are assumed to be extensions
-        Y_agg : pandas.DataFrame or np.array, optional 
+        Y_agg : pandas.DataFrame or np.array, optional
             The final demand aggregated (one category per country)
             Default: y is aggregated over all categories
         """
-        
+
         ext_list = list(self.get_extensions(data=False))
         extensions = extensions or ext_list
-        if type(extensions) == str: extensions = [extensions]
-        
+        if type(extensions) == str:
+            extensions = [extensions]
+
         if not Y_agg:  # this is needed in every loop iteration below
-            logging.info('Calculating aggregated final demand')
-            #Y_agg = util.agg_columns(self.Y, self.get_Y_categories().size)  
+            self.meta._add_modify('Calculating aggregated final demand')
+            # Y_agg = util.agg_columns(self.Y, self.get_Y_categories().size)
             try:
-                Y_agg = self.Y.sum(level='region', 
-                    axis=1).reindex_axis(self.get_regions(), axis=1)
+                Y_agg = self.Y.sum(level='region',
+                                   axis=1).reindex(self.get_regions(),
+                                                   axis=1)
             except (AssertionError, KeyError):
-                Y_agg = self.Y.sum(level=0, 
-                    axis=1,).reindex_axis(self.get_regions(), axis=1)
+                Y_agg = self.Y.sum(level=0,
+                                   axis=1,).reindex(self.get_regions(),
+                                                    axis=1)
 
         for ext_name in extensions:
+            self.meta._add_modify(
+                'Calculating accounts for extension {}'.format(ext_name))
             ext = getattr(self, ext_name)
-            logging.info('**Calculating extension {}**'.format(ext.name))
-            ext.calc_system(x = self.x,
-                            L = self.L,
-                            Y_agg = Y_agg,
-                            population = self.population
+            ext.calc_system(x=self.x,
+                            L=self.L,
+                            Y_agg=Y_agg,
+                            population=self.population
                             )
+        return self
 
-    def report_accounts(self, path, per_region = True, 
-                        per_capita = False, pic_size = 1000, 
+    def report_accounts(self, path, per_region=True,
+                        per_capita=False, pic_size=1000,
                         format='rst', **kwargs):
         """ Generates a report to the given path for all extension
 
@@ -1351,9 +1399,9 @@ class IOSystem(CoreSystem):
             If per_capita and per_region are False, nothing will be done
         pic_size : int, optional
             size for the figures in px, 1000 by default
-        format : string, optional     
+        format : string, optional
             file format of the report:
-            'rst'(default), 'html', 'latex', ...  
+            'rst'(default), 'html', 'latex', ...
             except for rst all depend on the module docutils (all writer_name
             from docutils can be used as format)
         ffname : string, optional
@@ -1368,21 +1416,20 @@ class IOSystem(CoreSystem):
         """
 
         for ext in self.get_extensions(data=True):
-            ext.report_accounts(path=path, 
-                                per_region=per_region, 
-                                per_capita=per_capita, 
-                                pic_size=pic_size, 
+            ext.report_accounts(path=path,
+                                per_region=per_region,
+                                per_capita=per_capita,
+                                pic_size=pic_size,
                                 format=format,
                                 **kwargs)
 
-
     def get_extensions(self, data=False):
         """ Yields the extensions or their names
-        
+
         Parameters
         ----------
         data : boolean, optional
-           If True, returns a generator which yields the extensions.  
+           If True, returns a generator which yields the extensions.
            If False, returns a generator which yields the names of
            the extensions (default)
 
@@ -1391,8 +1438,8 @@ class IOSystem(CoreSystem):
         Generator for Extension or string
 
         """
-        
-        ext_list = [key for key in 
+
+        ext_list = [key for key in
                     self.__dict__ if type(self.__dict__[key]) is Extension]
         for key in ext_list:
             if data:
@@ -1410,6 +1457,8 @@ class IOSystem(CoreSystem):
         """
         self.reset_full()
         [ee.reset_full() for ee in self.get_extensions(data=True)]
+        self.meta._add_modify("Reset all calculated data")
+        return self
 
     def reset_all_to_flows(self):
         """ Resets the IOSystem and all extensions to absolute flows
@@ -1419,6 +1468,8 @@ class IOSystem(CoreSystem):
         """
         self.reset_to_flows()
         [ee.reset_to_flows() for ee in self.get_extensions(data=True)]
+        self.meta._add_modify("Reset full system to absolute flows")
+        return self
 
     def reset_all_to_coefficients(self):
         """ Resets the IOSystem and all extensions to coefficients.
@@ -1428,9 +1479,11 @@ class IOSystem(CoreSystem):
         """
         self.reset_to_coefficients()
         [ee.reset_to_coefficients() for ee in self.get_extensions(data=True)]
+        self.meta._add_modify("Reset full system to coefficients")
+        return self
 
-    def save_all(self, path, table_format = 'txt', sep = '\t', 
-            table_ext = None, float_format = '%.12g'):
+    def save_all(self, path, table_format='txt', sep='\t',
+                 table_ext=None, float_format='%.12g'):
         """ Saves the system and all extensions
 
         Extensions are saved in separate folders (names based on extension)
@@ -1438,32 +1491,29 @@ class IOSystem(CoreSystem):
         Parameters are passed to the .save methods of the IOSystem and
         Extensions
         """
-        self.save(path = path, 
-                  table_format = table_format,
-                  sep = sep,
-                  table_ext = table_ext,
-                  float_format = float_format)
-        
-        for ext, ext_name in zip(self.get_extensions(data=True), 
+        self.save(path=path,
+                  table_format=table_format,
+                  sep=sep,
+                  table_ext=table_ext,
+                  float_format=float_format)
+
+        for ext, ext_name in zip(self.get_extensions(data=True),
                                  self.get_extensions()):
             ext_path = os.path.join(path, ext_name)
             if not os.path.exists(ext_path):
                 os.makedirs(ext_path, exist_ok=True)
-            ext_ini_file = os.path.join(ext_path, ext_name + '.ini')
-            ext.save(path = ext_ini_file,
-                     table_format = table_format,
-                     sep = sep,
-                     table_ext = table_ext,
-                     float_format = float_format)
+            ext.save(path=ext_path,
+                     table_format=table_format,
+                     sep=sep,
+                     table_ext=table_ext,
+                     float_format=float_format)
+        return self
 
-    def aggregate(self, region_agg = None, sector_agg = None, 
-                  region_dict = None, sector_dict = None, 
-                  inplace = True, pre_aggregation = False):
+    def aggregate(self, region_agg=None, sector_agg=None,
+                  region_names=None, sector_names=None,
+                  inplace=True, pre_aggregation=False):
         """ Aggregates the IO system.
 
-            TODO: 2 cases: pre/post aggregation, what happens to 
-            the coefficients...
-            
             Aggregation can be given as vector (use pymrio.build_agg_vec) or
             aggregation matrix. In the case of a vector this must be of length
             self.get_regions() / self.get_sectors() respectively with the new
@@ -1476,40 +1526,44 @@ class IOSystem(CoreSystem):
             can define specific names by defining the aggregation as string
             vector
 
-
             Parameters
             ----------
-            region_agg : list,array or string, optional
+            region_agg : list, array or string, optional
                 The aggregation vector or matrix for the regions (np.ndarray or
                 list). If string: aggregates to one total region and names is
                 to the given string.
-            sector_agg : list,arrays or string, optional
+                Pandas Dataframe with columns 'orignal' and 'aggregated'.
+                This is the output from the country_converter.agg_conc
+            sector_agg : list, arrays or string, optional
                 The aggregation vector or matrix for the sectors (np.ndarray or
                 list).If string: aggregates to one total region and names is
                 to the given string.
-            region_dict : dict, optional    
-                Information to reorder the aggregated regions
-            secotor_dict : dict, optional    
-                Information to reorder the aggregated sectors
+            region_names : list, optional
+                Names for the aggregated regions.
+                If concordance matrix - in order of rows in this matrix
+                If concordance vector - in order or num. values in this vector
+                If string based - same order as the passed string
+                Not considered if passing a DataFrame - in this case give the
+                names in the column 'aggregated'
+
+            sector_names : list, optional
+                Names for the aggregated sectors. Same behaviour as
+                'region_names'
+
             inplace : boolean, optional
-                If True, aggregates the IOSystem in place (default), 
-                otherwise return a new IOSystem
-            TODO:pre_aggregation : boolean, optional
-                If True, resets the IO system before the aggregation. This
-                removes all calculated accounts (Footprints, coefficients)
-                before the calculation. If False (default), all 
-                account which can be aggregated (ergo -  not the coefficients)
-                are aggregated TODO: fill in coefficients.
-            TODO: switch for recalc coefficients
-                
+                If True, aggregates the IOSystem in place (default),
+                otherwise aggregation happens on a copy of the IOSystem.
+                Regardless of the setting, the IOSystem is returned to
+                allow for chained operations.
+
             Returns
             -------
-            IOSystem 
+            IOSystem
                 Aggregated IOSystem (if inplace is False)
 
         """
-        # Development note: This cant be put in the CoreSystem b/c 
-        # than the recalculation of the extension coefficients would not 
+        # Development note: This cant be put in the CoreSystem b/c
+        # than the recalculation of the extension coefficients would not
         # work.
 
         if not inplace:
@@ -1517,18 +1571,44 @@ class IOSystem(CoreSystem):
 
         self.reset_to_flows()
 
+        if type(region_names) is str:
+            region_names = [region_names]
+        if type(sector_names) is str:
+            sector_names = [sector_names]
+
+        if type(region_agg) is pd.DataFrame:
+            if (('original' not in region_agg.columns) or
+                    ('aggregated' not in region_agg.columns)):
+                raise ValueError('Passed DataFrame must include the columns '
+                                 '"original" and "aggregated"')
+            region_agg = (region_agg
+                          .set_index('original')
+                          .reindex(self.get_regions(),
+                                   fill_value=MISSING_AGG_ENTRY['region'])
+                          .loc[:, 'aggregated'])
+
+        if type(sector_agg) is pd.DataFrame:
+            if (('original' not in sector_agg.columns) or
+                    ('aggregated' not in sector_agg.columns)):
+                raise ValueError('Passed DataFrame must include the columns '
+                                 '"original" and "aggregated"')
+            sector_agg = (sector_agg
+                          .set_index('original')
+                          .reindex(self.get_sectors(),
+                                   fill_value=MISSING_AGG_ENTRY['sector'])
+                          .loc[:, 'aggregated'])
+
+        # fill the aggregation matrix with 1:1 mapping
+        # if input not given and get names if not given
         _same_regions = False
         _same_sectors = False
-
-        # fill the aggregation matrix with 1:1 mapping if input not given
-        # and get names if not given
-        if not region_agg:
+        if region_agg is None:
             region_agg = self.get_regions()
-            names_regions = self.get_regions()
+            region_names = region_names or self.get_regions()
             _same_regions = True
-        if not sector_agg:
+        if sector_agg is None:
             sector_agg = self.get_sectors()
-            names_sectors = self.get_sectors()
+            sector_names = sector_names or self.get_sectors()
             _same_sectors = True
 
         # capture total aggregation case
@@ -1538,148 +1618,155 @@ class IOSystem(CoreSystem):
             sector_agg = [sector_agg] * len(self.get_sectors())
 
         if ioutil.is_vector(region_agg):
-            region_conc = ioutil.build_agg_matrix(region_agg, region_dict)
+            region_conc = ioutil.build_agg_matrix(region_agg)
         else:
             region_conc = region_agg
         if ioutil.is_vector(sector_agg):
-            sector_conc = ioutil.build_agg_matrix(sector_agg, sector_dict)
+            sector_conc = ioutil.build_agg_matrix(sector_agg)
         else:
             sector_conc = sector_agg
 
         # build the new names
-        if not _same_regions:
-            if region_dict:
-                names_regions = sorted(region_dict, 
-                                       key = lambda x: region_dict[x])
-            else:
-                if isinstance(region_agg, np.ndarray): 
+        if (not _same_regions) and (not region_names):
+                if isinstance(region_agg, np.ndarray):
                     region_agg = region_agg.flatten().tolist()
-                if type(region_agg[0]) is str: 
-                    names_regions = ioutil.unique_element(region_agg)
-                else:  
+                if type(region_agg[0]) is str:
+                    region_names = ioutil.unique_element(region_agg)
+                else:
                     # rows in the concordance matrix give the new number of
                     # regions
-                    # TODO fails: DEFINE GENERIC_NAMES
-                    names_regions = [GENERIC_NAMES['region'] + 
-                            str(nr) for nr in range(region_conc.shape[0])] 
+                    region_names = [GENERIC_NAMES['region'] +
+                                    str(nr) for nr in
+                                    range(region_conc.shape[0])]
 
-        if not _same_sectors:
-            if sector_dict:
-                names_sectors = sorted(
-                        sector_dict, key = lambda x: sector_dict[x])
-            else:
-                if isinstance(sector_agg, np.ndarray): sector_agg = (
-                        sector_agg.flatten().tolist())
-                if type(sector_agg[0]) is str: 
-                    names_sectors = ioutil.unique_element(sector_agg)
-                else: 
-                    # TODO fails: DEFINE GENERIC_NAMES
-                    names_sectors = [GENERIC_NAMES['sector'] + 
-                            str(nr) for nr in range(sector_conc.shape[0])]
+        if (not _same_sectors) and (not sector_names):
+                if isinstance(sector_agg, np.ndarray):
+                    sector_agg = (sector_agg.flatten().tolist())
+                if type(sector_agg[0]) is str:
+                    sector_names = ioutil.unique_element(sector_agg)
+                else:
+                    sector_names = [GENERIC_NAMES['sector'] +
+                                    str(nr) for nr in
+                                    range(sector_conc.shape[0])]
+
+        # Assert right shapes
+        if not sector_conc.shape[1] == len(self.get_sectors()):
+            raise ValueError('Sector aggregation does not '
+                             'correspond to the number of sectors.')
+        if not region_conc.shape[1] == len(self.get_regions()):
+            raise ValueError('Region aggregation does not '
+                             'correspond to the number of regions.')
+        if not len(sector_names) == sector_conc.shape[0]:
+            raise ValueError('New sector names do not '
+                             'match sector aggregation.')
+        if not len(region_names) == region_conc.shape[0]:
+            raise ValueError('New region names do not '
+                             'match region aggregation.')
 
         # build pandas.MultiIndex for the aggregated system
-        _reg_list_for_sec = [[r] * sector_conc.shape[0] for r in names_regions]
-        _reg_list_for_sec = [entry for entrylist in 
+        _reg_list_for_sec = [[r] * sector_conc.shape[0] for r in region_names]
+        _reg_list_for_sec = [entry for entrylist in
                              _reg_list_for_sec for entry in entrylist]
 
         _reg_list_for_Ycat = [[r] * len(self.get_Y_categories()) for r in
-                              names_regions]
-        _reg_list_for_Ycat = [entry for entrylist in 
+                              region_names]
+        _reg_list_for_Ycat = [entry for entrylist in
                               _reg_list_for_Ycat for entry in entrylist]
 
-        _sec_list = list(names_sectors) * region_conc.shape[0]
+        _sec_list = list(sector_names) * region_conc.shape[0]
         _Ycat_list = list(self.get_Y_categories()) * region_conc.shape[0]
 
         mi_reg_sec = pd.MultiIndex.from_arrays(
-                [_reg_list_for_sec, _sec_list], 
-                names = ['region', 'sector'])
+                [_reg_list_for_sec, _sec_list],
+                names=['region', 'sector'])
         mi_reg_Ycat = pd.MultiIndex.from_arrays(
-                [_reg_list_for_Ycat, _Ycat_list], 
-                names = ['region', 'category'])
+                [_reg_list_for_Ycat, _Ycat_list],
+                names=['region', 'category'])
 
         # arrange the whole concordance matrix
         conc = np.kron(region_conc, sector_conc)
-        conc_y = np.kron(region_conc , np.eye(len(self.get_Y_categories())))
+        conc_y = np.kron(region_conc, np.eye(len(self.get_Y_categories())))
 
         # Aggregate
-        
-        logging.info('Aggregate final demand y')
+        self.meta._add_modify('Aggregate final demand y')
         self.Y = pd.DataFrame(
-                    data = conc.dot(self.Y).dot(conc_y.T),
-                    index = mi_reg_sec,
-                    columns = mi_reg_Ycat,
+                    data=conc.dot(self.Y).dot(conc_y.T),
+                    index=mi_reg_sec,
+                    columns=mi_reg_Ycat,
                     )
 
-        logging.info('Aggregate transaction matrix Z')           
+        self.meta._add_modify('Aggregate transaction matrix Z')
         self.Z = pd.DataFrame(
-                    data = conc.dot(self.Z).dot(conc.T),
-                    index = mi_reg_sec,
-                    columns = mi_reg_sec,
+                    data=conc.dot(self.Z).dot(conc.T),
+                    index=mi_reg_sec,
+                    columns=mi_reg_sec,
                     )
 
-        try:    
-            # x can also be obtained from the aggregated Z, but aggregate if
-            # available
+        if self.x is not None:
+            # x could also be obtained from the
+            # aggregated Z, but aggregate if available
             self.x = pd.DataFrame(
-                        data = conc.dot(self.x),
-                        index = mi_reg_sec,
-                        columns = self.x.columns,
+                        data=conc.dot(self.x),
+                        index=mi_reg_sec,
+                        columns=self.x.columns,
                         )
-            logging.info('Aggregate industry output x')
-        except:
+            self.meta._add_modify('Aggregate industry output x')
+        else:
             self.x = calc_x(self.Z, self.Y)
 
         if self.population is not None:
-            logging.info('Aggregate population vector')
+            self.meta._add_modify('Aggregate population vector')
             self.population = pd.DataFrame(
-                        data = region_conc.dot(self.population.T).T,
-                        columns = names_regions,
-                        index = self.population.index,
-                        )
+                data=region_conc.dot(self.population.T).T,
+                columns=region_names,
+                index=self.population.index,
+                )
 
         for extension in self.get_extensions(data=True):
-            logging.info('Aggregate extensions...')
+            self.meta._add_modify('Aggregate extensions...')
             extension.reset_to_flows()
             st_redo_unit = False
-            for ik_name,ik_df in zip(
+            for ik_name, ik_df in zip(
                     extension.get_DataFrame(data=False, with_unit=False),
                     extension.get_DataFrame(data=True, with_unit=False)):
 
                 # Without unit - this is reset aftwards if necessary
-                if ik_df.index.names == ['region', 'sector'] == ik_df.columns.names:
+                if ik_df.index.names == ['region',
+                                         'sector'] == ik_df.columns.names:
                     # Full disaggregated extensions - aggregate both axis
                     # (this is the case if the extions shows the flows from
                     # pda to cba)
                     extension.__dict__[ik_name] = pd.DataFrame(
-                            data = conc.dot(ik_df).dot(conc.T))
+                        data=conc.dot(ik_df).dot(conc.T))
 
-                    # the next step must be done afterwards due to unknown reasons
+                    # next step must be done afterwards due to unknown reasons
                     extension.__dict__[ik_name].columns = mi_reg_sec
                     extension.__dict__[ik_name].index = mi_reg_sec
                     st_redo_unit = True
                 elif (ik_df.index.names == ['region', 'sector'] and
                       ik_df.columns.names == ['region', 'category']):
+
                     # Full disaggregated finald demand satellite account.
                     # Thats not implemented yet - but aggregation is in place
-                    extension.__dict__[ik_name]  = pd.DataFrame(
-                            data = conc.dot(ik_df).dot(conc_y.T))
-                    # the next step must be done afterwards due to unknown reasons
+                    extension.__dict__[ik_name] = pd.DataFrame(
+                        data=conc.dot(ik_df).dot(conc_y.T))
+                    # next step must be done afterwards due to unknown reasons
                     extension.__dict__[ik_name].columns = mi_reg_Ycat
                     extension.__dict__[ik_name].index = mi_reg_sec
 
                 elif ik_df.columns.names == ['region', 'category']:
                     # Satellite account connected to final demand (e.g. FY)
-                    extension.__dict__[ik_name]  = pd.DataFrame(
-                            data=ik_df.dot(conc_y.T))
-                    # the next step must be done afterwards due to unknown reasons
+                    extension.__dict__[ik_name] = pd.DataFrame(
+                        data=ik_df.dot(conc_y.T))
+                    # next step must be done afterwards due to unknown reasons
                     extension.__dict__[ik_name].columns = mi_reg_Ycat
                     extension.__dict__[ik_name].index = ik_df.index
 
-                else: 
+                else:
                     # Standard case - aggregated columns, keep stressor rows
-                    extension.__dict__[ik_name]  = pd.DataFrame(
-                            data=ik_df.dot(conc.T))
-                    # the next step must be done afterwards due to unknown reasons
+                    extension.__dict__[ik_name] = pd.DataFrame(
+                        data=ik_df.dot(conc.T))
+                    # next step must be done afterwards due to unknown reasons
                     extension.__dict__[ik_name].columns = mi_reg_sec
                     extension.__dict__[ik_name].index = ik_df.index
 
@@ -1694,8 +1781,8 @@ class IOSystem(CoreSystem):
                         # could fail if no unit available
                         extension.unit = None
         self.calc_extensions()
-        if not inplace:
-            return self
+        return self
+
     def remove_extension(self, ext=None):
         """ Remove extension from IOSystem
 
@@ -1710,15 +1797,21 @@ class IOSystem(CoreSystem):
             instance was found)
             If ext is None (default) all Extensions will be removed
         """
-        if ext is None: ext = list(self.get_extensions())
-        if type(ext) is str: ext = [ext]
+        if ext is None:
+            ext = list(self.get_extensions())
+        if type(ext) is str:
+            ext = [ext]
 
         for ee in ext:
             try:
                 del self.__dict__[ee]
-            except:
+            except KeyError:
                 for exinstancename, exdata in zip(
-                        self.get_extensions(data=False), 
+                        self.get_extensions(data=False),
                         self.get_extensions(data=True)):
-                    if exdata.name == ee: del self.__dict__[exinstancename]
+                    if exdata.name == ee:
+                        del self.__dict__[exinstancename]
+            finally:
+                self.meta._add_modify("Removed extension {}".format(ee))
 
+        return self
