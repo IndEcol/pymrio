@@ -522,10 +522,7 @@ def load_test():
             os.path.join(PYMRIO_PATH['test_mrio'], './population.txt'),
             index_col=0).astype(float)
 
-    return IOSystem(version='v1',
-                    price='currentUSD',
-                    year='2010',
-                    Z=data['Z'],
+    return IOSystem(Z=data['Z'],
                     Y=data['Y'],
                     unit=trade['unit'],
                     meta=meta_rec,

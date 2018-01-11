@@ -10,3 +10,4 @@ Handling MRIO data
   notebooks/working_with_eora26
   notebooks/load_save_export
   notebooks/aggregation_examples
+  notebooks/buildflowmatrix

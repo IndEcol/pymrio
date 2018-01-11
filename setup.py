@@ -17,7 +17,7 @@ setup(
     package_data={
         '': ['*.txt', '*.dat', '*.doc', '*.rst', '*.json'],
     },
-    install_requires=['pandas >= 0.17.0'],
+    install_requires=['pandas >= 0.22.0'],
     classifiers=[
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',

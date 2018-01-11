@@ -153,6 +153,24 @@ numpy array.
    calc_accounts
 
 
+*********************************
+Metadata and history recording
+*********************************
+  
+   
+Each pymrio core system object contains a field 'meta' which stores meta data as well as changes to the MRIO system. This data is stored as json file in the root of a saved MRIO data and accessible through the attribute '.meta'.
+
+.. autosummary::
+   :toctree: api_doc/
+    
+   MRIOMetaData
+   MRIOMetaData.note
+   MRIOMetaData.history
+   MRIOMetaData.modification_history
+   MRIOMetaData.note_history
+   MRIOMetaData.file_io_history
+   MRIOMetaData.save
+
 *******************************************
 Modifiying the IO System and its Extensions
 *******************************************
@@ -176,7 +194,7 @@ Analysing the source of impacts
 .. autosummary::
    :toctree: api_doc/
 
-   Extension.per_source
+   Extension.diag_stressor
 
 Changing extensions
 ===================

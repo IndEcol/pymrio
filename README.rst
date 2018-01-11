@@ -2,9 +2,12 @@
 pymrio
 ############
 
-pymrio is an open source tool for analysing global environmental extended multi-regional input-output tables (EE MRIOs). 
+Pymrio is an open source tool for analysing global environmental extended multi-regional input-output tables (EE MRIOs). 
 
-It aims to provide a high-level abstraction layer to available global EE MRIO databases in order to simplify common EE MRIO data tasks. Pymrio includes automatic download functions and parsers for available EE MRIO databases like EXIOBASE_, WIOD_ and EORA26_. It automatically checks parsed EE MRIOs for missing data necessary for calculating standard EE MRIO accounts (such as footprint, territorial, impacts embodied in trade) and calculates all missing tables. Various data visualization methods help to explore the dataset by comparing the different accounts across countries. 
+.. image:: https://travis-ci.org/konstantinstadler/pymrio.svg?branch=master
+    :target: https://travis-ci.org/konstantinstadler/pymrio
+
+Pymrio aims to provide a high-level abstraction layer to available global EE MRIO databases in order to simplify common EE MRIO data tasks. Pymrio includes automatic download functions and parsers for available EE MRIO databases like EXIOBASE_, WIOD_ and EORA26_. It automatically checks parsed EE MRIOs for missing data necessary for calculating standard EE MRIO accounts (such as footprint, territorial, impacts embodied in trade) and calculates all missing tables. Various data visualization methods help to explore the dataset by comparing the different accounts across countries. 
 
 Further functions include:
 
@@ -23,7 +26,6 @@ Where to get it
 ===============
 
 The full source code is available on Github at: https://github.com/konstantinstadler/pymrio
-
 
 pymrio is registered at PyPI. Install it by:
 

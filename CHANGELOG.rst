@@ -11,10 +11,15 @@ v0.3.d1 (Sep 29, 2017)
 - restructured and extended the documentation
   
 - License changed to GNU GENERAL PUBLIC LICENSE v3
-
   
+Dependencies
+============
+
+- pandas minimal version changed to 0.22
+- Optional (for aggregation): country converter coco >= 0.6.3
+
 API breaking changes  
---------------------
+=====================
 
 - The format for saving MRIOs changed from csv + ini to csv + json. Use the method '_load_all_ini_based_io' to read a previously saved MRIO and than save it again to convert to the new save format.
 - method set_sectors(), set_regions() and set_Y_categories() renamed to rename_sectors() etc.

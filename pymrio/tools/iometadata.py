@@ -168,6 +168,7 @@ class MRIOMetaData(object):
 
     @property
     def history(self):
+        """ All recorded history """
         return self._content['history']
 
     @property
@@ -208,6 +209,9 @@ class MRIOMetaData(object):
     def change_meta(self, para, new_value, log=True):
         """ Changes the meta data
 
+        This function does nothing if None is passed as new_value.
+        To set a certain value to None pass the str 'None'
+
         Parameters
         ----------
         para: str
@@ -221,10 +225,13 @@ class MRIOMetaData(object):
             in the history
 
         """
+        if not new_value:
+            return
+        para = para.lower()
         if para == 'history':
             raise ValueError(
                 'History can only be extended - use method "note"')
-        old_value = getattr(self._content, para, None)
+        old_value = self._content.get(para, None)
         if new_value == old_value:
             return
         self._content[para] = new_value

@@ -13,6 +13,7 @@ Contents:
    terminology
    math
    Automatic MRIO download <notebooks/autodownload>
+   notebooks/metadata
    handling
    development
    changelog
