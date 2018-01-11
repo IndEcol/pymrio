@@ -8,6 +8,9 @@ Pymrio: Multi-Regional Input-Output Analysis in Python.
     :target: https://badge.fury.io/py/pymrio
 .. image:: https://travis-ci.org/konstantinstadler/pymrio.svg?branch=master
     :target: https://travis-ci.org/konstantinstadler/pymrio
+.. image:: https://readthedocs.org/projects/pymrio/badge/?version=latest
+    :target: http://pymrio.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 .. image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
     :target: https://www.gnu.org/licenses/gpl-3.0
 
