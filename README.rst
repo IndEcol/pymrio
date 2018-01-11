@@ -15,7 +15,8 @@ Pymrio: Multi-Regional Input-Output Analysis in Python.
     :alt: Documentation Status
 .. image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
     :target: https://www.gnu.org/licenses/gpl-3.0
-
+.. image:: https://zenodo.org/badge/21688312.svg
+    :target: https://zenodo.org/badge/latestdoi/21688312
 
 What is it
 ==========
