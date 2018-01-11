@@ -3,8 +3,10 @@ Changelog
 #########
 
 **********************
-v0.3.2 (Jan 11, 2018)
+v0.3.3 (Jan 11, 2018)
 **********************
+
+Note: This includes all changes from 0.3 to 0.3.3
 
 - downloaders for EORA26 and WIOD
 - codebase fully pep8 compliant

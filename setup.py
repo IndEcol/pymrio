@@ -17,8 +17,11 @@ setup(
     package_data={
         '': ['*.txt', '*.dat', '*.doc', '*.rst', '*.json'],
     },
+    # This some needs to be here and in requirments.txt (for conda)
     install_requires=['pandas >= 0.22.0',
                       'matplotlib >= 2.0.0',
+                      'requests >= 2.18',
+                      'numpy >= 0.12.0'
                      ],
     classifiers=[
           'Programming Language :: Python :: 3.5',
