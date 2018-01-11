@@ -206,7 +206,7 @@ class MRIOMetaData(object):
         return self._content['version']
 
     def change_meta(self, para, new_value, log=True):
-        """ Changes the meta data 
+        """ Changes the meta data
 
         Parameters
         ----------

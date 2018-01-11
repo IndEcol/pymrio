@@ -1,13 +1,5 @@
 """ Testing functions for the full run based on
 the small MRIO given within pymrio.
-
-TODO: This is work in progress. Testing function here should
-include
-
-- aggregation
-- load from txt,pickle
-- save from txt,pickle
-
 """
 
 import sys

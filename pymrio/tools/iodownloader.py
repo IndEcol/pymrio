@@ -289,6 +289,7 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
 
     return meta
 
+
 def download_exiobase1():
     """ Downloading exiobase not implemented (registration required
     """
@@ -300,6 +301,7 @@ def download_exiobase1():
           "manually (tab Data Download - EXIOBASE 1 (full data set)."
           )
     return None
+
 
 def download_exiobase2():
     """ Downloading exiobase not implemented (registration required

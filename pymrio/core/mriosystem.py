@@ -6,30 +6,30 @@ Use the API methods from the pymrio module instead.
 
 """
 
-import os
+import collections
 import copy
-import logging
-import numpy as np
-import pandas as pd
-# import configparser
 import json
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+import logging
+import os
+import re
 import string
 import time
-import collections
-import re
+import warnings
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
+from pymrio.tools.iomath import calc_A
+from pymrio.tools.iomath import calc_F
+from pymrio.tools.iomath import calc_L
+from pymrio.tools.iomath import calc_M
+from pymrio.tools.iomath import calc_S
+from pymrio.tools.iomath import calc_Z
+from pymrio.tools.iomath import calc_accounts
 from pymrio.tools.iomath import calc_x
 from pymrio.tools.iomath import calc_x_from_L
-from pymrio.tools.iomath import calc_Z
-from pymrio.tools.iomath import calc_A
-from pymrio.tools.iomath import calc_L
-from pymrio.tools.iomath import calc_S
-from pymrio.tools.iomath import calc_F
-from pymrio.tools.iomath import calc_M
-from pymrio.tools.iomath import calc_accounts
 from pymrio.tools.iomath import recalc_M
 
 import pymrio.tools.ioutil as ioutil
@@ -38,6 +38,11 @@ from pymrio.core.constants import DEFAULT_FILE_NAMES
 from pymrio.core.constants import GENERIC_NAMES
 from pymrio.core.constants import MISSING_AGG_ENTRY
 from pymrio.tools.iometadata import MRIOMetaData
+
+
+# internal functions
+def _warn_deprecation(message):
+    warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
 # Abstract classes
@@ -98,7 +103,7 @@ class CoreSystem():
         return self
 
     def copy(self, new_name=None):
-        """ Returns a deep copy of the system 
+        """ Returns a deep copy of the system
 
         Parameters
         -----------
@@ -112,7 +117,7 @@ class CoreSystem():
             new_name = self.meta.name + '_copy'
         _tmp.meta.note('IOSystem copy {new} based on {old}'.format(
             new=new_name, old=self.meta.name))
-        _tmp.meta.change_meta('name', new_name, log=False) 
+        _tmp.meta.change_meta('name', new_name, log=False)
         return _tmp
 
     def get_Y_categories(self, entries=None):
@@ -572,7 +577,7 @@ class Extension(CoreSystem):
                                        'D_fp_cap', 'D_terr_cap',
                                        'D_imp_cap', 'D_exp_cap']
 
-        self.__coefficients__ = ['S', 'M']    # TODO check FY
+        self.__coefficients__ = ['S', 'M']
 
         # check if all accounts are available
         for acc in self.__D_accounts__:
@@ -1110,86 +1115,6 @@ class Extension(CoreSystem):
             retdict['name'] = name
         return retdict
 
-    def per_source(self, name=None):
-        """ Returns a extension disaggregated into the regional source
-
-        DEPRECATED: The new method 'build_flow_matrix' is more powerful
-        and calculate per source region and per source sector. These can be
-        aggregated to one (or several) sectors with the standard aggregation
-        routine. The method here will be deleted in the next versions.
-
-        The returned extension included F, FY if present in the original
-        extension, and units.
-
-        Notes
-        -----
-            This method changes the order of the accounts lexicographically.
-
-        Parameters
-        ----------
-        name : string (optional)
-            The new name for the extension,
-            if None (default): original name + 'per source region'
-
-        Returns
-        -------
-        Extension
-        """
-        if not name:
-            name = self.name + " per source region"
-        persou = Extension(name)
-        persou.version = self.version
-        persou.iosystem = self.iosystem
-        persou.year = self.year
-
-        # build the disaggregated index and allocate new arrays
-        new_index_list = []
-        for origind in self.F.index:
-            # ensure list for index
-            if type(origind) is str:
-                origind = [origind, ]
-            else:
-                origind = list(origind)
-            new_index_list = (new_index_list +
-                              [origind + [reg] for reg in self.get_regions()])
-
-        new_index_names = list(self.F.index.names)
-        new_index_names.append('region')
-        new_mi = pd.MultiIndex.from_tuples([tuple(entry)
-                                            for entry in new_index_list],
-                                           names=new_index_names)
-
-        persou.F = pd.DataFrame(data=0,
-                                index=new_mi,
-                                columns=self.F.columns)
-
-        # fill new array with data
-        persou.F = persou.F.swaplevel(0, -1, axis=0)
-        for reg in self.get_regions():
-            persou.F.loc[reg, reg] = self.F[reg].values
-        persou.F = persou.F.swaplevel(0, -1, axis=0)
-
-        # same for FY
-        if 'FY' in self.get_DataFrame():
-            persou.FY = pd.DataFrame(data=0,
-                                     index=new_mi,
-                                     columns=self.FY.columns)
-            persou.FY = persou.FY.swaplevel(0, -1, axis=0)
-            for reg in self.get_regions():
-                persou.FY.loc[reg, reg] = self.FY[reg].values
-            persou.FY = persou.FY.swaplevel(0, -1, axis=0)
-
-        # update the units
-        persou.unit = pd.DataFrame(data=0,
-                                   index=new_mi,
-                                   columns=self.unit.columns)
-        persou.unit.reset_index('region', inplace=True)
-        persou.unit.update(self.unit)
-        persou.unit.set_index('region', append=True,
-                              inplace=True, drop=True)
-
-        return persou
-
     def diag_stressor(self, stressor, name=None):
         """ Diagonalize one row of the stressor matrix for a flow analysis.
 
@@ -1227,12 +1152,9 @@ class Extension(CoreSystem):
             if type(stressor) is str:
                 name = stressor
             else:
-                name = '_'.join(stressor)
+                name = '_'.join(stressor) + '_diag'
 
         ext_diag = Extension(name)
-        ext_diag.version = self.version
-        ext_diag.iosystem = self.iosystem
-        ext_diag.year = self.year
 
         ext_diag.F = pd.DataFrame(
                 index=self.F.columns,
@@ -1309,7 +1231,7 @@ class IOSystem(CoreSystem):
 
     def __init__(self, Z=None, Y=None, A=None, x=None, L=None,
                  unit=None, population=None, system=None, version=None,
-                 year=None, price=None, meta=None, name=None, description=None, 
+                 year=None, price=None, meta=None, name=None, description=None,
                  **kwargs):
         """ Init function - see docstring class """
         self.Z = Z
@@ -1319,7 +1241,6 @@ class IOSystem(CoreSystem):
         self.L = L
         self.unit = unit
         self.population = population
-
 
         if meta:
             self.meta = meta
@@ -1593,9 +1514,6 @@ class IOSystem(CoreSystem):
                   inplace=True, pre_aggregation=False):
         """ Aggregates the IO system.
 
-            TODO: 2 cases: pre/post aggregation, what happens to
-            the coefficients...
-
             Aggregation can be given as vector (use pymrio.build_agg_vec) or
             aggregation matrix. In the case of a vector this must be of length
             self.get_regions() / self.get_sectors() respectively with the new
@@ -1607,7 +1525,6 @@ class IOSystem(CoreSystem):
             vector, generic names will be used for the new sectors/regions. One
             can define specific names by defining the aggregation as string
             vector
-
 
             Parameters
             ----------
@@ -1622,35 +1539,22 @@ class IOSystem(CoreSystem):
                 list).If string: aggregates to one total region and names is
                 to the given string.
             region_names : list, optional
-                TODO Improve docstring
                 Names for the aggregated regions.
-                If concordance matrix - in order of rows in there
-                If concordance vector - in order or num. values in the vector
-                If string based - some order as the passed string
-                Not considered if passing a DataFrame - give the names
-                in the column 'aggregated'
+                If concordance matrix - in order of rows in this matrix
+                If concordance vector - in order or num. values in this vector
+                If string based - same order as the passed string
+                Not considered if passing a DataFrame - in this case give the
+                names in the column 'aggregated'
 
             sector_names : list, optional
-                TODO Improve docstring
-                Names for the aggregated sectors
-                If concordance matrix - in order of rows in there
-                If concordance vector - in order or num. values in the vector
-                If string based - some order as the passed string
-                Not considered if passing a DataFrame - give the names
-                in the column 'aggregated'
+                Names for the aggregated sectors. Same behaviour as
+                'region_names'
 
             inplace : boolean, optional
                 If True, aggregates the IOSystem in place (default),
                 otherwise aggregation happens on a copy of the IOSystem.
                 Regardless of the setting, the IOSystem is returned to
                 allow for chained operations.
-            TODO:pre_aggregation : boolean, optional
-                If True, resets the IO system before the aggregation. This
-                removes all calculated accounts (Footprints, coefficients)
-                before the calculation. If False (default), all
-                account which can be aggregated (ergo -  not the coefficients)
-                are aggregated TODO: fill in coefficients.
-            TODO: switch for recalc coefficients
 
             Returns
             -------

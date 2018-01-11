@@ -21,6 +21,12 @@ from pymrio.core.constants import DEFAULT_FILE_NAMES
 from pymrio.core.constants import GENERIC_NAMES
 
 
+# Exceptions
+class ReadError(Exception):
+    """ Base class for errors occuring while reading MRIO data """
+    pass
+
+
 def load_all(path, include_core=True, subfolders=None):
     """ Loads a full IO system with all extension in path
 
@@ -85,12 +91,12 @@ def load(path, include_core=True):
     path = os.path.abspath(path)
 
     if not os.path.exists(path):
-        logging.error('Given path does not exist TODO change to fileio error')
+        raise ReadError('Given path does not exist')
         return None
 
     para_file_path = os.path.join(path, DEFAULT_FILE_NAMES['filepara'])
     if not os.path.isfile(para_file_path):
-        logging.error('No parameter file found TODO change to fileio error')
+        raise ReadError('No file parameter file found')
         return None
 
     with open(para_file_path, 'r') as pf:
@@ -103,8 +109,7 @@ def load(path, include_core=True):
     elif file_para['systemtype'] == GENERIC_NAMES['ext']:
         ret_system = Extension(file_para['name'])
     else:
-        # TODO ERROR
-        logging.error('System not defined in json file parameter file')
+        raise ReadError('Type of system no defined in the file parameters')
         return None
 
     for key in file_para['files']:
@@ -116,7 +121,7 @@ def load(path, include_core=True):
         full_file_name = os.path.join(path, file_name)
         nr_index_col = file_para['files'][key]['nr_index_col']
         nr_header = file_para['files'][key]['nr_header']
-        # TODO METADATA
+
         logging.info('Load data from {}'.format(full_file_name))
 
         _index_col = list(range(int(nr_index_col)))
@@ -160,7 +165,7 @@ def _load_all_ini_based_io(path, **kwargs):
     IOSystem
     None in case of errors
     """
-    return load_ini_based_io(path, recursive=True, **kwargs)
+    return _load_ini_based_io(path, recursive=True, **kwargs)
 
 
 def _load_ini_based_io(path, recursive=False, ini=None,
@@ -227,7 +232,7 @@ def _load_ini_based_io(path, recursive=False, ini=None,
         ini_file_name = ini
 
     if not os.path.exists(path):
-        logging.error('Given path does not exist')
+        raise ReadError('Given path does not exist')
         return None
 
     if not ini_file_name:
@@ -235,7 +240,7 @@ def _load_ini_based_io(path, recursive=False, ini=None,
         for file in os.listdir(path):
             if os.path.splitext(file)[1] == '.ini':
                 if _inifound:
-                    logging.error(
+                    raise ReadError(
                             'Found multiple ini files in folder - specify one')
                     return None
                 ini_file_name = file
@@ -256,7 +261,7 @@ def _load_ini_based_io(path, recursive=False, ini=None,
     elif systemtype == 'Extension':
         ret_system = Extension(name=name)
     else:
-        logging.error('System not defined in ini')
+        raise ReadError('System not defined in ini')
         return None
 
     for key in io_ini['meta']:
@@ -284,7 +289,7 @@ def _load_ini_based_io(path, recursive=False, ini=None,
         nr_header = io_ini.get('files', key + '_nr_header', fallback=None)
 
         if (nr_index_col is None) or (nr_header is None):
-            logging.error(
+            raise ReadError(
                     'Index or column specification missing for {}'.
                     format(str(file_name)))
             return None
@@ -324,7 +329,7 @@ def _load_ini_based_io(path, recursive=False, ini=None,
                 for file in os.listdir(subpath):
                     if os.path.splitext(file)[1] == '.ini':
                         if _inifound:
-                            logging.error(
+                            raise ReadError(
                                 'Found multiple ini files in subfolder '
                                 '{} - specify one'.format(subpath))
                             return None
@@ -346,13 +351,13 @@ def _load_ini_based_io(path, recursive=False, ini=None,
                                      subini_file_name)[0])
 
             if systemtype == 'IOSystem':
-                logging.error('IOSystem found in subfolder {} - '
-                              'only extensions expected'.format(subpath))
+                raise ReadError('IOSystem found in subfolder {} - '
+                                'only extensions expected'.format(subpath))
                 return None
             elif systemtype == 'Extension':
                 sub_system = Extension(name=name)
             else:
-                logging.error('System not defined in ini')
+                raise ReadError('System not defined in ini')
                 return None
 
             for key in subio_ini['meta']:
@@ -377,8 +382,8 @@ def _load_ini_based_io(path, recursive=False, ini=None,
                                           fallback=None)
 
                 if (nr_index_col is None) or (nr_header is None):
-                    logging.error('Index or column specification missing '
-                                  'for {}'.format(str(file_name)))
+                    raise ReadError('Index or column specification missing '
+                                    'for {}'.format(str(file_name)))
                     return None
 
                 _index_col = list(range(int(nr_index_col)))

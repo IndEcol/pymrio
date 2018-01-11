@@ -24,9 +24,6 @@ from pymrio.tools.ioutil import get_repo_content
 # Constants and global variables
 from pymrio.core.constants import PYMRIO_PATH
 
-# There is one chained_assignment somewhere TODO: find and fix
-pd.set_option('chained_assignment', None)
-
 
 # Exceptions
 class ParserError(Exception):
@@ -574,7 +571,6 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
                                    header=None)
                                    for Qname in Qsheets}
 
-
         _unit = dict()
         # temp for the calculated impacts which than
         # get summarized in the 'impact'
@@ -583,14 +579,16 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         for Qname in Qsheets:
             # unfortunately the names in Q_emissions are
             # not completely unique - fix that
-            _index = charac_data[Qname][Q_head_col_rowname[Qname]]
             if Qname is 'Q_emission':
+                _index = charac_data[Qname][Q_head_col_rowname[Qname]].copy()
                 _index.iloc[42] = _index.iloc[42] + ' 2008'
                 _index.iloc[43] = _index.iloc[43] + ' 2008'
                 _index.iloc[44] = _index.iloc[44] + ' 2010'
                 _index.iloc[45] = _index.iloc[45] + ' 2010'
+                charac_data[Qname][Q_head_col_rowname[Qname]] = _index
+
             charac_data[Qname].index = (
-                    charac_data[Qname][Q_head_col_rowname[Qname]])
+                charac_data[Qname][Q_head_col_rowname[Qname]])
 
             _unit[Qname] = pd.DataFrame(
                     charac_data[Qname].iloc[:, Q_head_col_rowunit[Qname]])
@@ -631,11 +629,11 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
 
     if popvector is 'exio2':
         logging.debug('Read population vector')
-        popdata = pd.read_table(os.path.join(PYMRIO_PATH['exio20'],
-                                './misc/population.txt'),
-                                index_col=0).astype(float)
+        io.population = pd.read_table(os.path.join(PYMRIO_PATH['exio20'],
+                                                   './misc/population.txt'),
+                                      index_col=0).astype(float)
     else:
-        popdata = popvector
+        io.population = popvector
 
     return io
 
@@ -921,8 +919,6 @@ def __parse_exiobase3(zip_file,
         extension['impacts'] = impact
 
     return IOSystem(version=version,
-                    price='current',
-                    year=year,
                     **dict(core_data, **extension))
 
 
@@ -1121,11 +1117,9 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     # separate factor input extension and remove
     # totals in the first and last row
     facinp = wiot_data.iloc[Zshape[0]+1:, :]
-    facinp.drop(
+    facinp = facinp.drop(
         facinp[facinp[wiot_header['c_code']].isin(
-            wiot_marks['tot_facinp'])].index,
-        inplace=True,
-        axis=0
+            wiot_marks['tot_facinp'])].index, axis=0
         )
 
     Z = wiot_data.iloc[:Zshape[0]+1, :Zshape[1]+1].copy()
