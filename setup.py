@@ -17,7 +17,9 @@ setup(
     package_data={
         '': ['*.txt', '*.dat', '*.doc', '*.rst', '*.json'],
     },
-    install_requires=['pandas >= 0.22.0'],
+    install_requires=['pandas >= 0.22.0',
+                      'matplotlib >= 2.0.0',
+                     ],
     classifiers=[
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
