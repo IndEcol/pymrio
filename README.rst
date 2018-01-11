@@ -6,6 +6,8 @@ Pymrio: Multi-Regional Input-Output Analysis in Python.
 
 .. image:: https://badge.fury.io/py/pymrio.svg
     :target: https://badge.fury.io/py/pymrio
+.. image:: https://anaconda.org/konstantinstadler/pymrio/badges/version.svg   
+     :target: https://anaconda.org/konstantinstadler/pymrio
 .. image:: https://travis-ci.org/konstantinstadler/pymrio.svg?branch=master
     :target: https://travis-ci.org/konstantinstadler/pymrio
 .. image:: https://readthedocs.org/projects/pymrio/badge/?version=latest
@@ -39,11 +41,17 @@ Where to get it
 
 The full source code is available on Github at: https://github.com/konstantinstadler/pymrio
 
-pymrio is registered at PyPI. Install it by:
+Pymrio is registered at PyPI and on the Anaconda Cloud. Install it by:
 
 .. code:: bash
 
     pip install pymrio --upgrade
+    
+or
+
+.. code:: bash
+
+    conda install -c konstantinstadler pymrio
 
 Quickstart    
 ==========
