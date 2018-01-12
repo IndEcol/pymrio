@@ -3,6 +3,15 @@ Changelog
 #########
 
 **********************
+v0.3.4 (Jan 12, 2018)
+**********************
+
+API breaking changes  
+=====================
+
+- Footprints and territorial accounts were renamed to "consumption based accounts" and "production based accounts": D_fp was renamed to D_cba and D_terr to D_pba 
+
+**********************
 v0.3.3 (Jan 11, 2018)
 **********************
 

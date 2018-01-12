@@ -116,12 +116,12 @@ If the factor of production represent required environmental impacts, these can
 also occur during the final use phase. In that case :math:`G` describe the impacts
 associated with final demand.
 
-Direct territorial requirements per country are than given by: 
+The production based accounts (direct territorial requirements) per country are than given by: 
 
 .. math::
 
     \begin{equation}
-        D_{terr} = Fe + Ge
+        D_{pba} = Fe + Ge
     \end{equation}
 
 Multipliers for :math:`F` are obtained by
@@ -138,7 +138,7 @@ given final demand vector :math:`y` are than given by
 .. math::
 
     \begin{equation}
-        D_{fp} = My
+        D_{cba} = My
     \end{equation}
 
 Setting the domestically satisfied final demand :math:`Y_{i,i}` to zero (:math:`Y_{t} = Y -
@@ -161,14 +161,14 @@ other countries is given by:
     \end{equation}
 
 The total requirement for each country can be obtained by summing over the
-sectors for each account (:math:`D_{fp}`, :math:`D_{imp}` and :math:`D_{exp}`).  In case of
-:math:`D_{fp}` any impacts associated with the use (:math:`G`) must be added.  Using that
+sectors for each account (:math:`D_{cba}`, :math:`D_{imp}` and :math:`D_{exp}`).  In case of
+:math:`D_{cba}` any impacts associated with the use (:math:`G`) must be added.  Using that
 approach, footprints for each country :math:`i` satisfy:
 
 .. math::
 
     \begin{equation}
-        D_{fp}^i = D_{terr}^i + D_{imp}^i  - D_{exp}^i
+        D_{cba}^i = D_{pba}^i + D_{imp}^i  - D_{exp}^i
     \end{equation}
 
 Aggregation

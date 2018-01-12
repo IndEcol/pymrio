@@ -240,12 +240,12 @@ def calc_e(M, Y):
     return M.dot(Y)
 
 
-def recalc_M(S, D_fp, Y, nr_sectors):
+def recalc_M(S, D_cba, Y, nr_sectors):
     """ Calculate Multipliers based on footprints.
 
     Parameters
     ----------
-    D_fp : pandas.DataFrame or numpy array
+    D_cba : pandas.DataFrame or numpy array
         Footprint per sector and country
     Y : pandas.DataFrame or numpy array
         Final demand: aggregated across categories or just one category, one
@@ -259,18 +259,18 @@ def recalc_M(S, D_fp, Y, nr_sectors):
 
     pandas.DataFrame or numpy.array
         Multipliers M
-        The type is determined by the type of D_fp.
-        If DataFrame index/columns as D_fp
+        The type is determined by the type of D_cba.
+        If DataFrame index/columns as D_cba
 
 
     """
 
     Y_diag = ioutil.diagonalize_blocks(Y.values, blocksize=nr_sectors)
     Y_inv = np.linalg.inv(Y_diag)
-    M = D_fp.dot(Y_inv)
-    if type(D_fp) is pd.DataFrame:
-        M.columns = D_fp.columns
-        M.index = D_fp.index
+    M = D_cba.dot(Y_inv)
+    if type(D_cba) is pd.DataFrame:
+        M.columns = D_cba.columns
+        M.index = D_cba.index
 
     return M
 
@@ -297,12 +297,12 @@ def calc_accounts(S, L, Y, nr_sectors):
     Returns
     -------
     Tuple
-        (D_fp, D_terr, D_imp, D_exp)
+        (D_cba, D_pba, D_imp, D_exp)
 
         Format: D_row x L_col (=nr_countries*nr_sectors)
 
-        - D_fp        Footprint per sector and country
-        - D_terr      Total factur use per sector and country
+        - D_cba        Footprint per sector and country
+        - D_pba      Total factur use per sector and country
         - D_imp       Total global factor use to satisfy total final demand in
                       the country per sector
         - D_exp       Total factor use in one country to satisfy final demand
@@ -316,12 +316,12 @@ def calc_accounts(S, L, Y, nr_sectors):
     x_tot = x_diag.values.sum(1)
     del Y_diag
 
-    D_fp = pd.DataFrame(S.values.dot(x_diag),
+    D_cba = pd.DataFrame(S.values.dot(x_diag),
                         index=S.index,
                         columns=S.columns)
-    # D_terr = S.dot(np.diagflat(x_tot))
+    # D_pba = S.dot(np.diagflat(x_tot))
     # faster broadcasted calculation:
-    D_terr = pd.DataFrame(S.values*x_tot.reshape((1, -1)),
+    D_pba = pd.DataFrame(S.values*x_tot.reshape((1, -1)),
                           index=S.index,
                           columns=S.columns)
 
@@ -339,4 +339,4 @@ def calc_accounts(S, L, Y, nr_sectors):
                          index=S.index,
                          columns=S.columns)
 
-    return (D_fp, D_terr, D_imp, D_exp)
+    return (D_cba, D_pba, D_imp, D_exp)

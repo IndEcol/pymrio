@@ -43,13 +43,13 @@ def test_aggreation_regions():
 
     io = pymrio.load_test()
     io.calc_all()
-    manual_agg = (io.emissions.D_fp_reg.reg1 +
-                  io.emissions.D_fp_reg.reg2 +
-                  io.emissions.D_fp_reg.reg3)
+    manual_agg = (io.emissions.D_cba_reg.reg1 +
+                  io.emissions.D_cba_reg.reg2 +
+                  io.emissions.D_cba_reg.reg3)
 
     io_agg_wo_names = io.aggregate(region_agg=reg_agg_matrix, inplace=False)
     np.testing.assert_allclose(manual_agg.values,
-                               io_agg_wo_names.emissions.D_fp_reg.reg0)
+                               io_agg_wo_names.emissions.D_cba_reg.reg0)
 
     assert ['reg0', 'reg1'] == io_agg_wo_names.get_regions().tolist()
 
@@ -57,7 +57,7 @@ def test_aggreation_regions():
                                      region_names=['a', 'b'],
                                      inplace=False)
     np.testing.assert_allclose(manual_agg.values,
-                               io_agg_with_names.emissions.D_fp_reg.a)
+                               io_agg_with_names.emissions.D_cba_reg.a)
 
     assert ['a', 'b'] == io_agg_with_names.get_regions().tolist()
 
@@ -65,15 +65,15 @@ def test_aggreation_regions():
     io_vec2 = io.aggregate(region_agg=reg_agg_vec2, inplace=False)
     io_vec3 = io.aggregate(region_agg=reg_agg_vec3, inplace=False)
     np.testing.assert_allclose(manual_agg.values,
-                               io_vec1.emissions.D_fp_reg.reg0)
+                               io_vec1.emissions.D_cba_reg.reg0)
     np.testing.assert_allclose(manual_agg.values,
-                               io_vec2.emissions.D_fp_reg.reg0)
+                               io_vec2.emissions.D_cba_reg.reg0)
     np.testing.assert_allclose(manual_agg.values,
-                               io_vec3.emissions.D_fp_reg.a)
+                               io_vec3.emissions.D_cba_reg.a)
 
     io_df = io.aggregate(region_agg=reg_agg_df, inplace=False)
     np.testing.assert_allclose(manual_agg.values,
-                               io_df.emissions.D_fp_reg.a)
+                               io_df.emissions.D_cba_reg.a)
 
     assert ['a', 'b'] == io_df.get_regions().tolist()
 
@@ -90,14 +90,14 @@ def test_numerical_aggreation_sectors():
     io = pymrio.load_test()
     io.calc_all()
 
-    manual_agg = (io.emissions.D_terr.xs('trade', level='sector', axis=1) +
-                  io.emissions.D_terr.xs('transport', level='sector', axis=1) +
-                  io.emissions.D_terr.xs('other', level='sector', axis=1))
+    manual_agg = (io.emissions.D_pba.xs('trade', level='sector', axis=1) +
+                  io.emissions.D_pba.xs('transport', level='sector', axis=1) +
+                  io.emissions.D_pba.xs('other', level='sector', axis=1))
 
     io.aggregate(sector_agg=sec_agg)
 
     np.testing.assert_allclose(manual_agg.values,
-                               io.emissions.D_terr.xs('sec2',
+                               io.emissions.D_pba.xs('sec2',
                                                       level='sector',
                                                       axis=1))
 
@@ -136,7 +136,7 @@ def test_total_agg():
     """ Testing aggregation to total values
     """
     io = pymrio.load_test().calc_all()
-    np.testing.assert_allclose(io.emissions.D_fp.sum(axis=1).to_frame().values,
+    np.testing.assert_allclose(io.emissions.D_cba.sum(axis=1).to_frame().values,
                                io.aggregate(
                                    region_agg='global',
-                                   sector_agg='total').emissions.D_fp.values)
+                                   sector_agg='total').emissions.D_cba.values)
