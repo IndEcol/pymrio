@@ -2,12 +2,30 @@
 pymrio
 ############
 
-Pymrio is an open source tool for analysing global environmental extended multi-regional input-output tables (EE MRIOs). 
+Pymrio: Multi-Regional Input-Output Analysis in Python.
 
+.. image:: https://badge.fury.io/py/pymrio.svg
+    :target: https://badge.fury.io/py/pymrio
+.. image:: https://anaconda.org/konstantinstadler/pymrio/badges/version.svg   
+     :target: https://anaconda.org/konstantinstadler/pymrio
 .. image:: https://travis-ci.org/konstantinstadler/pymrio.svg?branch=master
     :target: https://travis-ci.org/konstantinstadler/pymrio
+.. image:: https://readthedocs.org/projects/pymrio/badge/?version=latest
+    :target: http://pymrio.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+.. image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
+    :target: https://www.gnu.org/licenses/gpl-3.0
+.. image:: https://zenodo.org/badge/21688312.svg
+    :target: https://zenodo.org/badge/latestdoi/21688312
 
-Pymrio aims to provide a high-level abstraction layer to available global EE MRIO databases in order to simplify common EE MRIO data tasks. Pymrio includes automatic download functions and parsers for available EE MRIO databases like EXIOBASE_, WIOD_ and EORA26_. It automatically checks parsed EE MRIOs for missing data necessary for calculating standard EE MRIO accounts (such as footprint, territorial, impacts embodied in trade) and calculates all missing tables. Various data visualization methods help to explore the dataset by comparing the different accounts across countries. 
+What is it
+==========
+
+Pymrio is an open source tool for analysing global environmentally extended multi-regional input-output tables (EE MRIOs). 
+Pymrio aims to provide a high-level abstraction layer for global EE MRIO databases in order to simplify common EE MRIO data tasks. 
+Pymrio includes automatic download functions and parsers for available EE MRIO databases like EXIOBASE_, WIOD_ and EORA26_. 
+It automatically checks parsed EE MRIOs for missing data necessary for calculating standard EE MRIO accounts (such as footprint, territorial, impacts embodied in trade) and calculates all missing tables. 
+Various data report and visualization methods help to explore the dataset by comparing the different accounts across countries. 
 
 Further functions include:
 
@@ -18,20 +36,23 @@ Further functions include:
 - visualization routines and 
 - automated report generation
   
-.. _EXIOBASE: http://www.exiobase.eu/
-.. _WIOD: http://www.wiod.org/home
-.. _EORA26: http://www.worldmrio.com/simplified/
 
 Where to get it
 ===============
 
 The full source code is available on Github at: https://github.com/konstantinstadler/pymrio
 
-pymrio is registered at PyPI. Install it by:
+Pymrio is registered at PyPI and on the Anaconda Cloud. Install it by:
 
 .. code:: bash
 
     pip install pymrio --upgrade
+    
+or
+
+.. code:: bash
+
+    conda install -c konstantinstadler pymrio
 
 Quickstart    
 ==========
@@ -90,30 +111,36 @@ Everything can be saved with
     
     test_mrio.save_all('some/folder')
 
-See the documentation and tutorials for further examples.
-
+See the documentation_ and tutorials_ for further examples.
 
 Tutorials
 =========
 
-TODO: Point to documentation
-
+The documentation_ includes information about how to use pymrio for automatic downloading_ and parsing_ of the EE MRIOs EXIOBASE_, WIOD_ and EORA26_ as well as tutorials_ for the handling, aggregating and analysis of these databases. 
 
 Contributing
 =============
 
 Want to contribute? Great!
-Please check `CONTRIBUTING.rst`_ if you want to help to improve coco.
+Please check `CONTRIBUTING.rst`_ if you want to help to improve pymrio.
   
 .. _CONTRIBUTING.rst: https://github.com/konstantinstadler/pymrio/blob/master/CONTRIBUTING.rst
    
 Communication, issues, bugs and enhancements
 ============================================
 
-Please use the issue tracker for documenting bugs, proposing enhancements and all other communication related to coco.
+Please use the issue tracker for documenting bugs, proposing enhancements and all other communication related to pymrio.
 
 You can follow me on twitter_ to get the latest news about all my open-source and research projects (and occasionally some random retweets).
 
 .. _twitter: https://twitter.com/kst_stadler
 
+.. _downloading: http://pymrio.readthedocs.io/en/latest/notebooks/autodownload.html
+.. _parsing: http://pymrio.readthedocs.io/en/latest/handling.html
+.. _documentation: http://pymrio.readthedocs.io/en/latest/
+.. _tutorials: http://pymrio.readthedocs.io/en/latest/handling.html
+
+.. _EXIOBASE: http://www.exiobase.eu/
+.. _WIOD: http://www.wiod.org/home
+.. _EORA26: http://www.worldmrio.com/simplified/
 
