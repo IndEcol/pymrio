@@ -159,10 +159,10 @@ class CoreSystem():
         """ Returns the pure index of the DataFrames in the system """
 
         possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'FY', 'M', 'S',
-                               'D_fp', 'D_terr',  'D_imp', 'D_exp',
-                               'D_fp_reg', 'D_terr_reg',
+                               'D_cba', 'D_pba',  'D_imp', 'D_exp',
+                               'D_cba_reg', 'D_pba_reg',
                                'D_imp_reg', 'D_exp_reg',
-                               'D_fp_cap', 'D_terr_cap',
+                               'D_cba_cap', 'D_pba_cap',
                                'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
@@ -187,10 +187,10 @@ class CoreSystem():
 
         """
         possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'FY', 'M', 'S',
-                               'D_fp', 'D_terr',  'D_imp', 'D_exp',
-                               'D_fp_reg', 'D_terr_reg',
+                               'D_cba', 'D_pba',  'D_imp', 'D_exp',
+                               'D_cba_reg', 'D_pba_reg',
                                'D_imp_reg', 'D_exp_reg',
-                               'D_fp_cap', 'D_terr_cap',
+                               'D_cba_cap', 'D_pba_cap',
                                'D_imp_cap', 'D_exp_cap', ]
 
         for df in possible_dataframes:
@@ -228,10 +228,10 @@ class CoreSystem():
 
         """
         possible_dataframes = ['A', 'L', 'Z', 'F', 'M', 'S',
-                               'D_fp', 'D_terr',  'D_imp', 'D_exp',
-                               'D_fp_reg', 'D_terr_reg',
+                               'D_cba', 'D_pba',  'D_imp', 'D_exp',
+                               'D_cba_reg', 'D_pba_reg',
                                'D_imp_reg', 'D_exp_reg',
-                               'D_fp_cap', 'D_terr_cap',
+                               'D_cba_cap', 'D_pba_cap',
                                'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
@@ -517,10 +517,10 @@ class Extension(CoreSystem):
         Direct impact (extensions) coefficients with multiindex as F
     M : pandas.DataFrame
         Multipliers with multiindex as F
-    D_fp : pandas.DataFrame
+    D_cba : pandas.DataFrame
         Footprint of consumption,  further specification with
         _reg (per region) or _cap (per capita) possible
-    D_terr : pandas.DataFrame
+    D_pba : pandas.DataFrame
         Territorial accounts, further specification with _reg (per region) or
         _cap (per capita) possible
     D_imp : pandas.DataFrame
@@ -547,16 +547,16 @@ class Extension(CoreSystem):
 
     """
 
-    def __init__(self, name, F=None, FY=None, S=None, M=None, D_fp=None,
-                 D_terr=None, D_imp=None, D_exp=None, unit=None, **kwargs):
+    def __init__(self, name, F=None, FY=None, S=None, M=None, D_cba=None,
+                 D_pba=None, D_imp=None, D_exp=None, unit=None, **kwargs):
         """ Init function - see docstring class """
         self.name = name
         self.F = F
         self.FY = FY
         self.S = S
         self.M = M
-        self.D_fp = D_fp
-        self.D_terr = D_terr
+        self.D_cba = D_cba
+        self.D_pba = D_pba
         self.D_imp = D_imp
         self.D_exp = D_exp
         self.unit = unit
@@ -566,15 +566,15 @@ class Extension(CoreSystem):
 
         # Internal attributes
         self.__basic__ = ['F', 'FY']  # minimal necessary to calc the rest
-        self.__D_accounts__ = ['D_fp', 'D_terr', 'D_imp', 'D_exp',
-                               'D_fp_reg', 'D_terr_reg',
+        self.__D_accounts__ = ['D_cba', 'D_pba', 'D_imp', 'D_exp',
+                               'D_cba_reg', 'D_pba_reg',
                                'D_imp_reg', 'D_exp_reg',
-                               'D_fp_cap', 'D_terr_cap',
+                               'D_cba_cap', 'D_pba_cap',
                                'D_imp_cap', 'D_exp_cap']
         self.__non_agg_attributes__ = ['S', 'M',
-                                       'D_fp_reg', 'D_terr_reg',
+                                       'D_cba_reg', 'D_pba_reg',
                                        'D_imp_reg', 'D_exp_reg',
-                                       'D_fp_cap', 'D_terr_cap',
+                                       'D_cba_cap', 'D_pba_cap',
                                        'D_imp_cap', 'D_exp_cap']
 
         self.__coefficients__ = ['S', 'M']
@@ -598,11 +598,11 @@ class Extension(CoreSystem):
         Calculates:
 
         - for each sector and country:
-            D, M, D_fp, D_terr_sector, D_imp_sector, D_exp_sector
+            D, M, D_cba, D_pba_sector, D_imp_sector, D_exp_sector
         - for each region:
-            D_fp_reg, D_terr_reg, D_imp_reg, D_exp_reg,
+            D_cba_reg, D_pba_reg, D_imp_reg, D_exp_reg,
         - for each region (if population vector is given):
-            D_fp_cap, D_terr_cap, D_imp_cap, D_exp_cap
+            D_cba_cap, D_pba_cap, D_imp_cap, D_exp_cap
 
         Notes
         -----
@@ -617,7 +617,7 @@ class Extension(CoreSystem):
             The final demand aggregated (one category per country)
         L : pandas.DataFrame or numpy.array, optional
             Leontief input output table L. If this is not given,
-            the method recalculates M based on D_fp (must be present in
+            the method recalculates M based on D_cba (must be present in
             the extension).
         population : pandas.DataFrame or np.array, optional
             Row vector with population per region
@@ -642,12 +642,12 @@ class Extension(CoreSystem):
                         self.name))
             else:
                 try:
-                    self.M = recalc_M(self.S, self.D_fp,
+                    self.M = recalc_M(self.S, self.D_cba,
                                       Y=Y_agg,
                                       nr_sectors=self.get_sectors().size)
                     logging.debug(
                         '{} - Multipliers M calculated based on '
-                        'D_fp and Y'.format(self.name))
+                        'D_cba and Y'.format(self.name))
                 except Exception as ex:
                     logging.debug(
                             'Recalculation of M not possible - cause: {}'.
@@ -664,8 +664,8 @@ class Extension(CoreSystem):
                 FY_agg = (self.FY.sum(level=0, axis=1).
                           reindex(self.get_regions(), axis=1))
 
-        if ((self.D_fp is None) or
-                (self.D_terr is None) or
+        if ((self.D_cba is None) or
+                (self.D_pba is None) or
                 (self.D_imp is None) or
                 (self.D_exp is None)):
             if L is None:
@@ -673,29 +673,29 @@ class Extension(CoreSystem):
                     'Not possilbe to calculate D accounts - L not present')
                 return
             else:
-                self.D_fp, self.D_terr, self.D_imp, self.D_exp = (
+                self.D_cba, self.D_pba, self.D_imp, self.D_exp = (
                     calc_accounts(self.S, L, Y_agg, self.get_sectors().size))
                 logging.debug(
                     '{} - Accounts D calculated'.format(self.name))
 
         # aggregate to country
-        if ((self.D_fp_reg is None) or (self.D_terr_reg is None) or
+        if ((self.D_cba_reg is None) or (self.D_pba_reg is None) or
                 (self.D_imp_reg is None) or (self.D_exp_reg is None)):
             try:
-                self.D_fp_reg = (
-                        self.D_fp.sum(level='region', axis=1).
+                self.D_cba_reg = (
+                        self.D_cba.sum(level='region', axis=1).
                         reindex(self.get_regions(), axis=1) + FY_agg)
             except (AssertionError, KeyError):
-                self.D_fp_reg = (
-                        self.D_fp.sum(level=0, axis=1).
+                self.D_cba_reg = (
+                        self.D_cba.sum(level=0, axis=1).
                         reindex(self.get_regions(), axis=1) + FY_agg)
             try:
-                self.D_terr_reg = (
-                        self.D_terr.sum(level='region', axis=1).
+                self.D_pba_reg = (
+                        self.D_pba.sum(level='region', axis=1).
                         reindex(self.get_regions(), axis=1) + FY_agg)
             except (AssertionError, KeyError):
-                self.D_terr_reg = (
-                        self.D_terr.sum(level=0, axis=1).
+                self.D_pba_reg = (
+                        self.D_pba.sum(level=0, axis=1).
                         reindex(self.get_regions(), axis=1) + FY_agg)
             try:
                 self.D_imp_reg = (
@@ -722,24 +722,24 @@ class Extension(CoreSystem):
             if type(population) is pd.DataFrame:
                 # check for right order:
                 if (population.columns.tolist() !=
-                        self.D_fp_reg.columns.tolist()):
+                        self.D_cba_reg.columns.tolist()):
                     logging.warning(
                         'Population regions are inconsistent with IO regions')
                 population = population.values
 
-            if ((self.D_fp_cap is None) or (self.D_terr_cap is None) or
+            if ((self.D_cba_cap is None) or (self.D_pba_cap is None) or
                     (self.D_imp_cap is None) or (self.D_exp_cap is None)):
-                self.D_fp_cap = self.D_fp_reg.dot(
+                self.D_cba_cap = self.D_cba_reg.dot(
                         np.diagflat(1./population))
-                self.D_terr_cap = self.D_terr_reg.dot(
+                self.D_pba_cap = self.D_pba_reg.dot(
                         np.diagflat(1./population))
                 self.D_imp_cap = self.D_imp_reg.dot(
                         np.diagflat(1./population))
                 self.D_exp_cap = self.D_exp_reg.dot(
                         np.diagflat(1./population))
 
-                self.D_fp_cap.columns = self.D_fp_reg.columns
-                self.D_terr_cap.columns = self.D_terr_reg.columns
+                self.D_cba_cap.columns = self.D_cba_reg.columns
+                self.D_pba_cap.columns = self.D_pba_reg.columns
                 self.D_imp_cap.columns = self.D_imp_reg.columns
                 self.D_exp_cap.columns = self.D_exp_reg.columns
 
@@ -750,7 +750,7 @@ class Extension(CoreSystem):
     def plot_account(self, row, per_capita=False, sector=None,
                      file_name=False, file_dpi=600,
                      population=None, **kwargs):
-        """ Plots D_terr, D_fp, D_imp and D_exp for the specified row (account)
+        """ Plots D_pba, D_cba, D_imp and D_exp for the specified row (account)
 
         Plot either the total country accounts or for a specific sector,
         depending on the 'sector' parameter.
@@ -798,7 +798,7 @@ class Extension(CoreSystem):
             return None
 
         if type(row) is int:
-            row = self.D_fp.ix[row].name
+            row = self.D_cba.ix[row].name
 
         name_row = (str(row).
                     replace('(', '').
@@ -838,19 +838,19 @@ class Extension(CoreSystem):
         accounts = collections.OrderedDict()
 
         if sector:
-            accounts['Footprint'] = 'D_fp'
-            accounts['Territorial'] = 'D_terr'
+            accounts['Footprint'] = 'D_cba'
+            accounts['Territorial'] = 'D_pba'
             accounts['Imports'] = 'D_imp'
             accounts['Exports'] = 'D_exp'
         else:
             if per_capita:
-                accounts['Footprint'] = 'D_fp_cap'
-                accounts['Territorial'] = 'D_terr_cap'
+                accounts['Footprint'] = 'D_cba_cap'
+                accounts['Territorial'] = 'D_pba_cap'
                 accounts['Imports'] = 'D_imp_cap'
                 accounts['Exports'] = 'D_exp_cap'
             else:
-                accounts['Footprint'] = 'D_fp_reg'
-                accounts['Territorial'] = 'D_terr_reg'
+                accounts['Footprint'] = 'D_cba_reg'
+                accounts['Territorial'] = 'D_pba_reg'
                 accounts['Imports'] = 'D_imp_reg'
                 accounts['Exports'] = 'D_exp_reg'
 
@@ -871,7 +871,7 @@ class Extension(CoreSystem):
                         if type(population) is pd.DataFrame:
                             # check for right order:
                             if (population.columns.tolist() !=
-                                    self.D_fp_reg.columns.tolist()):
+                                    self.D_cba_reg.columns.tolist()):
                                 logging.warning(
                                     'Population regions are inconsistent '
                                     'with IO regions')
@@ -1079,10 +1079,10 @@ class Extension(CoreSystem):
     def get_rows(self):
         """ Returns the name of the rows of the extension"""
         possible_dataframes = ['F', 'FY', 'M', 'S',
-                               'D_fp', 'D_terr',  'D_imp', 'D_exp',
-                               'D_fp_reg', 'D_terr_reg',
+                               'D_cba', 'D_pba',  'D_imp', 'D_exp',
+                               'D_cba_reg', 'D_pba_reg',
                                'D_imp_reg', 'D_exp_reg',
-                               'D_fp_cap', 'D_terr_cap',
+                               'D_cba_cap', 'D_pba_cap',
                                'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
@@ -1178,7 +1178,7 @@ class IOSystem(CoreSystem):
 
     The class collects pandas dataframes for a whole EE MRIO system. The
     attributes for the trade matrices (Z, L, A, x, Y) can be set directly,
-    extensions are given as dictionaries containing F, FY, D, m, D_fp, D_terr,
+    extensions are given as dictionaries containing F, FY, D, m, D_cba, D_pba,
     D_imp, D_exp
 
     Notes

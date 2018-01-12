@@ -228,7 +228,7 @@ def td_small_MRIO():
                  columns=_Z_multiindex,
                 )
 
-        D_fp = pd.DataFrame(
+        D_cba = pd.DataFrame(
                 data=[
                     [14.059498889254174, 18.863255551508175, 17.32012296814962, 8.71616437964097, 18.863255551508175, 14.17770265993889],   # noqa
                     [5.395407054390734, 7.594657671782178, 5.857880532237175, 5.657139420727301, 7.594657671782178, 7.900257649080434],     # noqa
@@ -237,7 +237,7 @@ def td_small_MRIO():
                  columns=_Z_multiindex,
                 )
 
-        D_terr = pd.DataFrame(
+        D_pba = pd.DataFrame(
                 data=[
                     [20.000000000000004, 1.0, 42.00000000000001, 4.0, 20.0, 5.0],    # noqa
                     [5.000000000000001, 4.0, 11.0, 8.0, 1.9999999999999998, 10.0],   # noqa
@@ -405,7 +405,7 @@ def test_calc_M_MRIO(td_small_MRIO):
 
 def test_calc_accounts_MRIO(td_small_MRIO):
     # calc the accounts
-    nD_fp, nD_terr, nD_imp, nD_exp = calc_accounts(
+    nD_cba, nD_pba, nD_imp, nD_exp = calc_accounts(
             td_small_MRIO.S,
             td_small_MRIO.L,
             td_small_MRIO.Y,
@@ -414,12 +414,12 @@ def test_calc_accounts_MRIO(td_small_MRIO):
             )
     # test all
     pdt.assert_frame_equal(
-            td_small_MRIO.D_fp,
-            nD_fp,
+            td_small_MRIO.D_cba,
+            nD_cba,
                 )
     pdt.assert_frame_equal(
-            td_small_MRIO.D_terr,
-            nD_terr,
+            td_small_MRIO.D_pba,
+            nD_pba,
                 )
     pdt.assert_frame_equal(
             td_small_MRIO.D_imp,
@@ -432,8 +432,8 @@ def test_calc_accounts_MRIO(td_small_MRIO):
     # test if fp = terr + imp - exp on the total level
     # that tests if imp == exp and fp == terr
     pdt.assert_series_equal(
-            nD_fp.sum(axis=1),
-            nD_terr.sum(axis=1) +
+            nD_cba.sum(axis=1),
+            nD_pba.sum(axis=1) +
             nD_imp.sum(axis=1) -
             nD_exp.sum(axis=1),
             )

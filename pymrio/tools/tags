@@ -80,7 +80,7 @@ pd	iomath.py	/^import pandas as pd$/;"	i
 pd	ioparser.py	/^import pandas as pd$/;"	i
 pymrio	iomath.py	/^import pymrio.tools.ioutil as ioutil$/;"	i
 re	iodownloader.py	/^import re$/;"	i
-recalc_M	iomath.py	/^def recalc_M(S, D_fp, Y, nr_sectors):$/;"	f
+recalc_M	iomath.py	/^def recalc_M(S, D_cba, Y, nr_sectors):$/;"	f
 requests	iodownloader.py	/^import requests$/;"	i
 set_block	ioutil.py	/^def set_block(arr, arr_block):$/;"	f
 system	iometadata.py	/^    def system(self):$/;"	m	class:MRIOMetaData

@@ -86,7 +86,7 @@ fact yield) several tables at once:
    IOSystem.get_DataFrame
    IOSystem.get_extensions
 
-For the extensions, it is also possible to receive all data (F, S, M, D_fp, ...) 
+For the extensions, it is also possible to receive all data (F, S, M, D_cba, ...) 
 for one specified row. 
 
 .. autosummary::

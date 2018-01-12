@@ -22,7 +22,7 @@ MRIOMetaData	mriosystem.py	/^from pymrio.tools.iometadata import MRIOMetaData$/;
 PYMRIO_PATH	constants.py	/^PYMRIO_PATH = {$/;"	v
 PYMRIO_PATH	fileio.py	/^from pymrio.core.constants import PYMRIO_PATH$/;"	i
 __init__	mriosystem.py	/^    def __init__(self, Z=None, Y=None, A=None, x=None, L=None,$/;"	m	class:IOSystem
-__init__	mriosystem.py	/^    def __init__(self, name, F=None, FY=None, S=None, M=None, D_fp=None,$/;"	m	class:Extension
+__init__	mriosystem.py	/^    def __init__(self, name, F=None, FY=None, S=None, M=None, D_cba=None,$/;"	m	class:Extension
 __str__	mriosystem.py	/^    def __str__(self):$/;"	m	class:Extension	file:
 __str__	mriosystem.py	/^    def __str__(self):$/;"	m	class:IOSystem	file:
 __str__	mriosystem.py	/^    def __str__(self, startstr='System with: '):$/;"	m	class:CoreSystem	file:
