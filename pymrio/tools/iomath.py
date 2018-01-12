@@ -276,7 +276,7 @@ def recalc_M(S, D_cba, Y, nr_sectors):
 
 
 def calc_accounts(S, L, Y, nr_sectors):
-    """ Calculate sector specific footprints, terr, imp and exp accounts
+    """ Calculate sector specific cba and pba based accounts, imp and exp accounts
 
     The total industry output x for the calculation
     is recalculated from L and y
@@ -317,13 +317,13 @@ def calc_accounts(S, L, Y, nr_sectors):
     del Y_diag
 
     D_cba = pd.DataFrame(S.values.dot(x_diag),
-                        index=S.index,
-                        columns=S.columns)
+                         index=S.index,
+                         columns=S.columns)
     # D_pba = S.dot(np.diagflat(x_tot))
     # faster broadcasted calculation:
     D_pba = pd.DataFrame(S.values*x_tot.reshape((1, -1)),
-                          index=S.index,
-                          columns=S.columns)
+                         index=S.index,
+                         columns=S.columns)
 
     # for the traded accounts set the domestic industry output to zero
     dom_block = np.zeros((nr_sectors, nr_sectors))
