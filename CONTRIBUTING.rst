@@ -8,8 +8,8 @@ First off, thanks for taking the time to contribute!
 There are many ways you can help to improve pymrio.
 
 - Update and improve the documentation and tutorials. 
-- File bug reports and describe ideas for enhancement
-- Add new functionality to the code
+- File bug reports and describe ideas for enhancement.
+- Add new functionality to the code.
 
 Independent of your contribution, please use pull requests to inform me about any improvements you did and make sure all tests pass (see below).
 
