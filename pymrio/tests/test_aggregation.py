@@ -98,8 +98,8 @@ def test_numerical_aggreation_sectors():
 
     np.testing.assert_allclose(manual_agg.values,
                                io.emissions.D_pba.xs('sec2',
-                                                      level='sector',
-                                                      axis=1))
+                                                     level='sector',
+                                                     axis=1))
 
 
 def test_wrong_inputs():
@@ -136,7 +136,8 @@ def test_total_agg():
     """ Testing aggregation to total values
     """
     io = pymrio.load_test().calc_all()
-    np.testing.assert_allclose(io.emissions.D_cba.sum(axis=1).to_frame().values,
+    np.testing.assert_allclose(io.emissions.D_cba.sum(axis=1
+                                                      ).to_frame().values,
                                io.aggregate(
                                    region_agg='global',
                                    sector_agg='total').emissions.D_cba.values)

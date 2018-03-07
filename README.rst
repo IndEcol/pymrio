@@ -1,5 +1,5 @@
 ############
-pymrio
+Pymrio
 ############
 
 Pymrio: Multi-Regional Input-Output Analysis in Python.
@@ -122,7 +122,7 @@ Contributing
 =============
 
 Want to contribute? Great!
-Please check `CONTRIBUTING.rst`_ if you want to help to improve pymrio.
+Please check `CONTRIBUTING.rst`_ if you want to help to improve Pymrio.
   
 .. _CONTRIBUTING.rst: https://github.com/konstantinstadler/pymrio/blob/master/CONTRIBUTING.rst
    

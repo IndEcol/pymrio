@@ -41,6 +41,8 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon']
 
+nbsphinx_execute = 'never'
+
 napoleon_google_docstring = False
 napoleon_use_param = False
 napoleon_use_ivar = True
