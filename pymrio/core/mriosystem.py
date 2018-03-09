@@ -200,6 +200,12 @@ class CoreSystem():
         else:
             return orig_idx
 
+    def set_index(self, index):
+        """ Sets the pd dataframe index of all dataframes in the system to index
+        """
+        for df in self.get_DataFrame(data=True, with_population=False):
+            df.index = index
+
     def get_regions(self, entries=None):
         """ Returns the names of regions in the IOSystem as unique names in order
 
