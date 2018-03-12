@@ -30,6 +30,24 @@ def fix_testmrio():
     return TestMRIO
 
 
+def test_copy(fix_testmrio):
+    """ Testing the deep copy functionality + naming
+    """
+    tt = fix_testmrio.testmrio
+    tt_copy = tt.copy()
+    assert tt_copy.name == tt.name + '_copy'
+    assert all(tt_copy.Z == tt.Z)
+    assert all(tt_copy.emissions.F == tt.emissions.F)
+    tt_copy.emissions.F = tt_copy.emissions.F + 2
+    tt_copy.Z = tt_copy.Z + 2
+    assert all(tt_copy.Z != tt.Z)
+    assert all(tt_copy.emissions.F != tt.emissions.F)
+    tt_new = tt.copy('new')
+    assert tt_new.name == 'new'
+    e_new = tt.emissions.copy('new')
+    assert e_new.name == 'new'
+
+
 def test_get_index(fix_testmrio):
     """ Testing the different options for get_index in core.mriosystem
     """
@@ -51,6 +69,14 @@ def test_get_index(fix_testmrio):
     pat2index = tt.emissions.get_index(as_dict=True,
                                        grouping_pattern=pat2)
     assert all([True if v == 'r' else False for v in pat2index.values()])
+
+    # test one level index
+
+    # pat_single_tpl = {('Value Added',): 'va'}
+    pat_single_str = {'Value Added': 'va'}
+    pat_single_index = tt.factor_inputs.get_index(
+        as_dict=True, grouping_pattern=pat_single_str)
+    assert pat_single_str == pat_single_index
 
 
 def test_set_index(fix_testmrio):

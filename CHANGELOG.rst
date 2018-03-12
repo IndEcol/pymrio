@@ -2,6 +2,21 @@
 Changelog
 #########
 
+
+***********************
+v0.3.6 (March 12, 2018)
+***********************
+
+Function get_index now has a switch to return dict
+for direct input into pandas groupby function.
+
+Included function to set index across dataframes.
+
+Docs includes examples how to use pymrio with pandas groupby.
+
+Improved test coverage.
+
+
 **********************
 v0.3.5 (Jan 17, 2018)
 **********************

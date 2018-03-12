@@ -114,10 +114,13 @@ class CoreSystem():
         """
         _tmp = copy.deepcopy(self)
         if not new_name:
-            new_name = self.meta.name + '_copy'
-        _tmp.meta.note('IOSystem copy {new} based on {old}'.format(
-            new=new_name, old=self.meta.name))
-        _tmp.meta.change_meta('name', new_name, log=False)
+            new_name = self.name + '_copy'
+        if str(type(self)) == "<class 'pymrio.core.mriosystem.IOSystem'>":
+            _tmp.meta.note('IOSystem copy {new} based on {old}'.format(
+                new=new_name, old=self.meta.name))
+            _tmp.meta.change_meta('name', new_name, log=False)
+        else:
+            _tmp.name = new_name
         return _tmp
 
     def get_Y_categories(self, entries=None):
@@ -170,6 +173,7 @@ class CoreSystem():
             values the name for the grouping. If the index is a pandas
             multiindex, the keys must be tuples of length levels in the
             multiindex, with a valid regex expression at each position.
+            Otherwise, the keys need to be strings.
             Only relevant if as_dict is True.
 
         """
@@ -192,9 +196,13 @@ class CoreSystem():
             dd = {k: k for k in orig_idx}
             if grouping_pattern:
                 for pattern, new_group in grouping_pattern.items():
-                    dd.update({k: new_group for k, v in dd.items() if
-                               all([re.match(pat, k[nr])
-                                    for nr, pat in enumerate(pattern)])})
+                    if type(pattern) is str:
+                        dd.update({k: new_group for k, v in dd.items() if
+                                   re.match(pattern, k)})
+                    else:
+                        dd.update({k: new_group for k, v in dd.items() if
+                                   all([re.match(pat, k[nr])
+                                        for nr, pat in enumerate(pattern)])})
             return dd
 
         else:

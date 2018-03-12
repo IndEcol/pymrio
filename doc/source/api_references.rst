@@ -110,6 +110,7 @@ directly on the Extensions.
    IOSystem.get_sectors
    IOSystem.get_Y_categories
    IOSystem.get_index
+   IOSystem.set_index
    Extension.get_rows
 
 
