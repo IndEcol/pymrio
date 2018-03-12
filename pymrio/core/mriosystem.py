@@ -114,10 +114,13 @@ class CoreSystem():
         """
         _tmp = copy.deepcopy(self)
         if not new_name:
-            new_name = self.meta.name + '_copy'
-        _tmp.meta.note('IOSystem copy {new} based on {old}'.format(
-            new=new_name, old=self.meta.name))
-        _tmp.meta.change_meta('name', new_name, log=False)
+            new_name = self.name + '_copy'
+        if str(type(self)) == "<class 'pymrio.core.mriosystem.IOSystem'>":
+            _tmp.meta.note('IOSystem copy {new} based on {old}'.format(
+                new=new_name, old=self.meta.name))
+            _tmp.meta.change_meta('name', new_name, log=False)
+        else:
+            _tmp.name = new_name
         return _tmp
 
     def get_Y_categories(self, entries=None):
@@ -155,8 +158,25 @@ class CoreSystem():
             logging.warn("No attributes available to get Y categories")
             return None
 
-    def get_index(self):
-        """ Returns the pure index of the DataFrames in the system """
+    def get_index(self, as_dict=False, grouping_pattern=None):
+        """ Returns the index of the DataFrames in the system
+
+        Parameters
+        ----------
+        as_dict: boolean, optional
+            If True, returns a 1:1 key-value matching for further processing
+            prior to groupby functions. Otherwise (default) the index
+            is returned as pandas index.
+
+        grouping_pattern: dict, optional
+            Dictionary with keys being regex patterns matching index and
+            values the name for the grouping. If the index is a pandas
+            multiindex, the keys must be tuples of length levels in the
+            multiindex, with a valid regex expression at each position.
+            Otherwise, the keys need to be strings.
+            Only relevant if as_dict is True.
+
+        """
 
         possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'FY', 'M', 'S',
                                'D_cba', 'D_pba',  'D_imp', 'D_exp',
@@ -166,10 +186,33 @@ class CoreSystem():
                                'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
-                return getattr(self, df).index
+                orig_idx = getattr(self, df).index
+                break
         else:
-            logging.warn("No attributes available to get regions")
+            logging.warn("No attributes available to get index")
             return None
+
+        if as_dict:
+            dd = {k: k for k in orig_idx}
+            if grouping_pattern:
+                for pattern, new_group in grouping_pattern.items():
+                    if type(pattern) is str:
+                        dd.update({k: new_group for k, v in dd.items() if
+                                   re.match(pattern, k)})
+                    else:
+                        dd.update({k: new_group for k, v in dd.items() if
+                                   all([re.match(pat, k[nr])
+                                        for nr, pat in enumerate(pattern)])})
+            return dd
+
+        else:
+            return orig_idx
+
+    def set_index(self, index):
+        """ Sets the pd dataframe index of all dataframes in the system to index
+        """
+        for df in self.get_DataFrame(data=True, with_population=False):
+            df.index = index
 
     def get_regions(self, entries=None):
         """ Returns the names of regions in the IOSystem as unique names in order
