@@ -29,7 +29,7 @@ Various data report and visualization methods help to explore the dataset by com
 
 Further functions include:
 
-- analysis methods to identify where certain impacts occurr
+- analysis methods to identify where certain impacts occur
 - modifying region/sector classification
 - restructuring extensions
 - export to various formats
