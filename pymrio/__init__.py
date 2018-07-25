@@ -67,3 +67,5 @@ from pymrio.tools.iomath import calc_F
 from pymrio.tools.iomath import calc_M
 from pymrio.tools.iomath import calc_e
 from pymrio.tools.iomath import calc_accounts
+
+from pymrio.tools.iofunctions import *

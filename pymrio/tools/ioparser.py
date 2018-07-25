@@ -638,7 +638,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
     return io
 
 
-def __parse_exiobase3(zip_file,
+def parse_exiobase3(zip_file,
                       path_in_zip='',
                       version='3.0',
                       iosystem=None,

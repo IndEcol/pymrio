@@ -340,3 +340,27 @@ def calc_accounts(S, L, Y, nr_sectors):
                          columns=S.columns)
 
     return (D_cba, D_pba, D_imp, D_exp)
+
+def sorted_series(series): 
+    '''
+    Returns the sorted panda series, grouped by group_by if it is not None, and indexed by index (the default index is that of regions x sectors)
+    '''
+    return(sorted(series.items(), reverse=True, key=operator.itemgetter(1)))
+
+def approx_solution(A, y, n=10):
+    '''
+    Returns the approximate solution x of the sparse matrix equation: (1-A).x=y, by computing the series of A^k.y, with k<n
+    '''
+    s, x = sp.csc_matrix(y).transpose(), sp.csc_matrix(y).transpose()
+    for i in range(n):
+        x = A.dot(x)
+        s += x
+    return(s)
+
+def div0(a, b):
+    '''
+    Returns the Hadamard division of the arrays (or matrices) of same shape a and b, where elements of the results are 0 in locations where those of b are 0.
+    '''
+    if type(a)==int or type(a)==float: a = a*np.ones_like(b)
+    a = np.array(a, dtype='float')
+    return(np.divide(a, b, out=np.zeros_like(a), where=b!=0))
