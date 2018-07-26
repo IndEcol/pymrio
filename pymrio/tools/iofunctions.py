@@ -56,7 +56,8 @@ def energy_sectors(self, notion): # TODO: other sectors, difference from elecs_n
                  'Electricity by nuclear', 'Motor Gasoline', 'Gas/Diesel Oil', 'Heavy Fuel Oil', 'Kerosene Type Jet Fuel', 'Liquefied Petroleum Gases (LPG)', \
                 'Naphtha', 'Non-specified Petroleum Products', 'Kerosene', 'Petroleum Coke', 'Aviation Gasoline', 'Gasoline Type Jet Fuel']
         elif notion=='elecs_names': sectors = ['wind onshore', 'wind offshore', 'solar PV', 'coal', 'oil', 'gas', 'nuclear', 'hydro', 'coal w CCS', \
-                                               'gas w CCS', 'biomass&Waste', 'biomass w CCS', 'ocean', 'geothermal', 'solar CSP']    else: print('Function not yet implemented for this IOSystem')
+                                               'gas w CCS', 'biomass&Waste', 'biomass w CCS', 'ocean', 'geothermal', 'solar CSP']
+    else: print('Function not yet implemented for this IOSystem')
     return(sectors)
 
 @property
@@ -138,7 +139,7 @@ def is_in(self, secs = None, regs = None): # TODO: check for themis
     By default, secs is set to all sectors and regs to all regions.
     '''
     secs, regs = self.prepare_secs_regs(secs, regs)
-    if self.name=='THEMIS': return([r in regs and self.labels.idx_sectors[i] in secs for i,r in enumerate(self.labels.idx_regions)])
+    if self.name=='THEMIS': return(np.array([r in regs for r in self.labels.idx_regions])*np.array([s in secs for s in self.labels.idx_sectors]))
     else: return([r in regs and s in secs for r in self.regions for s in self.sectors])
 
 def index_secs_regs(self, secs = None, regs = None):
@@ -174,6 +175,10 @@ def production(self, secs=None, regs=None):
     Returns the vector of production of (sec, reg) in secs x regs, computed from x.
     '''    
     secs, regs = self.prepare_secs_regs(secs, regs)  # TODO: for THEMIS --> is that right, to divide the two energies?
+    if (self.name=='THEMIS' or self.name=='EXIOBASE') and not hasattr(self, 'secondary_energy_supply'): 
+        self.secondary_energy_supply = self.energy_supply * self.is_in(self.energy_sectors('secondary'))
+        self.secondary_fuel_supply = self.energy_supply * self.is_in(self.energy_sectors('secondary_fuels'))
+    else: print('Property not yet implemented for this IOSystem.')
     if self.name=='THEMIS': return(self.is_in(secs, regs) * div0(self.secondary_energy_demand, self.energy_supply))
     else: return(self.x*self.is_in(secs, regs))
 
@@ -205,21 +210,21 @@ def energy_supply(self):
     elif self.name=='THEMIS': return(['Energy Carrier Supply' in sector for sector in self.labels.idx_impacts] * self.impact.S)
     else: return('Property not yet implemented for this IOSystem.')
 
-@property
-def secondary_energy_supply(self):
-    '''
-    Returns the vector of secondary energy supply per unit of product.
-    '''
-    if self.name=='THEMIS' or self.name=='EXIOBASE': return(self.energy_supply * self.is_in(self.energy_sectors('secondary')))
-    else: return('Property not yet implemented for this IOSystem.')    
+# @property
+# def secondary_energy_supply(self):
+#     '''
+#     Returns the vector of secondary energy supply per unit of product.
+#     '''
+#     if self.name=='THEMIS' or self.name=='EXIOBASE': return(self.energy_supply * self.is_in(self.energy_sectors('secondary')))
+#     else: return('Property not yet implemented for this IOSystem.')    
     
-@property
-def secondary_fuel_supply(self):
-    '''
-    Returns the vector of secondary fuel supply per unit of product.
-    '''
-    if self.name=='THEMIS' or self.name=='EXIOBASE': return(self.energy_supply * self.is_in(self.energy_sectors('secondary_fuels')))
-    else: return('Property not yet implemented for this IOSystem.')
+# @property
+# def secondary_fuel_supply(self):
+#     '''
+#     Returns the vector of secondary fuel supply per unit of product.
+#     '''
+#     if self.name=='THEMIS' or self.name=='EXIOBASE': return(self.energy_supply * self.is_in(self.energy_sectors('secondary_fuels')))
+#     else: return('Property not yet implemented for this IOSystem.')
     
 def embodied_prod(self, secs=None, regs=None, prod = None):
     '''
@@ -332,6 +337,9 @@ def erois(self, secs = None, var='Total Energy supply', source='secondary', disp
         eroi_sec = self.eroi(sec, self.regions, var, source)
         erois.append(eroi_sec)
         if display: print(self.energy_sectors('elecs_names')[i], eroi_sec)
+    eroi_total = self.eroi([s for s in secs], self.regions, var, source)
+    erois.append(eroi_total)
+    if display: print('System-wide EROI', eroi_total)
     return(erois)
 
 IOS.prepare_secs_regs = prepare_secs_regs
@@ -356,7 +364,7 @@ IOS.erois = erois
 IOS.energy_sectors = energy_sectors
 IOS.regions = regions
 IOS.sectors = sectors
-IOS.secondary_energy_supply = secondary_energy_supply
 IOS.secondary_energy_demand = secondary_energy_demand
-IOS.secondary_fuel_supply = secondary_fuel_supply
 IOS.energy_supply = energy_supply
+# IOS.secondary_energy_supply = secondary_energy_supply
+# IOS.secondary_fuel_supply = secondary_fuel_supply

@@ -1928,8 +1928,8 @@ def themis_parser(exio_files, year = None, scenario = None, themis = None, themi
         idx_impacts = label2['FullName']
         label3 = pd.read_excel(exio_files + 'Data/THEMIS2_labels.xls', header=0, sheet_name=3)
         idx_caracs = label3['Abbreviation THEMIS']
-        labels = {'regions': np.unique(idx_region), 'idx_regions': idx_region, 'impacts': np.unique(idx_impacts), 'idx_impacts': idx_impacts, 
-                  'sectors': np.unique(idx_name), 'idx_sectors': idx_name, 'caracs': np.unique(idx_caracs), 'idx_caracs': idx_caracs, 'name': 'labels'}
+        labels = {'regions': idx_region.unique(), 'idx_regions': idx_region, 'impacts': idx_impacts.unique(), 'idx_impacts': idx_impacts, 
+                  'sectors': idx_name.unique(), 'idx_sectors': idx_name, 'caracs': idx_caracs.unique(), 'idx_caracs': idx_caracs, 'name': 'labels'}
     if year is None and scenario is None: 
         all_themis = dict()
         for s in ['BL', 'BM']:
