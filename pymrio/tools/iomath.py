@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 import scipy.sparse as sp
 import warnings
+import operator
 
 import pymrio.tools.ioutil as ioutil
 

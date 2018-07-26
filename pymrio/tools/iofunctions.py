@@ -25,7 +25,7 @@ def energy_sectors(self, notion): # TODO: other sectors, difference from elecs_n
          'Naphtha', 'Non-specified Petroleum Products', 'Kerosene', 'Kerosene Type Jet Fuel', 'Petroleum Coke', 'Aviation Gasoline', 'Gasoline Type Jet Fuel']
     elif notion=='electricities': sectors = ['Electricity by ' + s for s in self.energy_sectors('elecs_names')]
 
-    if self.name.lower()=='exiobase' and self.meta.version=='1': 
+    if self.name.lower()=='cecilia' or (self.name.lower()=='exiobase' and self.meta.version=='1'): 
         if notion=='secondary_fuels': sectors = ['Motor spirit (gasoline)', 'Gas oils', 'Fuel oils n.e.c.', 'Kerosene, including kerosene type jet fuel', \
                                                 'Petroleum gases and other gaseous hydrocarbons, except natural gas']
         elif notion=='secondary': sectors = ['Electricity by hydro', 'Electricity nec, including biomass and waste', 'Steam and hot water supply services',
@@ -33,7 +33,9 @@ def energy_sectors(self, notion): # TODO: other sectors, difference from elecs_n
  'Kerosene, including kerosene type jet fuel', 'Petroleum gases and other gaseous hydrocarbons, except natural gas']
 #  ['Coal and lignite; peat (10)', 'Natural gas and services related to natural gas extraction, excluding surveying', 'Nuclear fuel', 'Motor spirit (gasoline)',
 #         'Gas oils', 'Fuel oils n.e.c.', 'Kerosene, including kerosene type jet fuel', 'Petroleum gases and other gaseous hydrocarbons, except natural gas']
-        elif notion=='elecs_names': sectors = ['wind', 'hydro', 'coal', 'gas', 'nuclear']
+        elif notion=='elecs_names': 
+            sectors = ['wind', 'hydro', 'coal', 'gas', 'nuclear']
+
     elif self.name.lower()=='exiobase' and self.meta.version[0]=='2':
         if notion=='elec_hydrocarbon': sectors = sectors + ['Electricity by petroleum and other oil derivatives']
         elif notion=='secondary_fuels': sectors = ['Aviation Gasoline', 'Gas/Diesel Oil', 'Gasoline Type Jet Fuel', 'Heavy Fuel Oil', 'Kerosene', \
@@ -48,6 +50,7 @@ def energy_sectors(self, notion): # TODO: other sectors, difference from elecs_n
 #  'Gas Coke', 'Gas Works Gas', 'Other Hydrocarbons', 'Other Liquid Biofuels', 'Motor Gasoline', 'Gas/Diesel Oil', 'Heavy Fuel Oil', 'Kerosene Type Jet Fuel', \
 #  'Liquefied Petroleum Gases (LPG)', 'Naphtha', 'Non-specified Petroleum Products', 'Kerosene', 'Petroleum Coke', 'Aviation Gasoline', 'Gasoline Type Jet Fuel']
         elif notion=='elecs_names': sectors = ['wind', 'solar photovoltaic', 'coal', 'petroleum and other oil derivatives', 'gas', 'nuclear', 'hydro']
+
     elif self.name.lower()=='themis':
         if notion=='elec_hydrocarbon': sectors = sectors + ['Electricity by oil']
         elif notion=='secondary': sectors = ['Steam and hot water supply services', 'Electricity by hydro', 'Electricity by wind onshore',\
@@ -65,7 +68,7 @@ def regions(self):
     '''
     Returns the list of all regions in the IOSystem
     '''
-    if self.name == 'THEMIS': return(self.labels.regions)
+    if self.name == 'THEMIS' or self.name == 'Cecilia': return(self.labels.regions)
     else: return(list(self.get_regions())) # TODO: treat THEMIS
 
 @property
@@ -73,7 +76,7 @@ def sectors(self):
     '''
     Returns the list of all sectors in the IOSystem
     '''
-    if self.name == 'THEMIS': return(self.labels.sectors)
+    if self.name == 'THEMIS' or self.name == 'Cecilia': return(self.labels.sectors)
     else: return(list(self.get_sectors()))
 
 def prepare_secs_regs(self, secs, regs):
@@ -124,11 +127,11 @@ def nb_regions(self): return(len(self.regions))
 @property
 def nb_sectors(self): return(len(self.sectors))
 
-def find(self, string, vec='impacts'):
+def find(self, string, vec='impacts'): # TODO: themis
     '''
     Find vec=impacts/sectors containing string.
     '''
-    if vec=='impacts' or vec=='Impacts' or vec=='impact': array = np.array(self.impact.unit.iloc[:,0].index)
+    if vec=='impacts' or vec=='Impacts' or vec=='impact': array = np.array(self.impact.unit.iloc[:,0].index) # TODO: check to replace by impact.S.index
     elif vec=='sectors' or vec=='sector': array = np.array(self.sectors)
     return([x for i,x in enumerate(array) if string in x])
 
@@ -163,7 +166,7 @@ def final_demand(self, secs = None, regs = None, only_positive = True):
     else: return(self.Y[[(reg,dom) for reg in self.regions for dom in io.Y.columns.levels[1]]].sum(axis='columns')*self.is_in(secs, regs))
 
 @property
-def secondary_energy_demand(self):
+def secondary_energy_demand(self): # TODO: precalculate at the instantiation
     '''
     Returns the vector of secondary energy demand.
     '''
@@ -175,10 +178,9 @@ def production(self, secs=None, regs=None):
     Returns the vector of production of (sec, reg) in secs x regs, computed from x.
     '''    
     secs, regs = self.prepare_secs_regs(secs, regs)  # TODO: for THEMIS --> is that right, to divide the two energies?
-    if (self.name=='THEMIS' or self.name=='EXIOBASE') and not hasattr(self, 'secondary_energy_supply'): 
-        self.secondary_energy_supply = self.energy_supply * self.is_in(self.energy_sectors('secondary'))
-        self.secondary_fuel_supply = self.energy_supply * self.is_in(self.energy_sectors('secondary_fuels'))
-    else: print('Property not yet implemented for this IOSystem.')
+    if self.name!='Cecilia':
+        if not hasattr(self, 'secondary_energy_supply'): self.secondary_energy_supply = self.energy_supply * self.is_in(self.energy_sectors('secondary'))
+        if not hasattr(self, 'secondary_fuel_supply'): self.secondary_fuel_supply = self.energy_supply * self.is_in(self.energy_sectors('secondary_fuels'))
     if self.name=='THEMIS': return(self.is_in(secs, regs) * div0(self.secondary_energy_demand, self.energy_supply))
     else: return(self.x*self.is_in(secs, regs))
 
@@ -190,7 +192,7 @@ def impacts(self, var='Total Energy supply', regs=None, secs=None, join_sort=Fal
     By default, secs is set to all sectors and regs to all regions.
     '''
     secs, regs = self.prepare_secs_regs(secs, regs)
-    if self.name=='EXIOBASE' and self.meta.version=='1':
+    if self.name=='Cecilia' or (self.name=='EXIOBASE' and self.meta.version=='1'):
         if var=='supply' or var=='Total Energy supply': var = 'Gross Energy Supply - '
         elif var=='use': var = 'Gross Energy Use - '
         impacts = self.materials.F.loc[[s.startswith(var) for s in self.materials.F.index]][[(r,s) for r in regs for s in secs]].sum()
@@ -208,6 +210,8 @@ def energy_supply(self):
                [[(r,s) for r in self.regions for s in self.sectors]].sum())
     elif self.name=='EXIOBASE' and self.meta.version[0]=='2': return(self.impact.S.loc['Total Energy supply'])
     elif self.name=='THEMIS': return(['Energy Carrier Supply' in sector for sector in self.labels.idx_impacts] * self.impact.S)
+    elif self.name=='Cecilia': return(div0(self.materials.F.loc[[s.startswith('Gross Energy Supply - ') for s in self.materials.F.index]]\
+               [[(r,s) for r in self.regions for s in self.sectors]].sum(), self.production()))
     else: return('Property not yet implemented for this IOSystem.')
 
 # @property
@@ -269,12 +273,12 @@ def inputs(self, secs=None, regs=None, var_impacts=[], source='all', order_recur
     nb_main gives the number of inputs that are shown for each step
     group_by allows to aggregate the inputs by region or sector (by default)
     
-    Returns a tuple of ([impacts], value of inputs, sums of all [impacts] and values for each step (not only the first nb_main which are shown))
+    Returns a tuple of ([impacts], value of inputs, sums[impacts/values][step] of all impacts and values by step (not only the first nb_main which are shown))
     '''
     secs, regs = self.prepare_secs_regs(secs, regs)
     if nb_main=='all': nb_main==self.nb_sectors()*self.nb_regions()
     if source=='all': source = self.sectors
-    elif source=='secondary': source = self.get_sectors('secondary')
+    elif source=='secondary': source = self.energy_sectors('secondary')
     if type(var_impacts)==str: var_impacts = [var_impacts]
     nb_var = len(var_impacts)
     demand = [None for i in range(order_recursion)]
@@ -300,14 +304,17 @@ def outputs(self, secs, out_sectors=None, nb_main=5):
     
     The first nb_main values are shown, out_sectors allows to restrict the outputs to certain sectors.
     '''
-    if out_sectors is None: out_sectors = self.sectors
-    production = self.x.iloc[index_secs_regs(secs, self.regions)].sum()
-    return((self.y.iloc[index_secs_regs(secs, self.regions)].sum()/production, \
-            sorted_series(self.Z.iloc[index_secs_regs(secs, self.regions)].sum().groupby('sector').sum()[out_sectors]/production)[0:nb_main]))
+    outputs_Z = sorted_series(self.Z.iloc[index_secs_regs(secs, self.regions)].sum().groupby('sector').sum()[out_sectors]/production)[0:nb_main]
+    if not hasattr(self, 'Y'): return(outputs_Z)
+    else:
+        if not hasattr(self, 'y'): self.y = np.sum(self.Y, axis=1)
+        if out_sectors is None: out_sectors = self.sectors
+        production = self.x.iloc[index_secs_regs(secs, self.regions)].sum()
+        return((self.y.iloc[index_secs_regs(secs, self.regions)].sum()/production, outputs_Z))
 
-def eroi(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True):
+def neer(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True):
     '''
-    Returns the EROI (Net External Energy Ratio) of sectors secs in regs, considering the energy from source with notion var.
+    Returns the Net External Energy Ratio of sectors secs in regs, considering the energy from source with notion var.
     
     The formula is: 
     energy supplied / (energy embodied in production (excluding supplied) - fuels as direct inputs for electricity from hydrocarbon (if netting_fuel is True))
@@ -316,31 +323,30 @@ def eroi(self, secs, regs=None, var='Total Energy supply', source='secondary', n
     else: input_fuel = 0 # We want to include fuels that are used for transportation, not transformed into electricity (this is not secondary anymore)
     secs, regs = self.prepare_secs_regs(secs, regs)
     x = self.production(secs)
-    supply = self.energy_supply.dot(x).sum()
-    embodied = (self.secondary_energy_supply.dot(self.embodied_prod(secs, prod=x) - x)).sum() 
-    if input_fuel: input_fuel = (self.secondary_fuel_supply.dot(self.A.dot(x))).sum()
-#     supply = self.impacts(var, regs, secs).sum()
-#     embodied = self.embodied_impact(secs, regs, var, source).sum()
-#     if input_fuel: input_fuel = self.inputs(secs, var_impacts=[var], source=self.energy_sectors('secondary_fuels'), order_recursion=2)[2][0][1]
+    if self.name == 'Cecilia':
+        supply = self.impacts(var, regs, secs).sum()
+        embodied = self.embodied_impact(secs, regs, var, source).sum()
+        if input_fuel: input_fuel = self.inputs(secs, var_impacts=[var], source=self.energy_sectors('secondary_fuels'), order_recursion=2)[2][0][1]
+    else: 
+        supply = self.energy_supply.dot(x).sum()
+        embodied = (self.secondary_energy_supply.dot(self.embodied_prod(secs, prod=x) - x)).sum() 
+        if input_fuel: input_fuel = (self.secondary_fuel_supply.dot(self.A.dot(x))).sum()
     return(round(supply/(embodied - input_fuel),1))
         
 
-def erois(self, secs = None, var='Total Energy supply', source='secondary', display=True):
+def erois(self, secs = None, var='Total Energy supply', source='secondary', recompute=False):
     '''
-    Returns the list of EROIs of the list of sectors secs, considering the energy from source with notion var.
+    Returns the list of EROIs (Net External Energy Ratio) of the list of sectors secs, considering the energy from source with notion var.
     '''
     if secs is None: secs = self.energy_sectors('electricities')
-    erois = []
-    if display: 
-        print('EROI with '+var+' from '+source+' sources at the denominator, unadjusted for growth')
-    for i, sec in enumerate(secs): 
-        eroi_sec = self.eroi(sec, self.regions, var, source)
-        erois.append(eroi_sec)
-        if display: print(self.energy_sectors('elecs_names')[i], eroi_sec)
-    eroi_total = self.eroi([s for s in secs], self.regions, var, source)
-    erois.append(eroi_total)
-    if display: print('System-wide EROI', eroi_total)
-    return(erois)
+    if recompute or not hasattr(self, 'eroi'):
+        neers = dict()
+        for i, sec in enumerate(secs): 
+            eroi_sec = self.neer(sec, self.regions, var, source)
+            neers.update({self.energy_sectors('elecs_names')[i]: eroi_sec})
+        neers.update({'Power sector': self.neer([s for s in secs], self.regions, var, source)}) # System-wide
+        self.eroi = neers
+    return(pd.Series(self.eroi, index=self.energy_sectors('elecs_names')+['Power sector']))
 
 IOS.prepare_secs_regs = prepare_secs_regs
 IOS.index_secs = index_secs
@@ -359,12 +365,15 @@ IOS.embodied_impact = embodied_impact
 IOS.sorted_array = sorted_array
 IOS.inputs = inputs
 IOS.outputs = outputs
-IOS.eroi = eroi
+IOS.neer = neer
 IOS.erois = erois
 IOS.energy_sectors = energy_sectors
 IOS.regions = regions
 IOS.sectors = sectors
-IOS.secondary_energy_demand = secondary_energy_demand
-IOS.energy_supply = energy_supply
 # IOS.secondary_energy_supply = secondary_energy_supply
+IOS.secondary_energy_demand = secondary_energy_demand
 # IOS.secondary_fuel_supply = secondary_fuel_supply
+IOS.energy_supply = energy_supply
+# IOS. = 
+# IOS. = 
+# other: internal_energy, composition_impact, change IOT for efficiency or gdp, calc_Z, etc., not_regs, regs_or_no, gdp, import, embodied_import

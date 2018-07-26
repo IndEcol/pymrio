@@ -26,6 +26,8 @@ from pymrio.tools.ioutil import get_repo_content
 # Constants and global variables
 from pymrio.core.constants import PYMRIO_PATH
 
+from pymrio.tools.iomath import div0
+
 
 # Exceptions
 class ParserError(Exception):
@@ -1963,3 +1965,80 @@ def themis_parser(exio_files, year = None, scenario = None, themis = None, themi
 #                                 'secondary_fuel': , 
 
         return IOSystem(A=A, name='THEMIS', version=scenario, year=year, meta=meta_rec, **dict(core_data, **extensions))
+
+def cecilia_parser(path, step = None, system='pxp'):
+    """ Cecilia 2050 parser (by adrien fabre aka. bixiou on github)
+
+    The Cecilia 2050 model is open and can be found at https://cecilia2050.eu/publications/168
+
+    Two options for this parser: either provide the step (-1: original aggregated S & U tables, 
+                                                           0: preprocessed tables, after balancing with the GRAS algorithm
+                                                           1: (BAU) efficiency gains (less inputs per output (cf. EffVector), and more output (cf. GDPVector))
+                                                           2a: new energy mix 
+                                                           2b: (techno) technical change
+                                                           3: curbing growth to respect the 2 degree scenario)
+                                 either provide none of them, and all combinations will be loaded in a dict
+    path must give the path to the root folder of Cecilia 2050, and files of both .zip should be placed in that folder.
+    For further information, ask adrien.fabre@psemail.eu
+    """
+    
+    def IOT_from_SUT(S, U, kind='p'): # Computes Z table
+        S = np.array(S, dtype='float')
+        if kind=='pxp': return(np.transpose(U.dot(div0(S,np.diag(np.sum(S, axis=1)).dot(np.ones(S.shape)))))) #sum(S).ones=sum of rows of S
+        elif kind=='ixi': return(div0(S,(np.ones(S.shape)).dot(np.diag(np.sum(S, axis=0)))).dot(U)) # ones.sum(S) = sum of columns of S
+
+    def load_matrix(matrix='U', step=0, system='pxp'):
+        if type(step) == str: step_num = int(step[0])
+        else: 
+            step_num = step
+            step = str(step)
+        if step_num<=0: step = 'preprocess/'
+        if step_num==-1: # TODO: other matrices
+            if matrix=='U':
+                M = np.loadtxt(path + 'preprocess/mrUseAggregated.txt', delimiter='\t', skiprows=2, usecols=list(range(3,519)))
+            elif matrix=='V':
+                M = np.loadtxt(path + 'preprocess/mrSupplyAggregated.txt', delimiter='\t', skiprows=2, usecols=list(range(3,519))) 
+            elif matrix=='Y': 
+                M = np.loadtxt(path + 'preprocess/mrFinalDemandAggregated.txt', delimiter='\t', skiprows=2, usecols=list(range(3,31)))
+        elif step_num==0: M = np.loadtxt(path + step + matrix + '.txt', delimiter='\t')
+        else: M = np.loadtxt(path + 'step' + step + '/' + matrix + 'end.txt', delimiter='\t')                
+        return(M)
+    
+    def load_extensions():
+        sectors = pd.read_excel(path + 'supply_use_tables_bau_2050.xlsx', 2, skiprows=2).iloc[0:129,2]
+        regions = ['EU', 'HI', 'BX', 'WW'] # EU, High Income, Fast developing countries, RoW
+        index = pd.MultiIndex.from_product([regions, sectors], names=['region', 'sector'])
+        F = np.loadtxt(path + 'preprocess/mrMaterialsAggregated.txt', delimiter='\t', skiprows=2, usecols=tuple(range(2,518)))
+        index_F = np.loadtxt(path + 'preprocess/mrMaterialsAggregated.txt', dtype='str', delimiter='\t', skiprows=2, usecols=0)
+        F = pd.DataFrame(F, index = index_F, columns = index)
+        return({'labels': {'regions': regions, 'sectors': sectors, 'index': index, 'name': 'labels'}, 'materials': {'F': F, 'index': index_F, 'name': 'materials'}}) 
+    
+    def load_system(step=0, system='pxp'):
+        S = load_matrix('V', step, system)
+        U = load_matrix('U', step, system)
+        y = load_matrix('Y', step, system)
+        Z = IOT_from_SUT(S, U, system)
+        x = y.sum(axis=1) + Z.sum(axis=1)
+        A = Z.dot(np.diag(div0(1,x)))
+        L = np.linalg.inv(np.eye(A.shape[0])-A)
+        index = extensions['labels']['index']
+        index_y = pd.MultiIndex.from_product([extensions['labels']['regions'], ['Final consumption expenditure by households', \
+            'Final consumption expenditure by non-profit organisations serving households (NPISH)', 'Final consumption expenditure by government', \
+            'Gross fixed capital formation', 'Changes in inventories', 'Changes in valuables', 'Export']], names=['region', 'sector'])
+        Z = pd.DataFrame(Z, index = index, columns = index)
+        Y = pd.DataFrame(y, index = index, columns = index_y)
+        x = pd.Series(x, index = index)
+
+        meta_rec = MRIOMetaData(system=system, name='Cecilia', version=step)
+        if step==0 or step==-1: year = 2000
+        else: year = 2050
+        core_data = dict()
+
+        return IOSystem(A=A, Z=Z, Y=Y, x=x, L=L, name='Cecilia', version=step, year=year, meta=meta_rec, **dict(core_data, **extensions))
+    
+    extensions = load_extensions()
+    if step is None:
+        cecilias = dict()
+        for step in [-1, 0, 1, '2a', '2b', 3]: cecilias[step] = load_system(step, system)
+        return(cecilias)
+    else: load_system(step, system)
