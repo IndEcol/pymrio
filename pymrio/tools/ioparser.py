@@ -12,6 +12,8 @@ import warnings
 
 import pandas as pd
 import numpy as np
+import scipy.io
+import scipy.sparse as sp
 import zipfile
 from collections import namedtuple
 
@@ -638,7 +640,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
     return io
 
 
-def parse_exiobase3(zip_file,
+def __parse_exiobase3(zip_file,
                       path_in_zip='',
                       version='3.0',
                       iosystem=None,
@@ -1862,3 +1864,102 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
         meta=meta_rec)
 
     return eora
+
+def themis_parser(exio_files, year = None, scenario = None, themis = None, themis_caracs = None, labels = None):
+    """ THEMIS parser (by adrien fabre aka. bixiou on github)
+
+    The THEMIS model is not open. You can ask NTNU for it, they might accept.
+
+    Two options for this parser: either provide the year (2010, 2030, or 2050) and scenario ('BL' or 'BM'),
+                                 either provide none of them, and all combinations will be loaded in a dict
+    exio_files must give the path to the root folder of THEMIS
+    The folder should include a file called 'Supplementary info & mixes.xlsx' which provides the IEA scenarios of energy demand.
+        You can ask this file to adrien.fabre@psemail.eu
+
+    """
+    
+    def load_themis(matrix='A', year=2010, scenario='BL'):
+        # matrix is A, Sb, Sf or S; year is 2010, 2030 or 2050; scenario is BL or BM
+        if matrix=='S': 
+            Sb = load_themis('Sb', year, scenario)
+            Sf = load_themis('Sf', year, scenario)       
+            nb_stressors_b = Sb.shape[0] - Sf.shape[0] # check .shape for sparse
+            nb_sectors_f = Sf.shape[1]
+            res = sp.hstack([sp.vstack([Sf, sp.csc_matrix((nb_stressors_b, nb_sectors_f))]), Sb])
+        else:
+            if matrix=='A': data = 'A'
+            elif matrix=='Sb': data = 'S'
+            elif matrix=='Sf': data = 'S_f'
+            else: data = matrix
+
+            year = '_' + str(year)
+            if data=='S_f': matrix_name = data + '_' + scenario
+            else: matrix_name = data + year + '_' + scenario
+
+            if data=='S_f': res = themis[matrix_name][:,:,2]
+            else: res = themis[matrix_name]
+        return(res)  
+    
+    def secondary_energy_demand():
+        TWh2MJ = 3.60 * 1e9
+        secondary_energy_demand = np.array([0]*A.shape[0])
+        for name in energy_demand.index: 
+             if name in list(labels['sectors']):
+                secondary_energy_demand[np.where(list(map(lambda s: s == name, labels['idx_sectors'])))[0]] = \
+                    energy_demand[[(reg, year) for reg in labels['regions']]].loc[name] * TWh2MJ
+        return(secondary_energy_demand)
+    
+    if themis is None or themis_caracs is None or labels is None: 
+        themis = scipy.io.loadmat(exio_files + 'Data/THEMIS2.mat')
+        themis_caracs = scipy.io.loadmat(exio_files + 'Data/Characterization_endpoint2.mat')
+        label = pd.read_excel(exio_files + 'Data/THEMIS2_labels.xls', header=0)
+        idx_name = label['Name']
+        idx_region = label['Region']
+        idx_region.loc[np.where(idx_region=='AME')] = 'Africa and Middle East'
+        idx_region.loc[np.where(idx_region=='CN')] = 'China'
+        idx_region.loc[np.where(idx_region=='EIT')] = 'Economies in transition'
+        idx_region.loc[np.where(idx_region=='IN')] = 'India'
+        idx_region.loc[np.where(idx_region=='LA')] = 'Latin America'
+        idx_region.loc[np.where(idx_region=='PAC')] = 'OECD Pacific'
+        idx_region.loc[np.where(idx_region=='US')] = 'OECD North America'
+        idx_region.loc[np.where(idx_region=='RER')] = 'OECD Europe'
+        idx_region.loc[np.where(idx_region=='AS')] = 'Rest of developing Asia'
+        label2 = pd.read_excel(exio_files + 'Data/THEMIS2_labels.xls', header=0, sheet_name=2)
+        idx_impacts = label2['FullName']
+        label3 = pd.read_excel(exio_files + 'Data/THEMIS2_labels.xls', header=0, sheet_name=3)
+        idx_caracs = label3['Abbreviation THEMIS']
+        labels = {'regions': np.unique(idx_region), 'idx_regions': idx_region, 'impacts': np.unique(idx_impacts), 'idx_impacts': idx_impacts, 
+                  'sectors': np.unique(idx_name), 'idx_sectors': idx_name, 'caracs': np.unique(idx_caracs), 'idx_caracs': idx_caracs, 'name': 'labels'}
+    if year is None and scenario is None: 
+        all_themis = dict()
+        for s in ['BL', 'BM']:
+            all_themis[s] = dict()
+            themis_s = dict()
+            for y in [2010, 2030, 2050]:
+                themis_s[y] = themis_parser(exio_files, y, s, themis, themis_caracs, labels)
+            all_themis[s] = themis_s
+        return(all_themis)
+    elif year is None or scenario is None: print('scenario and year must be both given or None')
+    else:
+        A = load_themis('A', year, scenario)
+        S = load_themis('S', year, scenario)
+        if scenario=='BL': skip, skipfoot = 6, 67
+        elif scenario=='BM': skip, skipfoot = 52, 21
+        energy_demand = pd.read_excel(exio_files+'Supplementary info & mixes.xlsx', \
+                                         header=[0,1], index_col=0, skiprows=list(range(skip)), skipfooter=skipfoot, sheet_name=11) #TODO: select good columns
+        energy_demand.index = ['Electricity by ' + name[0].lower() + name[1:] for name in list(energy_demand.index)]
+#         C = themis_caracs['C_H_CED_22'] # midpoint characterization
+#         C_large = themis_caracs['C_H_CED_large'] # midpoint characterization taken by Thomas Gibon: should be preferred to C
+#         C_index = themis_caracs['EP_H_CED_22']
+#         G = themis_caracs['G_H_CED_22'] # endpoint characterization
+#         G_index = themis_caracs['IMP_H_CED_22'] # cf. THEMIS2_labels.xls/C_IMP for more details
+#         mid2end = themis_caracs['mid2end']
+        meta_rec = MRIOMetaData(system='pxp', name='THEMIS', version=scenario)
+        core_data = dict()
+        extensions = {'labels':labels, 'impact': {'S': S, 'name': 'impact'}, 
+                      'energy':{'demand': energy_demand, 'secondary_demand': secondary_energy_demand(), 'name': 'energy'}} 
+#                                 'supply':['Energy Carrier Supply' in sector for sector in labels.idx_impacts] * S, 
+#                                 'secondary_supply': ,
+#                                 'secondary_fuel': , 
+
+        return IOSystem(A=A, name='THEMIS', version=scenario, year=year, meta=meta_rec, **dict(core_data, **extensions))

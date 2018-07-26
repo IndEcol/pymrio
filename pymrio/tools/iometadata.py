@@ -19,6 +19,7 @@ class MRIOMetaData(object):
                  name=None,
                  system=None,
                  version=None,
+                 year=None,
                  logger_function=logging.info):
 
         """ Organzises the MRIO meta data
@@ -101,6 +102,8 @@ class MRIOMetaData(object):
                 self.change_meta('system', system)
             if version:
                 self.change_meta('version', version)
+            if year:
+                self.change_meta('year', year)
 
         else:
             if not description:
@@ -110,6 +113,7 @@ class MRIOMetaData(object):
                 ('name', name),
                 ('system', system),
                 ('version', version),
+                ('year', year),
                 ('history', []),
                 ])
             self.logger("Start recording metadata")
@@ -129,11 +133,13 @@ class MRIOMetaData(object):
                 "MRIO Name: {mrio}\n"
                 "System: {system}\n"
                 "Version: {ver}\n"
+                "Year: {year}\n"
                 "File: {metafile}\n"
                 "History:\n{hist}".format(desc=self.description,
                                           mrio=self.name,
                                           system=self.system,
                                           ver=self.version,
+                                          year=self.year,
                                           metafile=self._metadata_file,
                                           hist=hist))
 
@@ -205,6 +211,10 @@ class MRIOMetaData(object):
     @property
     def version(self):
         return self._content['version']
+
+    @property
+    def year(self):
+        return self._content['year']
 
     def change_meta(self, para, new_value, log=True):
         """ Changes the meta data

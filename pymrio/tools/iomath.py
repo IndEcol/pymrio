@@ -10,6 +10,7 @@ To avoid namespace pollution everythin here starts with calc_
 
 import pandas as pd
 import numpy as np
+import scipy.sparse as sp
 import warnings
 
 import pymrio.tools.ioutil as ioutil

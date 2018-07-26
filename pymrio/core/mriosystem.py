@@ -1298,7 +1298,8 @@ class IOSystem(CoreSystem):
                 description=description,
                 name=name,
                 system=system,
-                version=version
+                version=version,
+                year=year
             )
 
         if not getattr(self.meta, 'name', None):
