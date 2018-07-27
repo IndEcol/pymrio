@@ -1950,6 +1950,7 @@ def themis_parser(exio_files, year = None, scenario = None, themis = None, themi
         energy_demand = pd.read_excel(exio_files+'Supplementary info & mixes.xlsx', \
                                          header=[0,1], index_col=0, skiprows=list(range(skip)), skipfooter=skipfoot, sheet_name=11) #TODO: select good columns
         energy_demand.index = ['Electricity by ' + name[0].lower() + name[1:] for name in list(energy_demand.index)]
+        energy_demand = pd.DataFrame(energy_demand, columns = pd.MultiIndex.from_product([labels['regions'], [2010, 2030, 2050]], names=['region', 'year']))
 #         C = themis_caracs['C_H_CED_22'] # midpoint characterization
 #         C_large = themis_caracs['C_H_CED_large'] # midpoint characterization taken by Thomas Gibon: should be preferred to C
 #         C_index = themis_caracs['EP_H_CED_22']
