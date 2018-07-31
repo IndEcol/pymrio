@@ -32,10 +32,14 @@ def calc_x(Z, Y):
         The type is determined by the type of Z. If DataFrame index as Z
 
     """
-    result = np.reshape(np.sum(np.hstack((Z, Y)), 1), (-1, 1))
+    x = np.reshape(np.sum(np.hstack((Z, Y)), 1), (-1, 1))
     if type(Z) is pd.DataFrame:
-        result = pd.DataFrame(result, index=Z.index, columns=['indout'])
-    return result
+        x = pd.DataFrame(x, index=Z.index, columns=['indout'])
+    if type(x) is pd.Series:
+        x = pd.DataFrame(x)
+    if type(x) is pd.DataFrame:
+        x.columns = ['indout']
+    return x
 
 
 def calc_x_from_L(L, y):
@@ -56,7 +60,9 @@ def calc_x_from_L(L, y):
 
     """
     x = L.dot(y)
-    if type(L) is pd.DataFrame:
+    if type(x) is pd.Series:
+        x = pd.DataFrame(x)
+    if type(x) is pd.DataFrame:
         x.columns = ['indout']
     return x
 
