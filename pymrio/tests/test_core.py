@@ -109,3 +109,37 @@ def test_copy_and_extensions(fix_testmrio):
     assert len(list(tcp.get_extensions())) == 0
     assert len(list(
         fix_testmrio.testmrio.get_extensions())) == 2
+
+
+def test_reset_to_flows(fix_testmrio):
+    tt = fix_testmrio.testmrio
+    assert tt.A is None
+    tt.calc_all()
+    tt.reset_to_flows()
+    assert tt.A is None
+    tt.Z = None
+    with pytest.raises(pymrio.core.mriosystem.ResetError):
+        tt.reset_to_flows()
+    with pytest.warns(pymrio.core.mriosystem.ResetWarning):
+        tt.reset_to_flows(force=True)
+
+
+def test_reset_full(fix_testmrio):
+    tt = fix_testmrio.testmrio
+    assert tt.A is None
+    tt.calc_all()
+    tt.reset_full()
+    assert tt.A is None
+    tt.Z = None
+    with pytest.raises(pymrio.core.mriosystem.ResetError):
+        tt.reset_full()
+    with pytest.warns(pymrio.core.mriosystem.ResetWarning):
+        tt.reset_full(force=True)
+
+
+def test_reset_to_coefficients(fix_testmrio):
+    tt = fix_testmrio.testmrio
+    tt.calc_all()
+    tt.reset_all_to_coefficients()
+    assert tt.Z is None
+    assert tt.emissions.F is None

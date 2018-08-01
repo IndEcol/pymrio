@@ -45,6 +45,22 @@ def _warn_deprecation(message):
     warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
+# Exceptions
+class ResetError(Exception):
+    """ Base class for errors while reseting the system"""
+    pass
+
+
+class AggregationError(Exception):
+    """ Base class for errors while reseting the system"""
+    pass
+
+
+class ResetWarning(UserWarning):
+    """ Base class for errors while reseting the system"""
+    pass
+
+
 # Abstract classes
 class CoreSystem():
     """ This class is the base class for IOSystem and Extension
@@ -62,10 +78,41 @@ class CoreSystem():
                             '__' not in attr])
         return startstr + parastr
 
-    def reset_full(self):
-        """ Remove all accounts which can be recalculated.
+    def reset_full(self, force=False, _meta=None):
+        """ Remove all accounts which can be recalculated based on Z, Y, F, FY
+
+        Parameters
+        ----------
+
+        force: boolean, optional
+            If True, reset to flows although the system can not be
+            recalculated. Default: False
+
+        _meta: MRIOMetaData, optional
+            Metadata handler for logging, optional. Internal
+
         """
         # Attriubtes to keep must be defined in the init: __basic__
+        strwarn = None
+        for df in self.__basic__:
+            if (getattr(self, df)) is None:
+                if force:
+                    strwarn = ("Reset system warning - Recalculation after "
+                               "reset not possible "
+                               "because {} missing".format(df))
+                    warnings.warn(strwarn, ResetWarning)
+
+                else:
+                    raise ResetError("To few tables to recalculate the "
+                                     "system after reset ({} missing) "
+                                     "- reset can be forced by passing "
+                                     "'force=True')".format(df))
+
+        if _meta:
+            _meta._add_modify("Reset system to Z and Y")
+            if strwarn:
+                _meta._add_modify(strwarn)
+
         [setattr(self, key, None)
          for key in self.get_DataFrame(
                 data=False,
@@ -74,15 +121,45 @@ class CoreSystem():
          if key not in self.__basic__]
         return self
 
-    def reset_to_flows(self):
+    def reset_to_flows(self, force=False, _meta=None):
         """ Keeps only the absolute values.
 
         This removes all attributes which can not be aggregated and must be
         recalculated after the aggregation.
 
+        Parameters
+        ----------
+
+        force: boolean, optional
+            If True, reset to flows although the system can not be
+            recalculated. Default: False
+
+        _meta: MRIOMetaData, optional
+            Metadata handler for logging, optional. Internal
+
         """
         # Development note: The attributes which should be removed are
         # defined in self.__non_agg_attributes__
+        strwarn = None
+        for df in self.__basic__:
+            if (getattr(self, df)) is None:
+                if force:
+                    strwarn = ("Reset system warning - Recalculation after "
+                               "reset not possible "
+                               "because {} missing".format(df))
+                    warnings.warn(strwarn, ResetWarning)
+
+                else:
+                    raise ResetError("To few tables to recalculate the "
+                                     "system after reset ({} missing) "
+                                     "- reset can be forced by passing "
+                                     "'force=True')".format(df))
+
+        if _meta:
+            _meta._add_modify("Reset to absolute flows")
+            if strwarn:
+                _meta._add_modify(strwarn)
+
         [setattr(self, key, None) for key in self.__non_agg_attributes__]
         return self
 
@@ -90,6 +167,13 @@ class CoreSystem():
         """ Keeps only the coefficient.
 
         This can be used to recalculate the IO tables for a new finald demand.
+
+        Note
+        -----
+
+        The system can not be reconstructed after this steps
+        because all absolute data is removed. Save the Y data in case
+        a reconstruction might be necessary.
 
         """
         # Development note: The coefficient attributes are
@@ -558,6 +642,8 @@ class Extension(CoreSystem):
         Extension of final demand with columns a y and index as F
     S : pandas.DataFrame
         Direct impact (extensions) coefficients with multiindex as F
+    SY : pandas.DataFrame
+        Direct impact (extensions) coefficients of final demand. Index as FY
     M : pandas.DataFrame
         Multipliers with multiindex as F
     D_cba : pandas.DataFrame
@@ -590,13 +676,15 @@ class Extension(CoreSystem):
 
     """
 
-    def __init__(self, name, F=None, FY=None, S=None, M=None, D_cba=None,
-                 D_pba=None, D_imp=None, D_exp=None, unit=None, **kwargs):
+    def __init__(self, name, F=None, FY=None, S=None, SY=None, M=None,
+                 D_cba=None, D_pba=None, D_imp=None, D_exp=None,
+                 unit=None, **kwargs):
         """ Init function - see docstring class """
         self.name = name
         self.F = F
         self.FY = FY
         self.S = S
+        self.SY = SY
         self.M = M
         self.D_cba = D_cba
         self.D_pba = D_pba
@@ -608,19 +696,22 @@ class Extension(CoreSystem):
             setattr(self, ext, kwargs[ext])
 
         # Internal attributes
-        self.__basic__ = ['F', 'FY']  # minimal necessary to calc the rest
+
+        # minimal necessary to calc the rest excluding FY since this might be
+        # not necessarily present
+        self.__basic__ = ['F']
         self.__D_accounts__ = ['D_cba', 'D_pba', 'D_imp', 'D_exp',
                                'D_cba_reg', 'D_pba_reg',
                                'D_imp_reg', 'D_exp_reg',
                                'D_cba_cap', 'D_pba_cap',
                                'D_imp_cap', 'D_exp_cap']
-        self.__non_agg_attributes__ = ['S', 'M',
+        self.__non_agg_attributes__ = ['S', 'SY', 'M',
                                        'D_cba_reg', 'D_pba_reg',
                                        'D_imp_reg', 'D_exp_reg',
                                        'D_cba_cap', 'D_pba_cap',
                                        'D_imp_cap', 'D_exp_cap']
 
-        self.__coefficients__ = ['S', 'M']
+        self.__coefficients__ = ['S', 'SY', 'M']
 
         # check if all accounts are available
         for acc in self.__D_accounts__:
@@ -1344,7 +1435,7 @@ class IOSystem(CoreSystem):
         # Possible cases:
         # 1) Z given, rest can be None and calculated
         # 2) A and x given, rest can be calculated
-        # 3) A and y given, calc L (if not given) - calc x and the rest
+        # 3) A and Y , calc L (if not given) - calc x and the rest
 
         # this catches case 3
         if self.x is None and self.Z is None:
@@ -1490,12 +1581,30 @@ class IOSystem(CoreSystem):
             else:
                 yield key
 
-    def reset_all_full(self):
+    def reset_full(self, force=False):
+        """ Remove all accounts which can be recalculated based on Z, Y, F, FY
+
+        Parameters
+        ----------
+
+        force: boolean, optional
+            If True, reset to flows although the system can not be
+            recalculated. Default: False
+        """
+        super().reset_full(force=force, _meta=self.meta)
+        return self
+
+    def reset_all_full(self, force=False):
         """ Removes all accounts that can be recalculated (IOSystem and extensions)
 
         This calls reset_full for the core system and all extension.
-        Use this before the aggregation to achieve a pre-aggregation
-        of the system.
+
+        Parameters
+        ----------
+
+        force: boolean, optional
+            If True, reset to flows although the system can not be
+            recalculated. Default: False
 
         """
         self.reset_full()
@@ -1503,14 +1612,39 @@ class IOSystem(CoreSystem):
         self.meta._add_modify("Reset all calculated data")
         return self
 
-    def reset_all_to_flows(self):
+    def reset_to_flows(self, force=False):
+        """ Keeps only the absolute values.
+
+        This removes all attributes which can not be aggregated and must be
+        recalculated after the aggregation.
+
+        Parameters
+        ----------
+
+        force: boolean, optional
+            If True, reset to flows although the system can not be
+            recalculated. Default: False
+        """
+        super().reset_to_flows(force=force, _meta=self.meta)
+        return self
+
+    def reset_all_to_flows(self, force=False):
         """ Resets the IOSystem and all extensions to absolute flows
 
         This method calls reset_to_flows for the IOSystem and for
-        all Extensions in the system
+        all Extensions in the system.
+
+        Parameters
+        ----------
+
+        force: boolean, optional
+            If True, reset to flows although the system can not be
+            recalculated. Default: False
+
         """
-        self.reset_to_flows()
-        [ee.reset_to_flows() for ee in self.get_extensions(data=True)]
+        self.reset_to_flows(force=force)
+        [ee.reset_to_flows(force=force)
+         for ee in self.get_extensions(data=True)]
         self.meta._add_modify("Reset full system to absolute flows")
         return self
 
@@ -1519,6 +1653,14 @@ class IOSystem(CoreSystem):
 
         This method calls reset_to_coefficients for the IOSystem and for
         all Extensions in the system
+
+        Note
+        -----
+
+        The system can not be reconstructed after this steps
+        because all absolute data is removed. Save the Y data in case
+        a reconstruction might be necessary.
+
         """
         self.reset_to_coefficients()
         [ee.reset_to_coefficients() for ee in self.get_extensions(data=True)]
@@ -1605,14 +1747,18 @@ class IOSystem(CoreSystem):
                 Aggregated IOSystem (if inplace is False)
 
         """
-        # Development note: This cant be put in the CoreSystem b/c
+        # Development note: This can not be put in the CoreSystem b/c
         # than the recalculation of the extension coefficients would not
         # work.
 
         if not inplace:
             self = self.copy()
 
-        self.reset_to_flows()
+        try:
+            self.reset_to_flows()
+        except ResetError:
+            raise AggregationError("System under-defined for aggregation - "
+                                   "do a 'calc_all' before aggregation")
 
         if type(region_names) is str:
             region_names = [region_names]
