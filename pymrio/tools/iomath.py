@@ -359,10 +359,92 @@ def approx_solution(A, y, n=10):
         s += x
     return(s)
 
-def div0(a, b):
+def div0(a, b, replace_by=0):
     '''
     Returns the Hadamard division of the arrays (or matrices) of same shape a and b, where elements of the results are 0 in locations where those of b are 0.
     '''
     if type(a)==int or type(a)==float: a = a*np.ones_like(b)
     a = np.array(a, dtype='float')
-    return(np.divide(a, b, out=np.zeros_like(a), where=b!=0))
+    return(np.divide(a, b, out=replace_by*np.ones_like(a), where=b!=0))
+
+def mult_rows(matrix, vector):
+    '''
+    Multiply (each element of) the k-th row of matrix by k-th element of vector for all k, returns the resulting matrix.
+    Doesn't work for sparse matrix.
+    '''
+    if sp.issparse(matrix): matrix = matrix.toarray()
+    return(matrix * np.diag(vector).dot(np.ones(matrix.shape))) 
+
+def mult_cols(matrix, vector): 
+    '''
+    Multiply (each element of) the k-th column of matrix by k-th element of vector for all k, returns the resulting matrix.
+    Doesn't work for sparse matrix.
+    '''
+    if sp.issparse(matrix): matrix = matrix.toarray()
+    return(matrix * (np.ones(matrix.shape)).dot(np.diag(vector)))
+
+def gras(A, new_row_sums = None, new_col_sums = None, max_iter=1e4, criterion='relative', tol=1e-5): 
+    '''
+    GRAS algorithm, which balances a matrix A in order to respect new_row_sums and new_col_sums (see Junius & Oosterhaven, 2003).
+    
+    criterion can be: 'absolute', 'relative' (default), or if not precised it stops when improvement falls below tol.
+    
+    Algorithm directly transcripted from matlab: results are the same as in matlab; I haven't checked that the code is valid but it seems.
+    Original program of Bertus Talsma, adapted by Dirk Stelder in Gauss, transferred to Matlab by Maaike Bouwmeester.
+    Matlab code can be found in /util/gras.m at https://cecilia2050.eu/system/files/cecilia_scenario_tool_version1.zip
+    '''
+    if sp.issparse(A): A = A.toarray()
+    if new_row_sums is None: u = A.sum(axis=1)
+    else: u = np.array(new_row_sums)
+    if new_col_sums is None: v = A.sum(axis=0)
+    else: v = np.array(new_col_sums)
+    nb_rows, nb_cols = A.shape
+    sm = 0.00000000000000001
+    converged = False
+    P, N = np.clip(A, 0, None), np.clip(-np.array(A), 0, None)
+    r, s = np.ones(nb_rows), np.ones(nb_cols)
+    nnn, nn = np.ones(nb_rows), np.ones(nb_cols)
+    ppp, pp = np.ones(nb_rows), np.ones(nb_cols)
+    r_inv = div0(1, r)
+    iterator = 1
+    while iterator < max_iter:
+        pp = mult_rows(P, r).sum(axis=0) # pp[col] = (P[:,col] * r).sum()
+        nn = mult_rows(N, r_inv).sum(axis=0) # nn[col] = (N[:,col] * r_inv).sum()
+        s = (v + (v**2 + 4*pp*nn)**0.5) / (2*pp + sm)
+        s_inv = div0(1, s)
+        row_new = (np.diag(r).dot(P).dot(np.diag(s)) - np.diag(r_inv).dot(N).dot(np.diag(s_inv))).dot(np.ones(nb_cols))
+        eps1_abs = np.ones(nb_rows).dot(np.abs(row_new - u))
+        rel = np.abs(row_new / (u + sm) - 1)
+        rel[np.where(u==0)] = 0
+        max_val, max_index = np.max(rel), np.argmax(rel)
+        eps1_rel = max_val
+        index_max_r = max_index
+        ppp = mult_cols(P, s).sum(axis=1)
+        nnn = mult_cols(N, s_inv).sum(axis=1)
+        r = (u + (u**2 + 4*ppp*nnn)**0.5) / (2*ppp + sm)
+        ri = div0(1, r)
+        col_new = np.ones(nb_rows).dot((np.diag(r).dot(P).dot(np.diag(s)) - np.diag(r_inv).dot(N).dot(np.diag(s_inv))))
+        eps2_abs = np.ones(nb_cols).dot(np.abs(col_new - v))
+        rel = np.abs(col_new / (v + sm) - 1)
+        rel[np.where(v==0)] = 0
+        max_val, max_index = np.max(rel), np.argmax(rel)
+        eps2_rel = max_val
+        index_max_c = max_index
+        if criterion == 'relative': abs_tol_current = (eps1_rel + eps2_rel)/2
+        else: abs_tol_current = (eps1_abs + eps2_abs)/2
+        if iterator > 1: improvement = (abs_tol_previous - abs_tol_current)/abs_tol_previous
+        if (criterion in ['relative', 'absolute'] and abs_tol_current < tol) or ((iterator > 1 and improvement < tol) or iterator <= 1):
+            iterator = max_iter
+            converged = True
+            # print('converged')
+        else: 
+            iterator += 1
+            abs_tol_previous = abs_tol_current
+    if converged:
+#         return(P-N) # why not simply this?
+        P = np.diag(r).dot(A).dot(np.diag(s))
+        N = np.diag(div0(1, r)).dot(A).dot(np.diag(div0(1, s)))
+        N[np.where(P>=0)] = 0
+        X = np.clip(P, 0, None) + N # TODO: check if + and not -
+        return(X)
+    else: print('did not converged')

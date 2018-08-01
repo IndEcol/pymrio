@@ -8,6 +8,9 @@ from pymrio.core.mriosystem import IOSystem as IOS
 from pymrio.tools.iomath import div0
 from pymrio.tools.iomath import sorted_series
 from pymrio.tools.iomath import approx_solution
+from pymrio.tools.iomath import mult_cols
+from pymrio.tools.iomath import gras
+from pymrio.tools.ioparser import themis_parser
 import pandas as pd
 import numpy as np
 import scipy.sparse as sp 
@@ -20,6 +23,7 @@ def energy_sectors(self, notion): # TODO: other sectors, difference from elecs_n
     Returns the list of energy sectors (or names) corresponding to notion, which can be: secondary, secondary_fuels, elec_hydrocarbon, electricities, elecs_names
     '''
     if notion is None: sectors = self.sectors
+    elif notion not in ['secondary', 'secondary_fuels', 'elec_hydrocarbon', 'electricities', 'elecs_names']: print('Error: notion not implemented')
     elif notion=='elec_hydrocarbon': sectors = ['Electricity by coal', 'Electricity by gas']
     elif notion=='secondary_fuels': sectors = ['Motor Gasoline', 'Gas/Diesel Oil', 'Heavy Fuel Oil', 'Liquefied Petroleum Gases (LPG)', \
          'Naphtha', 'Non-specified Petroleum Products', 'Kerosene', 'Kerosene Type Jet Fuel', 'Petroleum Coke', 'Aviation Gasoline', 'Gasoline Type Jet Fuel']
@@ -205,13 +209,12 @@ def energy_supply(self):
     '''
     Returns the vector of energy supply per unit of product.
     '''
-    if self.name=='EXIOBASE' and self.meta.version=='1': 
-        return(self.materials.S.loc[[s.startswith('Gross Energy Supply - ') for s in self.materials.S.index]]\
-               [[(r,s) for r in self.regions for s in self.sectors]].sum())
+    if self.name=='Cecilia' or (self.name=='EXIOBASE' and self.meta.version=='1'): 
+        return(self.materials.S.loc[[s.startswith('Gross Energy Supply - ') for s in self.materials.S.index]].sum())    
     elif self.name=='EXIOBASE' and self.meta.version[0]=='2': return(self.impact.S.loc['Total Energy supply'])
-    elif self.name=='THEMIS': return(['Energy Carrier Supply' in sector for sector in self.labels.idx_impacts] * self.impact.S)
-    elif self.name=='Cecilia': return(div0(self.materials.F.loc[[s.startswith('Gross Energy Supply - ') for s in self.materials.F.index]]\
-               [[(r,s) for r in self.regions for s in self.sectors]].sum(), self.production()))
+    elif self.name=='THEMIS': 
+        if not hasattr(self, 'supply_filled'): return(['Energy Carrier Supply' in sector for sector in self.labels.idx_impacts] * self.impact.S) # acts as .dot()
+        else: return(self.supply_filled)
     else: return('Property not yet implemented for this IOSystem.')
 
 # @property
@@ -340,13 +343,68 @@ def erois(self, secs = None, var='Total Energy supply', source='secondary', reco
     '''
     if secs is None: secs = self.energy_sectors('electricities')
     if recompute or not hasattr(self, 'eroi'):
-        neers = dict()
+        neers = pd.Series()
         for i, sec in enumerate(secs): 
             eroi_sec = self.neer(sec, self.regions, var, source)
-            neers.update({self.energy_sectors('elecs_names')[i]: eroi_sec})
-        neers.update({'Power sector': self.neer([s for s in secs], self.regions, var, source)}) # System-wide
-        self.eroi = neers
-    return(pd.Series(self.eroi, index=self.energy_sectors('elecs_names')+['Power sector']))
+            neers.set_value(secs[i][15:], eroi_sec)
+        neers.set_value('Power sector', self.neer([s for s in secs], self.regions, var, source))
+        self.eroi = neers.copy()
+    return(self.eroi)
+
+def change_mix(self, global_mix = None, inplace = True, same_mix_for_all = False, path_dlr = None, scenario = None, year = None): 
+        # returns A with only renewable electricity in the energy mix, works only for THEMIS
+    # in the following, we assume a global elec grid providing the same elec for all sectors, replacing the 'replaced' sectors
+    if type(global_mix)==dict and scenario is not None and year is not None: global_mix = global_mix[scenario][year]
+    elif global_mix is None and path_dlr is not None:
+        s = 'ER'
+        year = 2050 # TODO: pass as argument
+        dlr_elec = dict()
+        for reg in ['World', 'Africa', 'China', 'Eurasia', 'India', 'Latin America', 'Middle East', \
+                        'OECD Europe', 'OECD North America', 'OECD Asia Oceania', 'O-Asia']:
+            data = pd.read_excel(path_dlr+'Greenpeace_scenarios.xlsx', header=[1], index_col=0, skiprows=[0], skipfooter=144-53, \
+                                 sheet_name=s+' '+reg, usecols=[1,2,6,10])
+            dlr_elec[reg] = pd.DataFrame(columns = [2012, 2030, 2050])\
+                .append(data.loc[['    - Lignite', '    - Hard coal (& non-renewable waste)']].iloc[[1,3]].sum(axis=0).rename('coal'))\
+                .append(data.loc['    - Gas'].iloc[1].rename('gas')).append(data.loc[['    - Oil', '    - Diesel']].iloc[[1,2]].sum(axis=0).rename('oil'))\
+                .append(data.loc['  - Nuclear'].iloc[0].rename('nuclear')).append(data.loc['    - Biomass (& renewable waste)'].iloc[1].rename('biomass&Waste'))\
+                .append(data.loc['  - Hydro'].rename('hydro')).append(data.loc['of which wind offshore'].rename('wind offshore'))\
+                .append((data.loc['  - Wind']-data.loc['of which wind offshore']).rename('wind onshore'))\
+                .append(data.loc['  - PV'].rename('solar PV')).append(data.loc['    - Geothermal'].iloc[1].rename('geothermal'))\
+                .append(data.loc['  - Solar thermal power plants'].rename('solar CSP')).append(data.loc['  - Ocean energy'].rename('ocean'))\
+                .rename(columns = {2012: 2010})
+        dlr_elec['Africa and Middle East'] = dlr_elec['Africa'] + dlr_elec['Middle East']
+        dlr_elec['OECD Pacific'] = dlr_elec.pop('OECD Asia Oceania')
+        dlr_elec['Rest of developing Asia'] = dlr_elec.pop('O-Asia')
+        dlr_elec['Economies in transition'] = dlr_elec.pop('Eurasia')
+        global_mix = []
+        dlr_sectors = dlr_elec['World'].index
+        themis_BM_2050 = themis_parser(path_dlr, year = 2050, scenario = 'BM')
+        for i in themis_BM_2050.index_secs_regs(['Electricity by ' + s for s in themis_BM_2050.energy_sectors('elecs_names')], \
+                                                    themis_BM_2050.regions):
+            sec, reg = themis_BM_2050.labels.idx_sectors[i][15:], themis_BM_2050.labels.idx_regions[i]
+            if sec in dlr_sectors: global_mix = global_mix + [dlr_elec[reg].loc[sec, year]]
+            else: global_mix = global_mix + [0]
+        global_mix = div0(global_mix, np.array(global_mix).sum())
+
+    if inplace: A = self.A
+    else: A = self.A.copy()
+    elec_idx = self.index_secs_regs(self.energy_sectors('electricities'))
+    if not hasattr(self, 'energy_supply_original'):
+        self.energy_supply_original = self.energy_supply.copy()
+        self.supply_filled = self.energy_supply.copy()
+        for i in np.array(elec_idx)[np.where(self.energy_supply_original[elec_idx]==0)[0]]: # fills (reg, sec) with 0 supply with mean value of other regs 
+            sec_i = self.labels.idx_sectors[i]  # TODO: median instead of mean?, optimize this piece of code
+            self.supply_filled[i] = self.energy_supply_original.dot(self.is_in(sec_i))/len(np.where(self.energy_supply_original*self.is_in(sec_i)!=0)[0])
+   # TODO: how to respect energy demand of Greenpeace ?
+    elecs_by_row = mult_cols(A[:,elec_idx], self.energy_supply[elec_idx]) 
+    if same_mix_for_all:
+    # A.unitary_supply: elec by row -> .global_mix: matrix of elec need by row and type of elec -> /unitary_supply (<=> *supply_per_unit): convert back to units
+        A[:,elec_idx] = mult_cols(elecs_by_row.sum(axis=1).reshape(-1,1).dot(global_mix.reshape(1,-1)), div0(1, self.energy_supply[elec_idx]))
+# A[:,elec_idx] = mult_cols(A[:,elec_idx].dot(self.energy_supply[elec_idx]).reshape(-1,1).dot(global_mix.reshape(1,-1)), div0(1, self.energy_supply[elec_idx]))
+    else: # GRAS method on submatrix of elecs
+        new_elecs_by_row = gras(elecs_by_row, new_col_sums = elecs_by_row.sum(axis=0)*global_mix)
+        A[:,elec_idx] = mult_cols(new_elecs_by_row, div0(1, self.energy_supply[elec_idx]))
+    return(A)
 
 IOS.prepare_secs_regs = prepare_secs_regs
 IOS.index_secs = index_secs
@@ -374,6 +432,7 @@ IOS.sectors = sectors
 IOS.secondary_energy_demand = secondary_energy_demand
 # IOS.secondary_fuel_supply = secondary_fuel_supply
 IOS.energy_supply = energy_supply
+IOS.change_mix = change_mix
 # IOS. = 
 # IOS. = 
 # other: internal_energy, composition_impact, change IOT for efficiency or gdp, calc_Z, etc., not_regs, regs_or_no, gdp, import, embodied_import

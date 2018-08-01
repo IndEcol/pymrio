@@ -1903,12 +1903,12 @@ def themis_parser(exio_files, year = None, scenario = None, themis = None, themi
         return(res)  
     
     def secondary_energy_demand():
-        TWh2MJ = 3.60 * 1e9
+        TWh2TJ = 3.60 * 1e3
         secondary_energy_demand = np.array([0]*A.shape[0])
         for name in energy_demand.index: 
              if name in list(labels['sectors']):
                 secondary_energy_demand[np.where(list(map(lambda s: s == name, labels['idx_sectors'])))[0]] = \
-                    energy_demand[[(reg, year) for reg in labels['regions']]].loc[name] * TWh2MJ
+                    energy_demand[[(reg, year) for reg in labels['regions']]].loc[name] * TWh2TJ
         return(secondary_energy_demand)
     
     if themis is None or themis_caracs is None or labels is None: 
@@ -2009,12 +2009,12 @@ def cecilia_parser(path, step = None, system='pxp'):
         sectors = pd.read_excel(path + 'supply_use_tables_bau_2050.xlsx', 2, skiprows=2).iloc[0:129,2]
         regions = ['EU', 'HI', 'BX', 'WW'] # EU, High Income, Fast developing countries, RoW
         index = pd.MultiIndex.from_product([regions, sectors], names=['region', 'sector'])
-        F = np.loadtxt(path + 'preprocess/mrMaterialsAggregated.txt', delimiter='\t', skiprows=2, usecols=tuple(range(2,518)))
+        F_init = np.loadtxt(path + 'preprocess/mrMaterialsAggregated.txt', delimiter='\t', skiprows=2, usecols=tuple(range(2,518)))
         index_F = np.loadtxt(path + 'preprocess/mrMaterialsAggregated.txt', dtype='str', delimiter='\t', skiprows=2, usecols=0)
-        F = pd.DataFrame(F, index = index_F, columns = index)
-        return({'labels': {'regions': regions, 'sectors': sectors, 'index': index, 'name': 'labels'}, 'materials': {'F': F, 'index': index_F, 'name': 'materials'}}) 
-    
-    def load_system(step=0, system='pxp'):
+        F_init = pd.DataFrame(F_init, index = index_F, columns = index)
+        return({'labels': {'regions': regions, 'sectors': sectors, 'index': index, 'name': 'labels'}, 'materials': {'F_init': F_init, 'index': index_F, 'name': 'impact'}})
+
+    def load_system(step=0, system='pxp', x_init = None):
         S = load_matrix('V', step, system)
         U = load_matrix('U', step, system)
         y = load_matrix('Y', step, system)
@@ -2026,6 +2026,15 @@ def cecilia_parser(path, step = None, system='pxp'):
         index_y = pd.MultiIndex.from_product([extensions['labels']['regions'], ['Final consumption expenditure by households', \
             'Final consumption expenditure by non-profit organisations serving households (NPISH)', 'Final consumption expenditure by government', \
             'Gross fixed capital formation', 'Changes in inventories', 'Changes in valuables', 'Export']], names=['region', 'sector'])
+        if step==-1: x_init = x
+        elif x_init is None: 
+            S_init = load_matrix('V', -1, system)
+            U_init = load_matrix('U', -1, system)
+            y_init = load_matrix('Y', -1, system)
+            Z_init = IOT_from_SUT(S_init, U_init, system)
+            x_init = y_init.sum(axis=1) + Z_init.sum(axis=1)            
+        extensions['materials'].update({'S': pd.DataFrame(div0(extensions['materials']['F_init'], x_init), index = extensions['materials']['index'], columns = index)})
+        extensions['materials'].update({'F': pd.DataFrame(extensions['materials']['S'] * x, index = extensions['materials']['index'], columns = index)})
         Z = pd.DataFrame(Z, index = index, columns = index)
         Y = pd.DataFrame(y, index = index, columns = index_y)
         x = pd.Series(x, index = index)
@@ -2034,12 +2043,12 @@ def cecilia_parser(path, step = None, system='pxp'):
         if step==0 or step==-1: year = 2000
         else: year = 2050
         core_data = dict()
-
         return IOSystem(A=A, Z=Z, Y=Y, x=x, L=L, name='Cecilia', version=step, year=year, meta=meta_rec, **dict(core_data, **extensions))
-    
+    x_init = None
     extensions = load_extensions()
     if step is None:
         cecilias = dict()
-        for step in [-1, 0, 1, '2a', '2b', 3]: cecilias[step] = load_system(step, system)
+        for step in [-1, 0, 1, '2a', '2b', 3]: cecilias[step] = load_system(step, system, x_init)
+        if step==-1: x_init = cecilias[-1].x
         return(cecilias)
-    else: load_system(step, system)
+    else: return(load_system(step, system, x_init))
