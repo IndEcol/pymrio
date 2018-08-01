@@ -110,6 +110,7 @@ def test_copy_and_extensions(fix_testmrio):
     assert len(list(
         fix_testmrio.testmrio.get_extensions())) == 2
 
+
 def test_reset_to_flows(fix_testmrio):
     tt = fix_testmrio.testmrio
     assert tt.A is None
@@ -121,6 +122,7 @@ def test_reset_to_flows(fix_testmrio):
         tt.reset_to_flows()
     with pytest.warns(pymrio.core.mriosystem.ResetWarning):
         tt.reset_to_flows(force=True)
+
 
 def test_reset_full(fix_testmrio):
     tt = fix_testmrio.testmrio
@@ -134,10 +136,10 @@ def test_reset_full(fix_testmrio):
     with pytest.warns(pymrio.core.mriosystem.ResetWarning):
         tt.reset_full(force=True)
 
+
 def test_reset_to_coefficients(fix_testmrio):
     tt = fix_testmrio.testmrio
     tt.calc_all()
     tt.reset_all_to_coefficients()
     assert tt.Z is None
     assert tt.emissions.F is None
-

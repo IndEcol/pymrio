@@ -142,6 +142,7 @@ def test_total_agg():
                                    region_agg='global',
                                    sector_agg='total').emissions.D_cba.values)
 
+
 def test_underdefined_agg():
     """ Testing correct error message for underdefined aggregation
     """

@@ -676,8 +676,8 @@ class Extension(CoreSystem):
 
     """
 
-    def __init__(self, name, F=None, FY=None, S=None, SY=None, M=None, 
-                 D_cba=None, D_pba=None, D_imp=None, D_exp=None, 
+    def __init__(self, name, F=None, FY=None, S=None, SY=None, M=None,
+                 D_cba=None, D_pba=None, D_imp=None, D_exp=None,
                  unit=None, **kwargs):
         """ Init function - see docstring class """
         self.name = name
@@ -696,9 +696,10 @@ class Extension(CoreSystem):
             setattr(self, ext, kwargs[ext])
 
         # Internal attributes
-        self.__basic__ = ['F']  # minimal necessary to calc the rest
-                                # excluding FY since this might
-                                # be not necessarily present
+
+        # minimal necessary to calc the rest excluding FY since this might be
+        # not necessarily present
+        self.__basic__ = ['F']
         self.__D_accounts__ = ['D_cba', 'D_pba', 'D_imp', 'D_exp',
                                'D_cba_reg', 'D_pba_reg',
                                'D_imp_reg', 'D_exp_reg',
@@ -1752,7 +1753,7 @@ class IOSystem(CoreSystem):
 
         if not inplace:
             self = self.copy()
-        
+
         try:
             self.reset_to_flows()
         except ResetError:
