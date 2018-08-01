@@ -141,3 +141,11 @@ def test_total_agg():
                                io.aggregate(
                                    region_agg='global',
                                    sector_agg='total').emissions.D_cba.values)
+
+def test_underdefined_agg():
+    """ Testing correct error message for underdefined aggregation
+    """
+    io = pymrio.load_test().calc_all()
+    io.reset_all_to_coefficients()
+    with pytest.raises(pymrio.core.mriosystem.AggregationError):
+        io.aggregate(region_agg='global', sector_agg='total')
