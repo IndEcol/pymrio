@@ -12,9 +12,9 @@ There are many ways you can help to improve pymrio.
 - Add new functionality to the code.
 
 Pymrio follows an "issue/ticket driven development". 
-This means, before you start coding and/or improving the documentation file an issue describing the planned changes or comment on an existing one to indicate that you work on it.
-This allows us to discuss the changes before you actually start and gives us the chance to identify synergies across ongoing work and avoid potential double work.
-When you are finished your work, please use a pull request to inform me about any improvements you did and make sure all tests pass (see below).
+This means, before you start working file an issue describing the planned changes or comment on an existing one to indicate that you work on it.
+This allows us to discuss changes before you actually start and gives us the chance to identify synergies across ongoing work and avoid potential double work.
+When you have finished, use a pull request to inform me about the improvements and make sure all tests pass (see below).
 In the pull request you can use various phrases_ which automatically close the issue you have been working on.
 
 .. _phrases: https://blog.github.com/2013-05-14-closing-issues-via-pull-requests/

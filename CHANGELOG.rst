@@ -6,6 +6,8 @@ Changelog
 Next release
 ***********************
 
+Stressed the issue driven development in CONTRIBUTING.rst
+
 Bugfixes
 ========
 
