@@ -2,6 +2,16 @@
 Changelog
 #########
 
+***********************
+Next release
+***********************
+
+Bugfixes
+========
+
+* Calculate FY and SY when final demand impacts are available (fixes issue #28) 
+* Ensures that mrio.x is a pandas DataFrame (fixes issue #24)
+* Some warning if a reset method would remove data beyond recovery by calc_all (see issue #23 discussion)
 
 ***********************
 v0.3.6 (March 12, 2018)
