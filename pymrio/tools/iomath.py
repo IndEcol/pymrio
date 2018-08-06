@@ -181,6 +181,27 @@ def calc_S(F, x):
     return calc_A(F, x)
 
 
+def calc_SY(FY, y):
+    """ Calculate extensions/factor inputs coefficients for the final demand
+
+    Parameters
+    ----------
+    FY : pandas.DataFrame or numpy.array
+         Final demand impacts
+    y : pandas.DataFrame or numpy.array
+        Final demand column vector (e.g. mrio.Y.sum())
+
+    Returns
+    -------
+    pandas.DataFrame or numpy.array
+        Direct impact coefficients of final demand SY
+        The type is determined by the type of F.
+        If DataFrame index/columns as F
+
+    """
+    return calc_A(FY, y)
+
+
 def calc_F(S, x):
     """ Calculate total direct impacts from the impact coefficients
 
@@ -200,6 +221,27 @@ def calc_F(S, x):
 
     """
     return calc_Z(S, x)
+
+
+def calc_FY(SY, y):
+    """ Calc. total direct impacts from the impact coefficients of final demand
+
+    Parameters
+    ----------
+    SY : pandas.DataFrame or numpy.array
+        Direct impact coefficients of final demand
+    y : pandas.DataFrame or numpy.array
+        Final demand column vector (e.g. mrio.Y.sum())
+
+    Returns
+    -------
+    pandas.DataFrame or numpy.array
+        Total direct impacts of final demand FY
+        The type is determined by the type of SY.
+        If DataFrame index/columns as SY
+
+    """
+    return calc_Z(SY, y)
 
 
 def calc_M(S, L):
