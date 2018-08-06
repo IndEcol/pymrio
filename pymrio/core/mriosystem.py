@@ -23,9 +23,11 @@ import pandas as pd
 
 from pymrio.tools.iomath import calc_A
 from pymrio.tools.iomath import calc_F
+from pymrio.tools.iomath import calc_FY
 from pymrio.tools.iomath import calc_L
 from pymrio.tools.iomath import calc_M
 from pymrio.tools.iomath import calc_S
+from pymrio.tools.iomath import calc_SY
 from pymrio.tools.iomath import calc_Z
 from pymrio.tools.iomath import calc_accounts
 from pymrio.tools.iomath import calc_x
@@ -723,16 +725,18 @@ class Extension(CoreSystem):
                 "Extension {} with parameters: "
                 ).format(self.name)
 
-    def calc_system(self, x, Y_agg, L=None, population=None):
+    def calc_system(self, x, Y, Y_agg=None, L=None, population=None):
         """ Calculates the missing part of the extension plus accounts
 
-
-        This method uses y aggregated across specified y categories
+        This method allows to specify an aggregated Y_agg for the
+        account calculation (see Y_agg below). However, the full Y needs
+        to be specified for the calculation of FY or SY.
 
         Calculates:
 
         - for each sector and country:
-            D, M, D_cba, D_pba_sector, D_imp_sector, D_exp_sector
+            S, SY (if FY available), M, D_cba, D_pba_sector, D_imp_sector,
+            D_exp_sector
         - for each region:
             D_cba_reg, D_pba_reg, D_imp_reg, D_exp_reg,
         - for each region (if population vector is given):
@@ -747,8 +751,12 @@ class Extension(CoreSystem):
         ----------
         x : pandas.DataFrame or numpy.array
             Industry output column vector
-        Y_agg : pandas.DataFrame or np.array
-            The final demand aggregated (one category per country)
+        Y : pandas.DataFrame or numpy.arry
+            Full final demand array
+        Y_agg : pandas.DataFrame or np.array, optional
+            The final demand aggregated (one category per country).  Can be
+            used to restrict the calculation of CBA of a specific category
+            (e.g. households). Default: y is aggregated over all categories
         L : pandas.DataFrame or numpy.array, optional
             Leontief input output table L. If this is not given,
             the method recalculates M based on D_cba (must be present in
@@ -757,30 +765,47 @@ class Extension(CoreSystem):
             Row vector with population per region
         """
 
+        if Y_agg is None:
+            try:
+                Y_agg = Y.sum(level='region',
+                              axis=1).reindex(self.get_regions(),
+                                              axis=1)
+            except (AssertionError, KeyError):
+                Y_agg = Y.sum(level=0,
+                              axis=1,).reindex(self.get_regions(),
+                                               axis=1)
+
+        y_vec = Y.sum(axis=0)
+
         if self.F is None:
             self.F = calc_F(self.S, x)
             logging.debug(
-                '{} - Total direct impacts calculated'.format(self.name))
+                '{} - F calculated'.format(self.name))
 
         if self.S is None:
             self.S = calc_S(self.F, x)
-            logging.debug(
-                '{} - Factors of production coefficients S calculated'.format(
-                    self.name))
+            logging.debug('{} - S calculated'.format(self.name))
+
+        if (self.FY is None) and (self.SY is not None):
+            self.FY = calc_FY(self.SY, y_vec)
+            logging.debug('{} - FY calculated'.format(self.name))
+
+        if (self.SY is None) and (self.FY is not None):
+            self.SY = calc_SY(self.FY, y_vec)
+            logging.debug('{} - SY calculated'.format(self.name))
 
         if self.M is None:
             if L is not None:
                 self.M = calc_M(self.S, L)
-                logging.debug(
-                    '{} - Multipliers M calculated based on L'.format(
-                        self.name))
+                logging.debug('{} - M calculated based on L'.format(
+                    self.name))
             else:
                 try:
                     self.M = recalc_M(self.S, self.D_cba,
                                       Y=Y_agg,
                                       nr_sectors=self.get_sectors().size)
                     logging.debug(
-                        '{} - Multipliers M calculated based on '
+                        '{} - M calculated based on '
                         'D_cba and Y'.format(self.name))
                 except Exception as ex:
                     logging.debug(
@@ -1478,8 +1503,9 @@ class IOSystem(CoreSystem):
             A list of key names of extensions which shall be calculated.
             Default: all dictionaries of IOSystem are assumed to be extensions
         Y_agg : pandas.DataFrame or np.array, optional
-            The final demand aggregated (one category per country)
-            Default: y is aggregated over all categories
+            The final demand aggregated (one category per country).  Can be
+            used to restrict the calculation of CBA of a specific category
+            (e.g. households). Default: y is aggregated over all categories
         """
 
         ext_list = list(self.get_extensions(data=False))
@@ -1487,23 +1513,12 @@ class IOSystem(CoreSystem):
         if type(extensions) == str:
             extensions = [extensions]
 
-        if not Y_agg:  # this is needed in every loop iteration below
-            self.meta._add_modify('Calculating aggregated final demand')
-            # Y_agg = util.agg_columns(self.Y, self.get_Y_categories().size)
-            try:
-                Y_agg = self.Y.sum(level='region',
-                                   axis=1).reindex(self.get_regions(),
-                                                   axis=1)
-            except (AssertionError, KeyError):
-                Y_agg = self.Y.sum(level=0,
-                                   axis=1,).reindex(self.get_regions(),
-                                                    axis=1)
-
         for ext_name in extensions:
             self.meta._add_modify(
                 'Calculating accounts for extension {}'.format(ext_name))
             ext = getattr(self, ext_name)
             ext.calc_system(x=self.x,
+                            Y=self.Y,
                             L=self.L,
                             Y_agg=Y_agg,
                             population=self.population
