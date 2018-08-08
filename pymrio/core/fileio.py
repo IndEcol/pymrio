@@ -65,7 +65,9 @@ def load(path, include_core=True):
     """ Loads a IOSystem or Extension previously saved with pymrio
 
     This function can be used to load a IOSystem or Extension specified in a
-    ini file. DataFrames (tables) are loaded from text or binary pickle files.
+    metadata file (as defined in DEFAULT_FILE_NAMES['filepara']: metadata.json)
+
+    DataFrames (tables) are loaded from text or binary pickle files.
     For the latter, the extension .pkl or .pickle is assumed, in all other case
     the tables are assumed to be in .txt format.
 
