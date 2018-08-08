@@ -62,13 +62,15 @@ IDX_NAMES = {
 
 
 # Top level functions
-def parse_exio_ext(ext_file, index_col, name, drop_compartment=True,
-                   version=None, year=None, iosystem=None, sep=','):
-    """ Parse an EXIOBASE like extension file into pymrio.Extension
+def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
+                     version=None, year=None, iosystem=None, sep=','):
+    """ Parse an EXIOBASE version 1 or 2 like extension file into pymrio.Extension
 
     EXIOBASE like extensions files are assumed to have two
     rows which are used as columns multiindex (region and sector)
     and up to three columns for the row index (see Parameters).
+
+    For EXIOBASE 3 - extension can be loaded directly with pymrio.load
 
     Notes
     -----
