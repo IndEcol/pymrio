@@ -44,8 +44,12 @@ Raw data
 .. autosummary::
     :toctree: api_doc/
 
+    parse_exiobase1
     parse_exiobase2
+    generic_exiobase12_parser
     parse_wiod
+    parse_eora26
+
 
 Save data
 =========
