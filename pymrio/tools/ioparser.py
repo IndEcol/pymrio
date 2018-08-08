@@ -162,7 +162,7 @@ def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
                      )
 
 
-def get_exiobase_version(filename):
+def get_exiobase12_version(filename):
     """ Returns the EXIOBASE version for the given filename,
         None if not found
     """
@@ -241,7 +241,8 @@ def get_exiobase_files(path, coefficients=True):
             exio_files[kk] = dict(
                 root_repo=path,
                 file_path=found_file[0],
-                version=get_exiobase_version(os.path.basename(found_file[0])),
+                version=get_exiobase12_version(
+                    os.path.basename(found_file[0])),
                 index_rows=format_para['nr_header_row'],
                 index_col=format_para['nr_index_col'],
                 unit_col=format_para['nr_index_col'] - 1,
@@ -250,10 +251,10 @@ def get_exiobase_files(path, coefficients=True):
     return exio_files
 
 
-def generic_exiobase_parser(exio_files, system=None):
-    """ Generic EXIOBASE parser
+def generic_exiobase12_parser(exio_files, system=None):
+    """ Generic EXIOBASE version 1 and 2 parser
 
-    This is used internally by parse_exiobaseXXX functions to
+    This is used internally by parse_exiobase1 / 2 functions to
     parse exiobase files. In most cases, these top-level functions
     should just work, but in case of archived exiobase versions
     it might be necessary to use low-level function here.
@@ -380,8 +381,8 @@ def generic_exiobase_parser(exio_files, system=None):
     elif version[0] == '2':
         year = 2000
     elif version[0] == '3':
-        # TODO set to parsed year
-        year = None
+        raise ParserError(
+            "This function can not be used to parse EXIOBASE 3")
     else:
         logging.warning("Unknown EXIOBASE version")
         year = None
@@ -435,7 +436,7 @@ def parse_exiobase1(path):
         logging.warning("Could not determine system (pxp or ixi)"
                         " set system parameter manually")
 
-    io = generic_exiobase_parser(exio_files, system=system)
+    io = generic_exiobase12_parser(exio_files, system=system)
     return io
 
 
@@ -491,7 +492,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         logging.warning("Could not determine system (pxp or ixi)"
                         " set system parameter manually")
 
-    io = generic_exiobase_parser(exio_files, system=system)
+    io = generic_exiobase12_parser(exio_files, system=system)
 
     # read the characterisation matrices if available
     # and build one extension with the impacts
