@@ -10,6 +10,7 @@ import zipfile
 import numpy as np
 import pandas as pd
 from collections import namedtuple
+from pathlib import Path
 
 from pymrio.core.constants import PYMRIO_PATH
 
@@ -44,21 +45,28 @@ def is_vector(inp):
 def get_repo_content(path):
     """ List of files in a repo (path or zip)
 
+
+    Parameters
+    ----------
+
+    path: string or pathlib.Path
+
+    Returns
+    -------
+
     Returns a namedtuple with .iszip and .filelist
+    The path in filelist are pure strings.
+
     """
-    if os.path.splitext(path)[1] == '.zip':
+    path = Path(path)
+
+    if path.suffix == '.zip':
+        with zipfile.ZipFile(str(path)) as zz:
+            filelist = [info.filename for info in zz.infolist()]
         iszip = True
-        zz = zipfile.ZipFile(path)
-        filelist = [info.filename for info in zz.infolist()]
-        zz.close()
     else:
         iszip = False
-        filelist = []
-        for root, directories, filenames in os.walk(path):
-            for filename in filenames:
-                filelist.append(os.path.relpath(
-                    os.path.join(root, filename),
-                    path))
+        filelist = [str(f) for f in path.glob('**/*') if f.is_file()]
     return namedtuple('repocontent', ['iszip', 'filelist'])(iszip, filelist)
 
 

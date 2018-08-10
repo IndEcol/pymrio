@@ -46,10 +46,20 @@ def test_all(td_testmrio):
 
 def test_fileio(tmpdir):
     """ Round trip with saving and loading the testmrio
+
+    Also tests some fileio related util functions
     """
     mr = pymrio.load_test()
     save_path = str(tmpdir.mkdir('pymrio_test'))
     mr.save_all(save_path)
+
+    # Testing getting the repo content, some random sample test 
+    fc = pymrio.get_repo_content(save_path) 
+    assert fc.iszip == False
+    assert 'Z.txt' in [os.path.basename(f) for f in fc.filelist]
+    assert 'FY.txt' in [os.path.basename(f) for f in fc.filelist]
+    assert 'unit.txt' in [os.path.basename(f) for f in fc.filelist]
+
     mr2 = pymrio.load_all(save_path)
     npt.assert_allclose(
             mr.Z.values,

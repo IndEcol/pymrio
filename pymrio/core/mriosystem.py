@@ -424,7 +424,7 @@ class CoreSystem():
 
     def save(self, path, table_format='txt', sep='\t',
              table_ext=None, float_format='%.12g'):
-        """ Developing version for saving with json instead of ini for meta
+        """ Saving the system to path
 
 
         Parameters
