@@ -15,6 +15,7 @@ import re
 import string
 import time
 import warnings
+from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -428,7 +429,7 @@ class CoreSystem():
 
         Parameters
         ----------
-        path : string
+        path : pathlib.Path or string
             path for the saved data (will be created if necessary, data
             within will be overwritten).
 
@@ -452,17 +453,15 @@ class CoreSystem():
             default = '%.12g', only for txt files
         """
 
-        path = path.rstrip('\\')
-        path = os.path.abspath(path)
+        if type(path) is str:
+            path = path.rstrip('\\')
+            path = Path(path)
 
-        para_file_path = os.path.join(path, DEFAULT_FILE_NAMES['filepara'])
+        path.mkdir(parents=True, exist_ok=True)
+
+        para_file_path = path / DEFAULT_FILE_NAMES['filepara']
         file_para = dict()
         file_para['files'] = dict()
-
-        # meta_file_path = os.path.join(path, DEFAULT_FILE_NAMES['metadata'])
-
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
 
         if table_format in ['text', 'csv', 'txt']:
             table_format = 'txt'
@@ -502,7 +501,7 @@ class CoreSystem():
                 nr_header = 1
 
             save_file = df_name + table_ext
-            save_file_with_path = os.path.join(path, save_file)
+            save_file_with_path = path / save_file
             logging.info('Save file {}'.format(save_file_with_path))
             if table_format == 'txt':
                 df.to_csv(save_file_with_path, sep=sep,
@@ -1077,7 +1076,7 @@ class Extension(CoreSystem):
 
         Parameters
         ----------
-        path : string
+        path : pathlib.Path or string
             Root path for the report
         per_region : boolean, optional
             If true, reports the accounts per region
@@ -1115,9 +1114,11 @@ class Extension(CoreSystem):
         }
         plt.ioff()
 
-        path = os.path.abspath(path.rstrip('\\'))
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
+        if type(path) is str:
+            path = path.rstrip('\\')
+            path = Path(path)
+
+        path.mkdir(parents=True, exist_ok=True)
 
         if ffname is None:
             valid_char = string.ascii_letters + string.digits + '_'
@@ -1151,10 +1152,9 @@ class Extension(CoreSystem):
             report_txt.append('.. contents::\n\n')
 
             curr_ffname = ffname + reports_to_write[arep].spec_string
-            subfolder = os.path.join(path, curr_ffname)
+            subfolder = path / curr_ffname
 
-            if not os.path.exists(subfolder):
-                os.makedirs(subfolder, exist_ok=True)
+            subfolder.mkdir(parents=True, exist_ok=True)
 
             for row in self.get_rows():
                 name_row = (str(row).
@@ -1189,8 +1189,8 @@ class Extension(CoreSystem):
                 fig_name_list.append(file_name)
                 file_name = file_name + '.png'
 
-                file_name = os.path.join(subfolder, file_name)
-                file_name_rel = './' + os.path.relpath(file_name, start=path)
+                file_name = subfolder / file_name
+                file_name_rel = file_name.relative_to(path)
 
                 self.plot_account(row, file_name=file_name,
                                   per_capita=reports_to_write[arep].
@@ -1225,7 +1225,7 @@ class Extension(CoreSystem):
                           'txt': 'txt',
                           'html': 'html'}
             _repfile = curr_ffname + '.' + format_str.get(format, str(format))
-            with open(os.path.join(path, _repfile), 'w') as out_file:
+            with open(path / _repfile, 'w') as out_file:
                 out_file.write(fin_txt)
             logging.info('Report for {what} written to {file_where}'.
                          format(what=arep, file_where=str(_repfile)))
@@ -1689,8 +1689,15 @@ class IOSystem(CoreSystem):
         Extensions are saved in separate folders (names based on extension)
 
         Parameters are passed to the .save methods of the IOSystem and
-        Extensions
+        Extensions. See parameters description there.
         """
+
+        if type(path) is str:
+            path = path.rstrip('\\')
+            path = Path(path)
+
+        path.mkdir(parents=True, exist_ok=True)
+
         self.save(path=path,
                   table_format=table_format,
                   sep=sep,
@@ -1699,9 +1706,8 @@ class IOSystem(CoreSystem):
 
         for ext, ext_name in zip(self.get_extensions(data=True),
                                  self.get_extensions()):
-            ext_path = os.path.join(path, ext_name)
-            if not os.path.exists(ext_path):
-                os.makedirs(ext_path, exist_ok=True)
+            ext_path = path / ext_name
+
             ext.save(path=ext_path,
                      table_format=table_format,
                      sep=sep,
