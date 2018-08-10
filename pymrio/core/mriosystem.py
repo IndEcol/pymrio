@@ -2160,5 +2160,3 @@ def concate_extension(*extensions, name):
         all_dict['name'] = name
 
     return Extension(**all_dict)
-
-

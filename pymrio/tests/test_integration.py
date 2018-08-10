@@ -35,6 +35,12 @@ def td_testmrio():
 
 
 def test_all(td_testmrio):
+    """ Full integration test
+
+    Checks:
+    1) the cba calculation
+    2) concate extension
+    """
     mr = pymrio.load_test()
     mr.calc_all()
     npt.assert_allclose(
@@ -42,6 +48,15 @@ def test_all(td_testmrio):
             mr.factor_inputs.D_imp_reg.values,
             rtol=1e-5
             )
+    sat_new = pymrio.concate_extension(mr.emissions,
+                                       mr.factor_inputs,
+                                       name='sat_new')
+
+    assert len(sat_new.D_cba) == 3
+    assert mr.emissions.F.index[0] in sat_new.F.index
+    assert mr.factor_inputs.F.index[0] in sat_new.FY.index
+    assert all(mr.emissions.get_regions() == sat_new.get_regions())
+    assert all(mr.emissions.get_sectors() == sat_new.get_sectors())
 
 
 def test_fileio(tmpdir):
@@ -53,9 +68,9 @@ def test_fileio(tmpdir):
     save_path = str(tmpdir.mkdir('pymrio_test'))
     mr.save_all(save_path)
 
-    # Testing getting the repo content, some random sample test 
-    fc = pymrio.get_repo_content(save_path) 
-    assert fc.iszip == False
+    # Testing getting the repo content, some random sample test
+    fc = pymrio.get_repo_content(save_path)
+    assert fc.iszip is False
     assert 'Z.txt' in [os.path.basename(f) for f in fc.filelist]
     assert 'FY.txt' in [os.path.basename(f) for f in fc.filelist]
     assert 'unit.txt' in [os.path.basename(f) for f in fc.filelist]
