@@ -5,6 +5,7 @@ import datetime
 import json
 import os
 import logging
+from pathlib import Path
 
 from collections import OrderedDict
 
@@ -74,15 +75,15 @@ class MRIOMetaData(object):
 
         """
         if location:
-            if os.path.isfile(location):
+            location = Path(location)
+            if location.is_file():
                 self._metadata_file = location
-            elif os.path.isdir(location):
-                self._metadata_file = os.path.abspath(
-                    os.path.join(location, DEFAULT_FILE_NAMES['metadata']))
+            elif location.is_dir():
+                self._metadata_file = location / DEFAULT_FILE_NAMES['metadata']
             else:
-                if os.path.splitext(location)[1] == '':
-                    self._metadata_file = os.path.abspath(
-                        os.path.join(location, DEFAULT_FILE_NAMES['metadata']))
+                if os.path.splitext(str(location))[1] == '':
+                    self._metadata_file = (
+                        location / DEFAULT_FILE_NAMES['metadata'])
                 else:
                     self._metadata_file = location
         else:
@@ -90,7 +91,7 @@ class MRIOMetaData(object):
 
         self.logger = logger_function if logger_function else lambda x: None
 
-        if self._metadata_file and os.path.isfile(self._metadata_file):
+        if self._metadata_file and self._metadata_file.is_file():
             self._read_content()
             self.logger("Read metadata from {}".format(self._metadata_file))
             if description:
@@ -253,7 +254,7 @@ class MRIOMetaData(object):
         should not be used in isolation: it overwrites
         unsafed metadata.
         """
-        with open(self._metadata_file, 'r') as mdf:
+        with self._metadata_file.open('r') as mdf:
             self._content = json.load(mdf,
                                       object_pairs_hook=OrderedDict)
 
@@ -278,14 +279,14 @@ class MRIOMetaData(object):
 
         """
         if location:
-            if os.path.splitext(location)[1] == '':
-                self._metadata_file = os.path.abspath(
-                    os.path.join(location, DEFAULT_FILE_NAMES['metadata']))
+            location = Path(location)
+            if os.path.splitext(str(location))[1] == '':
+                self._metadata_file = location / DEFAULT_FILE_NAMES['metadata']
             else:
                 self._metadata_file = location
 
         if self._metadata_file:
-            with open(self._metadata_file, 'w') as mdf:
+            with self._metadata_file.open(mode='w') as mdf:
                 json.dump(self._content, mdf, indent=4)
         else:
             logging.error("No metadata file given for storing the file")
