@@ -514,7 +514,7 @@ class CoreSystem():
             file_para['files'][df_name]['nr_index_col'] = str(nr_index_col)
             file_para['files'][df_name]['nr_header'] = str(nr_header)
 
-        with open(para_file_path, 'w') as pf:
+        with para_file_path.open(mode='w') as pf:
             json.dump(file_para, pf, indent=4)
 
         if file_para['systemtype'] == GENERIC_NAMES['iosys']:

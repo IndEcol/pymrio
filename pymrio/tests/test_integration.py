@@ -1,5 +1,9 @@
 """ Testing functions for the full run based on
 the small MRIO given within pymrio.
+
+This tests the full computation and fileio.
+
+Might be the slowest test to run - make optional if it takes to long.
 """
 
 import sys
@@ -36,5 +40,19 @@ def test_all(td_testmrio):
     npt.assert_allclose(
             td_testmrio.factor_inputs.D_imp_values,
             mr.factor_inputs.D_imp_reg.values,
+            rtol=1e-5
+            )
+
+
+def test_fileio(tmpdir):
+    """ Round trip with saving and loading the testmrio
+    """
+    mr = pymrio.load_test()
+    save_path = str(tmpdir.mkdir('pymrio_test'))
+    mr.save_all(save_path)
+    mr2 = pymrio.load_all(save_path)
+    npt.assert_allclose(
+            mr.Z.values,
+            mr2.Z.values,
             rtol=1e-5
             )

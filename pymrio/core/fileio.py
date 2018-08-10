@@ -10,6 +10,7 @@ import json
 import re
 import pandas as pd
 import os
+from pathlib import Path
 
 from pymrio.core.constants import PYMRIO_PATH
 
@@ -30,27 +31,41 @@ class ReadError(Exception):
 def load_all(path, include_core=True, subfolders=None):
     """ Loads a full IO system with all extension in path
 
-    By default, all subfolders containing a json parameter file
-    (as defined in DEFAULT_FILE_NAMES['filepara']: metadata.json)
-    are parsed. If only a subset should be used, pass a to subfolders
-    giving the names of these.
+    Parameters
+    ----------
+    path : pathlib.Path or string
+        path or ini file name for the data to load
+
+    include_core : boolean, optional
+        If False the load method does not include A, L and Z matrix. This
+        significantly reduces the required memory if the purpose is only
+        to analyse the results calculated beforehand.
+
+    subfolders: list of pathlib.Path or string, optional
+        By default (subfolders=None), all subfolders containing a json
+        parameter file (as defined in DEFAULT_FILE_NAMES['filepara']:
+        metadata.json) are parsed. If only a subset should be used, pass a to
+        subfolders giving the names of these.
+
     """
     def clean(varStr):
         """ get valid python name from folder
         """
-        return re.sub('\W|^(?=\d)', '_', varStr)
+        return re.sub('\W|^(?=\d)', '_', str(varStr))
+
+    if type(path) is str:
+        path = path.rstrip('\\')
+        path = Path(path)
 
     io = load(path, include_core=include_core)
 
     if subfolders is None:
-        subfolders = [d for d in os.listdir(path)
-                      if os.path.isdir(os.path.join(path, d))]
+        subfolders = [d for d in path.iterdir() if d.is_dir()]
 
     for subfolder_name in subfolders:
-        subfolder_full = os.path.join(path, subfolder_name)
-
-        if os.path.isfile(os.path.join(subfolder_full,
-                                       DEFAULT_FILE_NAMES['filepara'])):
+        subfolder_full = path / subfolder_name
+        subfolder_full_meta = subfolder_full / DEFAULT_FILE_NAMES['filepara']
+        if subfolder_full_meta.exists():
             ext = load(subfolder_full, include_core=include_core)
             setattr(io, clean(subfolder_name), ext)
             io.meta._add_fileio("Added satellite account "
@@ -73,8 +88,7 @@ def load(path, include_core=True):
 
     Parameters
     ----------
-
-    path : string
+    path : pathlib.Path or string
         path or ini file name for the data to load
 
     include_core : boolean, optional
@@ -89,23 +103,24 @@ def load(path, include_core=True):
         None in case of errors
 
     """
-    path = path.rstrip('\\')
-    path = os.path.abspath(path)
+    if type(path) is str:
+        path = path.rstrip('\\')
+        path = Path(path)
 
-    if not os.path.exists(path):
+    if not path.exists():
         raise ReadError('Given path does not exist')
         return None
 
-    para_file_path = os.path.join(path, DEFAULT_FILE_NAMES['filepara'])
-    if not os.path.isfile(para_file_path):
+    para_file_path = path / DEFAULT_FILE_NAMES['filepara']
+    if not para_file_path.is_file():
         raise ReadError('No file parameter file found')
         return None
 
-    with open(para_file_path, 'r') as pf:
+    with para_file_path.open('r') as pf:
         file_para = json.load(pf)
 
     if file_para['systemtype'] == GENERIC_NAMES['iosys']:
-        meta_file_path = os.path.join(path, DEFAULT_FILE_NAMES['metadata'])
+        meta_file_path = path / DEFAULT_FILE_NAMES['metadata']
         ret_system = IOSystem(meta=MRIOMetaData(location=meta_file_path))
         ret_system.meta._add_fileio("Loaded IO system from {}".format(path))
     elif file_para['systemtype'] == GENERIC_NAMES['ext']:
@@ -120,7 +135,7 @@ def load(path, include_core=True):
                 continue
 
         file_name = file_para['files'][key]['name']
-        full_file_name = os.path.join(path, file_name)
+        full_file_name = path / file_name
         nr_index_col = file_para['files'][key]['nr_index_col']
         nr_header = file_para['files'][key]['nr_header']
 
@@ -134,8 +149,8 @@ def load(path, include_core=True):
         if _header == [0]:
             _header = 0
 
-        if (os.path.splitext(full_file_name)[1] == '.pkl' or
-                os.path.splitext(full_file_name)[1] == '.pickle'):
+        if (os.path.splitext(str(full_file_name))[1] == '.pkl' or
+                os.path.splitext(str(full_file_name))[1] == '.pickle'):
             setattr(ret_system, key,
                     pd.read_pickle(full_file_name))
         else:
@@ -409,7 +424,7 @@ def _load_ini_based_io(path, recursive=False, ini=None,
 
                 # get valid python name from folder
                 def clean(varStr):
-                    return re.sub('\W|^(?=\d)', '_', varStr)
+                    return re.sub('\W|^(?=\d)', '_', str(varStr))
 
                 setattr(ret_system, clean(subfolder), sub_system)
 
