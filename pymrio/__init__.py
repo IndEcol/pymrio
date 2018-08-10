@@ -41,6 +41,7 @@ from pymrio.version import __version__
 
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
+from pymrio.core.mriosystem import concate_extension
 
 from pymrio.core.fileio import *
 
@@ -53,7 +54,6 @@ from pymrio.tools.iodownloader import download_exiobase1
 
 from pymrio.tools.iometadata import MRIOMetaData
 
-from pymrio.tools.ioutil import concate_extension
 from pymrio.tools.ioutil import build_agg_vec
 from pymrio.tools.ioutil import build_agg_matrix
 

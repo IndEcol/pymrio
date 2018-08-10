@@ -208,6 +208,7 @@ Changing extensions
    :toctree: api_doc/
 
    IOSystem.remove_extension
+   concate_extension
    parse_exio12_ext
 
 Renaming
