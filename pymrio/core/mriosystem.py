@@ -524,6 +524,7 @@ class CoreSystem():
 
             self.meta._add_fileio("Saved {} to {}".format(self.name, path))
             self.meta.save(location=path)
+
         return self
 
     def rename_regions(self, regions):

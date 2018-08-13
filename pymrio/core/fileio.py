@@ -10,6 +10,7 @@ import json
 import re
 import pandas as pd
 import os
+import zipfile
 from pathlib import Path
 
 from pymrio.core.constants import PYMRIO_PATH
@@ -76,7 +77,7 @@ def load_all(path, include_core=True, subfolders=None):
     return io
 
 
-def load(path, include_core=True):
+def load(path, include_core=True, path_in_zip=''):
     """ Loads a IOSystem or Extension previously saved with pymrio
 
     This function can be used to load a IOSystem or Extension specified in a
@@ -89,12 +90,23 @@ def load(path, include_core=True):
     Parameters
     ----------
     path : pathlib.Path or string
-        path or ini file name for the data to load
+        path or ini file name for the data to load. This must
+        either point to the directory containing the uncompressed data or
+        the location of a compressed zip file with the data. In the
+        later case the parameter 'path_in_zip' need to be specifiec to
+        further indicate the location of the data in the compressed file.
 
     include_core : boolean, optional
         If False the load method does not include A, L and Z matrix. This
         significantly reduces the required memory if the purpose is only
         to analyse the results calculated beforehand.
+
+    path_in_zip: string, optional
+        Path to the data in the zip file (where the fileparameters file is
+        located). path_in_zip must be given without leading dot and slash;
+        thus to point to the data in the root of the compressed file pass '',
+        for data in e.g. the folder 'emissions' pass 'emissions/'.  Only used
+        if parameter 'path' points to an compressed zip file.
 
     Returns
     -------
@@ -111,18 +123,43 @@ def load(path, include_core=True):
         raise ReadError('Given path does not exist')
         return None
 
-    para_file_path = path / DEFAULT_FILE_NAMES['filepara']
-    if not para_file_path.is_file():
-        raise ReadError('No file parameter file found')
-        return None
+    is_zip = True if zipfile.is_zipfile(str(path)) else False
 
-    with para_file_path.open('r') as pf:
-        file_para = json.load(pf)
+    if is_zip:
+        with zipfile.ZipFile(file=str(path)) as zf:
+            para_file_path = os.path.join(path_in_zip,
+                                          DEFAULT_FILE_NAMES['filepara'])
+            if para_file_path not in zf.namelist():
+                raise ReadError(
+                    'File parameter file {} not found at {} - {}'.format(
+                        DEFAULT_FILE_NAMES['filepara'],
+                        path, path_in_zip, ))
+                return None
+
+            file_para = json.loads(zf.read(para_file_path).decode('utf-8'))
+    else:
+        para_file_path = path / DEFAULT_FILE_NAMES['filepara']
+        if not para_file_path.is_file():
+            raise ReadError('File parameter file {} not found at {}'.format(
+                DEFAULT_FILE_NAMES['filepara'], path))
+            return None
+
+        with para_file_path.open('r') as pf:
+            file_para = json.load(pf)
 
     if file_para['systemtype'] == GENERIC_NAMES['iosys']:
-        meta_file_path = path / DEFAULT_FILE_NAMES['metadata']
-        ret_system = IOSystem(meta=MRIOMetaData(location=meta_file_path))
-        ret_system.meta._add_fileio("Loaded IO system from {}".format(path))
+        if is_zip:
+            ret_system = IOSystem(meta=MRIOMetaData(
+                location=path,
+                path_in_zip=os.path.join(path_in_zip,
+                                         DEFAULT_FILE_NAMES['metadata'])))
+            ret_system.meta._add_fileio(
+                "Loaded IO system from {}".format(path))
+        else:
+            ret_system = IOSystem(meta=MRIOMetaData(
+                location=path / DEFAULT_FILE_NAMES['metadata']))
+            ret_system.meta._add_fileio(
+                "Loaded IO system from {} - {}".format(path, path_in_zip))
     elif file_para['systemtype'] == GENERIC_NAMES['ext']:
         ret_system = Extension(file_para['name'])
     else:
@@ -135,29 +172,45 @@ def load(path, include_core=True):
                 continue
 
         file_name = file_para['files'][key]['name']
-        full_file_name = path / file_name
         nr_index_col = file_para['files'][key]['nr_index_col']
         nr_header = file_para['files'][key]['nr_header']
-
-        logging.info('Load data from {}'.format(full_file_name))
-
         _index_col = list(range(int(nr_index_col)))
         _header = list(range(int(nr_header)))
-
         if _index_col == [0]:
             _index_col = 0
         if _header == [0]:
             _header = 0
 
-        if (os.path.splitext(str(full_file_name))[1] == '.pkl' or
-                os.path.splitext(str(full_file_name))[1] == '.pickle'):
-            setattr(ret_system, key,
-                    pd.read_pickle(full_file_name))
+        if is_zip:
+            full_file_name = os.path.join(path_in_zip,
+                                          file_name)
+            logging.info('Load data from {}'.format(full_file_name))
+
+            with zipfile.ZipFile(file=str(path)) as zf:
+
+                if (os.path.splitext(str(full_file_name))[1] == '.pkl' or
+                        os.path.splitext(str(full_file_name))[1] == '.pickle'):
+                    setattr(ret_system, key,
+                            pd.read_pickle(zf.open(full_file_name)))
+                else:
+                    setattr(ret_system, key,
+                            pd.read_table(zf.open(full_file_name),
+                                          index_col=_index_col,
+                                          header=_header))
+
         else:
-            setattr(ret_system, key,
-                    pd.read_table(full_file_name,
-                                  index_col=_index_col,
-                                  header=_header))
+            full_file_name = path / file_name
+            logging.info('Load data from {}'.format(full_file_name))
+
+            if (os.path.splitext(str(full_file_name))[1] == '.pkl' or
+                    os.path.splitext(str(full_file_name))[1] == '.pickle'):
+                setattr(ret_system, key,
+                        pd.read_pickle(full_file_name))
+            else:
+                setattr(ret_system, key,
+                        pd.read_table(full_file_name,
+                                      index_col=_index_col,
+                                      header=_header))
 
     return ret_system
 
