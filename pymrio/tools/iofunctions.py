@@ -351,7 +351,7 @@ def erois(self, secs = None, var='Total Energy supply', source='secondary', reco
         self.eroi = neers.copy()
     return(self.eroi)
 
-def change_mix(self, global_mix = None, inplace = True, same_mix_for_all = False, path_dlr = None, scenario = None, year = None): 
+def change_mix(self, global_mix = None, inplace = True, same_mix_for_all = False, path_dlr = None, scenario = None, year = None, only_exiobase = True): 
         # returns A with only renewable electricity in the energy mix, works only for THEMIS
     # in the following, we assume a global elec grid providing the same elec for all sectors, replacing the 'replaced' sectors
     if type(global_mix)==dict and scenario is not None and year is not None: global_mix = global_mix[scenario][year]
@@ -391,19 +391,23 @@ def change_mix(self, global_mix = None, inplace = True, same_mix_for_all = False
     elec_idx = self.index_secs_regs(self.energy_sectors('electricities'))
     if not hasattr(self, 'energy_supply_original'):
         self.energy_supply_original = self.energy_supply.copy()
-        self.supply_filled = self.energy_supply.copy()
+        self.supply_filled = self.energy_supply.copy() # fill unitary energy supplied of zero energy sectors such as geothermal Africa
         for i in np.array(elec_idx)[np.where(self.energy_supply_original[elec_idx]==0)[0]]: # fills (reg, sec) with 0 supply with mean value of other regs 
-            sec_i = self.labels.idx_sectors[i]  # TODO: median instead of mean?, optimize this piece of code
+            sec_i = self.labels.idx_sectors[i]  # TODO!: median instead of mean?, optimize this piece of code
             self.supply_filled[i] = self.energy_supply_original.dot(self.is_in(sec_i))/len(np.where(self.energy_supply_original*self.is_in(sec_i)!=0)[0])
    # TODO: how to respect energy demand of Greenpeace ?
-    elecs_by_row = mult_cols(A[:,elec_idx], self.energy_supply[elec_idx]) 
+    if only_exiobase: idx0 = 42219
+    else: idx0 = 0
+    elecs_by_row = mult_cols(A[idx0:,elec_idx], self.energy_supply[elec_idx]) 
     if same_mix_for_all:
     # A.unitary_supply: elec by row -> .global_mix: matrix of elec need by row and type of elec -> /unitary_supply (<=> *supply_per_unit): convert back to units
-        A[:,elec_idx] = mult_cols(elecs_by_row.sum(axis=1).reshape(-1,1).dot(global_mix.reshape(1,-1)), div0(1, self.energy_supply[elec_idx]))
+        A[idx0:,elec_idx] = mult_cols(elecs_by_row.sum(axis=1).reshape(-1,1).dot(global_mix.reshape(1,-1)), div0(1, self.energy_supply[elec_idx]))
 # A[:,elec_idx] = mult_cols(A[:,elec_idx].dot(self.energy_supply[elec_idx]).reshape(-1,1).dot(global_mix.reshape(1,-1)), div0(1, self.energy_supply[elec_idx]))
     else: # GRAS method on submatrix of elecs
-        new_elecs_by_row = gras(elecs_by_row, new_col_sums = elecs_by_row.sum(axis=0)*global_mix)
-        A[:,elec_idx] = mult_cols(new_elecs_by_row, div0(1, self.energy_supply[elec_idx]))
+        print('starting GRAS')
+        new_elecs_by_row = grasp(elecs_by_row, new_col_sums = np.array(elecs_by_row.sum(axis=0))*global_mix)
+        print('GRAS complete')
+        A[idx0:,elec_idx] = mult_cols(new_elecs_by_row, div0(1, self.energy_supply[elec_idx]))
     return(A)
 
 IOS.prepare_secs_regs = prepare_secs_regs
