@@ -9,6 +9,7 @@ from pymrio.tools.iomath import div0
 from pymrio.tools.iomath import sorted_series
 from pymrio.tools.iomath import approx_solution
 from pymrio.tools.iomath import mult_cols
+from pymrio.tools.iomath import mult_rows
 from pymrio.tools.iomath import gras
 from pymrio.tools.ioparser import themis_parser
 import pandas as pd
@@ -351,13 +352,18 @@ def erois(self, secs = None, var='Total Energy supply', source='secondary', reco
         self.eroi = neers.copy()
     return(self.eroi)
 
-def change_mix(self, global_mix = None, inplace = True, same_mix_for_all = False, path_dlr = None, scenario = None, year = None, only_exiobase = True): 
+
+def regional_mix(global_mix, nb_regions = 9, nb_sectors = None):
+    if nb_sectors is None: nb_sectors = int(max(global_mix.shape)/nb_regions)
+    return(div0(global_mix, np.kron(np.eye(nb_regions),np.ones((nb_sectors, nb_sectors))).dot(global_mix)))
+    
+def change_mix(self, global_mix = None, inplace = True, method = 'regional', path_dlr = None, scenario = None, year = None, only_exiobase = True): 
         # returns A with only renewable electricity in the energy mix, works only for THEMIS
-    # in the following, we assume a global elec grid providing the same elec for all sectors, replacing the 'replaced' sectors
+    # method can be 'regional' (default), 'global' or 'gras' (the latter is preferable but requires y and Z)
     if type(global_mix)==dict and scenario is not None and year is not None: global_mix = global_mix[scenario][year]
     elif global_mix is None and path_dlr is not None:
         s = 'ER'
-        year = 2050 # TODO: pass as argument
+        if year is None: year = 2050 # TODO: make global_mix a function
         dlr_elec = dict()
         for reg in ['World', 'Africa', 'China', 'Eurasia', 'India', 'Latin America', 'Middle East', \
                         'OECD Europe', 'OECD North America', 'OECD Asia Oceania', 'O-Asia']:
@@ -378,10 +384,10 @@ def change_mix(self, global_mix = None, inplace = True, same_mix_for_all = False
         dlr_elec['Economies in transition'] = dlr_elec.pop('Eurasia')
         global_mix = []
         dlr_sectors = dlr_elec['World'].index
-        themis_BM_2050 = themis_parser(path_dlr, year = 2050, scenario = 'BM')
-        for i in themis_BM_2050.index_secs_regs(['Electricity by ' + s for s in themis_BM_2050.energy_sectors('elecs_names')], \
-                                                    themis_BM_2050.regions):
-            sec, reg = themis_BM_2050.labels.idx_sectors[i][15:], themis_BM_2050.labels.idx_regions[i]
+        themis_BM = themis_parser(path_dlr, year = year, scenario = 'BM')
+        for i in themis_BM.index_secs_regs(['Electricity by ' + s for s in themis_BM.energy_sectors('elecs_names')], \
+                                                    themis_BM.regions):
+            sec, reg = themis_BM.labels.idx_sectors[i][15:], themis_BM.labels.idx_regions[i]
             if sec in dlr_sectors: global_mix = global_mix + [dlr_elec[reg].loc[sec, year]]
             else: global_mix = global_mix + [0]
         global_mix = div0(global_mix, np.array(global_mix).sum())
@@ -398,17 +404,27 @@ def change_mix(self, global_mix = None, inplace = True, same_mix_for_all = False
    # TODO: how to respect energy demand of Greenpeace ?
     if only_exiobase: idx0 = 42219
     else: idx0 = 0
-    elecs_by_row = mult_cols(A[idx0:,elec_idx], self.energy_supply[elec_idx]) 
-    if same_mix_for_all:
-    # A.unitary_supply: elec by row -> .global_mix: matrix of elec need by row and type of elec -> /unitary_supply (<=> *supply_per_unit): convert back to units
-        A[idx0:,elec_idx] = mult_cols(elecs_by_row.sum(axis=1).reshape(-1,1).dot(global_mix.reshape(1,-1)), div0(1, self.energy_supply[elec_idx]))
-# A[:,elec_idx] = mult_cols(A[:,elec_idx].dot(self.energy_supply[elec_idx]).reshape(-1,1).dot(global_mix.reshape(1,-1)), div0(1, self.energy_supply[elec_idx]))
-    else: # GRAS method on submatrix of elecs
-        print('starting GRAS')
-        new_elecs_by_row = grasp(elecs_by_row, new_col_sums = np.array(elecs_by_row.sum(axis=0))*global_mix)
-        print('GRAS complete')
-        A[idx0:,elec_idx] = mult_cols(new_elecs_by_row, div0(1, self.energy_supply[elec_idx]))
+    elecs_by_sec = mult_rows(A[elec_idx,idx0:], self.energy_supply[elec_idx]) # unit of elec needed by each unitary sec
+    # TODO: check one unit of output from A corresponds to energy supply units
+    
+    if method=='global':
+    # global_mix . elecs_by_sec: matrix of elec need by sec and type of elec -> /unitary_supply (<=> *unit_per_supply): convert back to arbitrary units
+        A[elec_idx,idx0:] = mult_rows(global_mix.reshape(-1,1).dot(elecs_by_sec.sum(axis=0)), div0(1, self.energy_supply[elec_idx]))
+    elif method=='regional' or method=='region':
+        agg_matrix = sp.kron(sp.eye(self.nb_regions),np.ones((len(self.energy_sectors('electricities')), len(self.energy_sectors('electricities')))))
+        A[elec_idx,idx0:] = mult_rows(agg_matrix.dot(elecs_by_sec), div0(regional_mix(global_mix, self.nb_regions), self.energy_supply[elec_idx]))
+    elif method=='gras' or method=='GRAS': # GRAS method on submatrix of elecs, never tested
+        if inplace: A = self.Z
+        else: A = self.Z.copy()    
+        elecs_by_sec = mult_rows(A[elec_idx,idx0:], self.energy_supply[elec_idx]) # unit of elec needed by each sec
+#         print('starting GRAS')
+        new_elecs_by_sec = grasp(elecs_by_sec, new_row_sums = elecs_by_row.sum()*global_mix)
+#         print('GRAS complete')
+        A[elec_idx,idx0:] = mult_rows(new_elecs_by_row, div0(1, self.energy_supply[elec_idx]))
+    else: print('method unknown')
     return(A)
+
+IOS.change_mix = change_mix
 
 IOS.prepare_secs_regs = prepare_secs_regs
 IOS.index_secs = index_secs
