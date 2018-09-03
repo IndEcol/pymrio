@@ -3,6 +3,7 @@ Utility function for pymrio
 
 KST 20140502
 """
+import json
 import logging
 import os
 import zipfile
@@ -13,7 +14,7 @@ from collections import namedtuple
 from pathlib import Path
 
 from pymrio.core.constants import PYMRIO_PATH
-
+from pymrio.core.constants import DEFAULT_FILE_NAMES
 
 def is_vector(inp):
     """ Returns true if the input can be interpreted as a 'true' vector
@@ -60,7 +61,7 @@ def get_repo_content(path):
     """
     path = Path(path)
 
-    if path.suffix == '.zip':
+    if zipfile.is_zipfile(str(path)):
         with zipfile.ZipFile(str(path)) as zz:
             filelist = [info.filename for info in zz.infolist()]
         iszip = True
@@ -68,6 +69,86 @@ def get_repo_content(path):
         iszip = False
         filelist = [str(f) for f in path.glob('**/*') if f.is_file()]
     return namedtuple('repocontent', ['iszip', 'filelist'])(iszip, filelist)
+
+
+def get_file_para(path, path_in_arc=''):
+    """ Generic method to read the file parameter file
+
+    Helper function to consistently read the file parameter file, which can
+    either be uncompressed or included in a zip archive.  By default, the file
+    name is to be expected as set in DEFAULT_FILE_NAMES['filepara'] (currently
+    file_parameters.json), but can defined otherwise by including the file
+    name of the parameter file in the parameter path.
+
+    Parameters
+    ----------
+
+    path: pathlib.Path or string
+        Path or path with para file name for the data to load.
+        This must either point to the directory containing the uncompressed
+        data or the location of a compressed zip file with the data. In the
+        later case the parameter 'path_in_arc' needs to be specifiec to
+        further indicate the location of the data in the compressed file.
+
+    path_in_arc: string, optional
+        Path to the data in the zip file (where the fileparameters file is
+        located). path_in_arc must be given without leading dot and slash;
+        thus to point to the data in the root of the compressed file pass ''
+        (default), for data in e.g. the folder 'emissions' pass 'emissions/'.
+        Only used if parameter 'path' points to an compressed zip file.
+
+    Returns
+    -------
+
+    Returns a namedtuple with
+    .folder: str with the absolute path containing the
+           file parameter file. In case of a zip the path
+           is relative to the root in the zip
+    .name: Filename without fulder of the used parameter file.
+    .content: Dictionary with the content oft the file parameter file
+
+    Raises
+    ------
+
+    FileNotFoundError if parameter file not found
+
+    """
+    if type(path) is str:
+        path = Path(path.rstrip('\\'))
+
+    if zipfile.is_zipfile(str(path)):
+        para_file_folder = str(path_in_arc)
+        with zipfile.ZipFile(file=str(path)) as zf:
+            files = zf.namelist()
+    else:
+        para_file_folder = str(path)
+        files = [str(f) for f in path.glob('**/*')]
+
+    if para_file_folder not in files:
+        para_file_full_path = os.path.join(
+            para_file_folder, DEFAULT_FILE_NAMES['filepara'])
+    else:
+        para_file_full_path = para_file_folder
+        para_file_folder = os.path.dirname(para_file_full_path)
+
+    if para_file_full_path not in files:
+        raise FileNotFoundError(
+            'File parameter file {} not found'.format(
+                para_file_full_path))
+
+    if zipfile.is_zipfile(str(path)):
+        with zipfile.ZipFile(file=str(path)) as zf:
+            para_file_content = json.loads(
+                zf.read(para_file_full_path).decode('utf-8'))
+    else:
+        with open(para_file_full_path, 'r') as pf:
+            para_file_content = json.load(pf)
+
+    return namedtuple('file_parameter',
+                      ['folder', 'name', 'content'])(
+                       para_file_folder,
+                       os.path.basename(para_file_full_path),
+                       para_file_content)
 
 
 def build_agg_matrix(agg_vector, pos_dict=None):
