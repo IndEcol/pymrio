@@ -65,6 +65,7 @@ def test_fileio(tmpdir):
     Also tests some fileio related util functions
     """
     mr = pymrio.load_test()
+
     save_path = str(tmpdir.mkdir('pymrio_test'))
     mr.save_all(save_path)
 
@@ -76,8 +77,20 @@ def test_fileio(tmpdir):
     assert 'unit.txt' in [os.path.basename(f) for f in fc.filelist]
 
     mr2 = pymrio.load_all(save_path)
-    npt.assert_allclose(
-            mr.Z.values,
-            mr2.Z.values,
-            rtol=1e-5
-            )
+    npt.assert_allclose(mr.Z.values, mr2.Z.values, rtol=1e-5)
+
+    # Testing the zip archive functions
+    zip_arc = os.path.join(save_path, 'test_mrio.zip')
+    if os.path.exists(zip_arc):
+        os.remove(zip_arc)
+    pymrio.archive(
+        source=save_path,
+        archive=zip_arc,
+        remove_source=False,
+        path_in_arc='test')
+
+    emissions = pymrio.load(zip_arc, path_in_arc='test/emissions')
+    npt.assert_allclose(mr.emissions.F.values, emissions.F.values, rtol=1e-5)
+
+    mr3 = pymrio.load_all(zip_arc)
+    npt.assert_allclose(mr.Z.values, mr3.Z.values, rtol=1e-5)

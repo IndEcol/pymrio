@@ -10,6 +10,7 @@ import json
 import re
 import pandas as pd
 import os
+import sys
 import zipfile
 from pathlib import Path
 
@@ -98,10 +99,10 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
             with zipfile.ZipFile(file=str(path), mode='r') as zz:
                 fpfiles = [
                     f for f in zz.namelist()
-                    if os.path.basename(f) == DEFAULT_FILE_NAMES['filepara']
-                    and json.loads(
-                        zz.read(f).decode('utf-8')
-                        )['systemtype'] == 'IOSystem']
+                    if
+                    os.path.basename(f) == DEFAULT_FILE_NAMES['filepara'] and
+                    json.loads(zz.read(f).decode('utf-8')
+                               )['systemtype'] == 'IOSystem']
             if len(fpfiles) == 0:
                 raise ReadError('File parameter file {} not found in {}. '
                                 'Tip: specify fileparameter filename '
@@ -113,9 +114,9 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                                 'Specify one by the '
                                 'parameter "path_in_arc"'.format(path))
             else:
-                path_in_arc = fpfiles[0]
+                path_in_arc = os.path.dirname(fpfiles[0])
 
-        logging.debug("Expect file parameterfile at {} in {}".format(
+        logging.debug("Expect file parameter-file at {} in {}".format(
             path_in_arc, path))
 
     io = load(path, include_core=include_core, path_in_arc=path_in_arc)
@@ -125,8 +126,9 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
         if subfolders is None:
             subfolders = {
                 os.path.relpath(os.path.dirname(p), root_in_zip)
-                for p in zipcontent if p.startswith(root_in_zip)
-                and os.path.dirname(p) != root_in_zip}
+                for p in zipcontent
+                if p.startswith(root_in_zip) and
+                os.path.dirname(p) != root_in_zip}
 
         for subfolder_name in subfolders:
             if subfolder_name not in zipcontent + list({
@@ -194,7 +196,7 @@ def load(path, include_core=True, path_in_arc=''):
         Path or path with para file name for the data to load. This must
         either point to the directory containing the uncompressed data or
         the location of a compressed zip file with the data. In the
-        later case the parameter 'path_in_arc' need to be specifiec to
+        later case the parameter 'path_in_arc' need to be specific to
         further indicate the location of the data in the compressed file.
 
     include_core : boolean, optional
@@ -228,7 +230,7 @@ def load(path, include_core=True, path_in_arc=''):
         if zipfile.is_zipfile(str(path)):
             ret_system = IOSystem(meta=MRIOMetaData(
                 location=path,
-                path_in_arc=os.path.join(path_in_arc,
+                path_in_arc=os.path.join(file_para.folder,
                                          DEFAULT_FILE_NAMES['metadata'])))
             ret_system.meta._add_fileio(
                 "Loaded IO system from {} - {}".format(path, path_in_arc))
@@ -258,7 +260,7 @@ def load(path, include_core=True, path_in_arc=''):
         _header = 0 if _header == [0] else _header
 
         if zipfile.is_zipfile(str(path)):
-            full_file_name = os.path.join(path_in_arc, file_name)
+            full_file_name = os.path.join(file_para.folder, file_name)
             logging.info('Load data from {}'.format(full_file_name))
 
             with zipfile.ZipFile(file=str(path)) as zf:
@@ -287,12 +289,20 @@ def load(path, include_core=True, path_in_arc=''):
     return ret_system
 
 
-def archive(source, archive, path_in_arc=None,
-            force_arc_overwrite=False, remove_source=False):
+def archive(source, archive, path_in_arc=None, remove_source=False,
+            compression=zipfile.ZIP_DEFLATED, compresslevel=-1):
     """Archives a MRIO database as zip file
 
-    This function is a wraper around TODO ZIP,
-    to ease the writing of an archive and removing the source data
+    This function is a wrapper around zipfile.write,
+    to ease the writing of an archive and removing the source data.
+
+    Note
+    ----
+    In contrast to zipfile.write, this function raises an
+    error if the data (path + filename are identical) in the zip archive.
+    Background: the zip standard allows that files with the same name and path
+    are stored side by side in a zip file. This becomes an issue when unpacking
+    this files as they overwrite each other upon extraction.
 
     Parameters
     ----------
@@ -312,38 +322,90 @@ def archive(source, archive, path_in_arc=None,
         for data in e.g. the folder 'mrio_v1' pass 'mrio_v1/'.
         If None (default) data will be stored in the root of the archive.
 
-    force_arc_overwrite: boolean, optional
-        If False (default) raises an expection (TODO Specify) if the location
-        of the data (within in an existin archive, as specifed in
-        'path_in_arc') already contains data. If True, overwrites the data
-        silently.
-
     remove_source: boolean, optional
         If True, deletes the source file from the disk (all files
         specified in 'source' or the specified directory, depending if a
         list of files or directory was passed). If False, leaves the
-        original files on disk.
+        original files on disk. Also removes all empty directories
+        in source including source.
 
-    TODO: update for data will be stored at the same place with througing
-    a UserWarning: raise error is any exist before, otherwise write next to
-    it (overwrite not possible)
+    compression: ZIP compression method, optional
+        This is passed to zipfile.write. By default it is set to ZIP_DEFLATED.
+        NB: This is different from the zipfile default (ZIP_STORED) which would
+        not give any compression. See
+        https://docs.python.org/3/library/zipfile.html#zipfile-objects for
+        further information. Depending on the value given here additional
+        modules might be necessary (e.g. zlib for ZIP_DEFLATED). Futher
+        information on this can also be found in the zipfile python docs.
+
+    compresslevel: int, optional
+        This is passed to zipfile.write and specifies the compression level.
+        Acceptable values depend on the method specified at the parameter
+        'compression'.  By default, it is set to -1 which gives a compromise
+        between speed and size for the ZIP_DEFLATED compression (this is
+        internally interpreted as 6 as described here:
+        https://docs.python.org/3/library/zlib.html#zlib.compressobj )
+        NB: This is only used if python version >= 3.7
+
+    Raises
+    ------
+    FileExistsError: In case a file to be archived already present in the
+    archive.
 
     """
-    # TODO: make parameter
-    compression_type = zipfile.ZIP_DEFLATED  #standard with zlib, should have best performance, but slightly larger archives, can be specified here https://docs.python.org/3.6/library/zipfile.html#zipfile.ZIP_DEFLATED
+    archive = Path(archive)
 
     if type(source) is not list:
-        root_folder = source
-        source = [f for f in Path(source).glob('**/*') if f.is_file()]
+        source_root = str(source)
+        source_files = [f for f in Path(source).glob('**/*') if f.is_file()]
     else:
-        root_folder = os.path.commonpath([str(f) for f in source])
+        source_root = os.path.commonpath([str(f) for f in source])
+        source_files = [Path(f) for f in source]
 
     path_in_arc = '' if not path_in_arc else path_in_arc
 
     arc_file_names = {
-        str(f): os.path.join(path_in_arc, str(f.relative_to(root_folder))) 
-        for f in source} 
+        str(f): os.path.join(path_in_arc, str(f.relative_to(source_root)))
+        for f in source_files}
 
+    if archive.exists():
+        with zipfile.ZipFile(file=str(archive), mode='r') as zf:
+            already_present = zf.namelist()
+        duplicates = {ff: zf for ff, zf in arc_file_names.items()
+                      if zf in already_present}
+
+        if duplicates:
+            raise FileExistsError(
+                'These files already exists in {arc} for '
+                'path_in_arc "{pa}":\n  {filelist}'.format(
+                    pa=path_in_arc, arc=archive,
+                    filelist='\n  '.join(duplicates.values())))
+
+    if sys.version_info.major == 3 and sys.version_info.minor >= 7:
+        zip_open_para = dict(file=str(archive), mode='a',
+                             compression=compression,
+                             compresslevel=compresslevel)
+    else:
+        zip_open_para = dict(file=str(archive), mode='a',
+                             compression=compression)
+
+    with zipfile.ZipFile(**zip_open_para) as zz:
+        for fullpath, zippath in arc_file_names.items():
+            zz.write(str(fullpath), str(zippath))
+
+    if remove_source:
+        for f in source_files:
+            os.remove(str(f))
+
+        for root, dirs, files in os.walk(source_root, topdown=False):
+            for name in dirs:
+                dir_path = os.path.join(root, name)
+                if not os.listdir(dir_path):
+                    os.rmdir(os.path.join(root, name))
+        try:
+            os.rmdir(source_root)
+        except OSError:
+            pass
 
 
 def _load_all_ini_based_io(path, **kwargs):

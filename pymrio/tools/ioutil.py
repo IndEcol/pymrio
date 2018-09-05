@@ -9,12 +9,12 @@ import os
 import zipfile
 
 import numpy as np
-import pandas as pd
 from collections import namedtuple
 from pathlib import Path
 
 from pymrio.core.constants import PYMRIO_PATH
 from pymrio.core.constants import DEFAULT_FILE_NAMES
+
 
 def is_vector(inp):
     """ Returns true if the input can be interpreted as a 'true' vector
@@ -87,7 +87,7 @@ def get_file_para(path, path_in_arc=''):
         Path or path with para file name for the data to load.
         This must either point to the directory containing the uncompressed
         data or the location of a compressed zip file with the data. In the
-        later case the parameter 'path_in_arc' needs to be specifiec to
+        later case the parameter 'path_in_arc' needs to be specific to
         further indicate the location of the data in the compressed file.
 
     path_in_arc: string, optional
@@ -104,7 +104,7 @@ def get_file_para(path, path_in_arc=''):
     .folder: str with the absolute path containing the
            file parameter file. In case of a zip the path
            is relative to the root in the zip
-    .name: Filename without fulder of the used parameter file.
+    .name: Filename without folder of the used parameter file.
     .content: Dictionary with the content oft the file parameter file
 
     Raises

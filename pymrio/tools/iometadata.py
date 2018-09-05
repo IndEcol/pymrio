@@ -21,7 +21,7 @@ class MRIOMetaData(object):
                  name=None,
                  system=None,
                  version=None,
-                 path_in_zip='',
+                 path_in_arc='',
                  logger_function=logging.info):
 
         """ Organzises the MRIO meta data
@@ -73,8 +73,8 @@ class MRIOMetaData(object):
             Will be set the first time the metadata file gets established;
             subsequent changes are recorded in 'history'.
 
-        path_in_zip: string, optional
-            Path to the meta data in a zip file. path_in_zip must be given
+        path_in_arc: string, optional
+            Path to the meta data in a zip file. path_in_arc must be given
             without leading dot or slash; thus to point to the data in the
             root of the compressed file pass '', for data in e.g. the folder
             'emissions' pass 'emissions/'.  Only used if parameter 'location'
@@ -89,17 +89,17 @@ class MRIOMetaData(object):
         """
         if location:
             location = Path(location)
-            self._path_in_zip = None
+            self._path_in_arc = None
             if location.is_file():
                 self._metadata_file = location
                 if zipfile.is_zipfile(str(location)):
                     with zipfile.ZipFile(file=str(location)) as zf:
-                        if path_in_zip not in zf.namelist():
-                            path_in_zip = os.path.join(
-                                path_in_zip,
+                        if path_in_arc not in zf.namelist():
+                            path_in_arc = os.path.join(
+                                path_in_arc,
                                 DEFAULT_FILE_NAMES['metadata'])
 
-                    self._path_in_zip = str(path_in_zip)
+                    self._path_in_arc = str(path_in_arc)
 
             elif location.is_dir():
                 self._metadata_file = location / DEFAULT_FILE_NAMES['metadata']
@@ -120,7 +120,7 @@ class MRIOMetaData(object):
 
             if zipfile.is_zipfile(str(self._metadata_file)):
                 self._metadata_file = None
-                self._path_in_zip = None
+                self._path_in_arc = None
 
             if description:
                 self.change_meta('description', description)
@@ -276,16 +276,16 @@ class MRIOMetaData(object):
         return '{:%Y%m%d %H:%M:%S}'.format(datetime.datetime.now())
 
     def _read_content(self):
-        """ Reads metadata from location (and path_in_zip if archive)
+        """ Reads metadata from location (and path_in_arc if archive)
 
         This function is called during the init process and
         should not be used in isolation: it overwrites
         unsafed metadata.
         """
-        if self._path_in_zip:
+        if self._path_in_arc:
             with zipfile.ZipFile(file=str(self._metadata_file)) as zf:
                 self._content = json.loads(
-                    zf.read(self._path_in_zip).decode('utf-8'),
+                    zf.read(self._path_in_arc).decode('utf-8'),
                     object_pairs_hook=OrderedDict)
         else:
             with self._metadata_file.open('r') as mdf:
