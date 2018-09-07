@@ -15,6 +15,12 @@ Bugfixes
 * Ensures that mrio.x is a pandas DataFrame (fixes issue #24)
 * Some warning if a reset method would remove data beyond recovery by calc_all (see issue #23 discussion)
 
+New features
+============
+
+* pymrio.archive for archiving MRIO databases into zipfiles
+* pymrio.load and pymrio.load_all can read data directly from a zipfile
+
 ***********************
 v0.3.6 (March 12, 2018)
 ***********************
