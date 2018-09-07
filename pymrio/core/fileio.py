@@ -77,8 +77,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
         """
         return re.sub('\W|^(?=\d)', '_', str(varStr))
 
-    if type(path) is str:
-        path = Path(path.rstrip('\\'))
+    path = Path(path)
 
     if zipfile.is_zipfile(str(path)):
         with zipfile.ZipFile(file=str(path), mode='r') as zz:
@@ -136,6 +135,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                 subfolder_full = os.path.join(root_in_zip, subfolder_name)
             else:
                 subfolder_full = subfolder_name
+            subfolder_name = os.path.basename(os.path.normpath(subfolder_name))
 
             if subfolder_name not in zipcontent:
                 subfolder_full_meta = os.path.join(
@@ -162,6 +162,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                 subfolder_full = path / subfolder_name
             else:
                 subfolder_full = subfolder_name
+            subfolder_name = os.path.basename(os.path.normpath(subfolder_name))
 
             if not os.path.isfile(str(subfolder_full)):
                 subfolder_full_meta = (subfolder_full /
@@ -218,8 +219,7 @@ def load(path, include_core=True, path_in_arc=''):
         None in case of errors
 
     """
-    if type(path) is str:
-        path = Path(path.rstrip('\\'))
+    path = Path(path)
 
     if not path.exists():
         raise ReadError('Given path does not exist')
@@ -485,8 +485,7 @@ def _load_ini_based_io(path, recursive=False, ini=None,
     # check path and given parameter
     ini_file_name = None
 
-    path = path.rstrip('\\')
-    path = os.path.abspath(path)
+    path = os.path.abspath(os.path.normpath(path))
 
     if os.path.splitext(path)[1] == '.ini':
         (path, ini_file_name) = os.path.split(path)

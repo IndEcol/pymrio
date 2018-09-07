@@ -17,6 +17,7 @@ from collections import namedtuple
 
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
+from pymrio.core.fileio import load_all
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import sniff_csv_format
 from pymrio.tools.ioutil import get_repo_content
@@ -80,7 +81,7 @@ def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
     Parameters
     ----------
 
-    ext_file : string
+    ext_file : string or pathlib.Path
         File to parse
 
     index_col : int
@@ -116,7 +117,7 @@ def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
 
     """
 
-    ext_file = os.path.abspath(ext_file)
+    ext_file = os.path.abspath(str(ext_file))
 
     F = pd.read_table(
         ext_file,
@@ -182,7 +183,7 @@ def get_exiobase_files(path, coefficients=True):
 
     Parameters
     ----------
-    path: str
+    path: str or pathlib.Path
         Path to exiobase files or zip file
     coefficients: boolean, optional
         If True (default), considers the mrIot file as A matrix,
@@ -192,6 +193,7 @@ def get_exiobase_files(path, coefficients=True):
     -------
     dict of dict
     """
+    path = os.path.normpath(str(path))
     if coefficients:
         exio_core_regex = dict(
             # don’t match file if starting with _
@@ -423,9 +425,18 @@ def parse_exiobase1(path):
 
     The parser works with the compressed (zip) files as well as the unpacked
     files.
+
+    Parameters
+    ----------
+    path : pathlib.Path or string
+        Path of the exiobase 1 data
+
+    Returns
+    -------
+    pymrio.IOSystem with exio1 data
+
     """
-    path = path.rstrip('\\')
-    path = os.path.abspath(path)
+    path = os.path.abspath(os.path.normpath(str(path)))
 
     exio_files = get_exiobase_files(path)
     if len(exio_files) == 0:
@@ -451,7 +462,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
 
     Parameters
     ----------
-    path : string
+    path : string or pathlib.Path
         Path to the EXIOBASE source files
     charact : string or boolean, optional
         Filename with path to the characterisation matrices for the extensions
@@ -480,8 +491,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         If the exiobase source files are not complete in the given path
 
     """
-    path = path.rstrip('\\')
-    path = os.path.abspath(path)
+    path = os.path.abspath(os.path.normpath(str(path)))
 
     exio_files = get_exiobase_files(path)
     if len(exio_files) == 0:
@@ -641,6 +651,29 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
     return io
 
 
+def parse_exiobase3(path):
+    """ Parses the public EXIOBASE 3 system
+
+    This parser works with either the compressed files
+    as downloaded or the extracted system.
+
+    Parameters
+    ----------
+
+    path : string or pathlib.Path
+        Path to the folder with the EXIOBASE files
+        or the compressed archive.
+
+    Returns
+    -------
+    IOSystem
+        A IOSystem with the parsed exiobase 3 data
+
+    """
+    io = load_all(path)
+    return io
+
+
 def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                popvector=None):
     """ Parse the wiod source files for the IOSystem
@@ -678,7 +711,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
 
     Parameters
     ----------
-    path : string
+    path : string or pathlib.Path
         Path to the folder with the WIOD source files. In case that the path
         to a specific file is given, only this will be parsed irrespective of
         the values given in year.
@@ -720,9 +753,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     """
 
     # Path manipulation, should work cross platform
-    path = path.rstrip('\\')
-    path = path.rstrip('/')
-    path = os.path.abspath(path)
+    path = os.path.abspath(os.path.normpath(str(path)))
 
     # wiot start and end
     wiot_ext = '.xlsx'
@@ -1355,7 +1386,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     Parameters
     ----------
 
-    path : string
+    path : string or pathlib.Path
        Path to the eora raw storage folder or a specific eora zip file to
        parse.  There are several options to specify the data for parsing:
 
@@ -1382,10 +1413,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
 
 
     """
-    # Path manipulation, should work cross platform
-    path = path.rstrip('\\')
-    path = path.rstrip('/')
-    path = os.path.abspath(path)
+    path = os.path.abspath(os.path.normpath(str(path)))
 
     if country_names[0].lower() == 'e':
         country_names = 'eora'
