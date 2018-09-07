@@ -299,7 +299,7 @@ def archive(source, archive, path_in_arc=None, remove_source=False,
     Note
     ----
     In contrast to zipfile.write, this function raises an
-    error if the data (path + filename are identical) in the zip archive.
+    error if the data (path + filename) are identical in the zip archive.
     Background: the zip standard allows that files with the same name and path
     are stored side by side in a zip file. This becomes an issue when unpacking
     this files as they overwrite each other upon extraction.
