@@ -259,8 +259,8 @@ def generic_exiobase12_parser(exio_files, system=None):
     should just work, but in case of archived exiobase versions
     it might be necessary to use low-level function here.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
 
     exio_files: dict of dict
 

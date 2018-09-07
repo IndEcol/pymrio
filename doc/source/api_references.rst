@@ -68,7 +68,7 @@ Already saved MRIO databases can be archived with
 .. autosummary::
    :toctree: api_doc/
 
-   IOSystem.archive
+   archive
 
 
 Load processed data
