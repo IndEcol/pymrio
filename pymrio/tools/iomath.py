@@ -363,9 +363,17 @@ def div0(a, b, replace_by=0):
     '''
     Returns the Hadamard division of the arrays (or matrices) of same shape a and b, where elements of the results are 0 in locations where those of b are 0.
     '''
+    if sp.issparse(b): 
+        b = np.array(b.toarray(), dtype='float')
+        sparse = True
+    else: sparse = False
     if type(a)==int or type(a)==float: a = a*np.ones_like(b)
+    if sp.issparse(a): a = a.toarray()
     a = np.array(a, dtype='float')
-    return(np.divide(a, b, out=replace_by*np.ones_like(a), where=b!=0))
+#     b = np.array(b, dtype='float')
+    div = np.divide(a, b, out=np.array(replace_by*np.ones_like(a)), where=b!=0)
+    if sparse: return(sp.csc_matrix(div)) # TODO: a true sparse division, not through dense matrix
+    else: return(div)
 
 def mult_rows(mat, vec):
     '''
@@ -388,7 +396,13 @@ def mult_cols(mat, vec):
         return(mat.multiply(sp.csc_matrix((np.repeat(vec.data, nb_r).flatten(),np.tile(np.arange(nb_r),nb_c),np.arange(0,nb_r*np.max(vec.shape)+1,nb_r)),\
                                           shape=mat.shape)))
     else: return(matrix * (np.ones(mat.shape)).dot(np.diag(vec)))
-
+        
+def inter_secs(secs1, secs2): 
+    '''
+    Returns the intersection of lists secs1 and secs2.
+    '''
+    return(list(np.array(secs1)[np.where([sec in secs2 for sec in secs1])[0]]))
+    
 def gras(A, new_row_sums = None, new_col_sums = None, max_iter=1e2, criterion='relative', tol=1e0): 
     '''
     GRAS algorithm, which balances a matrix A in order to respect new_row_sums and new_col_sums (see Junius & Oosterhaven, 2003).
