@@ -654,7 +654,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
 def parse_exiobase3(path):
     """ Parses the public EXIOBASE 3 system
 
-    This parser works with either the compressed zip 
+    This parser works with either the compressed zip
     archive as downloaded or the extracted system.
 
     Note
