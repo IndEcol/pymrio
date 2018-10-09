@@ -18,6 +18,7 @@ Bugfixes
 New features
 ============
 
+* pymrio.parse_exiobase3, accepting the compressed archive files and extraced data
 * pymrio.archive for archiving MRIO databases into zipfiles
 * pymrio.load and pymrio.load_all can read data directly from a zipfile
 
