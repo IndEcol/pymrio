@@ -25,7 +25,6 @@ setup(
                       'xlrd >= 1.1.0'
                      ],
     classifiers=[
-          'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3 :: Only',
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',

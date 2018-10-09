@@ -10,12 +10,16 @@ import json
 import re
 import pandas as pd
 import os
+import sys
+import zipfile
+from pathlib import Path
 
 from pymrio.core.constants import PYMRIO_PATH
 
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
 from pymrio.tools.iometadata import MRIOMetaData
+from pymrio.tools.ioutil import get_file_para
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES
 from pymrio.core.constants import GENERIC_NAMES
@@ -27,58 +31,186 @@ class ReadError(Exception):
     pass
 
 
-def load_all(path, include_core=True, subfolders=None):
+def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
     """ Loads a full IO system with all extension in path
-
-    By default, all subfolders containing a json parameter file
-    (as defined in DEFAULT_FILE_NAMES['filepara']: metadata.json)
-    are parsed. If only a subset should be used, pass a to subfolders
-    giving the names of these.
-    """
-    def clean(varStr):
-        """ get valid python name from folder
-        """
-        return re.sub('\W|^(?=\d)', '_', varStr)
-
-    io = load(path, include_core=include_core)
-
-    if subfolders is None:
-        subfolders = [d for d in os.listdir(path)
-                      if os.path.isdir(os.path.join(path, d))]
-
-    for subfolder_name in subfolders:
-        subfolder_full = os.path.join(path, subfolder_name)
-
-        if os.path.isfile(os.path.join(subfolder_full,
-                                       DEFAULT_FILE_NAMES['filepara'])):
-            ext = load(subfolder_full, include_core=include_core)
-            setattr(io, clean(subfolder_name), ext)
-            io.meta._add_fileio("Added satellite account "
-                                "from {}".format(subfolder_full))
-        else:
-            continue
-
-    return io
-
-
-def load(path, include_core=True):
-    """ Loads a IOSystem or Extension previously saved with pymrio
-
-    This function can be used to load a IOSystem or Extension specified in a
-    ini file. DataFrames (tables) are loaded from text or binary pickle files.
-    For the latter, the extension .pkl or .pickle is assumed, in all other case
-    the tables are assumed to be in .txt format.
 
     Parameters
     ----------
-
-    path : string
-        path or ini file name for the data to load
+    path : pathlib.Path or string
+        Path or path with para file name for the data to load.
+        This must either point to the directory containing the uncompressed
+        data or the location of a compressed zip file with the data. In the
+        later case and if there are several mrio's in the zip file the
+        parameter 'path_in_arc' need to be specifiec to further indicate the
+        location of the data in the compressed file.
 
     include_core : boolean, optional
         If False the load method does not include A, L and Z matrix. This
         significantly reduces the required memory if the purpose is only
         to analyse the results calculated beforehand.
+
+    subfolders: list of pathlib.Path or string, optional
+        By default (subfolders=None), all subfolders in path containing a json
+        parameter file (as defined in DEFAULT_FILE_NAMES['filepara']:
+        metadata.json) are parsed. If only a subset should be used, pass a list
+        of names of subfolders. These can either be strings specifying direct
+        subfolders of path, or absolute/relative path if the extensions are
+        stored at a different location. Both modes can be mixed. If the data
+        is read from a zip archive the path must be given as described below in
+        'path_in_arc', relative to the root defined in the paramter
+        'path_in_arc'. Extensions in a different zip archive must be read
+        separately by calling the function 'load' for this extension.
+
+    path_in_arc: string, optional
+        Path to the data in the zip file (where the fileparameters file is
+        located). path_in_arc must be given without leading dot and slash;
+        thus to point to the data in the root of the compressed file pass '',
+        for data in e.g. the folder 'emissions' pass 'emissions/'.  Only used
+        if parameter 'path' points to an compressed zip file.
+        Can be None (default) if there is only one mrio database in the
+        zip archive (thus only one file_parameter file as the systemtype entry
+        'IOSystem'.
+
+    """
+    def clean(varStr):
+        """ get valid python name from folder
+        """
+        return re.sub('\W|^(?=\d)', '_', str(varStr))
+
+    path = Path(path)
+
+    if zipfile.is_zipfile(str(path)):
+        with zipfile.ZipFile(file=str(path), mode='r') as zz:
+            zipcontent = zz.namelist()
+        if path_in_arc:
+            path_in_arc = str(path_in_arc)
+            if path_in_arc not in zipcontent:
+                path_in_arc = os.path.join(path_in_arc,
+                                           DEFAULT_FILE_NAMES['filepara'])
+                if path_in_arc not in zipcontent:
+                    raise ReadError('File parameter file {} not found in {}. '
+                                    'Tip: specify fileparameter filename '
+                                    'through "path_in_arc" if different '
+                                    'from default.'.format(
+                                        DEFAULT_FILE_NAMES['filepara'], path))
+
+        else:
+            with zipfile.ZipFile(file=str(path), mode='r') as zz:
+                fpfiles = [
+                    f for f in zz.namelist()
+                    if
+                    os.path.basename(f) == DEFAULT_FILE_NAMES['filepara'] and
+                    json.loads(zz.read(f).decode('utf-8')
+                               )['systemtype'] == 'IOSystem']
+            if len(fpfiles) == 0:
+                raise ReadError('File parameter file {} not found in {}. '
+                                'Tip: specify fileparameter filename '
+                                'through "path_in_arc" if different '
+                                'from default.'.format(
+                                    DEFAULT_FILE_NAMES['filepara'], path))
+            elif len(fpfiles) > 1:
+                raise ReadError('Mulitple mrio archives found in {}. '
+                                'Specify one by the '
+                                'parameter "path_in_arc"'.format(path))
+            else:
+                path_in_arc = os.path.dirname(fpfiles[0])
+
+        logging.debug("Expect file parameter-file at {} in {}".format(
+            path_in_arc, path))
+
+    io = load(path, include_core=include_core, path_in_arc=path_in_arc)
+
+    if zipfile.is_zipfile(str(path)):
+        root_in_zip = os.path.dirname(path_in_arc)
+        if subfolders is None:
+            subfolders = {
+                os.path.relpath(os.path.dirname(p), root_in_zip)
+                for p in zipcontent
+                if p.startswith(root_in_zip) and
+                os.path.dirname(p) != root_in_zip}
+
+        for subfolder_name in subfolders:
+            if subfolder_name not in zipcontent + list({
+                    os.path.dirname(p) for p in zipcontent}):
+                subfolder_full = os.path.join(root_in_zip, subfolder_name)
+            else:
+                subfolder_full = subfolder_name
+            subfolder_name = os.path.basename(os.path.normpath(subfolder_name))
+
+            if subfolder_name not in zipcontent:
+                subfolder_full_meta = os.path.join(
+                    subfolder_full, DEFAULT_FILE_NAMES['filepara'])
+            else:
+                subfolder_full_meta = subfolder_full
+
+            if subfolder_full_meta in zipcontent:
+                ext = load(path,
+                           include_core=include_core,
+                           path_in_arc=subfolder_full_meta)
+                setattr(io, clean(subfolder_name), ext)
+                io.meta._add_fileio("Added satellite account "
+                                    "from {}".format(subfolder_full))
+            else:
+                continue
+
+    else:
+        if subfolders is None:
+            subfolders = [d for d in path.iterdir() if d.is_dir()]
+
+        for subfolder_name in subfolders:
+            if not os.path.exists(str(subfolder_name)):
+                subfolder_full = path / subfolder_name
+            else:
+                subfolder_full = subfolder_name
+            subfolder_name = os.path.basename(os.path.normpath(subfolder_name))
+
+            if not os.path.isfile(str(subfolder_full)):
+                subfolder_full_meta = (subfolder_full /
+                                       DEFAULT_FILE_NAMES['filepara'])
+            else:
+                subfolder_full_meta = subfolder_full
+
+            if subfolder_full_meta.exists():
+                ext = load(subfolder_full, include_core=include_core)
+                setattr(io, clean(subfolder_name), ext)
+                io.meta._add_fileio("Added satellite account "
+                                    "from {}".format(subfolder_full))
+            else:
+                continue
+
+    return io
+
+
+def load(path, include_core=True, path_in_arc=''):
+    """ Loads a IOSystem or Extension previously saved with pymrio
+
+    This function can be used to load a IOSystem or Extension specified in a
+    metadata file (as defined in DEFAULT_FILE_NAMES['filepara']: metadata.json)
+
+    DataFrames (tables) are loaded from text or binary pickle files.
+    For the latter, the extension .pkl or .pickle is assumed, in all other case
+    the tables are assumed to be in .txt format.
+
+    Parameters
+    ----------
+    path : pathlib.Path or string
+        Path or path with para file name for the data to load. This must
+        either point to the directory containing the uncompressed data or
+        the location of a compressed zip file with the data. In the
+        later case the parameter 'path_in_arc' need to be specific to
+        further indicate the location of the data in the compressed file.
+
+    include_core : boolean, optional
+        If False the load method does not include A, L and Z matrix. This
+        significantly reduces the required memory if the purpose is only
+        to analyse the results calculated beforehand.
+
+    path_in_arc: string, optional
+        Path to the data in the zip file (where the fileparameters file is
+        located). path_in_arc must be given without leading dot and slash;
+        thus to point to the data in the root of the compressed file pass '',
+        for data in e.g. the folder 'emissions' pass 'emissions/'.  Only used
+        if parameter 'path' points to an compressed zip file.
 
     Returns
     -------
@@ -87,62 +219,193 @@ def load(path, include_core=True):
         None in case of errors
 
     """
-    path = path.rstrip('\\')
-    path = os.path.abspath(path)
+    path = Path(path)
 
-    if not os.path.exists(path):
+    if not path.exists():
         raise ReadError('Given path does not exist')
-        return None
 
-    para_file_path = os.path.join(path, DEFAULT_FILE_NAMES['filepara'])
-    if not os.path.isfile(para_file_path):
-        raise ReadError('No file parameter file found')
-        return None
+    file_para = get_file_para(path=path, path_in_arc=path_in_arc)
 
-    with open(para_file_path, 'r') as pf:
-        file_para = json.load(pf)
+    if file_para.content['systemtype'] == GENERIC_NAMES['iosys']:
+        if zipfile.is_zipfile(str(path)):
+            ret_system = IOSystem(meta=MRIOMetaData(
+                location=path,
+                path_in_arc=os.path.join(file_para.folder,
+                                         DEFAULT_FILE_NAMES['metadata'])))
+            ret_system.meta._add_fileio(
+                "Loaded IO system from {} - {}".format(path, path_in_arc))
+        else:
+            ret_system = IOSystem(meta=MRIOMetaData(
+                location=path / DEFAULT_FILE_NAMES['metadata']))
+            ret_system.meta._add_fileio(
+                "Loaded IO system from {}".format(path))
 
-    if file_para['systemtype'] == GENERIC_NAMES['iosys']:
-        meta_file_path = os.path.join(path, DEFAULT_FILE_NAMES['metadata'])
-        ret_system = IOSystem(meta=MRIOMetaData(location=meta_file_path))
-        ret_system.meta._add_fileio("Loaded IO system from {}".format(path))
-    elif file_para['systemtype'] == GENERIC_NAMES['ext']:
-        ret_system = Extension(file_para['name'])
+    elif file_para.content['systemtype'] == GENERIC_NAMES['ext']:
+        ret_system = Extension(file_para.content['name'])
+
     else:
         raise ReadError('Type of system no defined in the file parameters')
         return None
 
-    for key in file_para['files']:
-        if not include_core:
-            if key in ['A', 'L', 'Z']:
+    for key in file_para.content['files']:
+        if not include_core and key not in ['A', 'L', 'Z']:
                 continue
 
-        file_name = file_para['files'][key]['name']
-        full_file_name = os.path.join(path, file_name)
-        nr_index_col = file_para['files'][key]['nr_index_col']
-        nr_header = file_para['files'][key]['nr_header']
-
-        logging.info('Load data from {}'.format(full_file_name))
-
+        file_name = file_para.content['files'][key]['name']
+        nr_index_col = file_para.content['files'][key]['nr_index_col']
+        nr_header = file_para.content['files'][key]['nr_header']
         _index_col = list(range(int(nr_index_col)))
         _header = list(range(int(nr_header)))
+        _index_col = 0 if _index_col == [0] else _index_col
+        _header = 0 if _header == [0] else _header
 
-        if _index_col == [0]:
-            _index_col = 0
-        if _header == [0]:
-            _header = 0
+        if zipfile.is_zipfile(str(path)):
+            full_file_name = os.path.join(file_para.folder, file_name)
+            logging.info('Load data from {}'.format(full_file_name))
 
-        if (os.path.splitext(full_file_name)[1] == '.pkl' or
-                os.path.splitext(full_file_name)[1] == '.pickle'):
-            setattr(ret_system, key,
-                    pd.read_pickle(full_file_name))
+            with zipfile.ZipFile(file=str(path)) as zf:
+                if (os.path.splitext(str(full_file_name))[1] == '.pkl' or
+                        os.path.splitext(str(full_file_name))[1] == '.pickle'):
+                    setattr(ret_system, key,
+                            pd.read_pickle(zf.open(full_file_name)))
+                else:
+                    setattr(ret_system, key,
+                            pd.read_table(zf.open(full_file_name),
+                                          index_col=_index_col,
+                                          header=_header))
         else:
-            setattr(ret_system, key,
-                    pd.read_table(full_file_name,
-                                  index_col=_index_col,
-                                  header=_header))
+            full_file_name = path / file_name
+            logging.info('Load data from {}'.format(full_file_name))
 
+            if (os.path.splitext(str(full_file_name))[1] == '.pkl' or
+                    os.path.splitext(str(full_file_name))[1] == '.pickle'):
+                setattr(ret_system, key,
+                        pd.read_pickle(full_file_name))
+            else:
+                setattr(ret_system, key,
+                        pd.read_table(full_file_name,
+                                      index_col=_index_col,
+                                      header=_header))
     return ret_system
+
+
+def archive(source, archive, path_in_arc=None, remove_source=False,
+            compression=zipfile.ZIP_DEFLATED, compresslevel=-1):
+    """Archives a MRIO database as zip file
+
+    This function is a wrapper around zipfile.write,
+    to ease the writing of an archive and removing the source data.
+
+    Note
+    ----
+    In contrast to zipfile.write, this function raises an
+    error if the data (path + filename) are identical in the zip archive.
+    Background: the zip standard allows that files with the same name and path
+    are stored side by side in a zip file. This becomes an issue when unpacking
+    this files as they overwrite each other upon extraction.
+
+    Parameters
+    ----------
+
+    source: str or pathlib.Path or list of these
+        Location of the mrio data (folder).
+        If not all data should be archived, pass a list of
+        all files which should be included in the archive (absolute path)
+
+    archive: str or pathlib.Path
+        Full path with filename for the archive.
+
+    path_in_arc: string, optional
+        Path within the archive zip file where data should be stored.
+        'path_in_arc' must be given without leading dot and slash.
+        Thus to point to the data in the root of the compressed file pass '',
+        for data in e.g. the folder 'mrio_v1' pass 'mrio_v1/'.
+        If None (default) data will be stored in the root of the archive.
+
+    remove_source: boolean, optional
+        If True, deletes the source file from the disk (all files
+        specified in 'source' or the specified directory, depending if a
+        list of files or directory was passed). If False, leaves the
+        original files on disk. Also removes all empty directories
+        in source including source.
+
+    compression: ZIP compression method, optional
+        This is passed to zipfile.write. By default it is set to ZIP_DEFLATED.
+        NB: This is different from the zipfile default (ZIP_STORED) which would
+        not give any compression. See
+        https://docs.python.org/3/library/zipfile.html#zipfile-objects for
+        further information. Depending on the value given here additional
+        modules might be necessary (e.g. zlib for ZIP_DEFLATED). Futher
+        information on this can also be found in the zipfile python docs.
+
+    compresslevel: int, optional
+        This is passed to zipfile.write and specifies the compression level.
+        Acceptable values depend on the method specified at the parameter
+        'compression'.  By default, it is set to -1 which gives a compromise
+        between speed and size for the ZIP_DEFLATED compression (this is
+        internally interpreted as 6 as described here:
+        https://docs.python.org/3/library/zlib.html#zlib.compressobj )
+        NB: This is only used if python version >= 3.7
+
+    Raises
+    ------
+    FileExistsError: In case a file to be archived already present in the
+    archive.
+
+    """
+    archive = Path(archive)
+
+    if type(source) is not list:
+        source_root = str(source)
+        source_files = [f for f in Path(source).glob('**/*') if f.is_file()]
+    else:
+        source_root = os.path.commonpath([str(f) for f in source])
+        source_files = [Path(f) for f in source]
+
+    path_in_arc = '' if not path_in_arc else path_in_arc
+
+    arc_file_names = {
+        str(f): os.path.join(path_in_arc, str(f.relative_to(source_root)))
+        for f in source_files}
+
+    if archive.exists():
+        with zipfile.ZipFile(file=str(archive), mode='r') as zf:
+            already_present = zf.namelist()
+        duplicates = {ff: zf for ff, zf in arc_file_names.items()
+                      if zf in already_present}
+
+        if duplicates:
+            raise FileExistsError(
+                'These files already exists in {arc} for '
+                'path_in_arc "{pa}":\n  {filelist}'.format(
+                    pa=path_in_arc, arc=archive,
+                    filelist='\n  '.join(duplicates.values())))
+
+    if sys.version_info.major == 3 and sys.version_info.minor >= 7:
+        zip_open_para = dict(file=str(archive), mode='a',
+                             compression=compression,
+                             compresslevel=compresslevel)
+    else:
+        zip_open_para = dict(file=str(archive), mode='a',
+                             compression=compression)
+
+    with zipfile.ZipFile(**zip_open_para) as zz:
+        for fullpath, zippath in arc_file_names.items():
+            zz.write(str(fullpath), str(zippath))
+
+    if remove_source:
+        for f in source_files:
+            os.remove(str(f))
+
+        for root, dirs, files in os.walk(source_root, topdown=False):
+            for name in dirs:
+                dir_path = os.path.join(root, name)
+                if not os.listdir(dir_path):
+                    os.rmdir(os.path.join(root, name))
+        try:
+            os.rmdir(source_root)
+        except OSError:
+            pass
 
 
 def _load_all_ini_based_io(path, **kwargs):
@@ -222,8 +485,7 @@ def _load_ini_based_io(path, recursive=False, ini=None,
     # check path and given parameter
     ini_file_name = None
 
-    path = path.rstrip('\\')
-    path = os.path.abspath(path)
+    path = os.path.abspath(os.path.normpath(path))
 
     if os.path.splitext(path)[1] == '.ini':
         (path, ini_file_name) = os.path.split(path)
@@ -407,7 +669,7 @@ def _load_ini_based_io(path, recursive=False, ini=None,
 
                 # get valid python name from folder
                 def clean(varStr):
-                    return re.sub('\W|^(?=\d)', '_', varStr)
+                    return re.sub('\W|^(?=\d)', '_', str(varStr))
 
                 setattr(ret_system, clean(subfolder), sub_system)
 

@@ -15,6 +15,7 @@ import re
 import string
 import time
 import warnings
+from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -423,12 +424,12 @@ class CoreSystem():
 
     def save(self, path, table_format='txt', sep='\t',
              table_ext=None, float_format='%.12g'):
-        """ Developing version for saving with json instead of ini for meta
+        """ Saving the system to path
 
 
         Parameters
         ----------
-        path : string
+        path : pathlib.Path or string
             path for the saved data (will be created if necessary, data
             within will be overwritten).
 
@@ -452,17 +453,15 @@ class CoreSystem():
             default = '%.12g', only for txt files
         """
 
-        path = path.rstrip('\\')
-        path = os.path.abspath(path)
+        if type(path) is str:
+            path = path.rstrip('\\')
+            path = Path(path)
 
-        para_file_path = os.path.join(path, DEFAULT_FILE_NAMES['filepara'])
+        path.mkdir(parents=True, exist_ok=True)
+
+        para_file_path = path / DEFAULT_FILE_NAMES['filepara']
         file_para = dict()
         file_para['files'] = dict()
-
-        # meta_file_path = os.path.join(path, DEFAULT_FILE_NAMES['metadata'])
-
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
 
         if table_format in ['text', 'csv', 'txt']:
             table_format = 'txt'
@@ -502,7 +501,7 @@ class CoreSystem():
                 nr_header = 1
 
             save_file = df_name + table_ext
-            save_file_with_path = os.path.join(path, save_file)
+            save_file_with_path = path / save_file
             logging.info('Save file {}'.format(save_file_with_path))
             if table_format == 'txt':
                 df.to_csv(save_file_with_path, sep=sep,
@@ -515,7 +514,7 @@ class CoreSystem():
             file_para['files'][df_name]['nr_index_col'] = str(nr_index_col)
             file_para['files'][df_name]['nr_header'] = str(nr_header)
 
-        with open(para_file_path, 'w') as pf:
+        with para_file_path.open(mode='w') as pf:
             json.dump(file_para, pf, indent=4)
 
         if file_para['systemtype'] == GENERIC_NAMES['iosys']:
@@ -525,6 +524,7 @@ class CoreSystem():
 
             self.meta._add_fileio("Saved {} to {}".format(self.name, path))
             self.meta.save(location=path)
+
         return self
 
     def rename_regions(self, regions):
@@ -1077,7 +1077,7 @@ class Extension(CoreSystem):
 
         Parameters
         ----------
-        path : string
+        path : pathlib.Path or string
             Root path for the report
         per_region : boolean, optional
             If true, reports the accounts per region
@@ -1115,9 +1115,11 @@ class Extension(CoreSystem):
         }
         plt.ioff()
 
-        path = os.path.abspath(path.rstrip('\\'))
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
+        if type(path) is str:
+            path = path.rstrip('\\')
+            path = Path(path)
+
+        path.mkdir(parents=True, exist_ok=True)
 
         if ffname is None:
             valid_char = string.ascii_letters + string.digits + '_'
@@ -1151,10 +1153,9 @@ class Extension(CoreSystem):
             report_txt.append('.. contents::\n\n')
 
             curr_ffname = ffname + reports_to_write[arep].spec_string
-            subfolder = os.path.join(path, curr_ffname)
+            subfolder = path / curr_ffname
 
-            if not os.path.exists(subfolder):
-                os.makedirs(subfolder, exist_ok=True)
+            subfolder.mkdir(parents=True, exist_ok=True)
 
             for row in self.get_rows():
                 name_row = (str(row).
@@ -1189,8 +1190,8 @@ class Extension(CoreSystem):
                 fig_name_list.append(file_name)
                 file_name = file_name + '.png'
 
-                file_name = os.path.join(subfolder, file_name)
-                file_name_rel = './' + os.path.relpath(file_name, start=path)
+                file_name = subfolder / file_name
+                file_name_rel = file_name.relative_to(path)
 
                 self.plot_account(row, file_name=file_name,
                                   per_capita=reports_to_write[arep].
@@ -1225,7 +1226,7 @@ class Extension(CoreSystem):
                           'txt': 'txt',
                           'html': 'html'}
             _repfile = curr_ffname + '.' + format_str.get(format, str(format))
-            with open(os.path.join(path, _repfile), 'w') as out_file:
+            with open(path / _repfile, 'w') as out_file:
                 out_file.write(fin_txt)
             logging.info('Report for {what} written to {file_where}'.
                          format(what=arep, file_where=str(_repfile)))
@@ -1689,8 +1690,15 @@ class IOSystem(CoreSystem):
         Extensions are saved in separate folders (names based on extension)
 
         Parameters are passed to the .save methods of the IOSystem and
-        Extensions
+        Extensions. See parameters description there.
         """
+
+        if type(path) is str:
+            path = path.rstrip('\\')
+            path = Path(path)
+
+        path.mkdir(parents=True, exist_ok=True)
+
         self.save(path=path,
                   table_format=table_format,
                   sep=sep,
@@ -1699,9 +1707,8 @@ class IOSystem(CoreSystem):
 
         for ext, ext_name in zip(self.get_extensions(data=True),
                                  self.get_extensions()):
-            ext_path = os.path.join(path, ext_name)
-            if not os.path.exists(ext_path):
-                os.makedirs(ext_path, exist_ok=True)
+            ext_path = path / ext_name
+
             ext.save(path=ext_path,
                      table_format=table_format,
                      sep=sep,
@@ -2019,3 +2026,138 @@ class IOSystem(CoreSystem):
                 self.meta._add_modify("Removed extension {}".format(ee))
 
         return self
+
+
+def concate_extension(*extensions, name):
+    """ Concatenate extensions
+
+    Notes
+    ----
+    The method assumes that the first index is the name of the
+    stressor/impact/input type. To provide a consistent naming this is renamed
+    to 'indicator' if they differ. All other index names ('compartments', ...)
+    are added to the concatenated extensions and set to NaN for missing values.
+
+    Notes
+    ----
+    Attributes which are not DataFrames will be set to None if they differ
+    between the extensions
+
+    Parameters
+    ----------
+
+    extensions : Extensions
+        The Extensions to concatenate as multiple parameters
+
+    name : string
+        Name of the new extension
+
+    Returns
+    -------
+
+    Concatenated extension
+
+    """
+    if type(extensions[0]) is tuple or type(extensions[0]) is list:
+        extensions = extensions[0]
+
+    # check if fd extensions is present in one of the given extensions
+    FY_present = False
+    SY_present = False
+    SFY_columns = None
+    for ext in extensions:
+        if 'FY' in ext.get_DataFrame(data=False):
+            FY_present = True
+            SFY_columns = ext.FY.columns
+        if 'SY' in ext.get_DataFrame(data=False):
+            SY_present = True
+            SFY_columns = ext.SY.columns
+
+    # get the intersection of the available dataframes
+    set_dfs = [set(ext.get_DataFrame(data=False)) for ext in extensions]
+    df_dict = {key: None for key in set.intersection(*set_dfs)}
+    if FY_present:
+        df_dict['FY'] = None
+    if SY_present:
+        df_dict['SY'] = None
+    empty_df_dict = df_dict.copy()
+    attr_dict = {}
+
+    # get data from each extension
+    first_run = True
+    for ext in extensions:
+        # get corresponding attributes of all extensions
+        for key in ext.__dict__:
+            if type(ext.__dict__[key]) is not pd.DataFrame:
+                if attr_dict.get(key, -99) == -99:
+                    attr_dict[key] = ext.__dict__[key]
+                elif attr_dict[key] == ext.__dict__[key]:
+                    continue
+                else:
+                    attr_dict[key] = None
+
+        # get DataFrame data
+        cur_dict = empty_df_dict.copy()
+
+        for df in cur_dict:
+            cur_dict[df] = getattr(ext, df)
+
+        # add zero final demand extension if final demand extension present in
+        # one extension
+        if FY_present:
+            # doesn't work with getattr b/c FY can be present as attribute but
+            # not as DataFrame
+            if 'FY' in ext.get_DataFrame(data=False):
+                cur_dict['FY'] = getattr(ext, 'FY')
+            else:
+                cur_dict['FY'] = pd.DataFrame(data=0,
+                                              index=ext.get_index(),
+                                              columns=SFY_columns)
+        if SY_present:
+            # doesn't work with getattr b/c SY can be present as attribute but
+            # not as DataFrame
+            if 'SY' in ext.get_DataFrame(data=False):
+                cur_dict['SY'] = getattr(ext, 'SY')
+            else:
+                cur_dict['SY'] = pd.DataFrame(data=0,
+                                              index=ext.get_index(),
+                                              columns=SFY_columns)
+
+        # append all df data
+        for key in cur_dict:
+            if not first_run:
+                if cur_dict[key].index.names != df_dict[key].index.names:
+                    cur_ind_names = list(cur_dict[key].index.names)
+                    df_ind_names = list(df_dict[key].index.names)
+                    cur_ind_names[0] = 'indicator'
+                    df_ind_names[0] = cur_ind_names[0]
+                    cur_dict[key].index.set_names(cur_ind_names,
+                                                  inplace=True)
+                    df_dict[key].index.set_names(df_ind_names,
+                                                 inplace=True)
+
+                    for ind in cur_ind_names:
+                        if ind not in df_ind_names:
+                            df_dict[key] = (df_dict[key].
+                                            set_index(pd.DataFrame(
+                                                data=None,
+                                                index=df_dict[key].index,
+                                                columns=[ind])[ind],
+                                                append=True))
+                    for ind in df_ind_names:
+                        if ind not in cur_ind_names:
+                            cur_dict[key] = (cur_dict[key].set_index(
+                                                pd.DataFrame(
+                                                    data=None,
+                                                    index=cur_dict[key].index,
+                                                    columns=[ind])
+                                                [ind], append=True))
+
+            df_dict[key] = pd.concat([df_dict[key], cur_dict[key]])
+
+        first_run = False
+
+        all_dict = dict(list(attr_dict.items()) + list(df_dict.items()))
+        all_dict['name'] = name
+
+    return Extension(**all_dict)

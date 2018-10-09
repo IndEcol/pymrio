@@ -17,6 +17,7 @@ from collections import namedtuple
 
 from pymrio.core.mriosystem import IOSystem
 from pymrio.core.mriosystem import Extension
+from pymrio.core.fileio import load_all
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import sniff_csv_format
 from pymrio.tools.ioutil import get_repo_content
@@ -62,13 +63,15 @@ IDX_NAMES = {
 
 
 # Top level functions
-def parse_exio_ext(ext_file, index_col, name, drop_compartment=True,
-                   version=None, year=None, iosystem=None, sep=','):
-    """ Parse an EXIOBASE like extension file into pymrio.Extension
+def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
+                     version=None, year=None, iosystem=None, sep=','):
+    """ Parse an EXIOBASE version 1 or 2 like extension file into pymrio.Extension
 
     EXIOBASE like extensions files are assumed to have two
     rows which are used as columns multiindex (region and sector)
     and up to three columns for the row index (see Parameters).
+
+    For EXIOBASE 3 - extension can be loaded directly with pymrio.load
 
     Notes
     -----
@@ -78,7 +81,7 @@ def parse_exio_ext(ext_file, index_col, name, drop_compartment=True,
     Parameters
     ----------
 
-    ext_file : string
+    ext_file : string or pathlib.Path
         File to parse
 
     index_col : int
@@ -114,7 +117,7 @@ def parse_exio_ext(ext_file, index_col, name, drop_compartment=True,
 
     """
 
-    ext_file = os.path.abspath(ext_file)
+    ext_file = os.path.abspath(str(ext_file))
 
     F = pd.read_table(
         ext_file,
@@ -160,7 +163,7 @@ def parse_exio_ext(ext_file, index_col, name, drop_compartment=True,
                      )
 
 
-def get_exiobase_version(filename):
+def get_exiobase12_version(filename):
     """ Returns the EXIOBASE version for the given filename,
         None if not found
     """
@@ -180,7 +183,7 @@ def get_exiobase_files(path, coefficients=True):
 
     Parameters
     ----------
-    path: str
+    path: str or pathlib.Path
         Path to exiobase files or zip file
     coefficients: boolean, optional
         If True (default), considers the mrIot file as A matrix,
@@ -190,6 +193,7 @@ def get_exiobase_files(path, coefficients=True):
     -------
     dict of dict
     """
+    path = os.path.normpath(str(path))
     if coefficients:
         exio_core_regex = dict(
             # don’t match file if starting with _
@@ -239,7 +243,8 @@ def get_exiobase_files(path, coefficients=True):
             exio_files[kk] = dict(
                 root_repo=path,
                 file_path=found_file[0],
-                version=get_exiobase_version(os.path.basename(found_file[0])),
+                version=get_exiobase12_version(
+                    os.path.basename(found_file[0])),
                 index_rows=format_para['nr_header_row'],
                 index_col=format_para['nr_index_col'],
                 unit_col=format_para['nr_index_col'] - 1,
@@ -248,16 +253,16 @@ def get_exiobase_files(path, coefficients=True):
     return exio_files
 
 
-def generic_exiobase_parser(exio_files, system=None):
-    """ Generic EXIOBASE parser
+def generic_exiobase12_parser(exio_files, system=None):
+    """ Generic EXIOBASE version 1 and 2 parser
 
-    This is used internally by parse_exiobaseXXX functions to
+    This is used internally by parse_exiobase1 / 2 functions to
     parse exiobase files. In most cases, these top-level functions
     should just work, but in case of archived exiobase versions
     it might be necessary to use low-level function here.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
 
     exio_files: dict of dict
 
@@ -378,8 +383,8 @@ def generic_exiobase_parser(exio_files, system=None):
     elif version[0] == '2':
         year = 2000
     elif version[0] == '3':
-        # TODO set to parsed year
-        year = None
+        raise ParserError(
+            "This function can not be used to parse EXIOBASE 3")
     else:
         logging.warning("Unknown EXIOBASE version")
         year = None
@@ -420,9 +425,18 @@ def parse_exiobase1(path):
 
     The parser works with the compressed (zip) files as well as the unpacked
     files.
+
+    Parameters
+    ----------
+    path : pathlib.Path or string
+        Path of the exiobase 1 data
+
+    Returns
+    -------
+    pymrio.IOSystem with exio1 data
+
     """
-    path = path.rstrip('\\')
-    path = os.path.abspath(path)
+    path = os.path.abspath(os.path.normpath(str(path)))
 
     exio_files = get_exiobase_files(path)
     if len(exio_files) == 0:
@@ -433,7 +447,7 @@ def parse_exiobase1(path):
         logging.warning("Could not determine system (pxp or ixi)"
                         " set system parameter manually")
 
-    io = generic_exiobase_parser(exio_files, system=system)
+    io = generic_exiobase12_parser(exio_files, system=system)
     return io
 
 
@@ -448,7 +462,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
 
     Parameters
     ----------
-    path : string
+    path : string or pathlib.Path
         Path to the EXIOBASE source files
     charact : string or boolean, optional
         Filename with path to the characterisation matrices for the extensions
@@ -477,8 +491,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         If the exiobase source files are not complete in the given path
 
     """
-    path = path.rstrip('\\')
-    path = os.path.abspath(path)
+    path = os.path.abspath(os.path.normpath(str(path)))
 
     exio_files = get_exiobase_files(path)
     if len(exio_files) == 0:
@@ -489,7 +502,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         logging.warning("Could not determine system (pxp or ixi)"
                         " set system parameter manually")
 
-    io = generic_exiobase_parser(exio_files, system=system)
+    io = generic_exiobase12_parser(exio_files, system=system)
 
     # read the characterisation matrices if available
     # and build one extension with the impacts
@@ -638,288 +651,32 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
     return io
 
 
-def __parse_exiobase3(zip_file,
-                      path_in_zip='',
-                      version='3.0',
-                      iosystem=None,
-                      year=None,
-                      charact=None):
-    """ PRELIMINARY VERSION OF THE PARSER - WILL CHANGE/ADOPT TO GENERIC PARSER
-    Parse the exiobase 3 source files for the IOSystem
+def parse_exiobase3(path):
+    """ Parses the public EXIOBASE 3 system
 
-    The function parse product by product and industry by industry source file
-    with flow matrices (Z).
+    This parser works with either the compressed zip
+    archive as downloaded or the extracted system.
 
-    Currently EXIOBASE 3 is delivered in the format year/some_zip_file.zip
-    This file must be passed (parameter zip_file). Within the zip_file the
-    structure changed during the last versions of the EXIOBASE 3 development.
-    Some versions have the data stored in a subfolder with in the zip file,
-    in other versions the data is directly in the root of the file. The
-    parameter path_in_zip allows to specify the relative folder within the
-    zip file.
-
-    TODO: popvector (see exio2 parser), charac
+    Note
+    ----
+    The exiobase 3 parser does so far not include
+    population and characterization data.
 
     Parameters
     ----------
-    zip_file : string
-        Zip file containing EXIO3 (abs or relative path)
-    path_in_zip : string, optional
-        Relative path to the data within the zipfile. Default: root ('')
-    version : string, optional
-        The version defines the filename in EXIOBASE.
-        For example:
-            mrIOT3.0.txt for EXIOBASE3 requires the
-            version parameter to be "3.0",
-            mrIOT_3_1.txt requires version to be "_3_1"
-            version parameter to be "3.0"
-    charact : string, optional
-        Filename with path to the characterisation matrices for the extensions
-        (xls).  This is provided together with the EXIOBASE system and given as
-        a xls file. The four sheets  Q_factorinputs, Q_emission, Q_materials
-        and Q_resources are read and used to generate one new extensions
-        with the impacts
-    iosystem : string, optional
-        Note for the IOSystem, recommended to be 'pxp' or 'ixi' for
-        product by product or industry by industry.
-        However, this can be any string and can have more information if needed
-        (eg for different technology assumptions)
-        The string will be passed to the IOSystem.
-    year : string or int
-        see pymrio.Extension
+
+    path : string or pathlib.Path
+        Path to the folder with the EXIOBASE files
+        or the compressed archive.
 
     Returns
     -------
     IOSystem
         A IOSystem with the parsed exiobase 3 data
 
-    Raises
-    ------
-    ParserError
-        If the exiobase source files are not
-        complete in the given path or EXIOBASE files missing TODO
-
     """
-
-    zip_file = os.path.abspath(zip_file)
-
-    file_data = namedtuple(
-        'file_data', [
-            'file_name',
-            # nr of rows containing index on the top of the table (for columns)
-            'index_rows',
-            # nr of cols containing index on the left of the table (for rows)
-            'index_col',
-            # column containing the unit for the table (couting starts at zero)
-            'unit_col',
-            ])
-    ver_ext = version + '.txt'
-
-    core_files = dict(
-        # for the core files the unit_col is still
-        # hard coded below - fix if needed
-        Z=file_data(file_name='mrIot' + ver_ext,
-                    index_rows=2, index_col=3, unit_col=2),
-        Y=file_data(file_name='mrFinalDemand' + ver_ext,
-                    index_rows=2, index_col=3, unit_col=2),
-                )
-    extension_files = dict(
-        factor_inputs=dict(
-            F=file_data(file_name='mrFactorInputs' + ver_ext,
-                        index_rows=2, index_col=2, unit_col=1),
-            ),
-        emissions=dict(
-            F=file_data(file_name='mrEmissions' + ver_ext,
-                        index_rows=2, index_col=3, unit_col=2),
-            FY=file_data(file_name='mrFDEmissions' + ver_ext,
-                         index_rows=2, index_col=3, unit_col=2),
-            ),
-        materials=dict(
-            F=file_data(file_name='mrMaterials' + ver_ext,
-                        index_rows=2, index_col=2, unit_col=1),
-            FY=file_data(file_name='mrFDMaterials' + ver_ext,
-                         index_rows=2, index_col=2, unit_col=1),
-            ),
-        resources=dict(
-            F=file_data(file_name='mrResources' + ver_ext,
-                        index_rows=2, index_col=3, unit_col=2),
-            FY=file_data(file_name='mrFDResources' + ver_ext,
-                         index_rows=2, index_col=3, unit_col=2),
-            ),
-        )
-
-    # read the data into a dicts as pandas.DataFrame
-    logging.info('Read exiobase3 from {}'.format(zip_file))
-    zip_file = zipfile.ZipFile(zip_file)
-
-    core_data = {exio_table: pd.read_table(
-                    zip_file.open(
-                        path_in_zip + core_files[exio_table].file_name),
-                    index_col=list(range(core_files[exio_table].index_col)),
-                    header=list(range(core_files[exio_table].index_rows)))
-                 for exio_table in core_files}
-
-    extension = dict()
-    for ext_type in extension_files:
-        extension[ext_type] = {
-            exio_table: pd.read_table(
-                zip_file.open(
-                    path_in_zip +
-                    extension_files[ext_type][exio_table].file_name),
-                index_col=list(
-                    range(extension_files[ext_type][exio_table].index_col)),
-                header=list(
-                    range(extension_files[ext_type][exio_table].index_rows)))
-            for exio_table in extension_files[ext_type]
-            }
-        extension[ext_type]['name'] = ext_type
-
-    zip_file.close()
-
-    # adjust index
-    for table in core_data:
-        core_data[table].index.names = ['region', 'sector', 'unit']
-        if table == 'A' or table == 'Z':
-            core_data[table].columns.names = ['region', 'sector']
-            _unit = pd.DataFrame(
-                    core_data[table].iloc[:, 0]).reset_index(
-                        level='unit').unit
-            _unit = pd.DataFrame(_unit)
-            _unit.columns = ['unit']
-        if table == 'Y':
-            core_data[table].columns.names = ['region', 'category']
-        core_data[table].reset_index(level='unit', drop=True, inplace=True)
-    core_data['unit'] = _unit
-
-    for ext_type in extension:
-        _unit = None
-        for table in extension[ext_type]:
-            if type(extension[ext_type][table]) is not pd.core.frame.DataFrame:
-                continue
-            if extension_files[ext_type][table].index_col == 3:
-                extension[ext_type][table].index.names = [
-                        'stressor', 'compartment', 'unit']
-            elif extension_files[ext_type][table].index_col == 2:
-                extension[ext_type][table].index.names = [
-                        'stressor', 'unit']
-            else:
-                raise ParserError('Unknown EXIOBASE file structure')
-            if table == 'S' or table == 'F':
-                extension[ext_type][table].columns.names = ['region', 'sector']
-                try:
-                    _unit = pd.DataFrame(
-                            extension[ext_type][table].iloc[:, 0]
-                            ).reset_index(level='unit').unit
-                except IndexError:
-                    _unit = pd.DataFrame(
-                        extension[ext_type][table].iloc[:, 0])
-                    _unit.columns = ['unit']
-                    _unit['unit'] = 'undef'
-                    _unit.reset_index(level='unit', drop=True, inplace=True)
-                _unit = pd.DataFrame(_unit)
-                _unit.columns = ['unit']
-
-            if table == 'FY':
-                extension[ext_type][table].columns.names = [
-                        'region', 'category']
-
-            extension[ext_type][table].reset_index(level='unit',
-                                                   drop=True,
-                                                   inplace=True)
-        extension[ext_type]['unit'] = _unit
-
-    # read the characterisation matrices if available
-    # and build one extension with the impacts
-    if charact:
-        # dict with correspondence to the extensions
-        Qsheets = {'Q_factorinputs': 'factor_inputs',
-                   'Q_emission': 'emissions',
-                   'Q_materials': 'materials',
-                   'Q_resources': 'resources'}
-        Q_head_col = dict()
-        Q_head_row = dict()
-        Q_head_col_rowname = dict()
-        Q_head_col_rowunit = dict()
-        Q_head_col_metadata = dict()
-        # number of cols containing row headers at the beginning
-        Q_head_col['Q_emission'] = 4
-        # number of rows containing col headers at the top - this will be
-        # skipped
-        Q_head_row['Q_emission'] = 3
-        # assuming the same classification as in the extensions
-        Q_head_col['Q_factorinputs'] = 2
-        Q_head_row['Q_factorinputs'] = 2
-        Q_head_col['Q_resources'] = 2
-        Q_head_row['Q_resources'] = 3
-        Q_head_col['Q_materials'] = 2
-        Q_head_row['Q_materials'] = 2
-
-        #  column to use as name for the rows
-        Q_head_col_rowname['Q_emission'] = 1
-        Q_head_col_rowname['Q_factorinputs'] = 0
-        Q_head_col_rowname['Q_resources'] = 0
-        Q_head_col_rowname['Q_materials'] = 0
-
-        # column to use as unit for the rows which gives also the last column
-        # before the data
-        Q_head_col_rowunit['Q_emission'] = 3
-        Q_head_col_rowunit['Q_factorinputs'] = 1
-        Q_head_col_rowunit['Q_resources'] = 1
-        Q_head_col_rowunit['Q_materials'] = 1
-
-        charac_data = {Qname: pd.read_excel(charact,
-                       sheet_name=Qname,
-                       skiprows=list(range(0, Q_head_row[Qname])),
-                       header=None)
-                       for Qname in Qsheets}
-
-        _unit = dict()
-        # temp for the calculated impacts which than
-        # get summarized in the 'impact'
-        _impact = dict()
-        impact = dict()
-        for Qname in Qsheets:
-            charac_data[Qname].index = (
-                    charac_data[Qname][Q_head_col_rowname[Qname]])
-
-            _unit[Qname] = pd.DataFrame(
-                    charac_data[Qname].iloc[:, Q_head_col_rowunit[Qname]])
-            _unit[Qname].columns = ['unit']
-            _unit[Qname].index.name = 'impact'
-            charac_data[Qname] = charac_data[Qname].ix[
-                    :, Q_head_col_rowunit[Qname]+1:]
-            charac_data[Qname].index.name = 'impact'
-
-            if 'FY' in extension[Qsheets[Qname]]:
-                _FY = extension[Qsheets[Qname]]['FY'].values
-            else:
-                _FY = np.zeros([extension[Qsheets[Qname]]['F'].shape[0],
-                                core_data['Y'].shape[1]])
-            _impact[Qname] = {'F': charac_data[Qname].dot(
-                                extension[Qsheets[Qname]]['F'].values),
-                              'FY': charac_data[Qname].dot(_FY),
-                              'unit': _unit[Qname]
-                              }
-
-        impact['F'] = (_impact['Q_factorinputs']['F']
-                       .append(_impact['Q_emission']['F'])
-                       .append(_impact['Q_materials']['F'])
-                       .append(_impact['Q_resources']['F']))
-        impact['FY'] = (_impact['Q_factorinputs']['FY']
-                        .append(_impact['Q_emission']['FY'])
-                        .append(_impact['Q_materials']['FY'])
-                        .append(_impact['Q_resources']['FY']))
-        impact['F'].columns = extension['emissions']['F'].columns
-        impact['FY'].columns = extension['emissions']['FY'].columns
-        impact['unit'] = (_impact['Q_factorinputs']['unit']
-                          .append(_impact['Q_emission']['unit'])
-                          .append(_impact['Q_materials']['unit'])
-                          .append(_impact['Q_resources']['unit']))
-        impact['name'] = 'impact'
-        extension['impacts'] = impact
-
-    return IOSystem(version=version,
-                    **dict(core_data, **extension))
+    io = load_all(path)
+    return io
 
 
 def parse_wiod(path, year=None, names=('isic', 'c_codes'),
@@ -959,7 +716,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
 
     Parameters
     ----------
-    path : string
+    path : string or pathlib.Path
         Path to the folder with the WIOD source files. In case that the path
         to a specific file is given, only this will be parsed irrespective of
         the values given in year.
@@ -1001,9 +758,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     """
 
     # Path manipulation, should work cross platform
-    path = path.rstrip('\\')
-    path = path.rstrip('/')
-    path = os.path.abspath(path)
+    path = os.path.abspath(os.path.normpath(str(path)))
 
     # wiot start and end
     wiot_ext = '.xlsx'
@@ -1636,7 +1391,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     Parameters
     ----------
 
-    path : string
+    path : string or pathlib.Path
        Path to the eora raw storage folder or a specific eora zip file to
        parse.  There are several options to specify the data for parsing:
 
@@ -1663,10 +1418,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
 
 
     """
-    # Path manipulation, should work cross platform
-    path = path.rstrip('\\')
-    path = path.rstrip('/')
-    path = os.path.abspath(path)
+    path = os.path.abspath(os.path.normpath(str(path)))
 
     if country_names[0].lower() == 'e':
         country_names = 'eora'
