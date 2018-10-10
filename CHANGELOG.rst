@@ -21,6 +21,11 @@ New features
 * pymrio.parse_exiobase3, accepting the compressed archive files and extraced data
 * pymrio.archive for archiving MRIO databases into zipfiles
 * pymrio.load and pymrio.load_all can read data directly from a zipfile
+  
+Removed functionality
+=====================
+
+* Removed the Eora26 autodownloader b/c worldmrio.com needs a registration now
 
 ***********************
 v0.3.6 (March 12, 2018)
