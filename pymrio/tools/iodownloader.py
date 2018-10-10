@@ -184,116 +184,29 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
     return meta
 
 
-def download_eora26(storage_folder, years=None, prices=['bp'],
-                    overwrite_existing=False):
-    """ Downloads Eora 26
-
-    Parameters
-    ----------
-    storage_folder: str, valid path
-        Location to store the download, folder will be created if
-        not existing. If the file is already present in the folder,
-        the download of the specific file will be skipped.
-
-
-    years: list of int or str, optional
-        If years is given only downloads the specific years. This
-        only applies to the IO tables because extensions are stored
-        by country and not per year.
-        The years can be given in 2 or 4 digits.
-
-    prices: list of str
-        If bp (default), download basic price tables.
-        If pp, download purchaser prices. ['bp', 'pp'] possible.
-
-    overwrite_existing: boolean, optional
-        If False, skip download of file already existing in
-        the storage folder (default). Set to True to replace
-        files.
-
+def download_eora26():
+    """ Downloading eora26 not implemented (registration required)
     """
-    try:
-        os.makedirs(storage_folder)
-    except FileExistsError:
-        pass
+    raise NotImplementedError(
+          "Eora26 3 requires registration prior to download. "
+          "Please register at http://www.worldmrio.com and download the "
+          "Eora26 files from the subdomain /simplified")
+    return None
 
-    print("The Eora MRIO is free for academic (university or grant-funded) "
-          "work at degree-granting institutions. "
-          "All other uses require a data license before the "
-          "results are shared.\n\n "
-          "When using Eora, the Eora authors ask you cite "
-          "these publications: \n\n "
-          "Lenzen, M., Kanemoto, K., Moran, D., Geschke, A. "
-          "Mapping the Structure of the World Economy (2012). "
-          "Env. Sci. Tech. 46(15) pp 8374-8381. DOI:10.1021/es300171x \n\n "
-          "Lenzen, M., Moran, D., Kanemoto, K., Geschke, A. (2013) "
-          "Building Eora: A Global Multi-regional Input-Output Database "
-          "at High Country and Sector Resolution, Economic Systems Research, "
-          " 25:1, 20-49, DOI:10.1080/09535314.2013.769 938\n\n ")
-
-    agree = input("Do you agree with these conditions [y/n]: ")
-
-    if agree.lower() != 'y':
-        raise ValueError("Download of Eora not possible")
-
-    if type(years) is int or type(years) is str:
-        years = [years]
-    years = years if years else range(1995, 2012)
-    years = [str(yy).zfill(4) for yy in years]
-
-    if type(prices) is str:
-        prices = [prices]
-
-    eora_cookie_str = requests.post(
-        EORA26_CONFIG['url_db_content'],
-        data={'licenseagree': 'true'}
-        ).headers['Set-Cookie']
-
-    _cookie_content = eora_cookie_str.split(';')[0].split('=')
-    eora_access_cookie = {_cookie_content[0]: _cookie_content[1]}
-
-    eora26_web_content = _get_url_datafiles(
-            url_db_view=EORA26_CONFIG['url_db_view'],
-            url_db_content=EORA26_CONFIG['url_db_content'],
-            mrio_regex='Computations.*?Eora26_\d\d\d\d_.*?.zip',
-            access_cookie=eora_access_cookie)
-
-    version_number = re.findall(">v\d+\.\d+<",
-                                eora26_web_content.raw_text)[-1][1:-1]
-
-    restricted_eora_urls = [url for url in eora26_web_content.data_urls if
-                            re.search(r"(Eora26_)(\d\d\d\d)",
-                                      os.path.basename(url)).group(2)
-                            in years and
-                            re.search(r"(Eora26_\d\d\d\d_)(..)",
-                                      os.path.basename(url)).group(2)
-                            in prices
-                            ]
-
-    meta = MRIOMetaData(location=storage_folder,
-                        description='Eora metadata file for pymrio',
-                        name='Eora',
-                        system='ixi',
-                        version=version_number)
-
-    meta = _download_urls(url_list=restricted_eora_urls,
-                          storage_folder=storage_folder,
-                          overwrite_existing=overwrite_existing,
-                          meta_handler=meta,
-                          access_cookie=eora_access_cookie)
-
-    # phase=re.findall('v\d+\.', version_number)[0][1:-1]
-    # loop=re.findall('\.\d+', version_number)[0][1:]
-    # if len(loop) == 2: loop = '0' + loop
-    meta.save()
-
-    return meta
+    # Development note:
+    # Eora 26 autodownload was implemented before but was
+    # removed since worldmrio does require
+    # a registration now (by summer 2018).
+    # The previous implementation can be found
+    # in the github history (e.g. at 2e61424 2018-10-09
+    # or before)
 
 
 def download_exiobase1():
-    """ Downloading exiobase not implemented (registration required
+    """ Downloading exiobase not implemented (registration required)
     """
-    print("EXIOBASE 1 requires registration prior to download. "
+    raise NotImplementedError(
+          "EXIOBASE 1 requires registration prior to download. "
           "Please register at www.exiobase.eu and download the "
           "EXIOBASE MRIO files "
           "pxp_ita_44_regions_coeff_txt or "
@@ -304,9 +217,10 @@ def download_exiobase1():
 
 
 def download_exiobase2():
-    """ Downloading exiobase not implemented (registration required
+    """ Downloading exiobase not implemented (registration required)
     """
-    print("EXIOBASE 2 requires registration prior to download. "
+    raise NotImplementedError(
+          "EXIOBASE 2 requires registration prior to download. "
           "Please register at www.exiobase.eu and download the "
           "EXIOBASE MRIO files "
           ">MrIOT_IxI_fpa_coefficient_version2.2.2.zip<_"
@@ -314,4 +228,14 @@ def download_exiobase2():
           ">MrIOT_PxP_ita_coefficient_version2.2.2.zip<_"
           "manually (tab Data Download - EXIOBASE 2)."
           )
+    return None
+
+
+def download_exiobase3():
+    """ Downloading exiobase not implemented (registration required)
+    """
+    raise NotImplementedError(
+          "EXIOBASE 3 requires registration prior to download. "
+          "Please register at www.exiobase.eu and download the "
+          "EXIOBASE 3 MRIO files ")
     return None
