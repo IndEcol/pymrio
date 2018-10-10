@@ -47,7 +47,9 @@ from pymrio.core.fileio import *
 
 from pymrio.tools.ioparser import *
 
+from pymrio.tools.iodownloader import download_eora26
 from pymrio.tools.iodownloader import download_wiod2013
+from pymrio.tools.iodownloader import download_exiobase3
 from pymrio.tools.iodownloader import download_exiobase2
 from pymrio.tools.iodownloader import download_exiobase1
 
