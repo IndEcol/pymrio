@@ -2,11 +2,16 @@
 Changelog
 #########
 
-***********************
-Next release
-***********************
+*************************
+v0.3.7 (October 10, 2018)
+*************************
 
-Stressed the issue driven development in CONTRIBUTING.rst
+New features
+============
+
+* pymrio.parse_exiobase3, accepting the compressed archive files and extraced data (solves #26)
+* pymrio.archive for archiving MRIO databases into zipfiles (solves #26)
+* pymrio.load and pymrio.load_all can read data directly from a zipfile (solves #26)
 
 Bugfixes
 ========
@@ -15,17 +20,16 @@ Bugfixes
 * Ensures that mrio.x is a pandas DataFrame (fixes issue #24)
 * Some warning if a reset method would remove data beyond recovery by calc_all (see issue #23 discussion)
 
-New features
-============
-
-* pymrio.parse_exiobase3, accepting the compressed archive files and extraced data
-* pymrio.archive for archiving MRIO databases into zipfiles
-* pymrio.load and pymrio.load_all can read data directly from a zipfile
   
 Removed functionality
 =====================
 
-* Removed the Eora26 autodownloader b/c worldmrio.com needs a registration now
+* Removed the Eora26 autodownloader b/c worldmrio.com needs a registration now (short time fix for #34)
+  
+Misc
+====
+
+* Stressed the issue driven development in CONTRIBUTING.rst
 
 ***********************
 v0.3.6 (March 12, 2018)
