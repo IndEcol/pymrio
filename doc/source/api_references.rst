@@ -23,8 +23,8 @@ Download MRIO databases
 ===========================
 
 Download publicly EE MRIO databases from the web.
-This is currently implemented for the WIOD_ and EORA26_ database
-(EXIOBASE_ requires registration before downloading).
+This is currently implemented for the WIOD_ database
+(EXIOBASE_ and EORA26_ require registration before downloading).
 
 
 .. _EXIOBASE: http://www.exiobase.eu/
@@ -35,8 +35,6 @@ This is currently implemented for the WIOD_ and EORA26_ database
     :toctree: api_doc/
 
     download_wiod2013
-    download_eora26
-
 
 Raw data
 ========
@@ -46,6 +44,7 @@ Raw data
 
     parse_exiobase1
     parse_exiobase2
+    parse_exiobase3
     generic_exiobase12_parser
     parse_wiod
     parse_eora26

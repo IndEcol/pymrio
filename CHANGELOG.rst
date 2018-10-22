@@ -29,7 +29,9 @@ Removed functionality
 Misc
 ====
 
+* pymrio now depends on python > 3.6
 * Stressed the issue driven development in CONTRIBUTING.rst
+
 
 ***********************
 v0.3.6 (March 12, 2018)
