@@ -341,7 +341,7 @@ literal "false"
 
 \begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Energy demand in volume at row 'total'
@@ -7054,6 +7054,16 @@ status open
 \end_inset
 
 
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+MÀJ
 \end_layout
 
 \end_inset
@@ -21389,6 +21399,16 @@ noprefix "false"
  in 2030 and 2050 in both THEMIS scenarios.
  Unsurprisingly, the decrease is a little more pronounced in the Greenpeace
  scenario: at 7.0 in 2030 and 6.4 in 2050.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO: rewrite
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -21402,11 +21422,36 @@ Current in range of literature.
 \end_inset
 
 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO: compare with results from Arvesen et al.
+ (2018) et Pehl et al.
+ (2017)
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
 \begin_inset Note Note
 status open
+
+\begin_layout Plain Layout
+TODO: compute global EROI without solar CSP
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status collapsed
 
 \begin_layout Plain Layout
 are THEMIS and Cecilia's results definitive? => they seem yes, except that

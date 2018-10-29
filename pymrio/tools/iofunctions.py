@@ -452,11 +452,19 @@ def mix(self, scenario = None, path_dlr = '/media/adrien/dd1/adrien/DD/Économie
 def change_mix(self, global_mix = None, inplace = True, method = 'regional', path_dlr = None, scenario = None, year = None, only_exiobase = True): 
         # returns A with only renewable electricity in the energy mix, works only for THEMIS
     # method can be 'regional' (default), 'global' or 'gras' (the latter is preferable but requires y and Z)
+    # TODO: write doc ('''''') and change name of global_mix to avoid confusion with function
+    if year is None: print('year must be provided, otherwise I cannot infer total demand')
     if type(global_mix)==dict and scenario is not None and year is not None: global_mix = global_mix[scenario][year]
     elif global_mix is None and path_dlr is not None:
         if scenario is not None: self.scenario = scenario
         global_mix = self.mix(path_dlr = path_dlr)[year]
-
+        
+    dlr_sectors = self.dlr_elec['World'].index
+    TWh2TJ = 3.6e3
+    self.secondary_energy_demand[np.where(self.secondary_energy_demand!=0)[0]] = 0
+    for reg in self.regions:
+        for sec in dlr_sectors: self.secondary_energy_demand[self.index_secs_regs('Electricity by ' + sec, reg)] = self.dlr_elec[reg][year][sec] * TWh2TJ
+            
     if inplace: A = self.A
     else: A = self.A.copy()
     elec_idx = self.index_secs_regs(self.energy_sectors('electricities'))
@@ -466,7 +474,7 @@ def change_mix(self, global_mix = None, inplace = True, method = 'regional', pat
         for i in np.array(elec_idx)[np.where(self.energy_supply_original[elec_idx]==0)[0]]: # fills (reg, sec) with 0 supply with mean value of other regs 
             sec_i = self.labels.idx_sectors[i]  # TODO!: median instead of mean?, optimize this piece of code
             self.supply_filled[i] = self.energy_supply_original.dot(self.is_in(sec_i))/len(np.where(self.energy_supply_original*self.is_in(sec_i)!=0)[0])
-   # TODO: how to respect energy demand of Greenpeace ?
+   # TODO: how to respect regional/total energy demand of Greenpeace ?
     if only_exiobase: idx0 = 42219
     else: idx0 = 0
     elecs_by_sec = mult_rows(A[elec_idx,idx0:], self.energy_supply[elec_idx]) # unit of elec needed by each unitary sec
@@ -489,6 +497,28 @@ def change_mix(self, global_mix = None, inplace = True, method = 'regional', pat
     else: print('method unknown')
     return(A)
 
+
+def mix_matrix(self, secs = None): # TODO: store as attribute
+    '''
+    Returns the share of energy supplied by each sec in secs (among the energy supplied by all secs), according to the IOT.
+    '''
+    if secs is None: secs = self.energy_sectors('electricities')
+    mix = {}
+    mix['total'] = self.impacts(secs = secs).sum()
+    for sec in secs: mix[sec[15:]] = self.impacts(secs = sec).sum()/mix['total']
+    mix['total'] /= 1e6
+    return(round(pd.Series(mix), 2))
+
+def global_mix(self, mix, secs = None):
+    if secs is None: secs = self.energy_sectors('electricities')
+    elec_idx = self.index_secs_regs(secs)
+    global_mix = {}
+    for sec in self.labels.idx_sectors[elec_idx].unique():
+        global_mix[sec] = round(mix[np.where(self.labels.idx_sectors[elec_idx]==sec)[0]].sum(), 2)
+    return(pd.Series(global_mix))
+
+IOS.global_mix = global_mix
+IOS.mix_matrix = mix_matrix
 IOS.change_mix = change_mix
 IOS.mix = mix
 IOS.regional_mix = regional_mix

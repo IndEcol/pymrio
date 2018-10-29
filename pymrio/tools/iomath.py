@@ -384,7 +384,7 @@ def mult_rows(mat, vec):
         if sp.issparse(vec): vec = vec.toarray()
         return(mat.multiply(sp.csc_matrix((np.tile(vec.data,nb_c).flatten(), np.tile(np.arange(nb_r),nb_c), np.arange(0,nb_c*np.max(vec.shape)+1,nb_r)), \
                                           shape=mat.shape)))
-    else: return(matrix * np.diag(vec).dot(np.ones(mat.shape))) 
+    else: return(np.array(mat) * np.diag(vec).dot(np.ones(mat.shape))) 
 
 def mult_cols(mat, vec): 
     '''
@@ -395,7 +395,7 @@ def mult_cols(mat, vec):
         if sp.issparse(vec): vec = vec.toarray()
         return(mat.multiply(sp.csc_matrix((np.repeat(vec.data, nb_r).flatten(),np.tile(np.arange(nb_r),nb_c),np.arange(0,nb_r*np.max(vec.shape)+1,nb_r)),\
                                           shape=mat.shape)))
-    else: return(matrix * (np.ones(mat.shape)).dot(np.diag(vec)))
+    else: return(np.array(mat) * (np.ones(mat.shape)).dot(np.diag(vec)))
         
 def inter_secs(secs1, secs2): 
     '''
