@@ -676,6 +676,13 @@ def parse_exiobase3(path):
 
     """
     io = load_all(path)
+    # need to rename the final demand satellite,
+    # wrong name in the standard distribution
+    try:
+        io.satellite.FY = io.satellite.F_hh.copy()
+        del io.satellite.F_hh
+    except AttributeError:
+        pass
     return io
 
 
