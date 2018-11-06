@@ -10,7 +10,6 @@ import collections
 import copy
 import json
 import logging
-import os
 import re
 import string
 import time
@@ -770,6 +769,7 @@ class Extension(CoreSystem):
                 Y_agg = Y.sum(level='region',
                               axis=1).reindex(self.get_regions(),
                                               axis=1)
+
             except (AssertionError, KeyError):
                 Y_agg = Y.sum(level=0,
                               axis=1,).reindex(self.get_regions(),

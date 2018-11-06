@@ -676,6 +676,67 @@ def parse_exiobase3(path):
 
     """
     io = load_all(path)
+    # need to rename the final demand satellite,
+    # wrong name in the standard distribution
+    try:
+        io.satellite.FY = io.satellite.F_hh.copy()
+        del io.satellite.F_hh
+    except AttributeError:
+        pass
+
+    # some ixi in the exiobase 3.4 official distribution
+    # have a country name mixup. Clean it here:
+    io.rename_regions(
+        {'AUS': 'AU',
+         'AUT': 'AT',
+         'BEL': 'BE',
+         'BGR': 'BG',
+         'BRA': 'BR',
+         'CAN': 'CA',
+         'CHE': 'CH',
+         'CHN': 'CN',
+         'CYP': 'CY',
+         'CZE': 'CZ',
+         'DEU': 'DE',
+         'DNK': 'DK',
+         'ESP': 'ES',
+         'EST': 'EE',
+         'FIN': 'FI',
+         'FRA': 'FR',
+         'GBR': 'GB',
+         'GRC': 'GR',
+         'HRV': 'HR',
+         'HUN': 'HU',
+         'IDN': 'ID',
+         'IND': 'IN',
+         'IRL': 'IE',
+         'ITA': 'IT',
+         'JPN': 'JP',
+         'KOR': 'KR',
+         'LTU': 'LT',
+         'LUX': 'LU',
+         'LVA': 'LV',
+         'MEX': 'MX',
+         'MLT': 'MT',
+         'NLD': 'NL',
+         'NOR': 'NO',
+         'POL': 'PL',
+         'PRT': 'PT',
+         'ROM': 'RO',
+         'RUS': 'RU',
+         'SVK': 'SK',
+         'SVN': 'SI',
+         'SWE': 'SE',
+         'TUR': 'TR',
+         'TWN': 'TW',
+         'USA': 'US',
+         'ZAF': 'ZA',
+         'WWA': 'WA',
+         'WWE': 'WE',
+         'WWF': 'WF',
+         'WWL': 'WL',
+         'WWM': 'WM'})
+
     return io
 
 

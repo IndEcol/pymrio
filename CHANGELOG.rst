@@ -2,6 +2,15 @@
 Changelog
 #########
 
+***************************
+v0.3.8 (November 06, 2018)
+***************************
+
+Hotfix for two EXIOBASE 3 issues
+
+* FY in the raw files is named F_hh. F_hh now get automatically renamed to FY.
+* In the ixi tables of EXIOBASE 3 some tables had ISO3 country names. The parser now renames these names to the standard ISO2. 
+
 *************************
 v0.3.7 (October 10, 2018)
 *************************
