@@ -1880,7 +1880,7 @@ def themis_parser(exio_files, year = None, scenario = None, themis = None, themi
 
     """
     
-    def load_themis(matrix='A', year=2010, scenario='BL'):
+    def load_themis(matrix='A', year=None, scenario=None):
         # matrix is A, Sb, Sf or S; year is 2010, 2030 or 2050; scenario is BL or BM
         if matrix=='S': 
             Sb = load_themis('Sb', year, scenario)

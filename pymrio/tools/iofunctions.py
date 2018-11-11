@@ -179,6 +179,17 @@ def secondary_energy_demand(self): # TODO: precalculate at the instantiation
     '''
     if self.name=='THEMIS': return(self.energy.secondary_demand)
     else: return(self.final_demand(self.energy_sectors('secondary')))
+    
+@property
+def VA(self): # TODO: exiobase
+    '''
+    Returns the vector of value added, by summing Operating surplus (Consumption of fixed capital, Rents on land, Royalties on resources, 
+    Remainin net operating surplus), Compensation of Employees (wages & salaries, employers social contributions) and Fixed capital formation, unit: M€
+    '''
+    if self.name=='THEMIS':
+        if not hasattr(self, 'VA_filled'): self.VA_filled = np.array(self.impact.S.tocsc()[list(range(1618,1624))+[1630]].sum(axis=0)).flatten()
+        return(self.VA_filled)
+    else: print('"Value added" not yet implemented for database other than THEMIS')
 
 def production(self, secs=None, regs=None):
     '''
@@ -220,10 +231,54 @@ def energy_supply(self):
         return(self.materials.S.loc[[s.startswith('Gross Energy Supply - ') for s in self.materials.S.index]].sum())    
     elif self.name=='EXIOBASE' and self.meta.version[0]=='2': return(self.impact.S.loc['Total Energy supply'])
     elif self.name=='THEMIS': 
-        if not hasattr(self, 'supply_filled'): return(['Energy Carrier Supply' in sector for sector in self.labels.idx_impacts] * self.impact.S) # acts as .dot()
-        else: return(self.supply_filled)
+        if not hasattr(self, 'supply_filled'): 
+            self.supply_filled = ['Energy Carrier Supply' in sector for sector in self.labels.idx_impacts] * self.impact.S # act as .dot()
+            self.supply_filled[self.index_secs_regs('Electricity by solar CSP')] = np.ones(self.regions.size) * \
+                max(self.supply_filled[self.index_secs_regs('Electricity by solar CSP')]) # ugly trick to have credible figures for solar CSP
+                # without this, supply[CSP] = [0,0,0,10,80,5,0,0] which is weird, I set everything to 80 # TODO!: check supply discrepancy in other technos
+        return(self.supply_filled)
     else: return('Property not yet implemented for this IOSystem.')
-
+    
+@property
+def employment_low(self): # TODO: exiobase
+    '''
+    Returns the vector of Employment: low skilled, unit: 1000 persons
+    '''
+    if self.name=='THEMIS':
+        if not hasattr(self, 'empl_low'): self.empl_low = self.impact.S.tocsc()[1624].toarray().flatten()
+        return(self.empl_low)
+    else: print('"Employment" not yet implemented for database other than THEMIS')
+    
+@property
+def employment_medium(self): # TODO: exiobase
+    '''
+    Returns the vector of Employment: medium skilled, unit: 1000 persons
+    '''
+    if self.name=='THEMIS':
+        if not hasattr(self, 'empl_medium'): self.empl_medium = self.impact.S.tocsc()[1625].toarray().flatten()
+        return(self.empl_medium)
+    else: print('"Employment" not yet implemented for database other than THEMIS')
+            
+@property
+def employment_high(self): # TODO: exiobase
+    '''
+    Returns the vector of Employment: high skilled, unit: 1000 persons
+    '''
+    if self.name=='THEMIS':
+        if not hasattr(self, 'empl_high'): self.empl_high = self.impact.S.tocsc()[1626].toarray().flatten()
+        return(self.empl_high)
+    else: print('"Employment" not yet implemented for database other than THEMIS')
+                    
+@property
+def employment_all(self): # TODO: exiobase
+    '''
+    Returns the vector of Employment (all skills combined), unit: 1000 persons
+    '''
+    if self.name=='THEMIS':
+        if not hasattr(self, 'empl_all'): self.empl_all = np.array(self.impact.S.tocsc()[1624:1627].sum(axis=0)).flatten()
+        return(self.empl_all)
+    else: print('"Employment" not yet implemented for database other than THEMIS')
+        
 # @property
 # def secondary_energy_supply(self):
 #     '''
@@ -268,6 +323,64 @@ def embodied_impact(self, secs=None, regs=None, var='Total Energy supply', sourc
     impacts = impacts[self.index_secs_regs(self.energy_sectors(source))]
     if sort: return(sorted_series(impacts.groupby(group_by).sum()))
     else: return(impacts.groupby(group_by).sum())   
+    
+def employment(self, secs = None, regs = None, skill='all', prod = None, indirect = True): # TODO: exiobase
+    '''
+    For THEMIS: Returns the employment (in k persons) of the embodied production of sectors secs in regions regs.
+    skill can be 'low', 'medium', 'high' or 'all'.
+    '''
+    secs, regs = self.prepare_secs_regs(secs, regs)
+    if prod is None: prod = self.production(secs, regs)
+    if indirect: x = self.embodied_prod(secs, prod=prod)
+    else: x = prod
+    if skill=='low': return((self.employment_low * x).sum())
+    elif skill=='medium': return((self.employment_medium * x).sum())
+    elif skill=='high': return((self.employment_high * x).sum())
+    elif skill=='all': return((self.employment_all * x).sum())
+
+def employments(self, secs = None, skill='all', recompute = True, indirect = True):
+    '''
+    Returns the serie of employments for the given skills at the global level of the list of sectors secs.
+    '''
+    if secs is None: secs = self.energy_sectors('electricities')
+    if recompute or not hasattr(self, 'employ'):
+        employments = pd.Series()
+        for i, sec in enumerate(secs): 
+            empl_sec = self.employment(secs = sec, skill=skill, indirect = indirect)
+            employments.at[secs[i][15:]] = empl_sec
+        self.employ = employments
+    return(self.employ)
+
+def value_added(self, secs = None, regs = None, prod = None, indirect = True): # TODO: exiobase
+    '''
+    For THEMIS: Returns the value added (in M€) of the embodied production of sectors secs in regions regs.
+    '''
+    secs, regs = self.prepare_secs_regs(secs, regs)
+    if prod is None: prod = self.production(secs, regs)
+    if indirect: return((self.VA * self.embodied_prod(secs, prod=prod)).sum())
+    else: return((self.VA * self.production(secs, prod=prod)).sum())
+
+def price_energy(self, secs = None, regs = None, digits=0, indirect = True): # TODO: exiobase
+    '''
+    For THEMIS: Returns the price of energy (in M€/TWh = €/MWh) of sectors secs in regions regs, computed using the value added of the embodied production.
+    '''
+    TWh2TJ = 3.6e3
+    if secs is None: secs = self.energy_sectors('electricities')
+    prod = self.production(secs, regs)
+    return(round(self.value_added(secs, regs, prod = prod, indirect = indirect) / ((self.energy_supply @ prod) / TWh2TJ), digits))
+
+def energy_prices(self, secs = None, recompute = False, indirect = True):
+    '''
+    Returns the serie of energy prices at the global level of the list of sectors secs.
+    '''
+    if secs is None: secs = self.energy_sectors('electricities')
+    if recompute or not hasattr(self, 'energy_price'):
+        prices = pd.Series()
+        for i, sec in enumerate(secs): 
+            price_sec = self.price_energy(secs = sec, indirect = indirect)
+            prices.at[secs[i][15:]] = price_sec
+        self.energy_price = prices
+    return(self.energy_price)
 
 def sorted_array(self, array, index=None, group_by=None):
     '''
@@ -289,6 +402,7 @@ def inputs(self, secs=None, regs=None, var_impacts=[], source='all', order_recur
     group_by allows to aggregate the inputs by region or sector (by default)
     
     Returns a tuple of ([impacts], value of inputs, sums[impacts/values][step] of all impacts and values by step (not only the first nb_main which are shown))
+    For THEMIS, returns only the second elements, embodied inputs, whose values have no clear interpretation because their units vary and can be physical.
     '''
     secs, regs = self.prepare_secs_regs(secs, regs)
     if nb_main=='all': nb_main==self.nb_sectors()*self.nb_regions()
@@ -299,19 +413,28 @@ def inputs(self, secs=None, regs=None, var_impacts=[], source='all', order_recur
     demand = [None for i in range(order_recursion)]
     impacts = [[None for i in range(order_recursion)] for j in range(nb_var)]
     sums = [[] for i in range(nb_var+1)]
-#     demand[0] = final_demand(secs, regs)
-    demand[0] = self.production(secs, regs)
-    for i in range(0, order_recursion):
-        if nb_var>0: share_demand_i = div0(demand[i], self.x)
-        for l in range(0, nb_var): 
-            impacts_l_i = self.impacts(var_impacts[l])*share_demand_i
-            impacts[l][i] = impacts_l_i[self.index_secs_regs(source, self.regions)]
-            sums[l].append(impacts[l][i].sum())
-        if i+1<order_recursion: demand[i+1] = np.dot(self.A, demand[i])
-        sums[nb_var].append(demand[i].sum())
-    for k in range(0, nb_var): impacts[k] = list(map(lambda j: self.sorted_array(j, group_by=group_by)[0:nb_main],impacts[k]))
-    demand = list(map(lambda j: self.sorted_array(j, group_by=group_by)[0:nb_main], demand))
-    return((impacts, demand, sums))
+    if self.name=='THEMIS':
+        # if var_impacts==[]: var_impacts = ['Total Energy supply'] # TODO: remove this
+        multi_index = pd.MultiIndex.from_arrays([self.labels.idx_regions, self.labels.idx_sectors], names=['region', 'sector']) # TODO: set as .x.index
+        demand[0] = pd.Series(self.is_in(secs, regs), index = multi_index)
+        for i in range(0, order_recursion):
+            if i+1<order_recursion: demand[i+1] = pd.Series(self.A.dot(demand[i]), index = multi_index)
+        demand = list(map(lambda j: self.sorted_array(j * self.is_in(source, self.regions), index=multi_index, group_by=group_by)[0:nb_main], demand))
+        return(demand) # TODO: stop showing recursive inputs as soon as they are 0.
+    else:
+    #     demand[0] = final_demand(secs, regs)
+        demand[0] = self.production(secs, regs)
+        for i in range(0, order_recursion):
+            if nb_var>0: share_demand_i = div0(demand[i], self.x)
+            for l in range(0, nb_var): 
+                impacts_l_i = self.impacts(var_impacts[l])*share_demand_i
+                impacts[l][i] = impacts_l_i[self.index_secs_regs(source, self.regions)]
+                sums[l].append(impacts[l][i].sum())
+            if i+1<order_recursion: demand[i+1] = np.dot(self.A, demand[i])
+            sums[nb_var].append(demand[i].sum())
+        for k in range(0, nb_var): impacts[k] = list(map(lambda j: self.sorted_array(j, group_by=group_by)[0:nb_main],impacts[k]))
+        demand = list(map(lambda j: self.sorted_array(j, group_by=group_by)[0:nb_main], demand))
+        return((impacts, demand, sums))
 
 def outputs(self, secs, out_sectors=None, nb_main=5):
     '''
@@ -363,23 +486,9 @@ def neer(self, secs, regs=None, var='Total Energy supply', source='secondary', n
 #     if ((type(secs)==str and secs in self.energy_sectors('electricities')) or secs==self.energy_sectors('electricities')): 
 #         return(round(factor_elec * self.impacts(var, regs, secs).sum() / er, 1))
 #     else: return(round(self.impacts(var, regs, secs).sum() / er, 1))
-    return(round(factor_elec * self.impacts(var, regs, secs).sum() / er, 1))
-
-def erois(self, secs = None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, recompute=False):
-    '''
-    Returns the serie of EROIs (Net External Energy Ratio) of the list of sectors secs, considering the energy from source with notion var.
-    '''
-    if secs is None: secs = self.energy_sectors('electricities')
-    if recompute or not hasattr(self, 'eroi'):
-        neers = pd.Series()
-        for i, sec in enumerate(secs): 
-            eroi_sec = self.neer(secs = sec, regs = self.regions, var = var, source = source, netting_fuel = netting_fuel, factor_elec = factor_elec)
-            neers.at[secs[i][15:]] = eroi_sec
-#             neers.set_value(secs[i][15:], eroi_sec)
-#         neers.set_value('Power sector', self.neer([s for s in secs], self.regions, var, source, netting_fuel, factor_elec))
-        neers.at['Power sector'] = self.neer(secs, self.regions, var, source, netting_fuel, factor_elec)
-        self.eroi = neers.copy()
-    return(self.eroi)
+    if var=='Total Energy supply' and source=='secondary': supply = self.secondary_energy_demand[self.index_secs_regs(secs, regs)].sum()
+    else: supply = self.impacts(var, regs, secs).sum() # TODO!: Why impacts doesn't work in all cases?!
+    return(round(factor_elec * supply / er, 1))
 
 def energy_required(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True):
     '''
@@ -403,6 +512,50 @@ def energy_required(self, secs, regs=None, var='Total Energy supply', source='se
             source=inter_secs(self.energy_sectors('secondary_fuels'), self.energy_sectors(source)), order_recursion=2)[2][0][1]
         else: input_fuel = ((self.secondary_fuel_supply * self.A.dot(self.production(secs, regs)))[self.index_secs_regs(self.energy_sectors(source))]).sum()
     return(embodied - input_fuel) # TODO: put supply out of this function and in energy_requirement which will become err
+
+def erois(self, secs = None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, recompute=False):
+    '''
+    Returns the serie of EROIs (Net External Energy Ratio) of the list of sectors secs, considering the energy from source with notion var.
+    '''
+    if secs is None: 
+        if self.scenario in ['REF', 'ER', 'ADV']: secs = list(np.array(self.energy_sectors('electricities'))\
+                                                                    [['CCS' not in s for s in self.energy_sectors('electricities')]])
+        else: secs = self.energy_sectors('electricities')
+    if recompute or not hasattr(self, 'eroi'):
+        neers = pd.Series()
+        for i, sec in enumerate(secs): 
+            eroi_sec = self.neer(secs = sec, regs = self.regions, var = var, source = source, netting_fuel = netting_fuel, factor_elec = factor_elec)
+            neers.at[secs[i][15:]] = eroi_sec
+#             neers.set_value(secs[i][15:], eroi_sec)
+#         neers.set_value('Power sector', self.neer([s for s in secs], self.regions, var, source, netting_fuel, factor_elec))
+        neers.at['Power sector'] = self.neer(secs, self.regions, var, source, netting_fuel, factor_elec)
+        self.eroi = neers.copy()
+    return(self.eroi)
+
+def erois_and_prices(self, secs = None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, recompute=False):
+    '''
+    Returns the series of regional EROIs and prices of the list of sectors secs for each region, considering the energy from source with notion var.
+    '''
+    if secs is None: 
+        if self.scenario in ['REF', 'ER', 'ADV', 'combo']: secs = list(np.array(self.energy_sectors('electricities'))\
+                                                                    [['CCS' not in s for s in self.energy_sectors('electricities')]])
+        else: secs = self.energy_sectors('electricities')
+    if recompute or not hasattr(self, 'eroi_price'):
+        res = pd.DataFrame(index = pd.MultiIndex.from_product([list(self.regions)+['World'], secs+['total']], names=['region', 'sector']), \
+                           columns = ['eroi', 'price'])
+        for reg in self.regions:
+            for i, sec in enumerate(secs):
+                res['eroi'][(reg, sec)] = self.neer(secs = sec, regs = reg, var = var, source = source, netting_fuel = netting_fuel, factor_elec = factor_elec)
+                res['price'][(reg, sec)] = self.price_energy(secs = sec, regs = reg, digits=5, indirect = True)
+            res['eroi'][(reg, 'total')]=self.neer(secs=secs, regs=reg, var = var, source = source, netting_fuel = netting_fuel, factor_elec = factor_elec)
+            res['price'][(reg, 'total')] = self.price_energy(secs = secs, regs = reg, digits=5, indirect = True)
+        for i, sec in enumerate(secs):
+            res['eroi'][('World', sec)]=self.neer(secs=sec, regs=self.regions, var=var, source=source, netting_fuel =netting_fuel, factor_elec = factor_elec)
+            res['price'][('World', sec)] = self.price_energy(sec = sec, regs = self.regions, digits=5, indirect = True)        
+        res['eroi'][('World', 'total')] = self.neer(secs=secs, regs=regs, var = var, source = source, netting_fuel = netting_fuel, factor_elec = factor_elec)
+        res['price'][('World', 'total')] = self.price_energy(secs = secs, regs = regs, digits=5, indirect = True)
+        self.eroi_price = res.copy()
+    return(self.eroi_price)
 
 def regional_mix(global_mix, nb_regions = 9, nb_sectors = None):
     '''
@@ -450,21 +603,30 @@ def mix(self, scenario = None, path_dlr = '/media/adrien/dd1/adrien/DD/Économie
     return(self.mixes)
         
 def change_mix(self, global_mix = None, inplace = True, method = 'regional', path_dlr = None, scenario = None, year = None, only_exiobase = True): 
-        # returns A with only renewable electricity in the energy mix, works only for THEMIS
-    # method can be 'regional' (default), 'global' or 'gras' (the latter is preferable but requires y and Z)
-    # TODO: write doc ('''''') and change name of global_mix to avoid confusion with function
+    '''
+    (for THEMIS) Returns matrix A with electricity inputs replaced according to the new mix global_mix
+    global_mix gives the share of each techno-region in the global mix, so that its sum is the number of regions
+    As arguments, either global_mix and year must be passed, or path_dlr, scenario and year
+    only_exiobase = True doesn't modify the matrix for outputs other than background ones
+    method = ['gras', 'regional', 'global']: GRAS is preferable but requires Z (and y) (absent from THEMIS), 'regional' (default) assumes the same mix for each
+    sector of a given region, 'global' the same mix for each sector globally
+    '''
     if year is None: print('year must be provided, otherwise I cannot infer total demand')
     if type(global_mix)==dict and scenario is not None and year is not None: global_mix = global_mix[scenario][year]
     elif global_mix is None and path_dlr is not None:
         if scenario is not None: self.scenario = scenario
         global_mix = self.mix(path_dlr = path_dlr)[year]
         
-    dlr_sectors = self.dlr_elec['World'].index
+    if hasattr(self, 'dlr_elec'): dlr_sectors = self.dlr_elec['World'].index
+    else: dlr_sectors = self.energy_sectors('elecs_names')
     TWh2TJ = 3.6e3
     self.secondary_energy_demand[np.where(self.secondary_energy_demand!=0)[0]] = 0
-    for reg in self.regions:
-        for sec in dlr_sectors: self.secondary_energy_demand[self.index_secs_regs('Electricity by ' + sec, reg)] = self.dlr_elec[reg][year][sec] * TWh2TJ
-            
+    for reg in self.regions: # TODO: integrate this change in secondary_energy_demand more properly
+        if hasattr(self, 'dlr_elec'):
+            for sec in dlr_sectors: self.secondary_energy_demand[self.index_secs_regs('Electricity by ' + sec, reg)] = self.dlr_elec[reg][year][sec] * TWh2TJ
+        else:
+            total_demand = self.secondary_energy_demand[self.index_secs_regs(dlr_sectors)].sum()
+            self.secondary_energy_demand[self.index_secs_regs(self.energy_sectors('electricities'))] = global_mix * TWh2TJ            
     if inplace: A = self.A
     else: A = self.A.copy()
     elec_idx = self.index_secs_regs(self.energy_sectors('electricities'))
@@ -474,7 +636,7 @@ def change_mix(self, global_mix = None, inplace = True, method = 'regional', pat
         for i in np.array(elec_idx)[np.where(self.energy_supply_original[elec_idx]==0)[0]]: # fills (reg, sec) with 0 supply with mean value of other regs 
             sec_i = self.labels.idx_sectors[i]  # TODO!: median instead of mean?, optimize this piece of code
             self.supply_filled[i] = self.energy_supply_original.dot(self.is_in(sec_i))/len(np.where(self.energy_supply_original*self.is_in(sec_i)!=0)[0])
-   # TODO: how to respect regional/total energy demand of Greenpeace ?
+
     if only_exiobase: idx0 = 42219
     else: idx0 = 0
     elecs_by_sec = mult_rows(A[elec_idx,idx0:], self.energy_supply[elec_idx]) # unit of elec needed by each unitary sec
@@ -497,27 +659,101 @@ def change_mix(self, global_mix = None, inplace = True, method = 'regional', pat
     else: print('method unknown')
     return(A)
 
-
-def mix_matrix(self, secs = None): # TODO: store as attribute
+def mix_matrix(self, secs = None, method='demand', global_mix = True, digits = 2): # TODO: store as attribute
     '''
     Returns the share of energy supplied by each sec in secs (among the energy supplied by all secs), according to the IOT.
+    The result is at the global level if global_mix = True, at regional level if not.
+    The energy supplied can be given by the secondary_energy_demand attribute or by the method impacts (there is a difference when energy_supply=0)
     '''
+    PWh2TJ = 3.6e6
     if secs is None: secs = self.energy_sectors('electricities')
     mix = {}
-    mix['total'] = self.impacts(secs = secs).sum()
-    for sec in secs: mix[sec[15:]] = self.impacts(secs = sec).sum()/mix['total']
-    mix['total'] /= 1e6
-    return(round(pd.Series(mix), 2))
+    if not global_mix:
+        mix['total'] = self.secondary_energy_demand[self.index_secs_regs(secs)].sum()
+        if method=='impacts': print('Regional mix not coded for "impacts" method')   
+        return(self.secondary_energy_demand[self.index_secs_regs(secs)]/mix['total'])
+    else:
+        if method=='impacts' or method=='impact':
+            if global_mix:
+                mix['total'] = self.impacts(secs = secs).sum()
+                for sec in secs: mix[sec[15:]] = self.impacts(secs = sec).sum()/mix['total']
+        elif method=='demand':
+            mix['total'] = self.secondary_energy_demand[self.index_secs_regs(secs)].sum()
+            for sec in secs: mix[sec[15:]] = self.secondary_energy_demand[self.index_secs_regs(sec)].sum()/mix['total']
+        mix['total'] /= PWh2TJ
+        return(round(pd.Series(mix), digits))
 
-def global_mix(self, mix, secs = None):
-    if secs is None: secs = self.energy_sectors('electricities')
-    elec_idx = self.index_secs_regs(secs)
-    global_mix = {}
-    for sec in self.labels.idx_sectors[elec_idx].unique():
-        global_mix[sec] = round(mix[np.where(self.labels.idx_sectors[elec_idx]==sec)[0]].sum(), 2)
-    return(pd.Series(global_mix))
+def aggregate_mix(self, mix = None, secs = None, path_dlr = '/media/adrien/dd1/adrien/DD/Économie/Données/Themis/', recompute=False):
+    '''
+    Returns the aggregate global mix from an array of global mix. Thus, the sum of the original array is 1 and the sum of the output is the number of regions.
+    '''
+    if not hasattr(self, 'agg_mix') or recompute:
+        if secs is None: secs = self.energy_sectors('electricities')
+        elec_idx = self.index_secs_regs(secs)
+        if mix is None and self.scenario not in ['REF', 'ER', 'ADV', 'combo']: global_mix = self.mix_matrix(method='demand', global_mix = True, digits = 5)
+        else:
+            if mix is None: mix = self.mix(path_dlr = path_dlr)[self.meta.year]
+            global_mix = {}
+            for sec in self.labels.idx_sectors[elec_idx].unique():
+                global_mix[sec[15:]] = round(mix[np.where(self.labels.idx_sectors[elec_idx]==sec)[0]].sum(), 5)
+#             if hasattr(self, 'dlr_elec'): global_mix.append(pd.Series({'total': self.dlr_elec['World'][self.meta.year].sum()/1000}))
+            if hasattr(self, 'dlr_elec'): global_mix['total'] = self.dlr_elec['World'][self.meta.year].sum()/1000      
+        self.agg_mix = pd.Series(global_mix)
+    return(self.agg_mix)
 
-IOS.global_mix = global_mix
+def results(themis, stats=['eroi', 'world_mix'], scenarios=['BL', 'BM', 'ADV'], to_plot = False, not_all_2010=True, rounded=True, fillNA=True, longnames=False,
+            dlr_sectors=False, longtotal=True): # TODO: mix_real, specific region
+    '''
+    Returns a panda dataframe with results from stats and scenarios specified.
+    stats can include: 'eroi', 'eroi_adj', 'world_mix', 'employ', 'employ_direct', 'energy_price'
+    scenarios can include: BL, BM, REF, ER, ADV, combo
+    not_all_2010 keeps only one scenario for year 2010
+    fillNA fills NaN with '–' instead of 0, rounded rounds the figures to max 2 digit, longnames details the scenario name, dlr_sectors removes CCS from sectors,
+        longtotal puts 'Total (PWh/a)' instead of 'total' for the last index: all these parameters should be set to False to plot figures
+    to_plot = True overrides all previous parameters and set them to False, use this if the results are used to be plotted
+    '''
+    if to_plot: not_all_2010, rounded, fillNA, longnames, dlr_sectors, longtotal = False, False, False, False, False, False
+    if type(scenarios)==str: scenarios = [scenarios]
+    if type(stats)==str: stats = [stats]
+    names_stats = {'eroi': 'EROI', 'world_mix': 'mix', 'eroi_adj': 'EROI adj', 'employ': 'k Employ', 'employ_direct': 'k Employ direct', 'energy_price': 'price'}
+    stats_names = {'EROI': 'eroi', 'mix': 'world_mix', 'EROI adj': 'eroi_adj', 'k Employ': 'employ', 'k Employ direct': 'employ_direct', 'price': 'energy_price'}
+    stats = [stats_names[s] if s in stats_names.keys() else s for s in stats]
+    if dlr_sectors: secs = list(np.array(themis['BL'][2010].energy_sectors('elecs_names'))\
+                                                      [['CCS' not in s for s in themis['BL'][2010].energy_sectors('elecs_names')]])
+    else: secs = themis['BL'][2010].energy_sectors('elecs_names')
+    res = pd.DataFrame(index = secs+['total'])
+    years = [2010, 2030, 2050]
+    for y in years:
+        for s in scenarios:
+            for stat in stats:
+                res[(s, y, stat)] = getattr(themis[s][y], stat)
+                res[(s, y, stat)] = res[(s, y, stat)].rename(index={'Power sector': 'total', 'total': 'total'}) #loc[secs].fillna(0).
+                if stat=='energy_price': res[(s, y, stat)].at['total'] = res[(s, y, stat)].loc[secs].fillna(0).dot(themis[s][y].world_mix.loc[secs].fillna(0))
+                elif stat in ['employ', 'employ_direct']: res[(s, y, stat)].at['total'] = res[(s, y, stat)].loc[secs].sum()
+
+    res = pd.DataFrame(res, columns=pd.MultiIndex.from_product([scenarios, years, stats], names=['scenario', 'year', 'stat']))
+    
+    if rounded and 'world_mix' in stats: 
+        res[[(s, y, 'world_mix') for y in years for s in scenarios]] = round(res[[(s, y, 'world_mix') for y in years for s in scenarios]], 2)
+    if rounded and 'employ' in stats: 
+        res[[(s, y, 'employ') for y in years for s in scenarios]] = round(res[[(s, y, 'employ') for y in years for s in scenarios]]) # TODO: int or millions
+    if rounded and 'employ_direct' in stats: 
+        res[[(s, y, 'employ_direct') for y in years for s in scenarios]] = round(res[[(s, y, 'employ_direct') for y in years for s in scenarios]])
+    if rounded and 'energy_price' in stats: 
+        res[[(s, y, 'energy_price') for y in years for s in scenarios]] = round(res[[(s, y, 'energy_price') for y in years for s in scenarios]], 1)
+    if longtotal: res = res.rename(index={'total': 'Total (PWh/a)'})
+    if fillNA: res = res.fillna('–')
+    long = {'BL': "Baseline ('BL')", 'BM': "Blue Map ('BM', +2°C)", 'REF': "Reference DLR ('REF')", \
+                'ER': "Energy [R]evolution ('ER', +2°C, no CCS nor nuclear)", 'ADV': "Advanced ER ('ADV', 100% renewable)", 'combo': 'Combination of scenarios'}
+    new_col_names = [long[c] for c in res.columns.levels[0]]
+    if not_all_2010:
+        if 'BL' in scenarios: res = res[[('BL', 2010, st) for st in stats]+[(s, y, st) for s in scenarios for y in [2030, 2050] for st in stats]]
+        elif 'REF' in scenarios: res = res[[('REF', 2010, st) for st in stats]+[(s, y, st) for s in scenarios for y in years for st in stats]]
+    if longnames: res.columns.set_levels([long[c] for c in res.columns.levels[0]], level=0, inplace=True)
+    res.columns.set_levels([names_stats[s] for s in res.columns.levels[2]], level=2, inplace=True)
+    return(res)
+
+IOS.aggregate_mix = aggregate_mix
 IOS.mix_matrix = mix_matrix
 IOS.change_mix = change_mix
 IOS.mix = mix
@@ -542,6 +778,7 @@ IOS.inputs = inputs
 IOS.outputs = outputs
 IOS.neer = neer
 IOS.erois = erois
+IOS.erois_and_prices = erois_and_prices
 IOS.energy_sectors = energy_sectors
 IOS.regions = regions
 IOS.sectors = sectors
@@ -552,6 +789,16 @@ IOS.energy_supply = energy_supply
 # IOS.energy_requirement = energy_requirement
 # IOS.energy_requirements = energy_requirements
 IOS.energy_required = energy_required
+IOS.VA = VA
+IOS.value_added = value_added
+IOS.price_energy = price_energy
+IOS.energy_prices = energy_prices
+IOS.employment_high = employment_high
+IOS.employment_medium = employment_medium
+IOS.employment_low = employment_low
+IOS.employment_all   = employment_all
+IOS.employments = employments
+IOS.employment = employment
 # IOS. = 
 # IOS. = 
 # other: internal_energy, composition_impact, change IOT for efficiency or gdp, calc_Z, etc., not_regs, regs_or_no, gdp, import, embodied_import
