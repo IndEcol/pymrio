@@ -307,13 +307,13 @@ def embodied_prod(self, secs=None, regs=None, prod = None):
     if self.L is None: return(spla.cgs(sp.eye(self.A.shape[0])-self.A, prod, approx_solution(self.A,prod).transpose().toarray()[0], tol=1e-7)[0])
     else: return(np.dot(self.L, prod))
 
-def embodied_impact(self, secs=None, regs=None, var='Total Energy supply', source='secondary', group_by='region', sort=False): # TODO: source = None
+def embodied_impact(self, secs=None, regs=None, var='Total Energy supply', source='secondary', group_by='region', sort=False, production = None):
     '''
     Returns a vector of impact of type var embodied in the production of (sec, reg) in secs x regs, excluding their own production, and including only impacts
     from sectors in energy_sectors(source). Results are grouped by group_by (default: region) and can be sorted in decreasing order (default: unsorted).
     '''
-    secs, regs = self.prepare_secs_regs(secs, regs)
-    production = self.production(secs, regs)
+    secs, regs = self.prepare_secs_regs(secs, regs) # TODO: source = None
+    if production is None: production = self.production(secs, regs)
     if var=='Total Energy supply' and self.name != 'Cecilia':
         impacts = self.secondary_energy_supply * (self.embodied_prod(secs, prod=production) - production)
         impacts = pd.Series(impacts, index = pd.MultiIndex.from_arrays([self.labels.idx_regions, self.labels.idx_sectors], names=['region', 'sector']))
@@ -322,7 +322,8 @@ def embodied_impact(self, secs=None, regs=None, var='Total Energy supply', sourc
         impacts = self.impacts(var)*share_demand        
     impacts = impacts[self.index_secs_regs(self.energy_sectors(source))]
     if sort: return(sorted_series(impacts.groupby(group_by).sum()))
-    else: return(impacts.groupby(group_by).sum())   
+    else: return(impacts.groupby(group_by).sum())    
+
     
 def employment(self, secs = None, regs = None, skill='all', prod = None, indirect = True): # TODO: exiobase
     '''
@@ -475,22 +476,23 @@ def outputs(self, secs, out_sectors=None, nb_main=5):
 #         self.ers = ers.copy()
 #     return(self.ers)
 
-def neer(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1):
+def neer(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, adjust_GW = True):
     '''
     Returns the Net External Energy Ratio of sectors secs in regs, considering the energy from source with notion var.
     
     The formula is: 
     energy supplied / (energy embodied in production (excluding supplied) - fuels as direct inputs for electricity from hydrocarbon (if netting_fuel is True))
     '''
-    er = factor_elec*self.energy_required(secs, regs, var, 'electricities', netting_fuel)+self.energy_required(secs, regs, var, 'secondary_heats', netting_fuel)
+    er = factor_elec*self.energy_required(secs, regs, var, 'electricities', netting_fuel, adjust_GW = adjust_GW) + \
+            self.energy_required(secs, regs, var, 'secondary_heats', netting_fuel, adjust_GW = adjust_GW)
 #     if ((type(secs)==str and secs in self.energy_sectors('electricities')) or secs==self.energy_sectors('electricities')): 
 #         return(round(factor_elec * self.impacts(var, regs, secs).sum() / er, 1))
 #     else: return(round(self.impacts(var, regs, secs).sum() / er, 1))
     if var=='Total Energy supply' and source=='secondary': supply = self.secondary_energy_demand[self.index_secs_regs(secs, regs)].sum()
     else: supply = self.impacts(var, regs, secs).sum() # TODO!: Why impacts doesn't work in all cases?!
-    return(round(factor_elec * supply / er, 1))
+    return(round(factor_elec * supply / er, 1)) # TODO!: code the option non_unitary_themis=False for biofuels and cie
 
-def energy_required(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True):
+def energy_required(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True, adjust_GW = True):
     '''
     Returns the energy required to produce one unit of energy in sectors secs in regs, considering the energy from source with notion var, and 
     decomposed according to the sources in partition_sources.
@@ -506,33 +508,35 @@ def energy_required(self, secs, regs=None, var='Total Energy supply', source='se
     if self.name != 'Cecilia' and var != 'Total Energy supply': 
         print('neer not implement for var of type ' + var + ", doing it for 'Total Energy supply' instead")
         var = 'Total Energy supply'
-    embodied = self.embodied_impact(secs, regs, var, source).sum()
+    prod = self.production(secs, regs)
+    if adjust_GW and self.scenario in ['REF', 'ER', 'ADV'] and hasattr(self, 'adjust_capacity'): prod *= self.adjust_capacity
+    embodied = self.embodied_impact(secs, regs, var, source, production = prod).sum()
     if input_fuel:
         if self.name == 'Cecilia': input_fuel = self.inputs(secs, var_impacts=[var], \
             source=inter_secs(self.energy_sectors('secondary_fuels'), self.energy_sectors(source)), order_recursion=2)[2][0][1]
-        else: input_fuel = ((self.secondary_fuel_supply * self.A.dot(self.production(secs, regs)))[self.index_secs_regs(self.energy_sectors(source))]).sum()
-    return(embodied - input_fuel) # TODO: put supply out of this function and in energy_requirement which will become err
+        else: input_fuel = ((self.secondary_fuel_supply * self.A.dot(prod))[self.index_secs_regs(self.energy_sectors(source))]).sum()
+    return(embodied - input_fuel)
 
-def erois(self, secs = None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, recompute=False):
+def erois(self, secs = None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, recompute=False, adjust_GW = True):
     '''
-    Returns the serie of EROIs (Net External Energy Ratio) of the list of sectors secs, considering the energy from source with notion var.
+    Returns the serie of EROIs (Gross Energy Ratio) of the list of sectors secs, considering the energy from source with notion var.
     '''
     if secs is None: 
-        if self.scenario in ['REF', 'ER', 'ADV']: secs = list(np.array(self.energy_sectors('electricities'))\
+        if self.scenario in ['REF', 'ER', 'ADV', 'combo']: secs = list(np.array(self.energy_sectors('electricities'))\
                                                                     [['CCS' not in s for s in self.energy_sectors('electricities')]])
         else: secs = self.energy_sectors('electricities')
     if recompute or not hasattr(self, 'eroi'):
         neers = pd.Series()
         for i, sec in enumerate(secs): 
-            eroi_sec = self.neer(secs = sec, regs = self.regions, var = var, source = source, netting_fuel = netting_fuel, factor_elec = factor_elec)
+            eroi_sec = self.neer(secs=sec, regs=self.regions, var=var, source=source, netting_fuel=netting_fuel, factor_elec=factor_elec, adjust_GW=adjust_GW)
             neers.at[secs[i][15:]] = eroi_sec
 #             neers.set_value(secs[i][15:], eroi_sec)
 #         neers.set_value('Power sector', self.neer([s for s in secs], self.regions, var, source, netting_fuel, factor_elec))
-        neers.at['Power sector'] = self.neer(secs, self.regions, var, source, netting_fuel, factor_elec)
+        neers.at['Power sector'] = self.neer(secs, self.regions, var, source, netting_fuel, factor_elec, adjust_GW = adjust_GW)
         self.eroi = neers.copy()
     return(self.eroi)
 
-def erois_and_prices(self, secs = None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, recompute=False):
+def erois_and_prices(self, secs = None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, recompute=False, adjust_GW = True):
     '''
     Returns the series of regional EROIs and prices of the list of sectors secs for each region, considering the energy from source with notion var.
     '''
@@ -545,14 +549,15 @@ def erois_and_prices(self, secs = None, var='Total Energy supply', source='secon
                            columns = ['eroi', 'price'])
         for reg in self.regions:
             for i, sec in enumerate(secs):
-                res['eroi'][(reg, sec)] = self.neer(secs = sec, regs = reg, var = var, source = source, netting_fuel = netting_fuel, factor_elec = factor_elec)
+                res['eroi'][(reg, sec)] =self.neer(secs=sec,regs=reg,var=var,source=source,netting_fuel=netting_fuel,factor_elec=factor_elec,adjust_GW=adjust_GW)
                 res['price'][(reg, sec)] = self.price_energy(secs = sec, regs = reg, digits=5, indirect = True)
-            res['eroi'][(reg, 'total')]=self.neer(secs=secs, regs=reg, var = var, source = source, netting_fuel = netting_fuel, factor_elec = factor_elec)
+            res['eroi'][(reg, 'total')]=self.neer(secs=secs,regs=reg,var=var,source=source,netting_fuel=netting_fuel,factor_elec=factor_elec,adjust_GW=adjust_GW)
             res['price'][(reg, 'total')] = self.price_energy(secs = secs, regs = reg, digits=5, indirect = True)
         for i, sec in enumerate(secs):
-            res['eroi'][('World', sec)]=self.neer(secs=sec, regs=self.regions, var=var, source=source, netting_fuel =netting_fuel, factor_elec = factor_elec)
+            res['eroi'][('World', sec)]=self.neer(secs=sec, regs=self.regions, var=var, source=source, netting_fuel=netting_fuel, factor_elec=factor_elec,\
+                                                  adjust_GW=adjust_GW)
             res['price'][('World', sec)] = self.price_energy(sec = sec, regs = self.regions, digits=5, indirect = True)        
-        res['eroi'][('World', 'total')] = self.neer(secs=secs, regs=regs, var = var, source = source, netting_fuel = netting_fuel, factor_elec = factor_elec)
+        res['eroi'][('World', 'total')]=self.neer(secs=secs,regs=regs,var=var,source=source,netting_fuel=netting_fuel,factor_elec=factor_elec,adjust_GW=adjust_GW)
         res['price'][('World', 'total')] = self.price_energy(secs = secs, regs = regs, digits=5, indirect = True)
         self.eroi_price = res.copy()
     return(self.eroi_price)
@@ -564,13 +569,13 @@ def regional_mix(global_mix, nb_regions = 9, nb_sectors = None):
     if nb_sectors is None: nb_sectors = int(max(global_mix.shape)/nb_regions)
     return(div0(global_mix, np.kron(np.eye(nb_regions),np.ones((nb_sectors, nb_sectors))).dot(global_mix)))
 
-def mix(self, scenario = None, path_dlr = '/media/adrien/dd1/adrien/DD/Économie/Données/Themis/', recompute = False):
+def mix(self, scenario = None, path_dlr = '/media/adrien/dd1/adrien/DD/Économie/Données/Themis/', recompute = False): # TODO: change name to mix_dlr
     '''
     Returns an array of global mix (i.e. shares of sec x reg in global total) and stores it as an attribute
     for DLR (= Greenpeace) scenario in ['REF', 'ER', 'ADV'] for year in [2010, 2030, 2050]
     ''' 
     if scenario is None: scenario = self.scenario
-    if not hasattr(self, 'dlr_elec'):
+    if not hasattr(self, 'dlr_elec') or self.dlr_elec=={}:
         self.dlr_elec = dict()
         for reg in ['World', 'Africa', 'China', 'Eurasia', 'India', 'Latin America', 'Middle East', \
                         'OECD Europe', 'OECD North America', 'OECD Asia Oceania', 'O-Asia']:
@@ -588,7 +593,39 @@ def mix(self, scenario = None, path_dlr = '/media/adrien/dd1/adrien/DD/Économie
         self.dlr_elec['Africa and Middle East'] = self.dlr_elec['Africa'] + self.dlr_elec['Middle East']
         self.dlr_elec['OECD Pacific'] = self.dlr_elec.pop('OECD Asia Oceania')
         self.dlr_elec['Rest of developing Asia'] = self.dlr_elec.pop('O-Asia')
-        self.dlr_elec['Economies in transition'] = self.dlr_elec.pop('Eurasia')
+        self.dlr_elec['Economies in transition'] = self.dlr_elec.pop('Eurasia') # TODO: put this and below in a dataframe format
+        
+    if not hasattr(self, 'dlr_capacity'):
+        self.dlr_capacity = dict()
+        for reg in ['World', 'Africa', 'China', 'Eurasia', 'India', 'Latin America', 'Middle East', \
+                        'OECD Europe', 'OECD North America', 'OECD Asia Oceania', 'O-Asia']:
+            data = pd.read_excel(path_dlr+'Greenpeace_scenarios.xlsx', header=[1], index_col=0, skiprows=[0], skipfooter=144-23, \
+                                 sheet_name=scenario+' '+reg, usecols=[12,13,17,21])
+            self.dlr_capacity[reg] = pd.DataFrame(columns = [2012, 2030, 2050])\
+                .append(data.loc[['    - Lignite', '    - Hard coal (& non-renewable waste)']].sum(axis=0).rename('coal'))\
+                .append(data.loc['    - Gas (w/o H2)'].rename('gas')).append(data.loc[['    - Oil', '    - Diesel']].sum(axis=0).rename('oil'))\
+                .append(data.loc['  - Nuclear'].rename('nuclear')).append(data.loc['    - Biomass (& renewable waste)'].rename('biomass&Waste'))\
+                .append(data.loc['    - Hydro'].rename('hydro')).append(data.loc['of which wind offshore'].rename('wind offshore'))\
+                .append((data.loc['    - Wind']-data.loc['of which wind offshore']).rename('wind onshore'))\
+                .append(data.loc['    - PV'].rename('solar PV')).append(data.loc['    - Geothermal'].rename('geothermal'))\
+                .append(data.loc['    - Solar thermal power plants'].rename('solar CSP')).append(data.loc['    - Ocean energy'].rename('ocean'))\
+                .rename(columns = {2012: 2010})
+        self.dlr_capacity['Africa and Middle East'] = self.dlr_capacity['Africa'] + self.dlr_capacity['Middle East']
+        self.dlr_capacity['OECD Pacific'] = self.dlr_capacity.pop('OECD Asia Oceania')
+        self.dlr_capacity['Rest of developing Asia'] = self.dlr_capacity.pop('O-Asia')
+        self.dlr_capacity['Economies in transition'] = self.dlr_capacity.pop('Eurasia')
+        
+        y = self.meta.year
+        self.adjustment_capacity = pd.Series(index = pd.MultiIndex.from_product([self.regions, self.dlr_elec['World'].index], names=['region', 'sector']))
+        self.adjust_capacity = [0] * len(self.labels.idx_sectors)
+        for reg in self.regions: # TODO: which energy.capacity are 0?
+            for sec in self.dlr_elec['World'].index:
+                self.adjust_capacity[self.index_secs_regs('Electricity by ' + sec, reg)[0]] = \
+                        div0(div0(self.dlr_capacity[reg][y].loc[sec], self.dlr_elec[reg][y].loc[sec]), \
+                             div0(self.energy.capacity[(reg, y)].loc['Electricity by ' + sec], self.energy.demand[(reg, y)].loc['Electricity by ' + sec]))
+                self.adjustment_capacity[(reg, sec)] = div0(div0(self.dlr_capacity[reg][y].loc[sec], self.dlr_elec[reg][y].loc[sec]), \
+                             div0(self.energy.capacity[(reg, y)].loc['Electricity by ' + sec], self.energy.demand[(reg, y)].loc['Electricity by ' + sec]))
+
     if recompute or not hasattr(self, 'mixes'):
         mix = dict()
         for year in [2010, 2030, 2050]:
