@@ -1881,7 +1881,7 @@ def themis_parser(exio_files, year = None, scenario = None, themis = None, themi
     compute_all precalculates EROIs, prices, value-added, employments
     The folder should include a file called 'Supplementary info & mixes.xlsx' which provides the IEA scenarios of energy demand.
         You can ask this file to adrien.fabre@psemail.eu
-
+    themis_parser runs in ~1h if combo=True and compute_all=True, ~1 min if they are false
     """
     
     def load_themis(matrix='A', year=2010, scenario='BL'):
@@ -1938,7 +1938,7 @@ def themis_parser(exio_files, year = None, scenario = None, themis = None, themi
                   'sectors': idx_name.unique(), 'idx_sectors': idx_name, 'caracs': idx_caracs.unique(), 'idx_caracs': idx_caracs, 'name': 'labels'}
     if year is None and scenario is None: 
         if dlr_files is not None: 
-            if combo: scenarios = ['BL', 'BM', 'REF', 'ER', 'ADV', 'combo']
+            if combo: scenarios = ['BL', 'BM', 'REF', 'ER', 'ADV', 'combo'] 
             else: scenarios = ['BL', 'BM', 'REF', 'ER', 'ADV']
             if type(dlr_files)!=str: dlr_files = exio_files
         else: scenarios = ['BL', 'BM']
@@ -1950,13 +1950,13 @@ def themis_parser(exio_files, year = None, scenario = None, themis = None, themi
                     all_themis[s][y] = themis_parser(exio_files, y, s, themis, themis_caracs, labels)
                     all_themis[s][y].scenario = s
                 else:
-                    if s == 'REF': all_themis[s][y] = all_themis['BL'][y].copy(new_name='THEMIS') # TODO: include attribute scenario
-                    elif s == 'combo':
+                    if s == 'combo':
                         if y in [2010, 2030]: 
                             yr, not_yr, sc = 2010, 2050, 'ADV'
                             if y == 2030: sc = 'ER'
                             all_themis[s][y] = all_themis['BL'][yr].copy(new_name='THEMIS')
                             all_themis[s][y].dlr_elec = all_themis[sc][2050].dlr_elec
+                            all_themis[s][y].dlr_capacity = all_themis[sc][2050].dlr_capacity
                             global_mix = all_themis[sc][not_yr].mix(scenario = sc, path_dlr = dlr_files)[y]
                         else: 
                             yr, not_yr, sc = 2050, 2010, 'BL'
@@ -1965,72 +1965,36 @@ def themis_parser(exio_files, year = None, scenario = None, themis = None, themi
                         all_themis[s][y].aggregate_mix(mix = global_mix)
                         all_themis[s][y].change_mix(global_mix = global_mix, year = not_yr, only_exiobase = False)
                         
-#                         if y == 2010: 
-#                             all_themis[s][y] = all_themis['BL'][2010].copy(new_name='THEMIS')
-#                             all_themis[s][y].dlr_elec = all_themis['ADV'][2050].dlr_elec
-#                             global_mix = all_themis['ADV'][2050].mix(scenario = 'ADV', path_dlr = dlr_files)[y]
-#                             all_themis[s][y].change_mix(global_mix = global_mix, year = 2050, only_exiobase = False)
-#                         elif y == 2030: 
-#                             all_themis[s][y] = all_themis['BL'][2010].copy(new_name='THEMIS')
-#                             all_themis[s][y].dlr_elec = all_themis['ER'][2050].dlr_elec
-#                             global_mix = all_themis['ER'][2050].mix(scenario = 'ER', path_dlr = dlr_files)[y]
-#                             all_themis[s][y].change_mix(global_mix = , year = 2050, only_exiobase = False)
-#                         elif y == 2050: 
-#                             all_themis[s][y] = all_themis['BL'][2050].copy(new_name='THEMIS')
-#                             global_mix = all_themis['BL'][2010].mix_matrix(global_mix = False)
-#                             all_themis[s][y].aggregate_mix(mix = global_mix)
-#                             all_themis[s][y].change_mix(global_mix = global_mix, year = 2010, only_exiobase = False) # TODO: current mix, not DLR
+                    elif s == 'REF': all_themis[s][y] = all_themis['BL'][y].copy(new_name='THEMIS') # TODO: include attribute scenario
                     else: all_themis[s][y] = all_themis['BM'][y].copy(new_name='THEMIS') 
                     all_themis[s][y].scenario = s
                     if s != 'combo':
                         global_mix = all_themis[s][2010].mix(scenario = s, path_dlr = dlr_files)[y]
                         all_themis[s][y].dlr_elec = all_themis[s][2010].dlr_elec
-                        all_themis[s][y].change_mix(global_mix = global_mix, year = y, only_exiobase = False)
-                if compute_all:
-#                     delattr(all_themis[s][y], 'mix')
-#                     delattr(all_themis[s][y], 'eroi')                    
+                        all_themis[s][y].dlr_capacity = all_themis[s][2010].dlr_capacity
+                        all_themis[s][y].adjust_capacity = all_themis[s][2010].adjust_capacity
+                        all_themis[s][y].adjustment_capacity = all_themis[s][2010].adjustment_capacity
+                        if s in ['REF', 'ER', 'ADV']: 
+                            all_themis[s][y].wo_GW_adj = all_themis[s][y].copy(new_name='THEMIS')
+                            all_themis[s][y].wo_GW_adj.change_mix(global_mix = global_mix, year = y, only_exiobase = False, adjust_GW = False)
+                        all_themis[s][y].change_mix(global_mix = global_mix, year = y, only_exiobase = False, adjust_GW=True)
+        if compute_all:
+            for s in scenarios:
+                for y in [2010, 2030, 2050]:                  
                     if s=='combo' and y==2050: all_themis[s][y].world_mix = all_themis[s][y].agg_mix
                     else: all_themis[s][y].world_mix = all_themis[s][y].aggregate_mix(recompute=True)
-#                         (all_themis[s][2010].dlr_elec['World'][y]/all_themis[s][2010].dlr_elec['World'][y].sum())\
-#                         .append(pd.Series({'total': all_themis[s][2010].dlr_elec['World'][y].sum()/1000}))
-                    all_themis[s][y].eroi_adj = all_themis[s][y].erois(factor_elec = 2.6, adjust_GW=False,recompute=True).rename(index={'Power sector': 'total'})
-                    all_themis[s][y].eroi = all_themis[s][y].erois(recompute=True, adjust_GW=False).rename(index={'Power sector': 'total'})
-                    all_themis[s][y].eroi_GW_adj = all_themis[s][y].erois(factor_elec=2.6, adjust_GW=True,recompute=True).rename(index={'Power sector': 'total'})
-                    all_themis[s][y].eroi_GW = all_themis[s][y].erois(recompute=True, adjust_GW=True).rename(index={'Power sector': 'total'})
+                    if s in ['REF', 'ER', 'ADV']: 
+                        all_themis[s][y].wo_GW_adj.eroi_adj = all_themis[s][y].wo_GW_adj.erois(factor_elec = 2.6, \
+                                                                                               recompute=True).rename(index={'Power sector': 'total'})
+                        all_themis[s][y].wo_GW_adj.eroi = all_themis[s][y].wo_GW_adj.erois(recompute=True).rename(index={'Power sector': 'total'})
+                        all_themis[s][y].wo_GW_adj.energy_prices()
+                        all_themis[s][y].wo_GW_adj.employ_direct = all_themis[s][y].wo_GW_adj.employments()
+                        all_themis[s][y].wo_GW_adj.employments(indirect = False, recompute = True)
+                    all_themis[s][y].eroi_adj = all_themis[s][y].erois(factor_elec = 2.6, recompute=True).rename(index={'Power sector': 'total'})
+                    all_themis[s][y].eroi = all_themis[s][y].erois(recompute=True).rename(index={'Power sector': 'total'})
                     all_themis[s][y].energy_prices()
                     all_themis[s][y].employ_direct = all_themis[s][y].employments()
                     all_themis[s][y].employments(indirect = False, recompute = True) # pb with employments combo 2050
-# # 2010 : ADV 2050 mix on 2010 techno (i.e. 2010 transformation matrix A); 2030: ER 2050 mix on 2010 techno; 2050: BL 2010 mix on 2050 techno
-# # themis['ADV2010'] = themis['BL'][2010].copy(new_name='THEMIS')
-# # themis['ADV2010'].dlr_elec = dlr['elec']['ADV']
-# # themis['ADV2010'].change_mix(global_mix = dlr['mixes']['ADV'][2050], year = 2050, only_exiobase = False)
-# dlr['EROI']['ADV2010'] = themis['ADV2010'].erois(secs = dlr_sectors, factor_elec = factor, recompute=True)
-# dlr['EROI']['ADV2010'] = dlr['EROI']['ADV2010'].rename(index={'Power sector': 'total'})  
-# EROIs_mixes[('ADV2010', 2010, 'EROI')] = dlr['EROI']['ADV2010']
-# EROIs_mixes[('ADV2010', 2010, 'mix')] = dlr['mix']['ADV'][2050]
-# EROIs_mixes[('ADV2010', 2010, 'price')] = themis['ADV2010'].energy_prices()
-# EROIs_mixes[('ADV2010', 2010, 'employ')] = themis['ADV2010'].employments()
-# EROIs_mixes[('ADV2010', 2010, 'direct_em')] = themis['ADV2010'].employments(indirect = False)
-# # themis['ER2010'] = themis['BL'][2010].copy(new_name='THEMIS')
-# # themis['ER2010'].dlr_elec = dlr['elec']['ER']
-# # themis['ER2010'].change_mix(global_mix = dlr['mixes']['ER'][2050], year = 2050, only_exiobase = False)
-# dlr['EROI']['ER2010'] = themis['ER2010'].erois(secs = dlr_sectors, factor_elec = factor, recompute=True)
-# dlr['EROI']['ER2010'] = dlr['EROI']['ER2010'].rename(index={'Power sector': 'total'})  
-# EROIs_mixes[('ER2010', 2010, 'EROI')] = dlr['EROI']['ER2010']
-# EROIs_mixes[('ER2010', 2010, 'mix')] = dlr['mix']['ER'][2050]
-# EROIs_mixes[('ER2010', 2010, 'price')] = themis['ER2010'].energy_prices()
-# EROIs_mixes[('ER2010', 2010, 'employ')] = themis['ER2010'].employments()
-# EROIs_mixes[('ER2010', 2010, 'direct_em')] = themis['ER2010'].employments(indirect = False)
-# # themis['now2050'] = themis['BL'][2050].copy(new_name='THEMIS')
-# mix_now2050 = themis['BL'][2010].mix_matrix(global_mix = False)
-# EROIs_mixes[('now2050', 2050, 'mix')] = themis['BL'][2010].aggregate_mix(mix_now2050)
-# themis['now2050'].change_mix(global_mix = mix_now2050, year = 2010, only_exiobase = False) # TODO: current mix, not DLR
-# dlr['EROI']['now2050'] = themis['now2050'].erois(secs = dlr_sectors, factor_elec = factor, recompute=True)
-# dlr['EROI']['now2050'] = dlr['EROI']['now2050'].rename(index={'Power sector': 'total'})  
-# EROIs_mixes[('now2050', 2050, 'EROI')] = dlr['EROI']['now2050']
-# EROIs_mixes[('now2050', 2050, 'price')] = themis['now2050'].energy_prices()
-# EROIs_mixes[('now2050', 2050, 'employ')] = themis['now2050'].employments()
-# EROIs_mixes[('now2050', 2050, 'direct_em')] = themis['now2050'].employments(indirect = False)
 
         return(all_themis)
     elif year is None or scenario is None: print('scenario and year must be both given or None')

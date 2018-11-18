@@ -379,10 +379,12 @@ def mult_rows(mat, vec):
     '''
     Multiply (each element of) the k-th row of matrix by k-th element of vector for all k, returns the resulting matrix.
     '''
+    if type(vec)==list: vec = np.array(vec)
     if sp.issparse(mat): #         return(matrix.toarray() * sp.diags([vector]).dot(np.ones(matrix.shape))) 
         nb_r, nb_c = mat.shape
         if sp.issparse(vec): vec = vec.toarray()
-        return(mat.multiply(sp.csc_matrix((np.tile(vec.data,nb_c).flatten(), np.tile(np.arange(nb_r),nb_c), np.arange(0,nb_c*np.max(vec.shape)+1,nb_r)), \
+#         return(mat.multiply(sp.csc_matrix((np.tile(vec.data,nb_c).flatten(), np.tile(np.arange(nb_r),nb_c), np.arange(0,nb_c*np.max(vec.shape)+1,nb_r)), \
+        return(mat.multiply(sp.csc_matrix((np.tile(vec,nb_c).flatten(), np.tile(np.arange(nb_r),nb_c), np.arange(0,nb_c*np.max(vec.shape)+1,nb_r)), \
                                           shape=mat.shape)))
     else: return(np.array(mat) * np.diag(vec).dot(np.ones(mat.shape))) 
 
@@ -390,10 +392,12 @@ def mult_cols(mat, vec):
     '''
     Multiply (each element of) the k-th column of matrix by k-th element of vector for all k, returns the resulting matrix.
     '''
+    if type(vec)==list: vec = np.array(vec)
     if sp.issparse(mat): #         return(matrix.toarray() * (np.ones(matrix.shape)).dot(sp.diags([vector])))
         nb_r, nb_c = mat.shape
         if sp.issparse(vec): vec = vec.toarray()
-        return(mat.multiply(sp.csc_matrix((np.repeat(vec.data, nb_r).flatten(),np.tile(np.arange(nb_r),nb_c),np.arange(0,nb_r*np.max(vec.shape)+1,nb_r)),\
+#         return(mat.multiply(sp.csc_matrix((np.repeat(vec.data, nb_r).flatten(),np.tile(np.arange(nb_r),nb_c),np.arange(0,nb_r*np.max(vec.shape)+1,nb_r)),\
+        return(mat.multiply(sp.csc_matrix((np.repeat(vec, nb_r).flatten(),np.tile(np.arange(nb_r),nb_c),np.arange(0,nb_r*np.max(vec.shape)+1,nb_r)),\
                                           shape=mat.shape)))
     else: return(np.array(mat) * (np.ones(mat.shape)).dot(np.diag(vec)))
         
@@ -464,7 +468,7 @@ def gras(A, new_row_sums = None, new_col_sums = None, max_iter=1e2, criterion='r
 #         P = np.diag(r).dot(A).dot(np.diag(s))
 #         N = np.diag(div0(1, r)).dot(A).dot(np.diag(div0(1, s)))
 #         N[np.where(P>=0)] = 0
-#         X = np.clip(P, 0, None) + N # TODO!: check if + and not -
+#         X = np.clip(P, 0, None) + N 
 #         return(X)
         return(np.diag(r).dot(P).dot(np.diag(s))-np.diag(div0(1, r)).dot(N).dot(np.diag(div0(1, s))))
     else: print('did not converged')
@@ -528,14 +532,34 @@ def grasp(A, new_row_sums = None, new_col_sums = None, max_iter=1e2, criterion='
             tol_previous = tol_current
             if iterator>2: print(time.time()-time_i)
             time_i = time.time()
-            print(iterator, tol_previous, improvement)
+            if iterator%7==0: print(iterator, tol_previous, improvement)
     if converged:
 #         return(P-N) # why not simply this?
 #         P = np.diag(r).dot(A).dot(np.diag(s))
 #         N = np.diag(div0(1, r)).dot(A).dot(np.diag(div0(1, s)))
 #         N[np.where(P>=0)] = 0
-#         X = np.clip(P, 0, None) + N # TODO!: check if + and not -
+#         X = np.clip(P, 0, None) + N 
         X = mult_rows(sp.eye(nb_rows),r).dot(P).dot(mult_cols(sp.eye(nb_cols),s))-\
                 mult_rows(sp.eye(nb_rows),div0(1, r)).dot(N).dot(mult_cols(sp.eye(nb_cols),div0(1, s)))
         return(X)
     else: print('did not converged')
+
+def global_objects(): 
+    '''
+    Returns the list of global objects.
+    '''
+    return(np.array(list(globals().keys()))[[s[0]!='_' for s in list(globals().keys())]])
+
+def max_gap(a, b): 
+    '''
+    Returns the maximum (non infinite) spread/gap between two vectors.
+    '''
+    return(np.max(div0(np.abs(a-b), a)))
+
+def max_diff(a, b): 
+    '''
+    Returns the maximum absolute difference between two vectors.
+    '''
+    return(np.max(np.abs(a-b)))
+    
+def bip(): os.system('play --no-show-progress --null --channels 1 synth 0.2 sine 500')
