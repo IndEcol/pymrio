@@ -103,6 +103,15 @@ theorems-ams-bytype
 \begin_body
 
 \begin_layout BeginFrontmatter
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+...: Estimation and Implications on Prices
+\end_layout
+
+\end_inset
+
 
 \end_layout
 
@@ -366,8 +375,6 @@ Disclaimer
 
 \series bold
 This work is preliminary.
- Data analysis is still under progress, for example EROIs for solar CSP
- are not yet reliable.
 \end_layout
 
 \begin_layout Standard
@@ -389,16 +396,21 @@ eject
 \end_layout
 
 \begin_layout Standard
-All the code is on-line, and can be found inside a notebook that presents
- the results to the general public, at: 
+All the code is on-line, and can be found inside a notebook 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+that presents the results to the general public,
 \end_layout
 
-\begin_layout Standard
-\noindent
+\end_inset
+
+ at: 
 \begin_inset CommandInset href
 LatexCommand href
-name "bit.ly/futureEROI"
-target "bit.ly/futureEROI"
+name "bit.ly/future_eroi_code"
+target "bit.ly/future_eroi_code"
 literal "false"
 
 \end_inset
@@ -1103,7 +1115,7 @@ But more than EROIs, the evolution of energy prices is pivotal for economists
  to estimate EROIs cannot be used to predict prices.
  In fact, I will present such predictions; but one should take them with
  more caution than EROI estimates, because IOT is better suited to handle
- physical notions than economical ones.
+ physical notions than economic ones.
 \begin_inset Note Note
 status collapsed
 
@@ -1114,8 +1126,8 @@ Yet, in a careful analysis of the relation between these two quantities,
  prices.
  In particular, even though I will present estimates for future prices,
  I will argue that input-output analysis is more suited to estimate the
- evolution physical quantities, like EROI, than economical ones, such as
- prices or GDP.
+ evolution physical quantities, like EROI, than economic ones, such as prices
+ or GDP.
 \end_layout
 
 \end_inset
@@ -10408,6 +10420,29 @@ solar CSP
 \noun off
 \color none
 21.5
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+TODO
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -14020,7 +14055,7 @@ coal
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14042,7 +14077,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14064,7 +14099,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14086,7 +14121,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14108,7 +14143,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14130,7 +14165,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14152,7 +14187,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14174,7 +14209,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14196,7 +14231,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14218,7 +14253,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14240,7 +14275,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14262,7 +14297,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14284,7 +14319,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14306,7 +14341,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -14328,7 +14363,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -22178,6 +22213,59 @@ t
 t
 \emph default
 :
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+In practice, 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+as there is no vector 
+\emph on
+y
+\emph default
+ in THEMIS, 
+\end_layout
+
+\end_inset
+
+
+\emph on
+y
+\emph default
+ is obtained from the scenario of energy demand from the IEA:
+\end_layout
+
+\begin_layout Plain Layout
+\noindent
+\begin_inset Formula 
+\[
+y_{t}=\left(\text{demand}_{t}\oslash E_{S}\right)\odot\mathds{1}_{t}\text{.}
+\]
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+\begin_inset Formula $=\frac{\text{demand}}{E_{S}}\odot\mathds{1}_{t}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -22301,7 +22389,271 @@ literal "true"
 \end_inset
 
 .
+ THEMIS contains hybrid input-output tables: precise data on electricity
+ units (the 
+\emph on
+foreground
+\emph default
+) is completed with data on other sectors that originates from life cycle
+ inventories and national accounts (the 
+\emph on
+background
+\emph default
+).
  
+\begin_inset CommandInset citation
+LatexCommand citet
+key "gibon_methodology_2015"
+literal "false"
+
+\end_inset
+
+ have compiled various life cycle inventories into the 609 sectors of the
+ foreground.
+ The background contains data in physical units for 4,087 sectors from the
+ life cycle inventory 
+\begin_inset CommandInset href
+LatexCommand href
+name "ecoinvent"
+target "https://www.ecoinvent.org/"
+literal "false"
+
+\end_inset
+
+ and data in monetary units for 203 sectors 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+(including 56 energy sectors) 
+\end_layout
+
+\end_inset
+
+from the input-output database 
+\begin_inset CommandInset href
+LatexCommand href
+name "Exiobase 2"
+target "https://www.exiobase.eu/"
+literal "false"
+
+\end_inset
+
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "wood_global_2014"
+literal "true"
+
+\end_inset
+
+.
+ The 44 Exiobase regions are aggregated into 9 macro-regions that coincides
+ with those of the International Energy Agency (IEA), so that the number
+ of rows and columns in each IOT is 9 times the number of sectors: 44,046.
+ Starting from data of the 2010 IOT, the 2030 and 2050 IOTs of THEMIS embed
+ expected technological efficiency improvements of key sectors.
+ Furthermore, it is worth noting that THEMIS IOTs are constructed as if
+ the whole economy were at a steady-state, contrarily to national accounts,
+ which give the flows between sectors for a given year.
+ This matches perfectly our purpose, because there is no need to adjust
+ the EROI computations for the growth of some sector or for the lifetimes
+ of some technologies.
+\end_layout
+
+\begin_layout Standard
+The two scenarios native in THEMIS are the baseline (BL) and the Blue Map
+ (BM) scenarios of the IEA 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "iea_energy_2010"
+literal "false"
+
+\end_inset
+
+.
+ While the former posits an almost constant electricity mix, the latter
+ is compatible with a 50% probability to contain global mean temperature
+ anomaly to +2°C in 2100.
+ As Blue Map still relies at 30% on fossil fuels based electricity in 2050
+ —including 17% with Carbon Capture and Storage (CCS); I wanted to assess
+ more ambitious scenarios.
+ Hence, I combined with THEMIS the scenarios from Greenpeace's Energy [R]evoluti
+on report 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "teske_energy_2015"
+literal "false"
+
+\end_inset
+
+.
+ Greenpeace proposes a business as usual scenario (REF) close to baseline,
+ as well as two scenarios compatible with the 2°C target.
+ Both exclude CCS and phase out from nuclear between 2012 and 2050.
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+The study funded by Greenpeace was in fact conducted by researchers at the
+ Institute of Engineering Thermodynamics of the German Aerospace Center
+ (DLR), who applied their model REMix.
+ Using the same model, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "berrill_environmental_2016"
+literal "false"
+
+\end_inset
+
+ minimize the cost of European electricity generation under different carbon
+ prices.
+ Interestingly, an outcome of the model was to phase nuclear out, but to
+ select coal with CCS.
+ This indicates that the choices of Greenpeace was not solely motivated
+ by a minimization of costs, but also by expert judgment and ethical considerati
+ons.
+\end_layout
+
+\end_inset
+
+ The first Greenpeace scenario, Energy [R]evolution (ER), comprises 93%
+ of electricity from renewable sources in 2050, while the second one, Advanced
+ Energy [R]evolution (ADV), attains 100% renewable.
+ As the difference is small between these two scenarios, I focus on the
+ 100% renewable one.
+ I describe 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+the details of 
+\end_layout
+
+\end_inset
+
+my methodology for embedding the regional electricity mixes of Greenpeace's
+ scenarios into THEMIS in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Updating-a-Matrix"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+In the literature, most EROIs estimations follow a bottom-up approach that
+ use data from life cycle inventories.
+ Bottom-up studies describe in details the power facilities and the most
+ direct inputs to the energy technologies —the 
+\emph on
+foreground
+\emph default
+, but they do not cover the 
+\emph on
+background
+\emph default
+: indirect inputs such as clerical work or R&D.
+ On the contrary, the input-output method allows to encompass all embodied
+ inputs exhaustively.
+ As a consequence of this more comprehensive account of embodied energy
+ than usual, we expect estimates of EROIs lower than the average of the
+ literature.
+ That being said, it is not a concern if our estimates are not directly
+ comparable to those of the literature, and we are mainly interested in
+ comparing them internally, among the different years and scenarios, and
+ to scrutinize whether they vary substantially or not.
+\end_layout
+
+\begin_layout Standard
+Because renewable sources are intermittent and dispersed, the capacity,
+ grid extension and storage they require do not increase linearly with the
+ electricity delivered.
+ Hence, as Greenpeace scenarios are not native in THEMIS, they need further
+ adjustments to account for these non-linearities.
+ I explain in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Updating-a-Matrix"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ how the need for surcapacity is addressed.
+ Concerning transmission and storage, however, the requirements are not
+ given by the Greenpeace report 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "teske_energy_2015"
+literal "false"
+
+\end_inset
+
+.
+ Even if the report does not precise any plan relative to storage, hydrogen
+ produced from renewables seems to play a substantial role in Greenpeace
+ scenarios, as its share in the electricity mix is 5% in ADV 2050.
+ However, as the sector 'Electricity from hydrogen' is absent from THEMIS,
+ hydrogen has been excluded from this analysis.
+ This limitation will be addressed in future work, together with the study
+ of an energy transition in the transportation sector (which also relies
+ on hydrogen).
+ Meanwhile, other sources can inform on orders of magnitude of storage and
+ transmission 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "berrill_environmental_2016,koskinen_energy_2016,scholz_application_2017"
+literal "false"
+
+\end_inset
+
+.
+ Applying the same optimization model that is used in the report, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "scholz_application_2017"
+literal "false"
+
+\end_inset
+
+ show that the cost of storage and transmission combined is 4.6% of total
+ cost in a business-as-usual scenario and 10.6% in a 100% renewable one.
+ The adjustment needed for the cost, around 6%, gives a rough estimate of
+ the upward bias of unadjusted EROI estimates (see section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:Empirical-Relation-Between"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ on the relation between price and EROI)
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+: this does not seem to affect qualitatively the results
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
 \begin_inset Note Note
 status collapsed
 
@@ -22333,7 +22685,7 @@ literal "false"
 THEMIS is built upon the database 
 \begin_inset CommandInset href
 LatexCommand href
-name "Exiobase"
+name "Exiobase 2"
 target "https://www.exiobase.eu/"
 literal "false"
 
@@ -22378,48 +22730,6 @@ status collapsed
 \end_inset
 
 .
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-In practice, as there is no vector 
-\emph on
-y
-\emph default
- in THEMIS, 
-\emph on
-y
-\emph default
- is obtained from the scenario of energy demand from the IEA:
-\end_layout
-
-\begin_layout Plain Layout
-\noindent
-\begin_inset Formula 
-\[
-y_{t}=\left(\text{demand}_{t}\oslash E_{S}\right)\odot\mathds{1}_{t}\text{.}
-\]
-
-\end_inset
-
-
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-\begin_inset Formula $=\frac{\text{demand}}{E_{S}}\odot\mathds{1}_{t}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
- 
-\end_layout
-
-\end_inset
-
  It is worth noting that THEMIS IOTs are constructed as if the whole economy
  were at a steady-state, contrarily to national accounts, which give the
  flows between sectors for a given year.
@@ -22511,10 +22821,21 @@ stay above 1 or not.
 
 \end_inset
 
- 
+
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
+It is worth noting that THEMIS IOTs are constructed as if the whole economy
+ were at a steady-state, contrarily to national accounts, which give the
+ flows between sectors for a given year.
+ This matches perfectly our purpose, because there is no need to adjust
+ the EROI computations for the growth of some sector or for the lifetimes
+ of some technologies.
+\end_layout
+
+\end_inset
+
+
 \begin_inset Note Note
 status collapsed
 
@@ -22524,8 +22845,8 @@ TODO: Cecilia ?
 
 \end_inset
 
- I had to adjust the data for Concentrated Solar Panels (CSP), because the
- original data mistakenly contained an energy supplied by unit of solar
+Finally, data for Concentrated Solar Panels (CSP) had to be adjusted, because
+ the original data mistakenly contained an energy supplied by unit of solar
  CSP of 0 (leading to abnormally low EROIs, around 2).
  Backed by Thomas Gibon, the creator of THEMIS, I corrected this error by
  setting the unitary energy supplied for solar CSP in all regions to its
@@ -22535,7 +22856,7 @@ OECD North America
 \emph default
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 ocean? other than max
@@ -22544,82 +22865,21 @@ ocean? other than max
 \end_inset
 
  (still letting the value depend on the scenario and the year).
-\end_layout
-
-\begin_layout Standard
-The two scenarios native in THEMIS are the baseline (BL) and the Blue Map
- (BM) scenarios of the IEA.
- While the former posits an almost constant electricity mix, the latter
- is compatible with a global mean temperature increase of 2°C in 2100.
- As Blue Map still relies at 30% on fossil fuels based electricity in 2050
- —including 17% with Carbon Capture and Storage (CCS); I wanted to assess
- more ambitious scenarios.
- Hence, I combined with THEMIS the scenarios from Greenpeace's Energy [R]evoluti
-on report 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "teske_energy_2015"
-literal "false"
-
-\end_inset
-
-.
- Greenpeace proposes a business as usual scenario (REF) close to baseline,
- as well as two scenarios compatible with the 2°C target.
- Both exclude CCS and phase out from nuclear between 2012 and 2050.
-\begin_inset Foot
+ 
+\begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-The study funded by Greenpeace was in fact conducted by researchers at the
- Institute of Engineering Thermodynamics of the German Aerospace Center
- (DLR), who applied their model REMix.
- Using the same model, 
-\begin_inset CommandInset citation
-LatexCommand citet
-key "berrill_environmental_2016"
-literal "false"
-
-\end_inset
-
- minimize the cost of European electricity generation under different carbon
- prices.
- Interestingly, an outcome of the model was to phase nuclear out, but to
- select coal with CCS.
- This indicates that the choices of Greenpeace was not solely motivated
- by a minimization of costs, but also by expert judgment and ethical considerati
-ons.
+TODO: model hydrogen; is electricity used to produce H2 counted in total
+ demand by Greenpeace?
 \end_layout
 
 \end_inset
 
- The first Greenpeace scenario, Energy [R]evolution (ER), comprises 93%
- of electricity from renewable sources in 2050, while the second one, Advanced
- Energy [R]evolution (ADV), attains 100% renewable.
- As the difference is small between these two scenarios, I focus on the
- 100% renewable one.
- I describe 
-\begin_inset Note Note
-status collapsed
 
-\begin_layout Plain Layout
-the details of 
 \end_layout
 
-\end_inset
-
-my methodology for embedding the regional electricity mixes of Greenpeace's
- scenarios into THEMIS in 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Updating-a-Matrix"
-plural "false"
-caps "false"
-noprefix "false"
-
-\end_inset
-
-.
+\begin_layout Standard
 \begin_inset Note Note
 status open
 
@@ -24270,7 +24530,7 @@ noprefix "false"
 
  in 2030 and 2050 in both IEA/THEMIS scenarios.
  Unsurprisingly, the decrease is a little more pronounced in the 100% renewable
- scenario: at 
+ scenario: at 6.9 in 2030 and 
 \begin_inset Note Note
 status collapsed
 
@@ -24280,7 +24540,7 @@ status collapsed
 
 \end_inset
 
-6.4 in 2050.
+5.8 in 2050.
 \begin_inset Note Note
 status open
 
@@ -24296,6 +24556,16 @@ status open
 
 \begin_layout Plain Layout
 Figure 4
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO: pk EROI BL baisse; pk EROI BM < BL
 \end_layout
 
 \end_inset
@@ -26806,12 +27076,11 @@ Cohérence avec 3.
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-In this section, I review the literature on the relation between EROI and
- the price of energy, and extend a result from 
+Economists and practitioners may wonder whether the decline in EROI predicted
+ in case of an energy transition has implications on future electricity
+ prices.
+ In this section, I review the literature on the relation between EROI and
+ the price of energy, extend a result from 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "herendeen_connecting_2015"
@@ -26819,20 +27088,9 @@ literal "false"
 
 \end_inset
 
- to characterize this relation.
- Even if I am able to exhibit an inverse relation in special cases, the
- result I show is largely a negative one
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-why?
-\end_layout
-
-\end_inset
-
-, i.e.
- 
+ to characterize this relation, and estimate this relation empirically.
+ Although an inverse relation holds in special cases and has some explanatory
+ power on observations, the theoretical analysis shows that 
 \begin_inset Quotes eld
 \end_inset
 
@@ -26841,6 +27099,8 @@ anything can happen
 \end_inset
 
 .
+ This theoretical result weakens the idea that decreasing a EROI necessarily
+ leads to a recession.
 \end_layout
 
 \begin_layout Subsection
@@ -27020,7 +27280,22 @@ literal "false"
 \end_inset
 
  acknowledge this; and thus study the empirical link between EROI and price.
- Using US data on oil and EROI from 
+ 
+\end_layout
+
+\begin_layout Subsection
+Empirical Relation Between EROI and Price
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:Empirical-Relation-Between"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using US data on oil and EROI from 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "cleveland_net_2005"
@@ -27028,15 +27303,19 @@ literal "false"
 
 \end_inset
 
-, they regress 
+, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "heun_energy_2012"
+literal "false"
+
+\end_inset
+
+ regress 
 \begin_inset Formula $p_{t}$
 \end_inset
 
- on the EROI (getting a good fit: 
-\begin_inset Formula $R^{2}=0.8$
-\end_inset
-
-).
+ on the EROI.
 \begin_inset Foot
 status open
 
@@ -27047,9 +27326,9 @@ ely the cost of production and their notion of EROI,
 \end_inset
 
 , the former is indeed the producer price and the latter our more standard
- notion of EROI; see the source of their data 
+ notion of EROI; according to the source of their data: 
 \begin_inset CommandInset citation
-LatexCommand citep
+LatexCommand citet
 key "cleveland_net_2005"
 literal "false"
 
@@ -27064,23 +27343,25 @@ literal "false"
 \begin_inset Formula $R^{2}=0.8$
 \end_inset
 
-), and find:
+), and find 
+\begin_inset Formula $p_{\text{oil}}=\beta_{0}\cdot\text{EROI}_{\text{oil}}^{-1.4}$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
-p_{\text{oil}}=\alpha\cdot\text{EROI}_{\text{oil}}^{-1.43}
-\]
+This result is interesting, and documents a negative relationship
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+, though not an inverse one,
+\end_layout
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-This result is interesting, and documents a negative relationship, though
- not an inverse one, between price and EROI.
+ between price and EROI, which is close to an inverse one.
 \begin_inset Note Note
 status collapsed
 
@@ -27123,43 +27404,38 @@ literal "false"
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Subsection
-The Case Against Any Simple Relation
-\end_layout
-
-\begin_layout Standard
-\begin_inset CommandInset citation
-LatexCommand citet
-key "herendeen_connecting_2015"
-literal "false"
-
+ As the authors do not regress price on the inverse of EROI, one cannot
+ compare such 
+\begin_inset Quotes eld
 \end_inset
 
- shed new light on the topic by treating the question from its matrix form
- and introducing the concept of value-added.
- Herendeen showed how to express rigorously the price in function of the
- EROI when the economy is constituted of two sectors (energy and materials),
- and explained the limits of such exercise.
- Hereafter, I extend the results of Herendeen to an arbitrary number of
- sectors 
-\emph on
-n
-\emph default
+inverse fit
+\begin_inset Quotes erd
+\end_inset
+
+ with their 
+\begin_inset Quotes eld
+\end_inset
+
+log-log fit
+\begin_inset Quotes erd
+\end_inset
+
 .
- First, I need to introduce two concepts he uses: value-added and energy
- intensity.
-\end_layout
+ To undertake this comparison, I run these two regressions using all estimates
+ of EROI computed using THEMIS, one for each combination of scenario, year,
+ region and sector.
+ To obtain the price corresponding to each EROI, I use the vector 
+\emph on
+v
+\emph default
+ of value-added per unit of each sector provided by THEMIS.
+ 
+\begin_inset Note Note
+status collapsed
 
-\begin_layout Standard
-Let 
-\begin_inset Formula $v=\left(v_{i}\right)_{1\leq i\leq n}$
-\end_inset
-
- be the vector of value-added.
- The value-added 
+\begin_layout Plain Layout
+The value-added 
 \begin_inset Formula $v_{s}$
 \end_inset
 
@@ -27171,17 +27447,22 @@ s
 \emph on
 s
 \emph default
- minus the cost (or the price) of its inputs, but in what follows we take
- the value-added as the primary notion characterizing a sector, and derive
- the price from it.
+ minus the cost (or the price) of its inputs.
+ In what follows, we take the value-added as the primary notion characterizing
+ a sector, and derive the price from it.
  This can be understood by the fact that —aside from market fluctuations—
- value-added is determined by the total payroll of the sector and to a lesser
- extent by the interest rate (which matters for investment) and the profit
- rate.
+ value-added is determined mainly by the total payroll of the sector and
+ to a lesser extent by the interest rate (which matters for investment)
+ and the profit rate.
  In a very crude approximation, value-added is proportional to the amount
  of labor required in the sector, and the latter is arguably a more fundamental
  parameter than prices.
- Then, prices emerge from value-added according to
+ Then,
+\end_layout
+
+\end_inset
+
+Indeed, prices can be seen as emerging from value-added according to
 \end_layout
 
 \begin_layout Standard
@@ -27213,41 +27494,1192 @@ s
 \end_inset
 
 .
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+As THEMIS contains data on value-added, this formula can be used to estimate
+ future prices of electricity.
+ However, THEMIS is arguably best suited for life cycle assessments than
+ for forecasting prices, because it models technical progress, but not behaviors
+ nor general equilibrium effects.
+ Hence, I will not detail the results; it suffices to report that global
+ electricity prices are predicted to increase by 4-17% depending on the
+ scenario, with substantial variations between regions.
+\end_layout
+
+\end_inset
+
+To the extent that the physical constituents and processes of a given technology
+ will not change in an unexpected way, and as THEMIS models technical progress
+ but not behaviors nor general equilibrium effects, the prices forecast
+ using the above formula seem less reliable than the EROI estimates.
+ For this reason, I report only the global average electricity prices of
+ the main scenarios (see Table 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Predicted-average-global"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+), but I do not detail the substantial variations between regions or sectors.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:Predicted-average-global"
+
+\end_inset
+
+Predicted average global price of electricity (in €/MWh)
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+rowcolors{3}{gray!15}{white} 
+\backslash
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\lang french
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+makebox[
+\backslash
+columnwidth][c]{ 
+\end_layout
+
+\end_inset
+
+
+\lang english
+
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="8">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+year
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2010
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2030
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2050
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+scenario
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+all
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+BL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+BM
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ADV
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+BL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+BM
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ADV
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+price
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+27
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+28
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+30
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+30
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+28
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+30
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+32
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Table 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Regressions-of-price"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ reports the results of both the log-log and the inverse fits.
+ I ran each model twice: first, on all 2079 positive observations available,
+ and then on the 104 observations of for year 2010.
+ To make the 
+\begin_inset Formula $R^{2}$
+\end_inset
+
+ of the log-log fit comparable to that of the inverse fit, I computed it
+ as the sum of squared errors between 
+\begin_inset Quotes eld
+\end_inset
+
+observed
+\begin_inset Quotes erd
+\end_inset
+
+ prices and predicted prices (instead of their respective logarithms).
+ As all 
+\begin_inset Formula $R^{2}$
+\end_inset
+
+ are between 0.53 and 0.57, the inverse fit is almost as accurate than the
+ log-log fit.
+ Moreover, although the elasticity of price on EROI estimated here is different
+ from that found by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "heun_energy_2012"
+literal "false"
+
+\end_inset
+
+ for oil (around 
+\begin_inset Formula $-0.5$
+\end_inset
+
+ as compared to 
+\begin_inset Formula $-1.4$
+\end_inset
+
+), both figures are close to 1.
+ Overall, empirical findings appear to confirm an inverse relation between
+ price and EROI.
+ That being said, Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Regressions-of-price"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ shows that a high share of the variance in price remains unexplained by
+ EROI, even more so for values of EROI around the global averages of 6-8,
+ where the fit is almost flat and the errors substantial.
+ In fact, there is theoretical evidence against a mapping between price
+ and EROI.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:Regressions-of-price"
+
+\end_inset
+
+Regressions of price on EROI (both estimated using THEMIS).
+\end_layout
+
+\end_inset
+
+
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+
+\lang french
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+makebox[
+\backslash
+columnwidth][c]{ 
+\end_layout
+
+\end_inset
+
+
+\lang english
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="1">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Fit
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+inverse
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+log-log
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="6">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell multirow="3" alignment="center" valignment="middle" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Obs.
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="3" alignment="center" valignment="middle" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+N
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="3" alignment="center" valignment="middle" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Specification
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Coefficients
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="3" alignment="center" valignment="middle" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\boldsymbol{R^{2}}$
+\end_inset
+
+
+\series bold
+
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+The 
+\begin_inset Formula $R^{2}$
+\end_inset
+
+ given for log-log fits is not the original one, cf.
+ text.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multirow="4" alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+\emph on
+a
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+\emph on
+b
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+All
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2079
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="3" alignment="center" valignment="middle" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $p=\frac{a}{EROI}+b$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $85$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $18$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $0.54$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2010
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+104
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $71$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $20$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $0.53$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+All
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2079
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="3" alignment="center" valignment="middle" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\log\left(p\right)=a·\log\left(\text{EROI}\right)+b$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $-0.57$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $2.0$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $0.57$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2010
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+104
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $-0.44$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $1.9$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $0.57$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+centering
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename regression price ~ EROI.png
+	width 100col%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Regressions-of-price"
+
+\end_inset
+
+Regressions of price on EROI (all observations, from THEMIS).
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+The Case Against Any Simple Relation
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset citation
+LatexCommand citet
+key "herendeen_connecting_2015"
+literal "false"
+
+\end_inset
+
+ shed new light on the topic by treating the question from its matrix form
+ and introducing the concept of value-added.
+ Herendeen showed how to express rigorously the price in function of the
+ EROI when the economy is constituted of two sectors (energy and materials),
+ and explained the limits of such exercise.
+ Hereafter, I extend the results of Herendeen to an arbitrary number of
+ sectors, 
+\emph on
+n
+\emph default
+.
+ First, I need to introduce one concept he uses: energy intensity.
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+Let 
+\begin_inset Formula $v=\left(v_{i}\right)_{1\leq i\leq n}$
+\end_inset
+
+ be the vector of value-added.
+ The value-added 
+\begin_inset Formula $v_{s}$
+\end_inset
+
+ of sector 
+\emph on
+s
+\emph default
+ is the price of one unit of output from sector 
+\emph on
+s
+\emph default
+ minus the cost (or the price) of its inputs, but in what follows we take
+ the value-added as the primary notion characterizing a sector, and derive
+ the price from it.
+ This can be understood by the fact that —aside from market fluctuations—
+ value-added is determined mainly by the total payroll of the sector and
+ to a lesser extent by the interest rate (which matters for investment)
+ and the profit rate.
+ In a very crude approximation, value-added is proportional to the amount
+ of labor required in the sector, and the latter is arguably a more fundamental
+ parameter than prices.
+ Then, prices emerge from value-added according to
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula 
+\[
+p=v\cdot\left(I-A\right)^{-1}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+because the price of 
+\emph on
+s
+\emph default
+, 
+\begin_inset Formula $p_{s}$
+\end_inset
+
+, is the sum of the value-added of inputs embodied in 
+\emph on
+s
+\emph default
+: 
+\begin_inset Formula $v\cdot\left(I-A\right)^{-1}\cdot\mathds{1}_{s}$
+\end_inset
+
+.
  As THEMIS contains data on value-added, this formula can be used to estimate
  future prices of electricity.
  However, THEMIS is arguably best suited for life cycle assessments than
- for forecasting prices, because it does not model behaviors and general
- equilibrium effects.
+ for forecasting prices, because it models technical progress, but not behaviors
+ nor general equilibrium effects.
  Hence, I will not detail the results; it suffices to report that global
- electricity prices are predicted to increase by around 10% in all scenarios,
- with substantial variations between regions.
+ electricity prices are predicted to increase by 4-17% depending on the
+ scenario, with substantial variations between regions.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
-empirical relation EROI-price from all region-sector-scenario computed?
+On another note,
 \end_layout
 
 \end_inset
 
-On another note, the production mobilized to deliver one unit of energy
- technology 
+To deliver one unit of energy technology 
 \emph on
 t
 \emph default
- is 
+, the production mobilized is 
 \begin_inset Formula $\left(I-A\right)^{-1}\cdot\mathds{1}_{t}$
 \end_inset
 
-.
- The energy mobilized by technology 
-\emph on
-t
-\emph default
- to deliver one unit of energy is called the energy intensity of 
+, while the energy mobilized is called the energy intensity of 
 \emph on
 t 
 \emph default
@@ -27272,7 +28704,7 @@ I assume here that the unit of an output of an energy sector
 \begin_inset Formula $\mathds{1}_{E}^{T}$
 \end_inset
 
-, is an energy unit, like Joules.
+, is an energy unit, like TWh.
 \end_layout
 
 \end_inset
@@ -27313,7 +28745,7 @@ A
 \emph default
 ,
 \begin_inset Foot
-status collapsed
+status open
 
 \begin_layout Plain Layout
 More precisely, a function field of a certain algebraic variety.
@@ -27467,7 +28899,26 @@ x
 x
 \emph default
 ).
- Each coefficient of the adjugate of A is a linear combination of minors
+ Each coefficient of the adjugate of A is (plus or minus) a 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+linear combination of 
+\end_layout
+
+\end_inset
+
+minor
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+s
+\end_layout
+
+\end_inset
+
  of 
 \emph on
 A
@@ -27872,7 +29323,11 @@ status collapsed
 status open
 
 \begin_layout Plain Layout
-too short? => introduce R as in presentation?
+too short? => introduce 
+\begin_inset Formula $R\left(x\right)=D^{I-A}\left(\delta_{i_{0},j_{0}}-x\right)$
+\end_inset
+
+ as in presentation?
 \end_layout
 
 \end_inset
@@ -27949,6 +29404,16 @@ when
 \end_inset
 
 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+theorem gives weakest assumptions
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -27962,11 +29427,11 @@ result, i.e.
 \begin_inset Formula $\omega_{i,t}$
 \end_inset
 
- the coefficient (i
-\emph on
-,
-\emph default
-t) of 
+ the coefficient 
+\begin_inset Formula $(i,t)$
+\end_inset
+
+ of 
 \begin_inset Formula $\left(I-A\right)^{-1}$
 \end_inset
 
@@ -28137,7 +29602,7 @@ Can we still link EROI to other
 
 \end_inset
 
-Does this mean that EROI is unrelated to any economical concept? 
+Does this mean that EROI is unrelated to any economic concept? 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "fizaine_energy_2016"
@@ -28185,7 +29650,7 @@ mistakenly?
  the same time, which undermines the idea that a recession caused by a surge
  in energy expenditure is ineluctable as soon as EROI goes below some threshold.
  Overall, the analysis of this section tempers the idea that EROI is relevant
- in economic issues and suggests that this notion is only suited for the
+ in economic issues and suggests that this notion is best suited for the
  physical study of energy systems.
 \begin_inset Note Note
 status collapsed
@@ -28204,7 +29669,7 @@ status collapsed
 
 \begin_layout Plain Layout
 albeit a useful criterion for energy systems, the physical notion of EROI
- appears to have quite limited links with any economical concept.
+ appears to have quite limited links with any economic concept.
 \end_layout
 
 \end_inset
@@ -28226,10 +29691,6 @@ decompose between mix and progress => results against intuition
 
 \end_layout
 
-\begin_layout Subsection
-What Input-Output Analysis Can Say On Future Prices
-\end_layout
-
 \begin_layout Section
 Concluding Remarks
 \end_layout
@@ -28248,7 +29709,8 @@ and crude
 attempt at estimating future EROIs in a decarbonized electricity system.
  By examining a broad range of scenarios, it concludes that the system-wide
  EROI of the power sector should not vary much until 2050, albeit a noticeable
- decrease, from 8 to 7, or even 6.4 in the case of a scenario with 100% renewable.
+ decrease, from 8 to 7.2 in a business-as-usual scenario, or 6 in a scenario
+ with 100% renewable electricity.
  As the EROI of each technologies is expected to remain well above 1, our
  results restore confidence about the energetic sustainability of renewable
  electricity, which was questioned theoretically.
@@ -28392,7 +29854,8 @@ literal "false"
 status open
 
 \begin_layout Plain Layout
-provide the code or remove
+provide the code or remove https://github.com/bixiou/pymrio/blob/master/pymrio/to
+ols/iomath.py
 \end_layout
 
 \end_inset
@@ -28641,7 +30104,11 @@ A
 \end_inset
 
 ).
- A last update is needed for Greenpeace scenarios, to account for the extra
+ 
+\end_layout
+
+\begin_layout Standard
+A last update is needed for Greenpeace scenarios, to account for the extra
  capacity needed when intermittent sources fail to deliver energy: the ratio
  of capacity (in GW) over production (in TWh) is a bit higher in Greenpeace
  scenarios than in IEA/THEMIS ones.
@@ -33248,7 +34715,7 @@ centering
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
 <row>
-<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -33257,7 +34724,7 @@ centering
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -33268,7 +34735,7 @@ base
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -33427,7 +34894,7 @@ new
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -33459,7 +34926,7 @@ new
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -33490,7 +34957,7 @@ EROI
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -33510,7 +34977,7 @@ EROI
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -33521,7 +34988,7 @@ price
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -33530,7 +34997,7 @@ price
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" usebox="none">
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39323,7 +40790,7 @@ coal
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39345,7 +40812,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39367,7 +40834,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39389,7 +40856,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39411,7 +40878,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39433,7 +40900,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39455,7 +40922,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39477,7 +40944,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39499,7 +40966,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39521,7 +40988,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39543,7 +41010,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39565,7 +41032,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39587,7 +41054,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39609,7 +41076,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -39631,7 +41098,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -43873,7 +45340,7 @@ coal
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -43895,7 +45362,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -43917,7 +45384,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -43939,7 +45406,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -43961,7 +45428,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -43983,7 +45450,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -44005,7 +45472,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -44027,7 +45494,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -44049,7 +45516,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -44071,7 +45538,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -44093,7 +45560,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -49820,7 +51287,7 @@ coal
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -49842,7 +51309,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -49864,7 +51331,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -49886,7 +51353,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -49908,7 +51375,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -49930,7 +51397,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -49952,7 +51419,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -49974,7 +51441,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -49996,7 +51463,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -50018,7 +51485,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -50040,7 +51507,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -50062,7 +51529,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -50084,7 +51551,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -50106,7 +51573,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -50128,7 +51595,7 @@ Total (PWh/a)
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout

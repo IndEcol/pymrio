@@ -146,23 +146,6 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-TODO: 
-\end_layout
-
-\begin_layout Plain Layout
-- relation with price
-\end_layout
-
-\begin_layout Plain Layout
-- lifespan and growth of sector
-\end_layout
-
-\end_inset
-
 
 \end_layout
 
@@ -1656,7 +1639,8 @@ Baseline (BAU, IEA)
 status open
 
 \begin_layout Plain Layout
-TODO: pk ça baisse
+TODO: pk ça baisse => 75% à cause de chgt dans les parts régionales, 25%
+ à cause de la techno (effet contre-intuitif de la techno)
 \end_layout
 
 \end_inset
@@ -11209,8 +11193,8 @@ Lower EROI doesn’t necessary imply increasing prices
 For a general public presentation of this work: 
 \begin_inset CommandInset href
 LatexCommand href
-name "bit.ly/EROI"
-target "bit.ly/EROI"
+name "bit.ly/future_eroi"
+target "bit.ly/future_eroi"
 literal "false"
 
 \end_inset
@@ -11229,15 +11213,6 @@ Quality-adjusted Results
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-TODO
-\end_layout
-
-\end_inset
-
 
 \end_layout
 
