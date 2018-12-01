@@ -225,15 +225,15 @@ status collapsed
 
 \end_inset
 
-– of an energy technology measures its ability to extract energy efficiently.
+– of an energy technology measures its ability to provide energy efficiently.
  Previous studies draw a link between the affluence of a society and the
  EROI of its energy system, and show that EROIs of renewables are lower
  than those of conventional fossil fuels.
  Logically, concerns have been expressed that system-wide EROI may decrease
- during an energy transition.
+ during a renewable energy transition.
  First, I explain theoretically that the EROIs of renewables themselves
- could decrease as energy-efficient fossil fuels would be replaced by less
- energy-efficient renewables in the chain of production.
+ could then decrease as energy-efficient fossil fuels would be replaced
+ by less energy-efficient renewables in the chain of production.
  Then, using the multiregional input-output model THEMIS, I estimate the
  evolution of EROIs and prices of electric technologies from 2010 to 2050
  for the baseline and the Blue Map scenarios of the International Energy
@@ -251,8 +251,18 @@ Technical progress is expected to compensate most of the decrease in the
 
 \end_inset
 
-Global EROI of electricity is predicted to remain quite stable, going from
- 8 in 2010 to 6 or 7 in 2050, depending on the scenario.
+Global 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+(non quality-adjusted)
+\end_layout
+
+\end_inset
+
+EROI of electricity is predicted to remain quite stable, going from 8 in
+ 2010 to 6 or 7 in 2050, depending on the scenario.
 \begin_inset Note Note
 status collapsed
 
@@ -282,10 +292,50 @@ TODO!: check last sentence
 
  
 \series default
-Finally, I study the relation between the EROI and the price of a technology,
- and show that in theory they can both decrease at the same time, against
- the intuition that they are inversely related; but that in practice they
- move in opposing directions.
+Finally, I study the economic implication of a declining EROI through its
+ relation with price.
+ I show that in theory both quantities can decrease at the same time.
+ This suggests that the inverse relation found empirically represents an
+ average tendency which should not overshadow the high unexplained variability
+ and the theoretical finding that 
+\begin_inset Quotes eld
+\end_inset
+
+anything can happen
+\begin_inset Quotes erd
+\end_inset
+
+.
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+tempering empirical evidence 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+against the intuition 
+\end_layout
+
+\end_inset
+
+that they are inversely related
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+; but that in practice they move in opposing directions
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Keywords
@@ -368,35 +418,11 @@ literal "false"
 \end_layout
 
 \begin_layout Paragraph*
-Disclaimer
+Code
 \end_layout
 
 \begin_layout Standard
-
-\series bold
-This work is preliminary.
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-vfill
-\backslash
-eject 
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-All the code is on-line, and can be found inside a notebook 
+All the code is on-line, and can be accessed from a notebook 
 \begin_inset Note Note
 status collapsed
 
@@ -416,6 +442,41 @@ literal "false"
 \end_inset
 
 .
+ A substantial share of this work has been to contribute to the python library
+ 
+\emph on
+pymrio
+\emph default
+: 
+\begin_inset CommandInset href
+LatexCommand href
+name "github.com/bixiou/pymrio"
+target "https://github.com/bixiou/pymrio"
+literal "false"
+
+\end_inset
+
+.
+ Using my fork of pymrio, one can now easily undertake EROIs and related
+ computations on Exiobase and THEMIS.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+vfill
+\backslash
+eject 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -461,13 +522,50 @@ The energy expert Jean-Marc Jancovici also expressed concerns over this
  subject during a 
 \begin_inset CommandInset href
 LatexCommand href
-name "speech at the École Normale Supérieure"
+name "presentation at the École Normale Supérieure"
 target "https://www.youtube.com/watch?v=XWUt-K-KmMo&t=25m26s"
 literal "false"
 
 \end_inset
 
- in 2018; this is what motivated me to study the topic.
+ in 2018: 
+\begin_inset Quotes eld
+\end_inset
+
+What happens to the EROI when you have only wind and solar panels to build
+ wind and solar panels? I think it crashes.
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+; this is what motivated me to study the topic.
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+What becomes EROI when you have only wind and solar panels to build wind
+ and solar panels? I think it crashes.
+\begin_inset Quotes erd
+\end_inset
+
+ youtube.com/watch?v=XWUt-K-KmMo&t=25m26s
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -484,14 +582,37 @@ Indeed, as more resources are diverted to maintain the energy supply, less
 
 \end_inset
 
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
 The Energy Returned On Invested (EROI) is the key concept to characterize
  the efficiency of a technology or of an energy system at delivering more
  useful energy than it requires during its construction, operation and dismantli
 ng, as it is the ratio between these two quantities.
+\end_layout
+
+\end_inset
+
+We measure the energy efficiency of a technology or energy system using
+ the Energy Returned On Invested (EROI), which is the ratio between the
+ energy it delivers throughout its lifetime and the energy required to build,
+ operate and dismantle it.
  A minimal requirement for a technology or energy system to be energetically
  sustainable is to have an EROI above 1, meaning that it provides more energy
  than it requires.
  
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+phrases ne se suivent pas bien
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -507,7 +628,7 @@ literal "true"
 
  remarked, the EROI of a technology is not intrinsic, but depends on the
  whole technological structure of the economy.
- To see this, let us suppose that plants currently used to build solar panels
+ To see this, let us suppose that the plants where solar panels are built
  employed renewable electricity instead of electricity from coal as their
  sources of energy.
  Then, provided that the EROI of renewable electricity is lower than that
@@ -515,7 +636,7 @@ literal "true"
  and their EROI will decrease.
  Surprisingly, it seems that no study has aimed at estimating future EROIs
  while taking this system dependency into account, although some have called
- for such studies
+ for such studies 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "brandt_how_2017"
@@ -551,44 +672,7 @@ literal "true"
  his input values were not supposed to be accurate: this is why he did not
  even comment on the result that the EROI fell incidentally below 1 in his
  100% renewable mix.
- Although Although 
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-\begin_inset CommandInset citation
-LatexCommand citet
-key "pehl_understanding_2017"
-literal "false"
-
-\end_inset
-
- and 
-\begin_inset CommandInset citation
-LatexCommand citet
-key "arvesen_deriving_2018"
-literal "false"
-
-\end_inset
-
- already computed energy requirements of electricity technologies for both
- IEA/THEMIS scenarios, they did not rely on the same definitions as I do,
- and they did not provide results in terms of EROI, let alone system-wide
- EROI.
-\end_layout
-
-\end_inset
-
-
-\begin_inset CommandInset citation
-LatexCommand citet
-key "arvesen_deriving_2018"
-literal "false"
-
-\end_inset
-
- also compute energy requirements similar to mine in some respects, but
- they do not assess the evolution of EROIs in a 100% renewable scenario.
+ 
 \end_layout
 
 \end_inset
@@ -611,7 +695,7 @@ literal "true"
 
 \end_inset
 
- review all EROI estimates until 2010; while 
+ reviews all EROI estimates until 2010, while 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "hall_eroi_2014"
@@ -790,7 +874,7 @@ Think of a society dependent upon one resource: its domestic oil.
  ground and look at it.
  (...) 
 \begin_inset Note Note
-status collapsed
+status open
 
 \begin_layout Plain Layout
 If it were 1.2:1 you could also refine it and look at it, 1.3:1 also distribute
@@ -867,9 +951,18 @@ literal "true"
  standards of living to be sustained.
  Admittedly, a system-wide EROI close to the theoretical lower bound of
  1 might fuel an industrial civilization in the very long run as long as
- the resources required for the massive deployment of energy systems remain
+ the resources required for the massive deployment of energy systems are
  available (this is not guaranteed, as human labor, land and materials are
- in limited supply).
+ in limited supply and may be required for other use).
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+rephrase? robots?
+\end_layout
+
+\end_inset
+
  However, in the medium term and with more sensible scenarios, a diminishing
  EROI would probably imply that a substantial share of the labor force will
  shift their occupation to the energy sector.
@@ -1098,24 +1191,101 @@ literal "true"
 \end_inset
 
 .
- To my knowledge, this work is the first to compute EROIs in a 100% renewable
- scenario (the ADV one).
  
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Although 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "pehl_understanding_2017"
+literal "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "arvesen_deriving_2018"
+literal "false"
+
+\end_inset
+
+ already computed energy requirements of electricity technologies for both
+ IEA/THEMIS scenarios, they did not rely on the same definitions as I do,
+ and they did not provide results in terms of EROI, let alone system-wide
+ EROI.
+ Furthermore, 
+\end_layout
+
+\end_inset
+
+Although 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "pehl_understanding_2017"
+literal "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "arvesen_deriving_2018"
+literal "false"
+
+\end_inset
+
+ computed energy requirements similar to mine in some respects, this work
+ is the first to estimate EROIs in a scenario with 100% renewable electricity
+ (the ADV scenario).
 \end_layout
 
 \begin_layout Standard
+Then, I analyze the economic implications of a declining EROI through its
+ relation with price.
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
 But more than EROIs, the evolution of energy prices is pivotal for economists
- and practitioners.
+ and practitioners, 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+so I intend to provide an economic analysis of EROI and price.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
  Admittedly, previous studies suggest an inverse relation between EROIs
- and energy prices.
- Yet, such a simple rule does not withstand a careful analysis.
+ and energy prices, and such an average relation is retrieved empirically
+ using prices observed and predicted from THEMIS.
+ Yet, such a simple rule does not withstand a careful theoretical analysis.
  Indeed, while explaining to what extent EROI and price are related, I will
  show that they do not necessarily move in opposite directions.
- This does not mean that the kind of input-output analysis that is used
- to estimate EROIs cannot be used to predict prices.
- In fact, I will present such predictions; but one should take them with
- more caution than EROI estimates, because IOT is better suited to handle
- physical notions than economic ones.
+ This 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+does not mean that the kind of input-output analysis that is used to estimate
+ EROIs cannot be used to predict prices.
+ In fact, I will present such predictions; but one should
+\end_layout
+
+\end_inset
+
+calls for taking prices predictions from input-output analysis with more
+ caution than EROI estimates, because IOT is better suited to handle physical
+ notions than economic ones.
 \begin_inset Note Note
 status collapsed
 
@@ -1132,12 +1302,14 @@ Yet, in a careful analysis of the relation between these two quantities,
 
 \end_inset
 
-
+ Finally, the economic analysis weakens the view that a decrease in EROI
+ would necessarily lead to a surge in energy expenditures and hence to a
+ contraction of GDP.
 \end_layout
 
 \begin_layout Standard
-Finally, section 2 explains theoretically why the EROI of a technology is
- not an intrinsic property; section 3 presents the methodology and the results;
+Section 2 explains theoretically why the EROI of a technology is not an
+ intrinsic property; section 3 presents the methodology and the results;
  section 4 studies the implications of declining EROIs on prices and GDP;
  section 5 concludes.
 \end_layout
@@ -1873,7 +2045,17 @@ The system-wide EROI, or Energy Returned On Invested, is the ratio between
 \end_layout
 
 \begin_layout Standard
-The embodied inputs 
+The
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+gross?
+\end_layout
+
+\end_inset
+
+ embodied inputs 
 \emph on
 x
 \emph default
@@ -1944,6 +2126,10 @@ y
 x
 \emph default
 : 
+\end_layout
+
+\begin_layout Standard
+\noindent
 \begin_inset Formula $\mathds{1}_{E}^{T}\cdot\left(I_{n}-A\right)^{-1}\cdot y$
 \end_inset
 
@@ -1970,6 +2156,11 @@ Notice that the EROI is simply the inverse of the energy required to deliver
 \end_inset
 
 After some calculations, we find:
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+\noindent
 \begin_inset Foot
 status open
 
@@ -1980,6 +2171,11 @@ LatexCommand href
 name "bit.ly/futureEROI"
 target "bit.ly/futureEROI"
 literal "false"
+
+\end_inset
+
+
+\end_layout
 
 \end_inset
 
@@ -2502,6 +2698,49 @@ Similarly to the system-wide EROI, the EROI of a technology is the ratio
 \end_layout
 
 \begin_layout Standard
+Logically, the EROI of PV is lower as compared to gas because of its higher
+ material intensity.
+ But it is worth noticing that both EROIs depend on the energy mix 
+\emph on
+p
+\emph default
+: the EROI of a technology is not an intrinsic property.
+ Indeed, it depends on the whole economic system, or more precisely, of
+ all technologies used in their chain of production.
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+
+\emph on
+Chain of production
+\emph default
+, 
+\emph on
+recursive
+\emph default
+ or 
+\emph on
+embodied inputs
+\emph default
+ are synonyms; their analysis is known as 
+\emph on
+structural path analysis
+\emph default
+ in the literature.
+\end_layout
+
+\end_inset
+
+ Here, the higher the share of PV in the mix, the more the lower EROI of
+ PV contaminates each technology, and the lower the EROI of both technologies.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
 Notice that they depend on the energy mix 
 \emph on
 p
@@ -2539,7 +2778,9 @@ structural path analysis
  
 \end_layout
 
-\begin_layout Standard
+\end_inset
+
+
 \begin_inset Float figure
 placement h
 wide false
@@ -3014,11 +3255,11 @@ reference "fig:EROIs-2-technos"
  1).
  Hence, one cannot conclude that a technology is sufficiently efficient
  (or sustainable) just by computing its EROI in the current energy mix.
- Yet, EROIs computations are always done from actual data of our economy,
+ Yet, EROIs computations have always been done from actual data of our economy,
  and could falsely represent the efficiencies of energy technologies in
  another energy mix, say, a 100% renewable one.
  This uncertainty concerning the sustainability of a decarbonized energy
- system motivated the core of this paper: the estimation of EROIs after
+ system motivates the core of this paper: the estimation of EROIs after
  a global energy transition.
 \end_layout
 
@@ -3199,7 +3440,7 @@ For King, 'gross' energy is the total energy diverted from Nature while
  A related indicator that is sometimes used to compute EROI as it is already
  included in many input-output databases is the Cumulated Energy Demand
  (CED).
- I don't use it because 
+ I do not use it because 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "arvesen_more_2015"
@@ -3331,8 +3572,18 @@ https://en.wikipedia.org/wiki/Energy_conversion_efficiency#cite_ref-12
 
  the yield of fossil fuels is close to that of electricity, and fossil fuels
  are disproportionately used for these applications for which they have
- a higher yield, both of which imply that the difference in quality between
- fossils and electricity may be smaller than usually assumed.
+ a higher yield, 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+both of which imply that
+\end_layout
+
+\end_inset
+
+therefore the difference in quality between fossils and electricity may
+ be smaller than usually assumed.
 \end_layout
 
 \begin_layout Standard
@@ -8372,6 +8623,15 @@ name "tab:EROIs-in-model"
 
 EROIs and share in electricity mix of electric technologies in the model
  THEMIS for different scenarios and years.
+ 
+\begin_inset Newline newline
+\end_inset
+
+The bottom line in columns 
+\emph on
+mix
+\emph default
+ gives the total secondary energy demand, in PWh/a.
 \end_layout
 
 \end_inset
@@ -22318,8 +22578,18 @@ GER
 \end_layout
 
 \begin_layout Standard
-To the last term, we also need to subtract the energy supplied by the secondary
- fuels in the last step of the process
+To this
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+e last
+\end_layout
+
+\end_inset
+
+ term, we also need to subtract the energy supplied by the secondary fuels
+ in the last step of the process
 \begin_inset Foot
 status open
 
@@ -22473,11 +22743,21 @@ literal "false"
 
 .
  While the former posits an almost constant electricity mix, the latter
- is compatible with a 50% probability to contain global mean temperature
+ is compatible with a 50% probability to contain the global mean temperature
  anomaly to +2°C in 2100.
  As Blue Map still relies at 30% on fossil fuels based electricity in 2050
- —including 17% with Carbon Capture and Storage (CCS); I wanted to assess
- more ambitious scenarios.
+ —including 17% with Carbon Capture and Storage (CCS); it does not allow
+ to assess more decarbonized 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+ambitious
+\end_layout
+
+\end_inset
+
+scenarios.
  Hence, I combined with THEMIS the scenarios from Greenpeace's Energy [R]evoluti
 on report 
 \begin_inset CommandInset citation
@@ -22510,7 +22790,7 @@ literal "false"
  prices.
  Interestingly, an outcome of the model was to phase nuclear out, but to
  select coal with CCS.
- This indicates that the choices of Greenpeace was not solely motivated
+ This indicates that the choices of Greenpeace were not solely motivated
  by a minimization of costs, but also by expert judgment and ethical considerati
 ons.
 \end_layout
@@ -22565,9 +22845,9 @@ background
  than usual, we expect estimates of EROIs lower than the average of the
  literature.
  That being said, it is not a concern if our estimates are not directly
- comparable to those of the literature, and we are mainly interested in
- comparing them internally, among the different years and scenarios, and
- to scrutinize whether they vary substantially or not.
+ comparable to those of the literature, as we are mainly interested in comparing
+ them internally, among the different years and scenarios, and to scrutinize
+ whether they vary substantially or not.
 \end_layout
 
 \begin_layout Standard
@@ -22596,16 +22876,26 @@ literal "false"
 
 \end_inset
 
-.
+, so they have not been taken into account.
  Even if the report does not precise any plan relative to storage, hydrogen
  produced from renewables seems to play a substantial role in Greenpeace
  scenarios, as its share in the electricity mix is 5% in ADV 2050.
  However, as the sector 'Electricity from hydrogen' is absent from THEMIS,
  hydrogen has been excluded from this analysis.
- This limitation will be addressed in future work, together with the study
- of an energy transition in the transportation sector (which also relies
- on hydrogen).
- Meanwhile, other sources can inform on orders of magnitude of storage and
+ These limitations should be addressed in future work, together with the
+ study of an energy transition in the transportation sector (which also
+ relies on hydrogen).
+ Meanwhile, other 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+sources
+\end_layout
+
+\end_inset
+
+references can provide information on orders of magnitude of storage and
  transmission 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -22848,9 +23138,9 @@ TODO: Cecilia ?
 Finally, data for Concentrated Solar Panels (CSP) had to be adjusted, because
  the original data mistakenly contained an energy supplied by unit of solar
  CSP of 0 (leading to abnormally low EROIs, around 2).
- Backed by Thomas Gibon, the creator of THEMIS, I corrected this error by
- setting the unitary energy supplied for solar CSP in all regions to its
- value in 
+ Backed by Thomas Gibon, core developer of THEMIS, I corrected this error
+ by setting the unitary energy supplied for solar CSP in all regions to
+ its value in 
 \emph on
 OECD North America
 \emph default
@@ -22874,6 +23164,10 @@ TODO: model hydrogen; is electricity used to produce H2 counted in total
  demand by Greenpeace?
 \end_layout
 
+\begin_layout Plain Layout
+Big note with summary of grid-storage requirements below
+\end_layout
+
 \end_inset
 
 
@@ -22881,7 +23175,7 @@ TODO: model hydrogen; is electricity used to produce H2 counted in total
 
 \begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 TODO: 
@@ -24036,7 +24330,7 @@ grid extension (GWkm)
 \begin_layout Plain Layout
 
 \series bold
-Storage (GWh)
+Storage capacity (GWh)
 \end_layout
 
 \end_inset
@@ -24134,7 +24428,7 @@ Below: Scholz et al.
 \begin_layout Plain Layout
 
 \series bold
-Storage (% demand)
+Storage output (% demand)
 \end_layout
 
 \end_inset
@@ -24493,7 +24787,17 @@ name "subsec:Results"
 \end_layout
 
 \begin_layout Standard
-Main results are shown in Table 
+Main results are shown in Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Evolution-of-global"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ and in Table 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "tab:EROIs-in-model"
@@ -24503,7 +24807,7 @@ noprefix "false"
 
 \end_inset
 
-, while other results can be found in 
+, while complementary results can be found in 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:Complete-Results"
@@ -24513,7 +24817,7 @@ noprefix "false"
 
 \end_inset
 
-.
+, notably for quality-adjusted EROIs.
  Some EROIs are missing, because not all technologies already existed on
  an industrial scale in 2010, and some technologies are discarded in the
  future by some scenarios.
@@ -24529,8 +24833,8 @@ noprefix "false"
 \end_inset
 
  in 2030 and 2050 in both IEA/THEMIS scenarios.
- Unsurprisingly, the decrease is a little more pronounced in the 100% renewable
- scenario: at 6.9 in 2030 and 
+ Unsurprisingly, the decrease is a little more pronounced in the scenario
+ with 100% renewable electricity: at 6.9 in 2030 and 
 \begin_inset Note Note
 status collapsed
 
@@ -24541,36 +24845,45 @@ status collapsed
 \end_inset
 
 5.8 in 2050.
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-TODO: rewrite
 \end_layout
+
+\begin_layout Standard
+While EROIs of renewable technologies are lower in scenarios with higher
+ shares of renewable, which was expected, one may be surprised that global
+ EROI is slightly lower in the Baseline scenario (7.2 in 2050) than in Blue
+ Map (7.6), driven by lower EROIs for gas (14.6 in BL 2050 vs.
+ 19.6 in BM 2050) and coal (11.3 vs.
+ 12.4).
+ Although available in the 
+\begin_inset CommandInset href
+LatexCommand href
+name "on-line code"
+target "bit.ly/future_eroi_code"
+literal "false"
 
 \end_inset
 
-
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-Figure 4
-\end_layout
-
-\end_inset
-
-
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-TODO: pk EROI BL baisse; pk EROI BM < BL
-\end_layout
-
-\end_inset
-
-
+ (or on demand), regional estimates are not reported here.
+ They show that EROIs of renewables, gas and coal are lower in BM as compared
+ to BL in 
+\emph on
+OECD Europe
+\emph default
+ and 
+\emph on
+OECD Pacific
+\emph default
+, but are almost all higher in the other regions.
+ Unsurprisingly, the sign of the difference between both scenarios is the
+ same for renewables and hydrocarbon in almost all cases, suggesting that
+ the EROIs of gas and coal drive those of renewables.
+ Hence, the higher EROIs of BM are probably due to the early shutdown of
+ the least efficient thermal power plant in this scenario.
+ Another unexpected result is the slight decrease of EROIs in the BL scenario,
+ from 8 in 2010 to 7.2 in 2050.
+ The examination of regional estimates reveals that this decrease is driven
+ by the increasing share of regions with lower EROIs in the global mix,
+ the EROIs in each region remaining quite stable.
 \end_layout
 
 \begin_layout Standard
@@ -24590,7 +24903,8 @@ status open
 \begin_layout Plain Layout
 TODO: compare with results from Arvesen et al.
  (2018) et Pehl et al.
- (2017)
+ (2017): not the same, they have lower EROIs for renewables.
+ But they consider primary energy.
 \end_layout
 
 \end_inset
@@ -27067,20 +27381,24 @@ Implications of a Decreasing EROI on Prices and GDP
 \end_layout
 
 \begin_layout Standard
+The forecast of declining EROIs made in the previous section calls for an
+ assessment of its economic implications.
+ The main channel through which a decrease in EROI could affect the economy
+ is arguably a rise in energy price (and correlatively, in energy expenditures).
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
-Cohérence avec 3.
+Economists and practitioners may wonder whether the decline in EROI predicted
+ in case of an energy transition has implications on future electricity
+ prices.
 \end_layout
 
 \end_inset
 
-Economists and practitioners may wonder whether the decline in EROI predicted
- in case of an energy transition has implications on future electricity
- prices.
  In this section, I review the literature on the relation between EROI and
- the price of energy, extend a result from 
+ the price of energy, estimate it empirically, and extend a result from
+ 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "herendeen_connecting_2015"
@@ -27088,7 +27406,7 @@ literal "false"
 
 \end_inset
 
- to characterize this relation, and estimate this relation empirically.
+ to characterize this relation.
  Although an inverse relation holds in special cases and has some explanatory
  power on observations, the theoretical analysis shows that 
 \begin_inset Quotes eld
@@ -27099,8 +27417,8 @@ anything can happen
 \end_inset
 
 .
- This theoretical result weakens the idea that decreasing a EROI necessarily
- leads to a recession.
+ This theoretical result contrasts with the view that decreasing a EROI
+ necessarily leads to a recession.
 \end_layout
 
 \begin_layout Subsection
@@ -27227,7 +27545,7 @@ literal "false"
 \end_inset
 
  find an equivalent formula.
- They call MROI the mark-up 
+ They designate MROI as the mark-up 
 \begin_inset Formula $m_{t}$
 \end_inset
 
@@ -27321,12 +27639,12 @@ status open
 
 \begin_layout Plain Layout
 Although they claim that their explained and explanatory variables are respectiv
-ely the cost of production and their notion of EROI,
+ely the cost of production and their notion of EROI, 
 \begin_inset Formula $\text{EROI}^{H}$
 \end_inset
 
 , the former is indeed the producer price and the latter our more standard
- notion of EROI; according to the source of their data: 
+ notion of EROI, according to the source of their data: 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "cleveland_net_2005"
@@ -27344,6 +27662,10 @@ literal "false"
 \end_inset
 
 ), and find 
+\end_layout
+
+\begin_layout Standard
+\noindent
 \begin_inset Formula $p_{\text{oil}}=\beta_{0}\cdot\text{EROI}_{\text{oil}}^{-1.4}$
 \end_inset
 
@@ -27527,6 +27849,24 @@ noprefix "false"
 \end_inset
 
 ), but I do not detail the substantial variations between regions or sectors.
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+The results are 
+\begin_inset CommandInset href
+LatexCommand href
+name "on-line"
+target "bit.ly/future_eroi_code"
+literal "false"
+
+\end_inset
+
+ and available on demand.
+\end_layout
+
+\end_inset
+
  
 \end_layout
 
@@ -27546,7 +27886,17 @@ name "tab:Predicted-average-global"
 
 \end_inset
 
-Predicted average global price of electricity (in €/MWh)
+Predicted average global price of electricity (in 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+€ 2010?
+\end_layout
+
+\end_inset
+
+€/MWh)
 \end_layout
 
 \end_inset
@@ -27867,12 +28217,12 @@ noprefix "false"
 
  reports the results of both the log-log and the inverse fits.
  I ran each model twice: first, on all 2079 positive observations available,
- and then on the 104 observations of for year 2010.
+ and then on the 104 observations for year 2010.
  To make the 
 \begin_inset Formula $R^{2}$
 \end_inset
 
- of the log-log fit comparable to that of the inverse fit, I computed it
+ of the log-log fit comparable to that of the inverse fit, I compute it
  as the sum of squared errors between 
 \begin_inset Quotes eld
 \end_inset
@@ -27906,9 +28256,9 @@ literal "false"
 \end_inset
 
 ), both figures are close to 1.
- Overall, empirical findings appear to confirm an inverse relation between
- price and EROI.
- That being said, Figure 
+ At first sight, empirical findings appear to confirm an inverse relation
+ between price and EROI.
+ However, Figure 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "fig:Regressions-of-price"
@@ -27921,8 +28271,19 @@ noprefix "false"
  shows that a high share of the variance in price remains unexplained by
  EROI, even more so for values of EROI around the global averages of 6-8,
  where the fit is almost flat and the errors substantial.
- In fact, there is theoretical evidence against a mapping between price
+ In addition, theoretical analysis rejects the existence of a mapping between
+ price and EROI.
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+In addition, there is theoretical evidence against a mapping between price
  and EROI.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -27942,6 +28303,15 @@ name "tab:Regressions-of-price"
 \end_inset
 
 Regressions of price on EROI (both estimated using THEMIS).
+ 
+\begin_inset Newline newline
+\end_inset
+
+All coefficients are significant at the 
+\begin_inset Formula $1\permil$
+\end_inset
+
+ level.
 \end_layout
 
 \end_inset
@@ -28571,8 +28941,8 @@ literal "false"
 
 \end_inset
 
- shed new light on the topic by treating the question from its matrix form
- and introducing the concept of value-added.
+ shed new light on the theoretical relation by treating the question from
+ its matrix form and introducing the concept of value-added.
  Herendeen showed how to express rigorously the price in function of the
  EROI when the economy is constituted of two sectors (energy and materials),
  and explained the limits of such exercise.
@@ -28679,11 +29049,31 @@ t
 \begin_inset Formula $\left(I-A\right)^{-1}\cdot\mathds{1}_{t}$
 \end_inset
 
-, while the energy mobilized is called the energy intensity of 
+, while the energy mobilized,
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+is
+\end_layout
+
+\end_inset
+
+ called the energy intensity of 
 \emph on
-t 
+t
 \emph default
-and writes 
+,
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+and
+\end_layout
+
+\end_inset
+
+ writes 
 \begin_inset Formula $\varepsilon_{t}=\mathds{1}_{E}^{T}\cdot\left(I-A\right)^{-1}\cdot\mathds{1}_{t}$
 \end_inset
 
@@ -29627,7 +30017,7 @@ noprefix "false"
 ) to relate this to a minimum non-recessionary EROI.
  However, they misleadingly
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 mistakenly?
@@ -29649,6 +30039,24 @@ mistakenly?
  As we have seen, EROI, price and energy expenditure can all decrease at
  the same time, which undermines the idea that a recession caused by a surge
  in energy expenditure is ineluctable as soon as EROI goes below some threshold.
+ In addition, an energy price increase should have an expansionary effect
+ on net exporters of energy, at odds with the mechanism extrapolated by
+ Fizaine and Court from the case of the United States, which is historically
+ a net energy importer.
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+check si US importer
+\end_layout
+
+\begin_layout Plain Layout
+This is even the more so that the recessionary channel of a price increase
+ through increased expenditures is only valid for energy importers.
+\end_layout
+
+\end_inset
+
  Overall, the analysis of this section tempers the idea that EROI is relevant
  in economic issues and suggests that this notion is best suited for the
  physical study of energy systems.
@@ -29696,7 +30104,7 @@ Concluding Remarks
 \end_layout
 
 \begin_layout Standard
-This work is a first 
+This work includes a first 
 \begin_inset Note Note
 status collapsed
 
@@ -29708,9 +30116,18 @@ and crude
 
 attempt at estimating future EROIs in a decarbonized electricity system.
  By examining a broad range of scenarios, it concludes that the system-wide
- EROI of the power sector should not vary much until 2050, albeit a noticeable
- decrease, from 8 to 7.2 in a business-as-usual scenario, or 6 in a scenario
- with 100% renewable electricity.
+ EROI of the power sector should slightly decrease until 2050, 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+albeit a noticeable decrease, 
+\end_layout
+
+\end_inset
+
+from 8 to 7.2 in a business-as-usual scenario, or 5.8 in a scenario with 100%
+ renewable electricity.
  As the EROI of each technologies is expected to remain well above 1, our
  results restore confidence about the energetic sustainability of renewable
  electricity, which was questioned theoretically.
@@ -29718,8 +30135,16 @@ attempt at estimating future EROIs in a decarbonized electricity system.
 \end_layout
 
 \begin_layout Standard
+Even though an inverse relationship between EROIs and energy prices was
+ found empirically, a large share of price variability remains unexplained.
+ Furthermore, a theoretical analysis of this relation showed that a declining
+ EROI does not automatically imply increasing energy prices, and does not
+ necessarily lead to a recession.
+\end_layout
+
+\begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 This study allows for various methodological improvements that would increase
@@ -29733,10 +30158,10 @@ This study allows for various methodological improvements that would increase
 \end_layout
 
 \begin_layout Standard
-This paper assessed scenarios of transition in the electricity sector, but
- further research is still needed to estimate future EROIs in complete energy
- transitions, which include a mutation of the transportation system, agriculture
- and industry.
+Finally, this paper assessed scenarios of transition in the electricity
+ sector, but further research is still needed to estimate future EROIs in
+ complete energy transitions, which include a mutation of the transportation
+ system, agriculture and industry.
 \end_layout
 
 \begin_layout Standard
@@ -29849,13 +30274,21 @@ literal "false"
 \end_inset
 
 .
- Although I implemented this algorithm in python;
+ Although I implemented this algorithm in 
+\begin_inset CommandInset href
+LatexCommand href
+name "pymrio"
+target "https://github.com/bixiou/pymrio/blob/master/pymrio/tools/iomath.py"
+literal "false"
+
+\end_inset
+
+;
 \begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-provide the code or remove https://github.com/bixiou/pymrio/blob/master/pymrio/to
-ols/iomath.py
+remove?
 \end_layout
 
 \end_inset
@@ -30059,7 +30492,7 @@ in the mix of the corresponding region, which defines a matrix
 
 .
  Each coefficient 
-\begin_inset Formula $\tilde{E}_{is}$
+\begin_inset Formula $\tilde{E}_{i,s}$
 \end_inset
 
  of 
@@ -30074,17 +30507,34 @@ i
 \emph on
 s
 \emph default
-' output, according to the new mix (by construction, 
-\begin_inset Formula $\tilde{E}_{is}$
+' output, according to the new mix (by construction, for all electricity
+ sector 
+\begin_inset Formula $j=i\left(t,r\right)$
 \end_inset
 
- is the same for all sectors 
+, the share of technology 
+\emph on
+j
+\emph default
+ in the regional mix, 
+\begin_inset Formula $\frac{\tilde{E}_{j,s}}{\sum_{t}\tilde{E}_{i\left(t,r\right),s}}$
+\end_inset
+
+, is the same across all sectors 
 \emph on
 s
-\emph default
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
  of a given region 
 \emph on
 r
+\end_layout
+
+\end_inset
+
+
 \emph default
 ).
  Eventually, I obtain the new submatrix 
@@ -30110,14 +30560,22 @@ A
 \begin_layout Standard
 A last update is needed for Greenpeace scenarios, to account for the extra
  capacity needed when intermittent sources fail to deliver energy: the ratio
- of capacity (in GW) over production (in TWh) is a bit higher in Greenpeace
- scenarios than in IEA/THEMIS ones.
+ of capacity (in GW) over production (in TWh) is somewhat 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+a bit?
+\end_layout
+
+\end_inset
+
+ higher in Greenpeace scenarios than in IEA/THEMIS ones.
  Thus, I multiply each column of an energy sector (representing all inputs
  required for one unit of output of this sector) by the ratio of the capacity-ov
 er-production ratios of Greenpeace and IEA/THEMIS.
- Doing so require relies on the fact that the energy required to operate
- a power plant is negligible in front of the energy required to build it
- (see e.g.
+ Doing so relies on the fact that the energy required to operate a power
+ plant is negligible in front of the energy required to build it (see e.g.
  
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -34629,8 +35087,8 @@ literal "false"
 \emph on
 base
 \emph default
-), where figures are rounded, and I show how a deviation of two coefficients
- (in the 
+), in the sense that the figures are rounded, and I show how a deviation
+ of two coefficients (in the 
 \emph on
 new 
 \emph default
@@ -34657,7 +35115,8 @@ literal "false"
 status collapsed
 
 \begin_layout Plain Layout
-code available at: https://www.desmos.com/calculator/ne4oqunhsm
+code available at: https://www.desmos.com/calculator/ne4oqunhsm => put on
+ notebook
 \end_layout
 
 \end_inset
@@ -35114,6 +35573,14 @@ name "tab:EROIs-greenpeace"
 
 EROIs and share in electricity mix of electric technologies in the model
  THEMIS for the Greenpeace scenarios.
+\begin_inset Newline newline
+\end_inset
+
+The bottom line in columns 
+\emph on
+mix
+\emph default
+ gives the total secondary energy demand, in PWh/a.
 \end_layout
 
 \end_inset
@@ -41162,6 +41629,14 @@ name "tab:EROIs-IEA-2.6"
 
 Quality-adjusted EROIs (with a factor of 2.6 for electricity) and share in
  electricity mix of electric technologies for IEA/THEMIS scenarios.
+\begin_inset Newline newline
+\end_inset
+
+The bottom line in columns 
+\emph on
+mix
+\emph default
+ gives the total secondary energy demand, in PWh/a.
 \end_layout
 
 \end_inset
@@ -45621,6 +46096,15 @@ name "tab:EROIs-greenpeace-2.6"
 
 Quality-adjusted EROIs (with a factor of 2.6 for electricity) and share in
  electricity mix of electric technologies for Greenpeace scenarios.
+ 
+\begin_inset Newline newline
+\end_inset
+
+The bottom line in columns 
+\emph on
+mix
+\emph default
+ gives the total secondary energy demand, in PWh/a.
 \end_layout
 
 \end_inset

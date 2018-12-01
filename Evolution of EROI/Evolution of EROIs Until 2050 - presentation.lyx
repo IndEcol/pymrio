@@ -164,7 +164,7 @@ The material-energy nexus
 
 \begin_deeper
 \begin_layout Itemize
-Renewable electricity is much more material-intensive that elec from fossils
+Renewable electricity is much more material-intensive than elec from fossils
  
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -362,9 +362,9 @@ EROI is not an intrinsic property
 
 \begin_deeper
 \begin_layout Itemize
-if plants currently used to build solar panels (PV) employed renewable electrici
-ty instead electricity from coal as their sources of energy => EROI of PV
- would decrease
+if plants where solar panels (PV) are currently built employed renewable
+ electricity instead electricity from coal as their sources of energy =>
+ EROI of PV would decrease
 \end_layout
 
 \begin_layout Itemize
@@ -444,8 +444,8 @@ Think of a society dependent upon one resource: its domestic oil.
  If it were 1.2:1 you could also refine it and look at it, 1.3:1 also distribute
  it to where you want to use it but all you could do is look at it.
  Hall et al.
- [7] examined the EROI required to actually run a truck and found that if
- the energy included was enough to build and maintain the truck and the
+ (2009) examined the EROI required to actually run a truck and found that
+ if the energy included was enough to build and maintain the truck and the
  roads and bridges required to use it (i.e., depreciation), one would need
  at least a 3:1 EROI at the wellhead.
  Now if you wanted to put something in the truck, say some grain, and deliver
@@ -10505,7 +10505,11 @@ literal "false"
 \begin_inset Formula $x=a_{i_{0},j_{0}}$
 \end_inset
 
-, and that EROI varies with x
+, and that EROI varies with 
+\emph on
+x
+\emph default
+
 \begin_inset Note Note
 status collapsed
 
@@ -11125,7 +11129,11 @@ centering
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Regressions p = EROI using all scenario estimates
+Regressions p 
+\begin_inset Formula $\sim$
+\end_inset
+
+ EROI using all scenario estimates
 \end_layout
 
 \end_inset
