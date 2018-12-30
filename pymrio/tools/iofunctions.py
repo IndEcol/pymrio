@@ -203,7 +203,7 @@ def production(self, secs=None, regs=None, non_unitary_themis = True): # TODO: c
     if self.name=='THEMIS': 
         if non_unitary_themis: return(self.is_in(secs, regs) * div0(self.secondary_energy_demand, self.energy_supply))
         else: return(self.is_in(secs, regs))
-    else: return(self.x*self.is_in(secs, regs))  # TODO: for THEMIS --> is that right, to divide the two energies? pb is there is no .x
+    else: return(self.x*self.is_in(secs, regs)) 
 
 def impacts(self, var='Total Energy supply', regs=None, secs=None, join_sort=False): # var = 'Value Added'
     '''
@@ -668,13 +668,12 @@ def change_mix(self, global_mix = None, inplace = True, method = 'regional', pat
         self.energy_supply_original = self.energy_supply.copy()
         self.supply_filled = self.energy_supply.copy() # fill unitary energy supplied of zero energy sectors such as geothermal Africa
         for i in np.array(elec_idx)[np.where(self.energy_supply_original[elec_idx]==0)[0]]: # fills (reg, sec) with 0 supply with mean value of other regs 
-            sec_i = self.labels.idx_sectors[i]  # TODO!: median instead of mean?, optimize this piece of code
+            sec_i = self.labels.idx_sectors[i]  
             self.supply_filled[i] = self.energy_supply_original.dot(self.is_in(sec_i))/len(np.where(self.energy_supply_original*self.is_in(sec_i)!=0)[0])
 
     if only_exiobase: idx0 = 42219
     else: idx0 = 0
     elecs_by_sec = mult_rows(A[elec_idx,idx0:], self.energy_supply[elec_idx]) # unit of elec needed by each unitary sec
-    # TODO: check one unit of output from A corresponds to energy supply units
     
     if method=='global':
     # global_mix . elecs_by_sec: matrix of elec need by sec and type of elec -> /unitary_supply (<=> *unit_per_supply): convert back to arbitrary units
