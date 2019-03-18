@@ -162,7 +162,7 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
     wiod_web_content = _get_url_datafiles(
         url_db_view=WIOD_CONFIG['url_db_view'],
         url_db_content=WIOD_CONFIG['url_db_content'],
-        mrio_regex='protected.*?wiot\d\d.*?xlsx')
+        mrio_regex=r'protected.*?wiot\d\d.*?xlsx')
 
     restricted_wiod_io_urls = [url for url in wiod_web_content.data_urls if
                                re.search(r"(wiot)(\d\d)",

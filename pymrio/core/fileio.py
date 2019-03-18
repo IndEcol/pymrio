@@ -665,8 +665,8 @@ def _load_ini_based_io(path, recursive=False, ini=None,
                 else:
                     setattr(sub_system, key,
                             pd.read_csv(file,
-                                          index_col=_index_col,
-                                          header=_header,
+                                        index_col=_index_col,
+                                        header=_header,
                                         sep='\t'))
 
                 # get valid python name from folder
