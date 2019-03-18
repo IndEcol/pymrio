@@ -1,6 +1,6 @@
 """
 Various parser for available MRIOs and files in a similar format
-
+as
 
 KST 20140903
 """
@@ -61,7 +61,7 @@ IDX_NAMES = {
     '_reg_sec_unit': ['region', 'sector', 'unit'],
     }
 
-
+        
 # Top level functions
 def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
                      version=None, year=None, iosystem=None, sep=','):
@@ -119,7 +119,7 @@ def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
 
     ext_file = os.path.abspath(str(ext_file))
 
-    F = pd.read_table(
+    F = pd.read_csv(
         ext_file,
         header=[0, 1],
         index_col=list(range(index_col)),
@@ -293,15 +293,17 @@ def generic_exiobase12_parser(exio_files, system=None):
         logging.debug("Parse {}".format(full_file_path))
         if tpara['root_repo'][-3:] == 'zip':
             with zipfile.ZipFile(tpara['root_repo'], 'r') as zz:
-                raw_data = pd.read_table(
+                raw_data = pd.read_csv(
                     zz.open(tpara['file_path']),
                     index_col=list(range(tpara['index_col'])),
-                    header=list(range(tpara['index_rows'])))
+                    header=list(range(tpara['index_rows'])),
+                    sep='\t')
         else:
-            raw_data = pd.read_table(
+            raw_data = pd.read_csv(
                 full_file_path,
                 index_col=list(range(tpara['index_col'])),
-                header=list(range(tpara['index_rows'])))
+                header=list(range(tpara['index_rows'])),
+                sep='\t')
 
         meta_rec._add_fileio('EXIOBASE data {} parsed from {}'.format(
             tt, full_file_path))
@@ -642,9 +644,9 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
 
     if popvector is 'exio2':
         logging.debug('Read population vector')
-        io.population = pd.read_table(os.path.join(PYMRIO_PATH['exio20'],
+        io.population = pd.read_csv(os.path.join(PYMRIO_PATH['exio20'],
                                                    './misc/population.txt'),
-                                      index_col=0).astype(float)
+                                      index_col=0, sep='\t').astype(float)
     else:
         io.population = popvector
 
@@ -1581,19 +1583,19 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     if is_zip:
         zip_file = zipfile.ZipFile(eora_loc)
         eora_data = {
-            key: pd.read_table(
+            key: pd.read_csv(
                 zip_file.open(filename),
                 sep=eora_sep,
-                header=None
+                header=None,
                 ) for
             key, filename in eora_files.items()}
         zip_file.close()
     else:
         eora_data = {
-            key: pd.read_table(
+            key: pd.read_csv(
                 os.path.join(eora_loc, filename),
                 sep=eora_sep,
-                header=None
+                header=None,
                 ) for
             key, filename in eora_files.items()}
     meta_rec._add_fileio(
