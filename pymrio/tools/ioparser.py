@@ -197,27 +197,27 @@ def get_exiobase_files(path, coefficients=True):
     if coefficients:
         exio_core_regex = dict(
             # don’t match file if starting with _
-            A=re.compile('(?<!\_)mrIot.*txt'),
-            Y=re.compile('(?<!\_)mrFinalDemand.*txt'),
-            S_factor_inputs=re.compile('(?<!\_)mrFactorInputs.*txt'),
-            S_emissions=re.compile('(?<!\_)mrEmissions.*txt'),
-            S_materials=re.compile('(?<!\_)mrMaterials.*txt'),
-            S_resources=re.compile('(?<!\_)mrResources.*txt'),
-            FY_resources=re.compile('(?<!\_)mrFDResources.*txt'),
-            FY_emissions=re.compile('(?<!\_)mrFDEmissions.*txt'),
-            FY_materials=re.compile('(?<!\_)mrFDMaterials.*txt'),
+            A=re.compile(r'(?<!\_)mrIot.*txt'),
+            Y=re.compile(r'(?<!\_)mrFinalDemand.*txt'),
+            S_factor_inputs=re.compile(r'(?<!\_)mrFactorInputs.*txt'),
+            S_emissions=re.compile(r'(?<!\_)mrEmissions.*txt'),
+            S_materials=re.compile(r'(?<!\_)mrMaterials.*txt'),
+            S_resources=re.compile(r'(?<!\_)mrResources.*txt'),
+            FY_resources=re.compile(r'(?<!\_)mrFDResources.*txt'),
+            FY_emissions=re.compile(r'(?<!\_)mrFDEmissions.*txt'),
+            FY_materials=re.compile(r'(?<!\_)mrFDMaterials.*txt'),
             )
     else:
         exio_core_regex = dict(
             # don’t match file if starting with _
-            Z=re.compile('(?<!\_)mrIot.*txt'),
-            Y=re.compile('(?<!\_)mrFinalDemand.*txt'),
-            F_fac=re.compile('(?<!\_)mrFactorInputs.*txt'),
-            F_emissions=re.compile('(?<!\_)mrEmissions.*txt'),
-            F_materials=re.compile('(?<!\_)mrMaterials.*txt'),
-            F_resources=re.compile('(?<!\_)mrResources.*txt'),
-            FY_emissions=re.compile('(?<!\_)mrFDEmissions.*txt'),
-            FY_materials=re.compile('(?<!\_)mrFDMaterials.*txt'),
+            Z=re.compile(r'(?<!\_)mrIot.*txt'),
+            Y=re.compile(r'(?<!\_)mrFinalDemand.*txt'),
+            F_fac=re.compile(r'(?<!\_)mrFactorInputs.*txt'),
+            F_emissions=re.compile(r'(?<!\_)mrEmissions.*txt'),
+            F_materials=re.compile(r'(?<!\_)mrMaterials.*txt'),
+            F_resources=re.compile(r'(?<!\_)mrResources.*txt'),
+            FY_emissions=re.compile(r'(?<!\_)mrFDEmissions.*txt'),
+            FY_materials=re.compile(r'(?<!\_)mrFDMaterials.*txt'),
             )
 
     repo_content = get_repo_content(path)
@@ -556,7 +556,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
                            for Qname in Qsheets}
         else:
             _content = get_repo_content(path)
-            charac_regex = re.compile('(?<!\_)(?<!\.)characterisation.*xlsx')
+            charac_regex = re.compile(r'(?<!\_)(?<!\.)characterisation.*xlsx')
             charac_files = [ff for ff in _content.filelist if
                             re.search(charac_regex, ff)]
             if len(charac_files) > 1:
