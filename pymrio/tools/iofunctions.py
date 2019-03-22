@@ -303,7 +303,7 @@ def embodied_impact(self, secs=None, regs=None, var='Total Energy supply', sourc
     from sectors in energy_sectors(source). Results are grouped by group_by (default: region) and can be sorted in decreasing order (default: unsorted).
     '''
     secs, regs = self.prepare_secs_regs(secs, regs) # TODO: source = None
-    if prod is None: production = self.production(secs, regs)
+    if production is None: production = self.production(secs, regs)
     if var=='Total Energy supply' and self.name != 'Cecilia':
         impacts = self.secondary_energy_supply * (self.embodied_prod(secs, prod=production) - production)
         impacts = pd.Series(impacts, index = pd.MultiIndex.from_arrays([self.labels.idx_regions, self.labels.idx_sectors], names=['region', 'sector']))
@@ -312,7 +312,7 @@ def embodied_impact(self, secs=None, regs=None, var='Total Energy supply', sourc
         impacts = self.impacts(var)*share_demand        
     impacts = impacts[self.index_secs_regs(self.energy_sectors(source))]
     if sort: return(sorted_series(impacts.groupby(group_by).sum()))
-    else: return(impacts.groupby(group_by).sum())    
+    else: return(impacts.groupby(group_by).sum())  
     
     
 def employment(self, secs = None, regs = None, skill='all', prod = None, indirect = True): # TODO: exiobase
@@ -447,6 +447,36 @@ def outputs(self, secs, out_sectors=None, nb_main=5):
         if out_sectors is None: out_sectors = self.sectors
         return((self.y.iloc[self.index_secs_regs(secs, self.regions)].sum()/production, outputs_Z))
 
+def energy_required(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True):
+    '''
+    Returns the energy required to produce one unit of energy in sectors secs in regs, considering the energy from source with notion var, and 
+    decomposed according to the sources in partition_sources.
+    
+    The formula is: 
+    (energy embodied in production (excluding supplied) - fuels as direct inputs for electricity from hydrocarbon (if netting_fuel is True)) / energy supplied
+    '''
+    if len(secs)==1: secs = secs[0]
+    sec_string = type(secs)==str or type(secs)==np.str_
+    if netting_fuel and ((sec_string and secs in self.energy_sectors('elec_hydrocarbon')) or secs==self.energy_sectors('elec_hydrocarbon') \
+                          or secs==self.energy_sectors('electricities')) or secs==list(np.array(self.energy_sectors('electricities'))\
+                          [['CCS' not in s for s in self.energy_sectors('electricities')]]): input_fuel=True
+    else: input_fuel = 0 # We want to include fuels that are used for transportation, not transformed into electricity (this is not secondary anymore)
+    secs, regs = self.prepare_secs_regs(secs, regs)
+    if self.name != 'Cecilia' and var != 'Total Energy supply': 
+        print('neer not implemented for var of type ' + var + ", doing it for 'Total Energy supply' instead")
+        var = 'Total Energy supply'
+    prod = self.production(secs, regs)
+    embodied = self.embodied_impact(secs, regs, var, source, production = prod).sum()
+    if input_fuel:
+        if self.name == 'Cecilia': input_fuel = self.inputs(secs, var_impacts=[var], \
+            source=inter_secs(self.energy_sectors('secondary_fuels'), self.energy_sectors(source)), order_recursion=2)[2][0][1]
+        elif secs==self.energy_sectors('electricities') or secs==list(np.array(self.energy_sectors('electricities'))\
+                          [['CCS' not in s for s in self.energy_sectors('electricities')]]): 
+            prod_fuel = self.production(self.energy_sectors('elec_hydrocarbon'), regs)
+            input_fuel = ((self.secondary_fuel_supply * self.A.dot(prod_fuel))[self.index_secs_regs(self.energy_sectors(source))]).sum()
+        else: input_fuel = ((self.secondary_fuel_supply * self.A.dot(prod))[self.index_secs_regs(self.energy_sectors(source))]).sum()
+    return(embodied - input_fuel)
+
 def neer(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1):
     '''
     Returns the Net External Energy Ratio of sectors secs in regs, considering the energy from source with notion var.
@@ -505,30 +535,6 @@ def erois_and_prices(self, secs = None, var='Total Energy supply', source='secon
         res['price'][('World', 'total')] = self.price_energy(secs = secs, regs = self.regions, digits=5, indirect = True)
         self.eroi_price = res.copy()
     return(self.eroi_price)
-
-def energy_required(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True):
-    '''
-    Returns the energy required to produce one unit of energy in sectors secs in regs, considering the energy from source with notion var, and 
-    decomposed according to the sources in partition_sources.
-    
-    The formula is: 
-    (energy embodied in production (excluding supplied) - fuels as direct inputs for electricity from hydrocarbon (if netting_fuel is True)) / energy supplied
-    '''
-    if len(secs)==1: secs = secs[0]
-    sec_string = type(secs)==str or type(secs)==np.str_
-    if netting_fuel and ((sec_string and secs in self.energy_sectors('elec_hydrocarbon')) or secs==self.energy_sectors('elec_hydrocarbon')): input_fuel=True
-    else: input_fuel = 0 # We want to include fuels that are used for transportation, not transformed into electricity (this is not secondary anymore)
-    secs, regs = self.prepare_secs_regs(secs, regs)
-    if self.name != 'Cecilia' and var != 'Total Energy supply': 
-        print('neer not implement for var of type ' + var + ", doing it for 'Total Energy supply' instead")
-        var = 'Total Energy supply'
-    prod = self.production(secs, regs)
-    embodied = self.embodied_impact(secs, regs, var, source, production = prod).sum()
-    if input_fuel:
-        if self.name == 'Cecilia': input_fuel = self.inputs(secs, var_impacts=[var], \
-            source=inter_secs(self.energy_sectors('secondary_fuels'), self.energy_sectors(source)), order_recursion=2)[2][0][1]
-        else: input_fuel = ((self.secondary_fuel_supply * self.A.dot(prod))[self.index_secs_regs(self.energy_sectors(source))]).sum()
-    return(embodied - input_fuel)
 
 def err(self, secs, regs=None, var='Total Energy supply', partition_sources=['secondary_heats', 'electricities'], netting_fuel = True, decimals=2):
     '''
