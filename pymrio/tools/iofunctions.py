@@ -508,6 +508,7 @@ def erois(self, secs = None, var='Total Energy supply', source='secondary', nett
 #             neers.set_value(secs[i][15:], eroi_sec)
 #         neers.set_value('Power sector', self.neer([s for s in secs], self.regions, var, source, netting_fuel, factor_elec))
         neers.at['Power sector'] = self.neer(secs, self.regions, var, source, netting_fuel, factor_elec)
+    # we could also have used that eroi_total = 1/sum(share_mix_s / EROI_s, s in sectors)
         self.eroi = neers.copy()
     return(self.eroi)
 
@@ -569,7 +570,7 @@ def regional_mix(global_mix, nb_regions = 9, nb_sectors = None):
     if nb_sectors is None: nb_sectors = int(max(global_mix.shape)/nb_regions)
     return(div0(global_mix, np.kron(np.eye(nb_regions),np.ones((nb_sectors, nb_sectors))).dot(global_mix)))
 
-def mix(self, scenario = None, path_dlr = '/media/adrien/dd1/adrien/DD/Économie/Données/Themis/', recompute = False): # TODO: change name to mix_dlr
+def mix(self, scenario = None, path_dlr = '/media/adrien/dd/adrien/DD/Économie/Données/Themis/', recompute = False): # TODO: change name to mix_dlr
     '''
     Returns an array of global mix (i.e. shares of sec x reg in global total) and stores it as an attribute
     for DLR (= Greenpeace) scenario in ['REF', 'ER', 'ADV'] for year in [2010, 2030, 2050]
@@ -726,7 +727,7 @@ def mix_matrix(self, secs = None, method='demand', global_mix = True, digits = 2
         mix['total'] /= PWh2TJ
         return(round(pd.Series(mix), digits))
 
-def aggregate_mix(self, mix = None, secs = None, path_dlr = '/media/adrien/dd1/adrien/DD/Économie/Données/Themis/', recompute=False):
+def aggregate_mix(self, mix = None, secs = None, path_dlr = '/media/adrien/dd/adrien/DD/Économie/Données/Themis/', recompute=False):
     '''
     Returns the aggregate global mix from an array of global mix. Thus, the sum of the original array is 1 and the sum of the output is the number of regions.
     '''
@@ -745,7 +746,7 @@ def aggregate_mix(self, mix = None, secs = None, path_dlr = '/media/adrien/dd1/a
     return(self.agg_mix)
 
 def results(themis, stats=['eroi', 'world_mix'], scenarios=['BL', 'BM', 'ADV'], to_plot = False, not_all_2010=True, rounded=True, fillNA=True, longnames=False,
-            dlr_sectors=False, longtotal=True, year = None, extend_wo_GW = False): # TODO: re-order index, mix_real, specific region
+            dlr_sectors=False, longtotal=True, year = None, extend_wo_GW = False, regional = False): # TODO: re-order index, mix_real, specific region
     '''
     Returns a panda dataframe with results from stats and scenarios specified.
     stats can include: 'eroi', 'eroi_adj', 'eroi_wo_GW', 'eroi_wo_GW_adj', 'world_mix', 'employ', 'employ_direct', 'energy_price'
@@ -756,6 +757,7 @@ def results(themis, stats=['eroi', 'world_mix'], scenarios=['BL', 'BM', 'ADV'], 
     to_plot = True overrides all previous parameters and set them to False, use this if the results are used to be plotted
     if year is in [2010, 2030, 2050], only the result for the given year are returned
     extend_wo_GW copy/pastes (normal) EROI to the eroi_wo_GW column for scenarios not concerned by the adjustment (BL, BM, combo)
+    regional = True overrides other options and provide estimates disaggregated by region rather than sectors
     '''
     if to_plot: not_all_2010, rounded, fillNA, longnames, dlr_sectors, longtotal = False, False, False, False, False, False
     if type(scenarios)==str: scenarios = [scenarios]
@@ -764,34 +766,60 @@ def results(themis, stats=['eroi', 'world_mix'], scenarios=['BL', 'BM', 'ADV'], 
                    'employ': 'k Employ', 'employ_direct': 'k Employ direct', 'energy_price': 'price'}
     stats_names = {'EROI': 'eroi', 'mix': 'world_mix', 'EROI adj': 'eroi_adj', 'EROI w/o GW': 'eroi_wo_GW', 'EROI w/o GW adj': 'eroi_wo_GW_adj',\
                    'k Employ': 'employ', 'k Employ direct': 'employ_direct', 'price': 'energy_price'}
-    stats = [stats_names[s] if s in stats_names.keys() else s for s in stats]
     if dlr_sectors: secs = list(np.array(themis[scenarios[0]][2050].energy_sectors('elecs_names'))\
                                                       [['CCS' not in s for s in themis['BM'][2010].energy_sectors('elecs_names')]])
     else: secs = themis[scenarios[0]][2050].energy_sectors('elecs_names')
-    res = pd.DataFrame(index = secs+['total'])
     years = [2010, 2030, 2050]
-    for y in years:
-        for s in scenarios:
-            for stat in stats:
-                if y in themis[s].keys():
-                    if stat in ['eroi_wo_GW', 'eroi_wo_GW_adj', 'eroi_GW', 'eroi_GW_adj', 'eroi_TWh', 'eroi_TWh_adj']:
-                        if s in ['REF', 'ER', 'ADV']:
-                            res[(s, y, 'eroi_wo_GW'+'_adj'*(stat[-4:]=='_adj'))] = getattr(themis[s][y].wo_GW_adj, \
-                                            'eroi'+'_adj'*(stat[-4:]=='_adj')).rename(index={'Power sector': 'total', 'total': 'total'}) #loc[secs].fillna(0).
-                        else: 
-                            if extend_wo_GW: res[(s, y, 'eroi_wo_GW'+'_adj'*(stat[-4:]=='_adj'))] = getattr(themis[s][y], \
-                                            'eroi'+'_adj'*(stat[-4:]=='_adj')).rename(index={'Power sector': 'total', 'total': 'total'}) #loc[secs].fillna(0).
-                    else:
-                        res[(s, y, stat)] = getattr(themis[s][y], stat).rename(index={'Power sector': 'total', 'total': 'total'}) #loc[secs].fillna(0).
-                        if stat=='energy_price': 
-                            res[(s, y, stat)].at['total'] = res[(s, y, stat)].loc[secs].fillna(0).dot(themis[s][y].world_mix.loc[secs].fillna(0))
-                        elif stat in ['employ', 'employ_direct']: res[(s, y, stat)].at['total'] = res[(s, y, stat)].loc[secs].sum()
-                        
-    stats = np.unique([c[2] for c in res.columns])
-    res = pd.DataFrame(res, columns=pd.MultiIndex.from_product([scenarios, years, stats], names=['scenario', 'year', 'stat']))
     
-    res = res.loc[['biomass w CCS', 'biomass&Waste', 'ocean', 'geothermal','solar CSP','solar PV','wind offshore',\
-                                   'wind onshore','hydro','nuclear', 'gas w CCS', 'coal w CCS', 'oil', 'gas', 'coal', 'total']]
+    if regional:
+        PWh2TJ = 3.6e6
+        stats = ['eroi', 'world_mix']
+        res = pd.DataFrame(index = list(themis[scenarios[0]][2050].regions)+['total'])
+        for s in scenarios:
+            secs = themis[s][2010].energy_sectors('electricities')
+            for y in years:
+                if y in themis[s].keys():
+                    if not hasattr(themis[s][y], 'mix_by_region') or not hasattr(themis[s][y], 'eroi_by_region'): 
+                        mix_r = {}
+                        eroi_r = {}
+                        mix_r['total'] = themis[s][y].secondary_energy_demand[themis[s][y].index_secs_regs()].sum()
+                        for r in themis[s][y].regions:
+                            mix_r[r] = themis[s][y].secondary_energy_demand[themis[s][y].index_secs_regs(regs = r)].sum()/mix_r['total']
+                            eroi_r[r] = themis[s][y].eroi_price['eroi'][(r, 'total')]
+                        mix_r['total'] /= PWh2TJ
+                        if hasattr(themis[s][y], 'eroi'): eroi_r['total'] = themis[s][y].eroi[-1]           
+                        themis[s][y].mix_by_region = pd.Series(mix_r)
+                        themis[s][y].eroi_by_region = pd.Series(eroi_r)
+                    res[(s, y, 'world_mix')] = themis[s][y].mix_by_region
+                    res[(s, y, 'eroi')] = themis[s][y].eroi_by_region
+        stats = np.unique([c[2] for c in res.columns])
+        res = pd.DataFrame(res, columns=pd.MultiIndex.from_product([scenarios, years, stats], names=['scenario', 'year', 'stat']))
+
+    else: 
+        stats = [stats_names[s] if s in stats_names.keys() else s for s in stats]
+        res = pd.DataFrame(index = secs+['total'])
+        for y in years:
+            for s in scenarios:
+                for stat in stats:
+                    if y in themis[s].keys():
+                        if stat in ['eroi_wo_GW', 'eroi_wo_GW_adj', 'eroi_GW', 'eroi_GW_adj', 'eroi_TWh', 'eroi_TWh_adj']:
+                            if s in ['REF', 'ER', 'ADV']:
+                                res[(s, y, 'eroi_wo_GW'+'_adj'*(stat[-4:]=='_adj'))] = getattr(themis[s][y].wo_GW_adj, \
+                                                'eroi'+'_adj'*(stat[-4:]=='_adj')).rename(index={'Power sector': 'total', 'total': 'total'}) #loc[secs].fillna(0).
+                            else: 
+                                if extend_wo_GW: res[(s, y, 'eroi_wo_GW'+'_adj'*(stat[-4:]=='_adj'))] = getattr(themis[s][y], \
+                                                'eroi'+'_adj'*(stat[-4:]=='_adj')).rename(index={'Power sector': 'total', 'total': 'total'}) #loc[secs].fillna(0).
+                        else:
+                            res[(s, y, stat)] = getattr(themis[s][y], stat).rename(index={'Power sector': 'total', 'total': 'total'}) #loc[secs].fillna(0).
+                            if stat=='energy_price': 
+                                res[(s, y, stat)].at['total'] = res[(s, y, stat)].loc[secs].fillna(0).dot(themis[s][y].world_mix.loc[secs].fillna(0))
+                            elif stat in ['employ', 'employ_direct']: res[(s, y, stat)].at['total'] = res[(s, y, stat)].loc[secs].sum()
+
+        stats = np.unique([c[2] for c in res.columns])
+        res = pd.DataFrame(res, columns=pd.MultiIndex.from_product([scenarios, years, stats], names=['scenario', 'year', 'stat']))
+
+        res = res.loc[['biomass w CCS', 'biomass&Waste', 'ocean', 'geothermal','solar CSP','solar PV','wind offshore',\
+                                       'wind onshore','hydro','nuclear', 'gas w CCS', 'coal w CCS', 'oil', 'gas', 'coal', 'total']]
     if rounded and 'world_mix' in stats: 
         res[[(s, y, 'world_mix') for y in years for s in scenarios]] = round(res[[(s, y, 'world_mix') for y in years for s in scenarios]], 2)
     if rounded and 'employ' in stats: 
@@ -811,7 +839,9 @@ def results(themis, stats=['eroi', 'world_mix'], scenarios=['BL', 'BM', 'ADV'], 
     if type(year)==int: res = res[[(s, year, st) for s in scenarios for st in stats]]
     if longnames: res.columns.set_levels([long[c] for c in res.columns.levels[0]], level=0, inplace=True)
     res.columns.set_levels([names_stats[s] for s in res.columns.levels[2]], level=2, inplace=True)
-    return(res)
+
+    if regional: return((res, themis))
+    else: return(res)
 
 def export_all_excel(path_themis, themis):
     book = load_workbook(path_themis + 'all_results.xlsx')
@@ -851,6 +881,8 @@ def export_all_excel(path_themis, themis):
     res.to_excel(writer, 'EROIs')
     res = results(themis, scenarios=['BL', 'BM', 'REF', 'ER', 'ADV', 'combo'], stats=['mix'])
     res.to_excel(writer, 'mix')
+    res = results(themis, regional = True)[0]
+    res.to_excel(writer, 'By region')
     writer.save()
 
 IOS.aggregate_mix = aggregate_mix
@@ -895,6 +927,7 @@ IOS.employment_low = employment_low
 IOS.employment_all   = employment_all
 IOS.employments = employments
 IOS.employment = employment
+IOS.results = results
 # IOS. = 
 # IOS. = 
 # other: internal_energy, composition_impact, change IOT for efficiency or gdp, calc_Z, etc., not_regs, regs_or_no, gdp, import, embodied_import
