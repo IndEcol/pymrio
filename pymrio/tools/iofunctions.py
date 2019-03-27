@@ -190,7 +190,7 @@ def VA(self): # TODO: exiobase
 
 def production(self, secs=None, regs=None, non_unitary_themis = True): # TODO: change name 'non_unitary_themis' to 'secondary_energy_sector'?
     '''
-    Returns the vector of production of (sec, reg) in secs x regs, computed from x.
+    Returns the vector of production of (sec, reg) in secs x regs, computed from x. /!\ In the case of energy, "production" is the demand from non-energy sectors.
     /!\ Beware, for THEMIS, production is unitary, unless non_unitary_themis = True, 
     In this case it is inferred using energy_demand/energy_supply for energy sectors, but is 0 for non-energy sectors.
     Setting non_unitary_themis to True provides better estimates for global EROIs but cannot cover foreground sectors, while setting it to False provides the 
@@ -313,7 +313,6 @@ def embodied_impact(self, secs=None, regs=None, var='Total Energy supply', sourc
     impacts = impacts[self.index_secs_regs(self.energy_sectors(source))]
     if sort: return(sorted_series(impacts.groupby(group_by).sum()))
     else: return(impacts.groupby(group_by).sum())  
-    
     
 def employment(self, secs = None, regs = None, skill='all', prod = None, indirect = True): # TODO: exiobase
     '''
@@ -453,7 +452,9 @@ def energy_required(self, secs, regs=None, var='Total Energy supply', source='se
     decomposed according to the sources in partition_sources.
     
     The formula is: 
-    (energy embodied in production (excluding supplied) - fuels as direct inputs for electricity from hydrocarbon (if netting_fuel is True)) / energy supplied
+    (energy embodied in production (excluding supplied) - fuels as inputs for electricity from hydrocarbon (if netting_fuel is True))
+    
+    if source = 'all', result is disaggregated between electricities and secondary_heats, and it also returns direct energy (i.e. direct energy input net of fuel transformed)
     '''
     if len(secs)==1: secs = secs[0]
     sec_string = type(secs)==str or type(secs)==np.str_
@@ -463,34 +464,50 @@ def energy_required(self, secs, regs=None, var='Total Energy supply', source='se
     else: input_fuel = 0 # We want to include fuels that are used for transportation, not transformed into electricity (this is not secondary anymore)
     secs, regs = self.prepare_secs_regs(secs, regs)
     if self.name != 'Cecilia' and var != 'Total Energy supply': 
-        print('neer not implemented for var of type ' + var + ", doing it for 'Total Energy supply' instead")
+        print('GER not implemented for var of type ' + var + ", doing it for 'Total Energy supply' instead")
         var = 'Total Energy supply'
     prod = self.production(secs, regs)
-    embodied = self.embodied_impact(secs, regs, var, source, production = prod).sum()
-    if input_fuel:
-        if self.name == 'Cecilia': input_fuel = self.inputs(secs, var_impacts=[var], \
-            source=inter_secs(self.energy_sectors('secondary_fuels'), self.energy_sectors(source)), order_recursion=2)[2][0][1]
-        elif secs==self.energy_sectors('electricities') or secs==list(np.array(self.energy_sectors('electricities'))\
-                          [['CCS' not in s for s in self.energy_sectors('electricities')]]): 
-            prod_fuel = self.production(self.energy_sectors('elec_hydrocarbon'), regs)
-            input_fuel = ((self.secondary_fuel_supply * self.A.dot(prod_fuel))[self.index_secs_regs(self.energy_sectors(source))]).sum()
-        else: input_fuel = ((self.secondary_fuel_supply * self.A.dot(prod))[self.index_secs_regs(self.energy_sectors(source))]).sum()
-    return(embodied - input_fuel)
+    if source == 'all': source = ['electricities', 'secondary_heats']        
+    else: source = [source]
+    embodieds, input_fuels, des, embodied_input_fuels = [], [], [], []
+    embodied_thermal_plant = self.embodied_prod(secs, prod = prod) * self.is_in(self.energy_sectors('elec_hydrocarbon'))
+    embodied_input_fuel = (self.secondary_fuel_supply * self.A.dot(embodied_thermal_plant)).sum()
+    for s in source:
+        embodieds.append(self.embodied_impact(secs, regs, var, s, production = prod).sum())
+        if len(source) != 1: des.append(((self.secondary_energy_supply * self.A.dot(prod))[self.index_secs_regs(self.energy_sectors(s))]).sum())
+        if netting_fuel and (s == 'secondary_heats' or s == 'secondary'): embodied_input_fuels.append(embodied_input_fuel)
+        else: embodied_input_fuels.append(0)
+        if input_fuel and len(source) != 1:
+            if self.name == 'Cecilia': input_fuel = self.inputs(secs, var_impacts=[var], \
+                source=inter_secs(self.energy_sectors('secondary_fuels'), self.energy_sectors(s)), order_recursion=2)[2][0][1]
+            elif secs==self.energy_sectors('electricities') or secs==list(np.array(self.energy_sectors('electricities'))\
+                              [['CCS' not in s for s in self.energy_sectors('electricities')]]): 
+                prod_fuel = self.production(self.energy_sectors('elec_hydrocarbon'), regs)
+                input_fuels.append(((self.secondary_fuel_supply * self.A.dot(prod_fuel))[self.index_secs_regs(self.energy_sectors(s))]).sum())
+            else: input_fuels.append(((self.secondary_fuel_supply * self.A.dot(prod))[self.index_secs_regs(self.energy_sectors(s))]).sum())
+        else: input_fuels.append(0)
+    if len(source) == 1: return(embodieds[0] - embodied_input_fuels[0])
+    else: return((np.array(embodieds) - np.array(embodied_input_fuels), np.array(des) - np.array(input_fuels)))
 
-def neer(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1):
+def ger(self, secs, regs=None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, return_separate = False):
     '''
-    Returns the Net External Energy Ratio of sectors secs in regs, considering the energy from source with notion var.
+    Returns the Gross Energy Ratio (defined in Brandt & Dale, 2011) of sectors secs in regs, considering the energy from source with notion var.
     
     The formula is: 
     energy supplied / (energy embodied in production (excluding supplied) - fuels as direct inputs for electricity from hydrocarbon (if netting_fuel is True))
+    
+    return_separate = True allows to return each component of the result separately, together with direct energy use.
     '''
-    er = factor_elec*self.energy_required(secs, regs, var, 'electricities', netting_fuel) +self.energy_required(secs, regs, var, 'secondary_heats', netting_fuel)
+    secs, regs = self.prepare_secs_regs(secs, regs)
+    if return_separate: er, de = self.energy_required(secs, regs, var, 'all', netting_fuel) @ np.array([factor_elec, 1])
+    else: er = factor_elec*self.energy_required(secs, regs, var, 'electricities', netting_fuel) + self.energy_required(secs, regs, var, 'secondary_heats', netting_fuel)
 #     if ((type(secs)==str and secs in self.energy_sectors('electricities')) or secs==self.energy_sectors('electricities')): 
 #         return(round(factor_elec * self.impacts(var, regs, secs).sum() / er, 1))
 #     else: return(round(self.impacts(var, regs, secs).sum() / er, 1))
     if var=='Total Energy supply' and source=='secondary': supply = self.secondary_energy_demand[self.index_secs_regs(secs, regs)].sum()
     else: supply = self.impacts(var, regs, secs).sum() # TODO!: Why impacts doesn't work in all cases?!
-    return(round(factor_elec * supply / er, 1)) # TODO!: code the option non_unitary_themis=False for biofuels and cie
+    if return_separate: return((factor_elec * supply, er, de))
+    else: return(round(factor_elec * supply / er, 1)) # TODO!: code the option non_unitary_themis=False for biofuels and cie
 
 def erois(self, secs = None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, recompute=False):
     '''
@@ -500,16 +517,25 @@ def erois(self, secs = None, var='Total Energy supply', source='secondary', nett
         if self.scenario in ['REF', 'ER', 'ADV', 'combo']: secs = list(np.array(self.energy_sectors('electricities'))\
                                                                     [['CCS' not in s for s in self.energy_sectors('electricities')]])
         else: secs = self.energy_sectors('electricities')
-    if recompute or not hasattr(self, 'eroi'):
-        neers = pd.Series()
+    if recompute or not hasattr(self, 'eroi') or not hasattr(self, 'direct_energy'):
+        gers, des, ers = pd.Series(), pd.Series(), pd.Series()
+#         des = pd.Series()
         for i, sec in enumerate(secs): 
-            eroi_sec = self.neer(secs=sec, regs=self.regions, var=var, source=source, netting_fuel=netting_fuel, factor_elec=factor_elec)
-            neers.at[secs[i][15:]] = eroi_sec
-#             neers.set_value(secs[i][15:], eroi_sec)
-#         neers.set_value('Power sector', self.neer([s for s in secs], self.regions, var, source, netting_fuel, factor_elec))
-        neers.at['Power sector'] = self.neer(secs, self.regions, var, source, netting_fuel, factor_elec)
+            supply, er, de = self.ger(secs=sec, regs=self.regions, var=var, source=source, netting_fuel=netting_fuel, factor_elec=factor_elec, return_separate = True)
+            eroi_sec = round(supply / er, 1)
+            gers.at[secs[i][15:]] = eroi_sec
+            ers.at[secs[i][15:]] = er
+            des.at[secs[i][15:]] = de
+#             gers.set_value(secs[i][15:], eroi_sec)
+#         gers.set_value('Power sector', self.ger([s for s in secs], self.regions, var, source, netting_fuel, factor_elec))
+        supply, er, de = self.ger(secs, self.regions, var, source, netting_fuel, factor_elec, return_separate = True)
+        gers.at['Power sector'] = round(supply / er, 1)
+        ers.at['Power sector'] = er
+        des.at['Power sector'] = de
     # we could also have used that eroi_total = 1/sum(share_mix_s / EROI_s, s in sectors)
-        self.eroi = neers.copy()
+        self.eroi = gers.copy()
+        self.direct_energy = des.copy()
+        self.share_direct_energy = des.copy() / ers.copy()
     return(self.eroi)
 
 def erois_and_prices(self, secs = None, var='Total Energy supply', source='secondary', netting_fuel = True, factor_elec = 1, recompute=False):
@@ -525,14 +551,14 @@ def erois_and_prices(self, secs = None, var='Total Energy supply', source='secon
                            columns = ['eroi', 'price'])
         for reg in self.regions:
             for i, sec in enumerate(secs):
-                res['eroi'][(reg, sec)] =self.neer(secs=sec,regs=reg,var=var,source=source,netting_fuel=netting_fuel,factor_elec=factor_elec)
+                res['eroi'][(reg, sec)] =self.ger(secs=sec,regs=reg,var=var,source=source,netting_fuel=netting_fuel,factor_elec=factor_elec)
                 res['price'][(reg, sec)] = self.price_energy(secs = sec, regs = reg, digits=5, indirect = True)
-            res['eroi'][(reg, 'total')]=self.neer(secs=secs,regs=reg,var=var,source=source,netting_fuel=netting_fuel,factor_elec=factor_elec)
+            res['eroi'][(reg, 'total')]=self.ger(secs=secs,regs=reg,var=var,source=source,netting_fuel=netting_fuel,factor_elec=factor_elec)
             res['price'][(reg, 'total')] = self.price_energy(secs = secs, regs = reg, digits=5, indirect = True)
         for i, sec in enumerate(secs):
-            res['eroi'][('World', sec)]=self.neer(secs=sec, regs=self.regions, var=var, source=source, netting_fuel=netting_fuel, factor_elec=factor_elec)
+            res['eroi'][('World', sec)]=self.ger(secs=sec, regs=self.regions, var=var, source=source, netting_fuel=netting_fuel, factor_elec=factor_elec)
             res['price'][('World', sec)] = self.price_energy(secs = sec, regs = self.regions, digits=5, indirect = True)        
-        res['eroi'][('World', 'total')]=self.neer(secs=secs,regs=self.regions,var=var,source=source,netting_fuel=netting_fuel,factor_elec=factor_elec)
+        res['eroi'][('World', 'total')]=self.ger(secs=secs,regs=self.regions,var=var,source=source,netting_fuel=netting_fuel,factor_elec=factor_elec)
         res['price'][('World', 'total')] = self.price_energy(secs = secs, regs = self.regions, digits=5, indirect = True)
         self.eroi_price = res.copy()
     return(self.eroi_price)
@@ -543,7 +569,7 @@ def err(self, secs, regs=None, var='Total Energy supply', partition_sources=['se
     '''
     ratios = {}
     for source in partition_sources:
-#         ratio[source] = round(1/self.neer(secs = secs, regs = regs, var = var, source = source, netting_fuel = netting_fuel), decimals)
+#         ratio[source] = round(1/self.ger(secs = secs, regs = regs, var = var, source = source, netting_fuel = netting_fuel), decimals)
         ratios[source] = round(self.energy_required(secs=secs, regs=regs, var=var, source=source, netting_fuel=netting_fuel)\
                            /self.impacts(var, regs, secs).sum(), decimals) # impacts = supply
     return(ratios) # TODO: put this and errs in the install, check them before
@@ -749,7 +775,7 @@ def results(themis, stats=['eroi', 'world_mix'], scenarios=['BL', 'BM', 'ADV'], 
             dlr_sectors=False, longtotal=True, year = None, extend_wo_GW = False, regional = False): # TODO: re-order index, mix_real, specific region
     '''
     Returns a panda dataframe with results from stats and scenarios specified.
-    stats can include: 'eroi', 'eroi_adj', 'eroi_wo_GW', 'eroi_wo_GW_adj', 'world_mix', 'employ', 'employ_direct', 'energy_price'
+    stats can include: 'eroi', 'eroi_adj', 'eroi_wo_GW', 'eroi_wo_GW_adj', 'world_mix', 'employ', 'employ_direct', 'energy_price', 'share_direct_energy'
     scenarios can include: BL, BM, REF, ER, ADV, combo
     not_all_2010 keeps only one scenario for year 2010
     fillNA fills NaN with '–' instead of 0, rounded rounds the figures to max 2 digit, longnames details the scenario name, dlr_sectors removes CCS from sectors,
@@ -763,9 +789,9 @@ def results(themis, stats=['eroi', 'world_mix'], scenarios=['BL', 'BM', 'ADV'], 
     if type(scenarios)==str: scenarios = [scenarios]
     if type(stats)==str: stats = [stats]
     names_stats = {'eroi': 'EROI', 'world_mix': 'mix', 'eroi_adj': 'EROI adj', 'eroi_wo_GW': 'EROI w/o GW', 'eroi_wo_GW_adj': 'EROI w/o GW adj',\
-                   'employ': 'k Employ', 'employ_direct': 'k Employ direct', 'energy_price': 'price'}
+                   'employ': 'k Employ', 'employ_direct': 'k Employ direct', 'energy_price': 'price', 'share_direct_energy': 'Share of direct energy'}
     stats_names = {'EROI': 'eroi', 'mix': 'world_mix', 'EROI adj': 'eroi_adj', 'EROI w/o GW': 'eroi_wo_GW', 'EROI w/o GW adj': 'eroi_wo_GW_adj',\
-                   'k Employ': 'employ', 'k Employ direct': 'employ_direct', 'price': 'energy_price'}
+                   'k Employ': 'employ', 'k Employ direct': 'employ_direct', 'price': 'energy_price', 'Share of direct energy': 'share_direct_energy'}
     if dlr_sectors: secs = list(np.array(themis[scenarios[0]][2050].energy_sectors('elecs_names'))\
                                                       [['CCS' not in s for s in themis['BM'][2010].energy_sectors('elecs_names')]])
     else: secs = themis[scenarios[0]][2050].energy_sectors('elecs_names')
@@ -794,7 +820,7 @@ def results(themis, stats=['eroi', 'world_mix'], scenarios=['BL', 'BM', 'ADV'], 
                     res[(s, y, 'eroi')] = themis[s][y].eroi_by_region
         stats = np.unique([c[2] for c in res.columns])
         res = pd.DataFrame(res, columns=pd.MultiIndex.from_product([scenarios, years, stats], names=['scenario', 'year', 'stat']))
-
+        
     else: 
         stats = [stats_names[s] if s in stats_names.keys() else s for s in stats]
         res = pd.DataFrame(index = secs+['total'])
@@ -828,8 +854,16 @@ def results(themis, stats=['eroi', 'world_mix'], scenarios=['BL', 'BM', 'ADV'], 
         res[[(s, y, 'employ_direct') for y in years for s in scenarios]] = round(res[[(s, y, 'employ_direct') for y in years for s in scenarios]])
     if rounded and 'energy_price' in stats: 
         res[[(s, y, 'energy_price') for y in years for s in scenarios]] = round(res[[(s, y, 'energy_price') for y in years for s in scenarios]], 1)
+    if rounded and 'share_direct_energy' in stats: 
+        res[[(s, y, 'share_direct_energy') for y in years for s in scenarios]] = round(res[[(s, y, 'share_direct_energy') for y in years for s in scenarios]], 2)
+    if rounded and 'eroi' in stats: 
+        for y in years: 
+            for s in scenarios: res[(s, y, 'eroi')] = res[(s, y, 'eroi')].map('{:,.1f}'.format)
+    if rounded and 'eroi_adj' in stats: 
+        for y in years: 
+            for s in scenarios: res[(s, y, 'eroi_adj')] = res[(s, y, 'eroi_adj')].map('{:,.1f}'.format)
     if longtotal: res = res.rename(index={'total': 'Total (PWh/a)'})
-    if fillNA: res = res.fillna('–')
+    if fillNA: res = res.fillna('–').replace('nan', '–')
     long = {'BL': "Baseline ('BL')", 'BM': "Blue Map ('BM', +2°C)", 'REF': "Reference DLR ('REF')", \
                 'ER': "Energy [R]evolution ('ER', +2°C, no CCS nor nuclear)", 'ADV': "Advanced ER ('ADV', 100% renewable)", 'combo': 'Combination of scenarios'}
     new_col_names = [long[c] for c in res.columns.levels[0]]
@@ -842,7 +876,7 @@ def results(themis, stats=['eroi', 'world_mix'], scenarios=['BL', 'BM', 'ADV'], 
 
     if regional: return((res, themis))
     else: return(res)
-
+    
 def export_all_excel(path_themis, themis):
     book = load_workbook(path_themis + 'all_results.xlsx')
     writer = pd.ExcelWriter(path_themis + 'all_results.xlsx', engine = 'openpyxl')
@@ -883,6 +917,8 @@ def export_all_excel(path_themis, themis):
     res.to_excel(writer, 'mix')
     res = results(themis, regional = True)[0]
     res.to_excel(writer, 'By region')
+    res = results(themis, stats = 'share_direct_energy')
+    res.to_excel(writer, 'Share of direct energy')
     writer.save()
 
 IOS.aggregate_mix = aggregate_mix
@@ -906,7 +942,7 @@ IOS.embodied_impact = embodied_impact
 IOS.sorted_array = sorted_array
 IOS.inputs = inputs
 IOS.outputs = outputs
-IOS.neer = neer
+IOS.ger = ger
 IOS.err = err
 IOS.errs = errs
 IOS.erois = erois
