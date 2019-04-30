@@ -2122,7 +2122,7 @@ def concate_extension(*extensions, name):
                 cur_dict['SY'] = pd.DataFrame(data=0,
                                               index=ext.get_index(),
                                               columns=SFY_columns)
-
+        
         # append all df data
         for key in cur_dict:
             if not first_run:
