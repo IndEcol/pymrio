@@ -1442,9 +1442,9 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     Note
     ----
 
-    This parser deletes the statistical disrecpancy columns from
+    This parser deletes the statistical discrepancy columns from
     the parsed Eora system (reports the amount of loss in the
-    meta recors).
+    meta records).
 
     Eora does not provide any information on the unit of the
     monetary values. Based on personal communication the unit
@@ -1455,13 +1455,13 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     ----------
 
     path : string or pathlib.Path
-       Path to the eora raw storage folder or a specific eora zip file to
+       Path to the Eora raw storage folder or a specific eora zip file to
        parse.  There are several options to specify the data for parsing:
 
-       1) Pass the name of eora zip file. In this case the parameters 'year'
+       1) Pass the name of Eora zip file. In this case the parameters 'year'
           and 'price' will not be used
-       2) Pass a folder which eiter contains eora zip files or unpacked eora
-          data In that case, a year must be given
+       2) Pass a folder which either contains Eora zip files or unpacked Eora
+          data. In that case, a year must be given
        3) Pass a folder which contains subfolders in the format 'YYYY', e.g.
           '1998' This subfolder can either contain an Eora zip file or an
           unpacked Eora system
@@ -1488,7 +1488,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     elif country_names[0].lower() == 'f':
         country_names = 'full'
     else:
-        raise ParserError('Parameter country_names must be eora or full')
+        raise ParserError('Parameter country_names must be Eora or full')
 
     row_name = 'ROW'
     eora_zip_ext = '.zip'
@@ -1517,7 +1517,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
 
         if len(eora_file_list) > 1:
             raise ParserError('Multiple files for a given year '
-                              'found (specify a specific file in paramters)')
+                              'found (specify a specific file in parameters)')
         elif len(eora_file_list) == 1:
             eora_loc = os.path.join(path, eora_file_list[0])
             is_zip = True
