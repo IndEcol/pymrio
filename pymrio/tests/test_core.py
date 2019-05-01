@@ -103,6 +103,16 @@ def test_get_regions(fix_testmrio):
     assert list(fix_testmrio.testmrio.get_regions()) == fix_testmrio.regions
 
 
+def test_rename_regions(fix_testmrio):
+    new_reg_name = 'New Region 1'
+    new_reg_list = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6']
+    fix_testmrio.testmrio.rename_regions({'reg1': new_reg_name})
+    assert fix_testmrio.testmrio.get_regions()[0] == new_reg_name
+    fix_testmrio.testmrio.rename_regions(new_reg_list)
+    assert fix_testmrio.testmrio.get_regions()[0] == new_reg_list[0]
+    assert fix_testmrio.testmrio.get_regions()[2] == new_reg_list[2]
+
+
 def test_copy_and_extensions(fix_testmrio):
     tcp = fix_testmrio.testmrio.copy()
     tcp.remove_extension(tcp.get_extensions())
