@@ -44,10 +44,10 @@ def test_all(td_testmrio):
     mr = pymrio.load_test()
     mr.calc_all()
     npt.assert_allclose(
-            td_testmrio.factor_inputs.D_imp_values,
-            mr.factor_inputs.D_imp_reg.values,
-            rtol=1e-5
-            )
+        td_testmrio.factor_inputs.D_imp_values,
+        mr.factor_inputs.D_imp_reg.values,
+        rtol=1e-5
+    )
     sat_new = pymrio.concate_extension(mr.emissions,
                                        mr.factor_inputs,
                                        name='sat_new')
@@ -94,3 +94,34 @@ def test_fileio(tmpdir):
 
     mr3 = pymrio.load_all(zip_arc)
     npt.assert_allclose(mr.Z.values, mr3.Z.values, rtol=1e-5)
+
+
+def test_reports(tmpdir):
+    """ Tests the reporting function
+
+    Here, only the correct file and folder structure
+    is tested. The actual graphical output gets tested
+    in test_outputs.
+    """
+    mr = pymrio.load_test().calc_all()
+
+    save_path = str(tmpdir.mkdir('pymrio_test_reports'))
+
+    mr.report_accounts(path=save_path,
+                       per_capita=True,
+                       format='html')
+
+    file_content = os.listdir(save_path)
+    for ext in mr.get_extensions(data=True):
+        assert ext.name.replace(' ', '_') + '_per_capita.html' in file_content
+        assert ext.name.replace(' ', '_') + '_per_region.html' in file_content
+
+        cap_pic_file_content = os.listdir(
+            os.path.join(save_path,
+                         ext.name.replace(' ', '_') + '_per_capita'))
+        reg_pic_file_content = os.listdir(
+            os.path.join(save_path,
+                         ext.name.replace(' ', '_') + '_per_region'))
+
+        assert 'png' in cap_pic_file_content[0]
+        assert 'png' in reg_pic_file_content[0]
