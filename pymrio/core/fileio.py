@@ -409,7 +409,7 @@ def archive(source, archive, path_in_arc=None, remove_source=False,
             pass
 
 
-def _load_all_ini_based_io(path, **kwargs):
+def _load_all_ini_based_io(path, **kwargs):   # pragma: no cover
     """ DEPRECATED: For convert a previous version to the new json format
 
     Loads the whole IOSystem with Extensions given in path
@@ -434,7 +434,7 @@ def _load_all_ini_based_io(path, **kwargs):
 
 def _load_ini_based_io(path, recursive=False, ini=None,
                        subini={}, include_core=True,
-                       only_coefficients=False):
+                       only_coefficients=False):    # pragma: no cover
     """ DEPRECATED: For convert a previous version to the new json format
 
     Loads a IOSystem or Extension from a ini files
