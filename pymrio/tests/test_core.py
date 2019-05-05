@@ -27,6 +27,16 @@ def fix_testmrio():
                    'other']
         regions = ['reg1', 'reg2', 'reg3', 'reg4', 'reg5', 'reg6']
 
+        Y_cat = [
+            'Final consumption expenditure by households',
+            'Final consumption expenditure by non-profit '
+            'organisations serving households (NPISH)',
+            'Final consumption expenditure by government',
+            'Gross fixed capital formation',
+            'Changes in inventories',
+            'Changes in valuables',
+            'Export']
+
     return TestMRIO
 
 
@@ -101,6 +111,16 @@ def test_get_sectors(fix_testmrio):
 
 def test_get_regions(fix_testmrio):
     assert list(fix_testmrio.testmrio.get_regions()) == fix_testmrio.regions
+
+
+def test_get_Y_categories(fix_testmrio):
+    assert list(fix_testmrio.testmrio.get_Y_categories()) == fix_testmrio.Y_cat
+
+    assert (fix_testmrio.testmrio.get_Y_categories(fix_testmrio.Y_cat[:]) == 
+            fix_testmrio.Y_cat)
+
+    assert (fix_testmrio.testmrio.get_Y_categories('Export') ==
+            [e if e == 'Export' else None for e in fix_testmrio.Y_cat])
 
 
 def test_rename_regions(fix_testmrio):
