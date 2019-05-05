@@ -43,7 +43,7 @@ from pymrio.tools.iometadata import MRIOMetaData
 
 
 # internal functions
-def _warn_deprecation(message):
+def _warn_deprecation(message):     # pragma: no cover
     warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
@@ -1625,8 +1625,8 @@ class IOSystem(CoreSystem):
             recalculated. Default: False
 
         """
-        self.reset_full()
-        [ee.reset_full() for ee in self.get_extensions(data=True)]
+        self.reset_full(force=force)
+        [ee.reset_full(force=force) for ee in self.get_extensions(data=True)]
         self.meta._add_modify("Reset all calculated data")
         return self
 
