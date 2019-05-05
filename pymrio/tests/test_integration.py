@@ -67,6 +67,10 @@ def test_fileio(tmpdir):
     mr = pymrio.load_test()
 
     save_path = str(tmpdir.mkdir('pymrio_test'))
+
+    with pytest.raises(ValueError):
+        mr.save_all(save_path, table_format='nan')
+
     mr.save_all(save_path)
 
     # Testing getting the repo content, some random sample test

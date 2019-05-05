@@ -240,7 +240,7 @@ class CoreSystem():
                     return [None if ee not in entries else ee for ee in ind]
                 else:
                     return ind
-        else:
+        else:    # pragma: no cover
             logging.warn("No attributes available to get Y categories")
             return None
 
@@ -274,7 +274,7 @@ class CoreSystem():
             if (df in self.__dict__) and (getattr(self, df) is not None):
                 orig_idx = getattr(self, df).index
                 break
-        else:
+        else:    # pragma: no cover
             logging.warn("No attributes available to get index")
             return None
 
@@ -337,7 +337,7 @@ class CoreSystem():
                     return [None if ee not in entries else ee for ee in ind]
                 else:
                     return ind
-        else:
+        else:    # pragma: no cover
             logging.warn("No attributes available to get regions")
             return None
 
@@ -377,7 +377,7 @@ class CoreSystem():
                     return [None if ee not in entries else ee for ee in ind]
                 else:
                     return ind
-        else:
+        else:    # pragma: no cover
             logging.warn("No attributes available to get sectors")
             return None
 
@@ -1056,7 +1056,7 @@ class Extension(CoreSystem):
         plt.legend(loc='best')
         try:
             plt.tight_layout()
-        except:
+        except:       # pragma: no cover
             pass
 
         if file_name:
@@ -1218,7 +1218,7 @@ class Extension(CoreSystem):
                     fin_txt = dc.publish_string(
                         fin_txt, writer_name=format,
                         settings_overrides={'output_encoding': 'unicode'})
-                except:
+                except:       # pragma: no cover
                     logging.warn(
                         'Module docutils not available - write rst instead')
                     format = 'rst'
@@ -1235,7 +1235,7 @@ class Extension(CoreSystem):
 
         # restore plot status
         mpl.rcParams.update(_rcParams)
-        if _plt:
+        if _plt:       # pragma: no cover
             plt.ion()
 
     def get_rows(self):

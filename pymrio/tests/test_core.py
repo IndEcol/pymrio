@@ -3,7 +3,10 @@
 
 import sys
 import os
+
 import pytest
+import pandas as pd
+import pandas.util.testing as pdt
 
 _pymriopath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _pymriopath + '/../../')
@@ -105,6 +108,8 @@ def test_get_sectors(fix_testmrio):
     assert fix_testmrio.testmrio.get_sectors(
         ['construction', 'food', 'a'])[
             fix_testmrio.sectors.index('food')] == 'food'
+    assert (fix_testmrio.testmrio.get_sectors('food') ==
+            [e if e == 'food' else None for e in fix_testmrio.sectors])
     assert fix_testmrio.testmrio.get_sectors(
         ['construction', 'food', 'a'])[1] == None  # noqa
 
@@ -112,11 +117,17 @@ def test_get_sectors(fix_testmrio):
 def test_get_regions(fix_testmrio):
     assert list(fix_testmrio.testmrio.get_regions()) == fix_testmrio.regions
 
+    assert (fix_testmrio.testmrio.get_regions(fix_testmrio.regions[:]) ==
+            fix_testmrio.regions)
+
+    assert (fix_testmrio.testmrio.get_regions('reg4') ==
+            [e if e == 'reg4' else None for e in fix_testmrio.regions])
+
 
 def test_get_Y_categories(fix_testmrio):
     assert list(fix_testmrio.testmrio.get_Y_categories()) == fix_testmrio.Y_cat
 
-    assert (fix_testmrio.testmrio.get_Y_categories(fix_testmrio.Y_cat[:]) == 
+    assert (fix_testmrio.testmrio.get_Y_categories(fix_testmrio.Y_cat[:]) ==
             fix_testmrio.Y_cat)
 
     assert (fix_testmrio.testmrio.get_Y_categories('Export') ==
@@ -133,6 +144,27 @@ def test_rename_regions(fix_testmrio):
     assert fix_testmrio.testmrio.get_regions()[2] == new_reg_list[2]
 
 
+def test_rename_sectors(fix_testmrio):
+    new_sec_name = 'yummy'
+    new_sec_list = ['s1', 's2', 's3', 's4', 's5', 's6']
+    fix_testmrio.testmrio.rename_sectors({'food': new_sec_name})
+    assert fix_testmrio.testmrio.get_sectors()[0] == new_sec_name
+    fix_testmrio.testmrio.rename_sectors(new_sec_list)
+    assert fix_testmrio.testmrio.get_sectors()[0] == new_sec_list[0]
+    assert fix_testmrio.testmrio.get_sectors()[4] == new_sec_list[4]
+
+
+def test_rename_Ycat(fix_testmrio):
+    new_cat_name = 'HouseCons'
+    new_cat_list = ['y1', 'y2', 'y3', 'y4', 'y5', 'y6', 'y7']
+    fix_testmrio.testmrio.rename_Y_categories(
+        {fix_testmrio.Y_cat[0]: new_cat_name})
+    assert fix_testmrio.testmrio.get_Y_categories()[0] == new_cat_name
+    fix_testmrio.testmrio.rename_Y_categories(new_cat_list)
+    assert fix_testmrio.testmrio.get_Y_categories()[0] == new_cat_list[0]
+    assert fix_testmrio.testmrio.get_Y_categories()[-1] == new_cat_list[-1]
+
+
 def test_copy_and_extensions(fix_testmrio):
     tcp = fix_testmrio.testmrio.copy()
     tcp.remove_extension(tcp.get_extensions())
@@ -141,12 +173,51 @@ def test_copy_and_extensions(fix_testmrio):
         fix_testmrio.testmrio.get_extensions())) == 2
 
 
+def test_get_row_data(fix_testmrio):
+    stressor = ('emission_type1', 'air')
+    tt = fix_testmrio.testmrio.copy().calc_all()
+    td = tt.emissions.get_row_data(stressor)['D_cba_reg']
+    md = pd.DataFrame(tt.emissions.D_cba_reg.loc[stressor])
+    pdt.assert_frame_equal(td, md)
+
+    for df_name in tt.emissions.get_DataFrame():
+        assert df_name in tt.emissions.get_row_data(stressor)
+
+
+def test_diag_stressor(fix_testmrio):
+    stressor_name = ('emission_type1', 'air')
+    stressor_number = 0
+    ext = fix_testmrio.testmrio.emissions
+    dext_name = ext.diag_stressor(stressor_name)
+    dext_number = ext.diag_stressor(stressor_number)
+    pdt.assert_frame_equal(dext_name.F, dext_number.F)
+
+    assert dext_name.F.iloc[0, 0] == ext.F.iloc[stressor_number, 0]
+    assert dext_name.F.iloc[1, 1] == ext.F.iloc[stressor_number, 1]
+    assert sum(dext_name.F.iloc[0, 1:-1]) == 0
+    assert sum(dext_name.F.iloc[1:-1, 0]) == 0
+
+
 def test_reset_to_flows(fix_testmrio):
     tt = fix_testmrio.testmrio
     assert tt.A is None
     tt.calc_all()
     tt.reset_to_flows()
     assert tt.A is None
+    tt.Z = None
+    with pytest.raises(pymrio.core.mriosystem.ResetError):
+        tt.reset_to_flows()
+    with pytest.warns(pymrio.core.mriosystem.ResetWarning):
+        tt.reset_to_flows(force=True)
+
+
+def test_reset_all_to_flows(fix_testmrio):
+    tt = fix_testmrio.testmrio
+    assert tt.A is None
+    tt.calc_all()
+    tt.reset_all_to_flows()
+    assert tt.A is None
+    assert tt.emissions.S is None
     tt.Z = None
     with pytest.raises(pymrio.core.mriosystem.ResetError):
         tt.reset_to_flows()
@@ -165,6 +236,22 @@ def test_reset_full(fix_testmrio):
         tt.reset_full()
     with pytest.warns(pymrio.core.mriosystem.ResetWarning):
         tt.reset_full(force=True)
+
+
+def test_reset_all_full(fix_testmrio):
+    tt = fix_testmrio.testmrio
+    assert tt.A is None
+    assert tt.emissions.S is None
+    tt.calc_all()
+    tt.reset_all_full()
+    assert tt.A is None
+    assert tt.emissions.S is None
+    assert tt.emissions.D_cba is None
+    tt.Z = None
+    with pytest.raises(pymrio.core.mriosystem.ResetError):
+        tt.reset_all_full()
+    with pytest.warns(pymrio.core.mriosystem.ResetWarning):
+        tt.reset_all_full(force=True)
 
 
 def test_reset_to_coefficients(fix_testmrio):
