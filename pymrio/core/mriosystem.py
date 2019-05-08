@@ -1103,13 +1103,6 @@ class Extension(CoreSystem):
             raise ValueError('Either per_region or per_capita must be choosen')
 
         _plt = plt.isinteractive()
-        _rcParams = mpl.rcParams.copy()
-        rcParams = {
-            'figure.figsize': (10, 5),
-            'figure.dpi': 350,
-            'axes.titlesize': 20,
-            'axes.labelsize': 20,
-        }
         plt.ioff()
 
         if type(path) is str:
@@ -1229,8 +1222,6 @@ class Extension(CoreSystem):
             logging.info('Report for {what} written to {file_where}'.
                          format(what=arep, file_where=str(_repfile)))
 
-        # restore plot status
-        mpl.rcParams.update(_rcParams)
         if _plt:       # pragma: no cover
             plt.ion()
 
