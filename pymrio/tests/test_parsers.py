@@ -3,6 +3,8 @@
 import os
 import sys
 
+import pytest
+
 testpath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, testpath + '/../../')
 
@@ -26,3 +28,7 @@ def test_parse_eora26():
 
     assert eora_short.get_regions()[0] == 'reg1'
     assert eora_full.get_regions()[0] == 'Region 1'
+
+    with pytest.raises(pymrio.ParserError):
+        eora_fail = pymrio.parse_eora26(eoramockpath, year=2010,
+                                        country_names='bogus')
