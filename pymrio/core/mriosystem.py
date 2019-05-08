@@ -1162,7 +1162,7 @@ class Extension(CoreSystem):
 
                 # get valid file name
                 def clean(varStr):
-                    return re.sub('\W|^(?=\d)', '_', varStr)
+                    return re.sub(r'\W|^(?=\d)', '_', varStr)
                 file_name = (clean(name_row +
                                    reports_to_write[arep].spec_string))
                 # possibility of still having __ in there:
@@ -1204,9 +1204,13 @@ class Extension(CoreSystem):
                     import docutils.core as dc
                     if format == 'tex':
                         format == 'latex'
-                    fin_txt = dc.publish_string(
-                        fin_txt, writer_name=format,
-                        settings_overrides={'output_encoding': 'unicode'})
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings("ignore",
+                                                category=DeprecationWarning)
+                        fin_txt = dc.publish_string(
+                            fin_txt, writer_name=format,
+                            settings_overrides={'output_encoding': 'unicode'})
+
                 except:       # pragma: no cover
                     logging.warn(
                         'Module docutils not available - write rst instead')
