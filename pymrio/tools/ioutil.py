@@ -113,8 +113,7 @@ def get_file_para(path, path_in_arc=''):
     FileNotFoundError if parameter file not found
 
     """
-    if type(path) is str:
-        path = Path(path.rstrip('\\'))
+    path = Path(path)
 
     if zipfile.is_zipfile(str(path)):
         para_file_folder = str(path_in_arc)

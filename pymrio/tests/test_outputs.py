@@ -55,6 +55,14 @@ def test_graphs_totals(fix_testmrio_calc):
     assert (ax.patches[6].get_height() ==
             tt.emissions.D_pba_reg.loc[stressor, 'reg1'])
 
+    with pytest.raises(ValueError):
+        ax = tt.emissions.plot_account(row=stressor, per_capita=5)
+
+    with pytest.raises(ValueError):
+        ax = tt.emissions.plot_account(row=stressor,
+                                       sector='food',
+                                       per_capita=True)
+
 
 def test_graphs_population_sector(fix_testmrio_calc):
     """ Testing graph per population for a specific sector """

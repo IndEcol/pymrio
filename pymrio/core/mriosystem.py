@@ -452,9 +452,7 @@ class CoreSystem():
             default = '%.12g', only for txt files
         """
 
-        if type(path) is str:
-            path = path.rstrip('\\')
-            path = Path(path)
+        path = Path(path)
 
         path.mkdir(parents=True, exist_ok=True)
 
@@ -469,7 +467,6 @@ class CoreSystem():
         else:
             raise ValueError('Unknown table format "{}" - '
                              'must be "txt" or "pkl"'.format(table_format))
-            return None
 
         if not table_ext:
             if table_format == 'txt':
@@ -953,8 +950,7 @@ class Extension(CoreSystem):
         """
         # necessary if row is given for Multiindex without brackets
         if type(per_capita) is not bool:
-            logging.error('per_capita parameter must be boolean')
-            return None
+            raise ValueError('per_capita parameter must be boolean')
 
         if type(row) is int:
             row = self.D_cba.loc[row].name
@@ -1104,7 +1100,7 @@ class Extension(CoreSystem):
         """
 
         if not per_region and not per_capita:
-            return
+            raise ValueError('Either per_region or per_capita must be choosen')
 
         _plt = plt.isinteractive()
         _rcParams = mpl.rcParams.copy()
@@ -1695,9 +1691,7 @@ class IOSystem(CoreSystem):
         Extensions. See parameters description there.
         """
 
-        if type(path) is str:
-            path = path.rstrip('\\')
-            path = Path(path)
+        path = Path(path)
 
         path.mkdir(parents=True, exist_ok=True)
 

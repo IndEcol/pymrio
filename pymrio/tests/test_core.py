@@ -167,7 +167,9 @@ def test_rename_Ycat(fix_testmrio):
 
 def test_copy_and_extensions(fix_testmrio):
     tcp = fix_testmrio.testmrio.copy()
-    tcp.remove_extension(tcp.get_extensions())
+    tcp.remove_extension('Emissions')
+    assert len(list(tcp.get_extensions())) == 1
+    tcp.remove_extension()
     assert len(list(tcp.get_extensions())) == 0
     assert len(list(
         fix_testmrio.testmrio.get_extensions())) == 2

@@ -87,17 +87,46 @@ def test_fileio(tmpdir):
     zip_arc = os.path.join(save_path, 'test_mrio.zip')
     if os.path.exists(zip_arc):
         os.remove(zip_arc)
+
+    with pytest.raises(FileExistsError):
+        pymrio.archive(
+            source=fc.filelist,
+            archive=zip_arc,
+            remove_source=False,
+            path_in_arc='test_duplicates')
+
+        pymrio.archive(
+            source=fc.filelist,
+            archive=zip_arc,
+            remove_source=False,
+            path_in_arc='test_duplicates')
+
+    if os.path.exists(zip_arc):
+        os.remove(zip_arc)
+
     pymrio.archive(
         source=save_path,
         archive=zip_arc,
-        remove_source=False,
+        remove_source=True,
         path_in_arc='test')
+
+    fc = pymrio.get_repo_content(zip_arc)
+    assert fc.iszip is True
+    assert 'Z.txt' in [os.path.basename(f) for f in fc.filelist]
+    assert 'FY.txt' in [os.path.basename(f) for f in fc.filelist]
+    assert 'unit.txt' in [os.path.basename(f) for f in fc.filelist]
 
     emissions = pymrio.load(zip_arc, path_in_arc='test/emissions')
     npt.assert_allclose(mr.emissions.F.values, emissions.F.values, rtol=1e-5)
 
     mr3 = pymrio.load_all(zip_arc)
     npt.assert_allclose(mr.Z.values, mr3.Z.values, rtol=1e-5)
+
+    with pytest.raises(pymrio.ReadError):
+        pymrio.load_all(zip_arc, path_in_arc='./foo')
+
+    with pytest.raises(pymrio.ReadError):
+        pymrio.load(path='./foo')
 
 
 def test_reports(tmpdir):
@@ -110,6 +139,12 @@ def test_reports(tmpdir):
     mr = pymrio.load_test().calc_all()
 
     save_path = str(tmpdir.mkdir('pymrio_test_reports'))
+
+    with pytest.raises(ValueError):
+        mr.report_accounts(path=save_path,
+                           per_capita=False,
+                           per_region=False,
+                           format='html')
 
     mr.report_accounts(path=save_path,
                        per_capita=True,
