@@ -6,3 +6,5 @@ exclude_lines =
     raise NotImplementedError
     _load_ini_based_io
     if __name__ == .__main__.:
+omit = 
+    *tools/iodownloader.py
