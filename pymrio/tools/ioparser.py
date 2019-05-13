@@ -366,6 +366,7 @@ def generic_exiobase12_parser(exio_files, system=None):
             _unit.reset_index(level='unit', drop=True, inplace=True)
             _unit = pd.DataFrame(_unit)
             _unit.columns = ['unit']
+
         _unit = pd.DataFrame(_unit)
         _unit.columns = ['unit']
         _new_unit = _unit.unit.str.replace('/'+mon_unit, '')
