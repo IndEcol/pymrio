@@ -62,5 +62,5 @@ def test_parse_eora26(fix_testmrio_calc):
     assert eora_full.get_regions()[0] == 'Region 1'
 
     with pytest.raises(pymrio.ParserError):
-        eora_fail = pymrio.parse_eora26(eoramockpath, year=2010,
+        eora_fail = pymrio.parse_eora26(eora_mockpath, year=2010,
                                         country_names='bogus')
