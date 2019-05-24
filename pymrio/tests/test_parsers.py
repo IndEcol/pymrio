@@ -2,8 +2,8 @@
 
 import os
 import sys
-import pytest
 
+import pandas.util.testing as pdt
 import pytest
 
 testpath = os.path.dirname(os.path.abspath(__file__))
@@ -40,7 +40,35 @@ def test_parse_exio1(fix_testmrio_calc):
     assert exio1.get_regions()[0] == 'reg1'
 
     with pytest.raises(pymrio.ParserError):
-        exio_fail = pymrio.parse_exiobase1('foo')
+        _ = pymrio.parse_exiobase1('foo')
+
+
+def test_parse_exio2(fix_testmrio_calc):
+    exio2_mockpath = os.path.join(testpath, 'mock_mrios', 'exio2_mock',
+                                  'mrIOT_PxP_ita_coefficient_version2.2.2.zip')
+
+    test_mrio = fix_testmrio_calc.testmrio
+
+    exio2 = pymrio.parse_exiobase2(exio2_mockpath, popvector=None)
+    exio2.calc_all()
+
+    assert (test_mrio.emissions.S.iloc[1, 1] ==
+            pytest.approx(exio2.emissions.S.iloc[1, 1]))
+
+    assert (test_mrio.emissions.D_cba.iloc[0, 5] ==
+            pytest.approx(exio2.emissions.D_cba.iloc[0, 5]))
+
+    pdt.assert_series_equal(
+            exio2.impact.D_cba.loc['total emissions'],
+            test_mrio.emissions.D_cba.sum(axis=0), check_names=False)
+
+    assert exio2.get_regions()[0] == 'reg1'
+
+    with pytest.raises(pymrio.ParserError):
+        _ = pymrio.parse_exiobase2('foo')
+
+    with pytest.raises(pymrio.ParserError):
+        _ = pymrio.parse_exiobase2('foo.zip')
 
 
 def test_parse_eora26(fix_testmrio_calc):

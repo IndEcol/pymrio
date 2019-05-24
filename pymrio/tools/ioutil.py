@@ -145,9 +145,9 @@ def get_file_para(path, path_in_arc=''):
 
     return namedtuple('file_parameter',
                       ['folder', 'name', 'content'])(
-                       para_file_folder,
-                       os.path.basename(para_file_full_path),
-                       para_file_content)
+        para_file_folder,
+        os.path.basename(para_file_full_path),
+        para_file_content)
 
 
 def build_agg_matrix(agg_vector, pos_dict=None):
@@ -423,8 +423,8 @@ def build_agg_vec(agg_vec, **source):
                     break
             else:
                 logging.error(
-                        'Aggregation vector -- {} -- not found'
-                        .format(str(entry)))
+                    'Aggregation vector -- {} -- not found'
+                    .format(str(entry)))
 
     # build the summary aggregation vector
     def _rep(ll, ii, vv): ll[ii] = vv
@@ -525,6 +525,7 @@ def sniff_csv_format(csv_file,
             break
 
     lines_with_sep = [line for line in test_lines if sep in line]
+
     nr_header_row = None
     nr_index_col = None
 
@@ -535,8 +536,6 @@ def sniff_csv_format(csv_file,
                 if find_first_number(line.split(sep)) == nr_index_col:
                     break
 
-    if not nr_index_col:
-        import ipdb; ipdb.set_trace()
     return dict(sep=sep,
                 nr_header_row=nr_header_row,
                 nr_index_col=nr_index_col)

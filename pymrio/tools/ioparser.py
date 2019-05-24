@@ -234,6 +234,7 @@ def get_exiobase_files(path, coefficients=True):
         elif len(found_file) == 0:
             continue
         else:
+            logging.debug(f'Process file {found_file[0]}')
             if repo_content.iszip:
                 format_para = sniff_csv_format(found_file[0],
                                                zip_file=path)
