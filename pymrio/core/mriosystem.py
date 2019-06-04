@@ -421,7 +421,7 @@ class CoreSystem():
                 else:
                     yield key
 
-    def save(self, path, table_format='txt', sep='\t',
+    def save(self, save_path, table_format='txt', sep='\t',
              table_ext=None, float_format='%.12g'):
         """ Saving the system to path
 
@@ -452,11 +452,11 @@ class CoreSystem():
             default = '%.12g', only for txt files
         """
 
-        path = Path(path)
+        save_path = Path(save_path)
 
-        path.mkdir(parents=True, exist_ok=True)
+        save_path.mkdir(parents=True, exist_ok=True)
 
-        para_file_path = path / DEFAULT_FILE_NAMES['filepara']
+        para_file_path = save_path / DEFAULT_FILE_NAMES['filepara']
         file_para = dict()
         file_para['files'] = dict()
 
@@ -497,7 +497,7 @@ class CoreSystem():
                 nr_header = 1
 
             save_file = df_name + table_ext
-            save_file_with_path = path / save_file
+            save_file_with_path = save_path / save_file
             logging.info('Save file {}'.format(save_file_with_path))
             if table_format == 'txt':
                 df.to_csv(save_file_with_path, sep=sep,
@@ -516,10 +516,10 @@ class CoreSystem():
         if file_para['systemtype'] == GENERIC_NAMES['iosys']:
             if not self.meta:
                 self.meta = MRIOMetaData(name=self.name,
-                                         location=path)
+                                         location=save_path)
 
-            self.meta._add_fileio("Saved {} to {}".format(self.name, path))
-            self.meta.save(location=path)
+            self.meta._add_fileio("Saved {} to {}".format(self.name, save_path))
+            self.meta.save(location=save_path)
 
         return self
 
@@ -1676,7 +1676,7 @@ class IOSystem(CoreSystem):
         self.meta._add_modify("Reset full system to coefficients")
         return self
 
-    def save_all(self, path, table_format='txt', sep='\t',
+    def save_all(self, save_path, table_format='txt', sep='\t',
                  table_ext=None, float_format='%.12g'):
         """ Saves the system and all extensions
 
@@ -1686,11 +1686,11 @@ class IOSystem(CoreSystem):
         Extensions. See parameters description there.
         """
 
-        path = Path(path)
+        save_path = Path(save_path)
 
-        path.mkdir(parents=True, exist_ok=True)
+        save_path.mkdir(parents=True, exist_ok=True)
 
-        self.save(path=path,
+        self.save(save_path=save_path,
                   table_format=table_format,
                   sep=sep,
                   table_ext=table_ext,
@@ -1698,9 +1698,9 @@ class IOSystem(CoreSystem):
 
         for ext, ext_name in zip(self.get_extensions(data=True),
                                  self.get_extensions()):
-            ext_path = path / ext_name
+            ext_path = save_path / ext_name
 
-            ext.save(path=ext_path,
+            ext.save(save_path=ext_path,
                      table_format=table_format,
                      sep=sep,
                      table_ext=table_ext,

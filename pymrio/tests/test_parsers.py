@@ -71,6 +71,22 @@ def test_parse_exio2(fix_testmrio_calc):
         _ = pymrio.parse_exiobase2('foo.zip')
 
 
+def test_parse_exio3(fix_testmrio_calc):
+    exio3_mockpath = os.path.join(testpath, 'mock_mrios', 'exio3_mock')
+
+    test_mrio = fix_testmrio_calc.testmrio
+
+    exio3 = pymrio.parse_exiobase3(exio3_mockpath)
+    # TODO: calc all - problems when loading extensions, testing these and the
+    # rename of the regions
+    # exio3.calc_all()
+
+    exio3.A.equals(test_mrio.A)
+    # pdt.assert_frame_equal(exio3.Z, test_mrio.Z)
+
+
+
+
 def test_parse_eora26(fix_testmrio_calc):
     eora_mockpath = os.path.join(
         testpath, 'mock_mrios', 'eora26_mock')

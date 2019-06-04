@@ -1,0 +1,11 @@
+{
+    "description": "test mrio for pymrio",
+    "name": "testmrio",
+    "system": "pxp",
+    "version": "v1",
+    "history": [
+        "20190604 15:17:24 - FILEIO -  Saved testmrio to ~/tmp/ex3",
+        "20190604 15:15:19 - FILEIO -  Load test_mrio from /home/konstans/proj/pymrio/pymrio/mrio_models/test_mrio",
+        "20171024 12:11:47 - FILEIO -  Created metadata file ../test_mrio/metadata.json"
+    ]
+}
