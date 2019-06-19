@@ -611,7 +611,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
                     charac_data[Qname].iloc[:, Q_head_col_rowunit[Qname]])
             _unit[Qname].columns = ['unit']
             _unit[Qname].index.name = 'impact'
-            charac_data[Qname] = charac_data[Qname].ix[
+            charac_data[Qname] = charac_data[Qname].iloc[
                 :, Q_head_col_rowunit[Qname]+1:]
             charac_data[Qname].index.name = 'impact'
 
@@ -1324,7 +1324,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     df_unit = pd.DataFrame(index=df_F.index, columns=['unit'])
     _ss_unit = para['unit'].get('all', 'undef')
     for ikr in df_unit.index:
-        df_unit.ix[ikr, 'unit'] = para['unit'].get(ikr, _ss_unit)
+        df_unit.loc[ikr, 'unit'] = para['unit'].get(ikr, _ss_unit)
 
     df_unit.columns.names = ['unit']
     df_unit.index.names = ['stressor']
@@ -1407,7 +1407,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet='DATA'):
         if 'RoW' not in ds_use_sea.index.get_level_values('Country'):
             ds_RoW = ds_use_sea.xs('USA',
                                    level='Country', drop_level=False)
-            ds_RoW.ix[:] = 0
+            ds_RoW.loc[:] = 0
             df_RoW = ds_RoW.reset_index()
             df_RoW['Country'] = 'RoW'
             ds_use_sea = pd.concat(

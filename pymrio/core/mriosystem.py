@@ -518,7 +518,8 @@ class CoreSystem():
                 self.meta = MRIOMetaData(name=self.name,
                                          location=save_path)
 
-            self.meta._add_fileio("Saved {} to {}".format(self.name, save_path))
+            self.meta._add_fileio("Saved {} to {}".format(self.name,
+                                                          save_path))
             self.meta.save(location=save_path)
 
         return self
