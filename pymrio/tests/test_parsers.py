@@ -6,6 +6,8 @@ import sys
 import pandas.util.testing as pdt
 import pytest
 
+import numpy as np
+
 testpath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, testpath + '/../../')
 
@@ -77,14 +79,15 @@ def test_parse_exio3(fix_testmrio_calc):
     test_mrio = fix_testmrio_calc.testmrio
 
     exio3 = pymrio.parse_exiobase3(exio3_mockpath)
-    # TODO: calc all - problems when loading extensions, testing these and the
-    # rename of the regions
-    # exio3.calc_all()
+    exio3.calc_all()
 
-    exio3.A.equals(test_mrio.A)
-    # pdt.assert_frame_equal(exio3.Z, test_mrio.Z)
+    assert np.allclose(exio3.A, test_mrio.A)
+    assert np.allclose(exio3.satellite.D_cba,
+                       test_mrio.emissions.D_cba)
 
-
+    # Test the renaming of the regions - depends on the correct pseudo
+    # naming in the mock mrio
+    assert list(exio3.get_regions()) == ['AU', 'BR', 'FI', 'FR', 'KR', 'WF']
 
 
 def test_parse_eora26(fix_testmrio_calc):
