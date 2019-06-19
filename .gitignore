@@ -17,6 +17,8 @@ Session.vim
 #*.png
 #*.gif
 #*.pyc
+#
+.~lock.*
 Session.vim
 /.cache
 /dist/
