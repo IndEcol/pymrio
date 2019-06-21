@@ -1,3 +1,0 @@
-stressor	unit
-emission_type1	kg
-emission_type2	kg

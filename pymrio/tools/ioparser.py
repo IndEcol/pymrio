@@ -149,10 +149,14 @@ def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
         F.reset_index(level='unit', drop=True, inplace=True)
 
     if drop_compartment:
-        F.reset_index(level='compartment',
-                      drop=True, inplace=True)
-        unit.reset_index(level='compartment',
-                         drop=True, inplace=True)
+        try:
+            F.reset_index(level='compartment',
+                          drop=True, inplace=True)
+            unit.reset_index(level='compartment',
+                             drop=True, inplace=True)
+        except KeyError:
+            # In case compartment was not part to begin with
+            pass
 
     return Extension(name=name,
                      F=F,
