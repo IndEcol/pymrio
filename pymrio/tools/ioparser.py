@@ -1029,7 +1029,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
 
     # SEA extension
     _F_sea_data, _F_sea_unit = __get_WIOD_SEA_extension(
-                            root_path=root_path, year=year)
+                            root_path=root_path, year=wiot_year)
     if _F_sea_data is not None:
         # None if no SEA file present
         _FY_sea = pd.DataFrame(index=_F_sea_data.index,
@@ -1113,7 +1113,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     _ss_FY_pressure_column = 'c37'
     for ik_ext in dl_envext_para:
         _dl_ex = __get_WIOD_env_extension(root_path=root_path,
-                                          year=year,
+                                          year=wiot_year,
                                           ll_co=ll_countries,
                                           para=dl_envext_para[ik_ext])
         if _dl_ex is not None:

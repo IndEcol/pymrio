@@ -91,8 +91,8 @@ def test_parse_exio3(fix_testmrio_calc):
 
 
 def test_parse_exio_ext():
-
     ext_mockpath = os.path.join(testpath, 'mock_mrios', 'exio_ext_mock')
+
     col5 = os.path.join(ext_mockpath, 'ext_5col.txt')
     col3 = os.path.join(ext_mockpath, 'ext_3col.txt')
     col2 = os.path.join(ext_mockpath, 'ext_2col.txt')
@@ -131,6 +131,24 @@ def test_parse_exio_ext():
     assert list(ext5_wcmp.F.index.names) == ['stressor', 'compartment']
     assert list(ext3_wcmp.F.index.names) == ['stressor', 'compartment']
     assert ext2_wcmp.F.index.name == 'stressor'
+
+
+def test_parse_wiod():
+    wiod_mockpath = os.path.join(testpath, 'mock_mrios', 'wiod_mock')
+    ww_path = pymrio.parse_wiod(path=wiod_mockpath, year=2009)
+    ww_file = pymrio.parse_wiod(path=os.path.join(wiod_mockpath,
+                                                  'wiot09_row_sep12.xlsx'))
+
+    ww_path.calc_all()
+    ww_file.calc_all()
+
+    pdt.assert_frame_equal(ww_path.Z, ww_file.Z)
+    pdt.assert_frame_equal(ww_path.lan.D_cba, ww_file.lan.D_cba)
+    pdt.assert_frame_equal(ww_path.SEA.D_pba, ww_file.SEA.D_pba)
+    pdt.assert_frame_equal(ww_path.AIR.D_imp, ww_file.AIR.D_imp)
+
+    assert ww_file.AIR.FY.loc['NOX', ('LUX', 'c37')] == 999
+    assert ww_file.SEA.F.loc['EMP', ('RoW', '19')] == 0
 
 
 def test_parse_eora26(fix_testmrio_calc):
