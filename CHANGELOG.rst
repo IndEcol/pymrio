@@ -3,6 +3,13 @@ Changelog
 #########
 
 ***************************
+v0.4.0 (under development)
+***************************
+
+* Improved test coverage (with focus on the mrio parser)
+
+
+***************************
 v0.3.8 (November 06, 2018)
 ***************************
 
