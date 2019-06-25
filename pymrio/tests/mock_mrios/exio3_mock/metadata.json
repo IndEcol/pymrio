@@ -1,0 +1,9 @@
+{
+    "description": "Mock EXIOBASE 3 for 2009",
+    "name": "exio3_mock",
+    "system": "pxp",
+    "version": "v3.4_mock",
+    "history": [
+        "20180331 15:52:13 - FILEIO -  Created mock mrio"
+    ]
+}

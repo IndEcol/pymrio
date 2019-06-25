@@ -1,0 +1,2 @@
+I-GHG-CO2 emissions (kg)	emission_type1
+I-GHG-CO2 emissions (kg)	emission_type2

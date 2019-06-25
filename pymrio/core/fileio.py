@@ -75,7 +75,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
     def clean(varStr):
         """ get valid python name from folder
         """
-        return re.sub('\W|^(?=\d)', '_', str(varStr))
+        return re.sub(r'\W|^(?=\d)', '_', str(varStr))
 
     path = Path(path)
 
@@ -270,9 +270,9 @@ def load(path, include_core=True, path_in_arc=''):
                             pd.read_pickle(zf.open(full_file_name)))
                 else:
                     setattr(ret_system, key,
-                            pd.read_table(zf.open(full_file_name),
-                                          index_col=_index_col,
-                                          header=_header))
+                            pd.read_csv(zf.open(full_file_name),
+                                        index_col=_index_col,
+                                        header=_header, sep='\t'))
         else:
             full_file_name = path / file_name
             logging.info('Load data from {}'.format(full_file_name))
@@ -283,9 +283,10 @@ def load(path, include_core=True, path_in_arc=''):
                         pd.read_pickle(full_file_name))
             else:
                 setattr(ret_system, key,
-                        pd.read_table(full_file_name,
-                                      index_col=_index_col,
-                                      header=_header))
+                        pd.read_csv(full_file_name,
+                                    index_col=_index_col,
+                                    header=_header,
+                                    sep='\t'))
     return ret_system
 
 
@@ -408,7 +409,7 @@ def archive(source, archive, path_in_arc=None, remove_source=False,
             pass
 
 
-def _load_all_ini_based_io(path, **kwargs):
+def _load_all_ini_based_io(path, **kwargs):   # pragma: no cover
     """ DEPRECATED: For convert a previous version to the new json format
 
     Loads the whole IOSystem with Extensions given in path
@@ -433,7 +434,7 @@ def _load_all_ini_based_io(path, **kwargs):
 
 def _load_ini_based_io(path, recursive=False, ini=None,
                        subini={}, include_core=True,
-                       only_coefficients=False):
+                       only_coefficients=False):    # pragma: no cover
     """ DEPRECATED: For convert a previous version to the new json format
 
     Loads a IOSystem or Extension from a ini files
@@ -572,9 +573,9 @@ def _load_ini_based_io(path, recursive=False, ini=None,
                     pd.read_pickle(file))
         else:
             setattr(ret_system, key,
-                    pd.read_table(file,
-                                  index_col=_index_col,
-                                  header=_header))
+                    pd.read_csv(file,
+                                index_col=_index_col,
+                                header=_header, sep='\t'))
 
     if recursive:
         # look for subfolder in the given path
@@ -663,13 +664,14 @@ def _load_ini_based_io(path, recursive=False, ini=None,
                             pd.read_pickle(file))
                 else:
                     setattr(sub_system, key,
-                            pd.read_table(file,
-                                          index_col=_index_col,
-                                          header=_header))
+                            pd.read_csv(file,
+                                        index_col=_index_col,
+                                        header=_header,
+                                        sep='\t'))
 
                 # get valid python name from folder
                 def clean(varStr):
-                    return re.sub('\W|^(?=\d)', '_', str(varStr))
+                    return re.sub(r'\W|^(?=\d)', '_', str(varStr))
 
                 setattr(ret_system, clean(subfolder), sub_system)
 
@@ -732,11 +734,12 @@ def load_test():
     meta_rec = MRIOMetaData(location=PYMRIO_PATH['test_mrio'])
 
     # read the data into a dicts as pandas.DataFrame
-    data = {key: pd.read_table(
+    data = {key: pd.read_csv(
                  os.path.join(PYMRIO_PATH['test_mrio'],
                               test_system[key].file_name),
                  index_col=list(range(test_system[key].col_header)),
-                 header=list(range(test_system[key].row_header)))
+                 header=list(range(test_system[key].row_header)),
+                 sep='\t')
             for key in test_system}
 
     meta_rec._add_fileio('Load test_mrio from {}'.format(
@@ -780,9 +783,9 @@ def load_test():
 
     # the population data - this is optional (None can be passed if no data is
     # available)
-    popdata = pd.read_table(
+    popdata = pd.read_csv(
             os.path.join(PYMRIO_PATH['test_mrio'], './population.txt'),
-            index_col=0).astype(float)
+            index_col=0, sep='\t').astype(float)
 
     return IOSystem(Z=data['Z'],
                     Y=data['Y'],

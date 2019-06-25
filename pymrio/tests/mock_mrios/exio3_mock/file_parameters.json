@@ -1,0 +1,20 @@
+{
+    "files": {
+        "A": {
+            "name": "A.txt",
+            "nr_index_col": "2",
+            "nr_header": "2"
+        },
+        "Y": {
+            "name": "Y.txt",
+            "nr_index_col": "2",
+            "nr_header": "2"
+        },
+        "unit": {
+            "name": "unit.txt",
+            "nr_index_col": "2",
+            "nr_header": "1"
+        }
+    },
+    "systemtype": "IOSystem"
+}

@@ -1,0 +1,42 @@
+Region 1	reg1	Final Demand	Final consumption expenditure by households
+Region 1	reg1	Final Demand	Final consumption expenditure by non-profit organisations serving households (NPISH)
+Region 1	reg1	Final Demand	Final consumption expenditure by government
+Region 1	reg1	Final Demand	Gross fixed capital formation
+Region 1	reg1	Final Demand	Changes in inventories
+Region 1	reg1	Final Demand	Changes in valuables
+Region 1	reg1	Final Demand	Export
+Region 2	reg2	Final Demand	Final consumption expenditure by households
+Region 2	reg2	Final Demand	Final consumption expenditure by non-profit organisations serving households (NPISH)
+Region 2	reg2	Final Demand	Final consumption expenditure by government
+Region 2	reg2	Final Demand	Gross fixed capital formation
+Region 2	reg2	Final Demand	Changes in inventories
+Region 2	reg2	Final Demand	Changes in valuables
+Region 2	reg2	Final Demand	Export
+Region 3	reg3	Final Demand	Final consumption expenditure by households
+Region 3	reg3	Final Demand	Final consumption expenditure by non-profit organisations serving households (NPISH)
+Region 3	reg3	Final Demand	Final consumption expenditure by government
+Region 3	reg3	Final Demand	Gross fixed capital formation
+Region 3	reg3	Final Demand	Changes in inventories
+Region 3	reg3	Final Demand	Changes in valuables
+Region 3	reg3	Final Demand	Export
+Region 4	reg4	Final Demand	Final consumption expenditure by households
+Region 4	reg4	Final Demand	Final consumption expenditure by non-profit organisations serving households (NPISH)
+Region 4	reg4	Final Demand	Final consumption expenditure by government
+Region 4	reg4	Final Demand	Gross fixed capital formation
+Region 4	reg4	Final Demand	Changes in inventories
+Region 4	reg4	Final Demand	Changes in valuables
+Region 4	reg4	Final Demand	Export
+Region 5	reg5	Final Demand	Final consumption expenditure by households
+Region 5	reg5	Final Demand	Final consumption expenditure by non-profit organisations serving households (NPISH)
+Region 5	reg5	Final Demand	Final consumption expenditure by government
+Region 5	reg5	Final Demand	Gross fixed capital formation
+Region 5	reg5	Final Demand	Changes in inventories
+Region 5	reg5	Final Demand	Changes in valuables
+Region 5	reg5	Final Demand	Export
+Region 6	reg6	Final Demand	Final consumption expenditure by households
+Region 6	reg6	Final Demand	Final consumption expenditure by non-profit organisations serving households (NPISH)
+Region 6	reg6	Final Demand	Final consumption expenditure by government
+Region 6	reg6	Final Demand	Gross fixed capital formation
+Region 6	reg6	Final Demand	Changes in inventories
+Region 6	reg6	Final Demand	Changes in valuables
+Region 6	reg6	Final Demand	Export

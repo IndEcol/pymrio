@@ -17,6 +17,8 @@ Session.vim
 #*.png
 #*.gif
 #*.pyc
+#
+.~lock.*
 Session.vim
 /.cache
 /dist/
@@ -27,3 +29,8 @@ Session.vim
 /.cache
 /.idea
 /**/.ipynb_checkpoints/
+
+# Coverage stuff
+.coverage
+/htmlcov
+/**/htmlcov

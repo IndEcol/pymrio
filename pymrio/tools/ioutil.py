@@ -113,8 +113,7 @@ def get_file_para(path, path_in_arc=''):
     FileNotFoundError if parameter file not found
 
     """
-    if type(path) is str:
-        path = Path(path.rstrip('\\'))
+    path = Path(path)
 
     if zipfile.is_zipfile(str(path)):
         para_file_folder = str(path_in_arc)
@@ -146,9 +145,9 @@ def get_file_para(path, path_in_arc=''):
 
     return namedtuple('file_parameter',
                       ['folder', 'name', 'content'])(
-                       para_file_folder,
-                       os.path.basename(para_file_full_path),
-                       para_file_content)
+        para_file_folder,
+        os.path.basename(para_file_full_path),
+        para_file_content)
 
 
 def build_agg_matrix(agg_vector, pos_dict=None):
@@ -424,8 +423,8 @@ def build_agg_vec(agg_vec, **source):
                     break
             else:
                 logging.error(
-                        'Aggregation vector -- {} -- not found'
-                        .format(str(entry)))
+                    'Aggregation vector -- {} -- not found'
+                    .format(str(entry)))
 
     # build the summary aggregation vector
     def _rep(ll, ii, vv): ll[ii] = vv
@@ -495,7 +494,7 @@ def sniff_csv_format(csv_file,
         for i in range(max_test_lines):
             line = ff.readline()
             if line == '':
-                break
+                continue
             try:
                 line = line.decode('utf-8')
             except AttributeError:
@@ -525,13 +524,15 @@ def sniff_csv_format(csv_file,
         if sep:
             break
 
+    lines_with_sep = [line for line in test_lines if sep in line]
+
     nr_header_row = None
     nr_index_col = None
 
     if sep:
-        nr_index_col = find_first_number(test_lines[-1].split(sep))
+        nr_index_col = find_first_number(lines_with_sep[-1].split(sep))
         if nr_index_col:
-            for nr_header_row, line in enumerate(test_lines):
+            for nr_header_row, line in enumerate(lines_with_sep):
                 if find_first_number(line.split(sep)) == nr_index_col:
                     break
 

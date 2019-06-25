@@ -1,6 +1,6 @@
 """
 Various parser for available MRIOs and files in a similar format
-
+as
 
 KST 20140903
 """
@@ -119,7 +119,7 @@ def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
 
     ext_file = os.path.abspath(str(ext_file))
 
-    F = pd.read_table(
+    F = pd.read_csv(
         ext_file,
         header=[0, 1],
         index_col=list(range(index_col)),
@@ -149,10 +149,14 @@ def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
         F.reset_index(level='unit', drop=True, inplace=True)
 
     if drop_compartment:
-        F.reset_index(level='compartment',
-                      drop=True, inplace=True)
-        unit.reset_index(level='compartment',
-                         drop=True, inplace=True)
+        try:
+            F.reset_index(level='compartment',
+                          drop=True, inplace=True)
+            unit.reset_index(level='compartment',
+                             drop=True, inplace=True)
+        except KeyError:
+            # In case compartment was not part to begin with
+            pass
 
     return Extension(name=name,
                      F=F,
@@ -197,27 +201,27 @@ def get_exiobase_files(path, coefficients=True):
     if coefficients:
         exio_core_regex = dict(
             # don’t match file if starting with _
-            A=re.compile('(?<!\_)mrIot.*txt'),
-            Y=re.compile('(?<!\_)mrFinalDemand.*txt'),
-            S_factor_inputs=re.compile('(?<!\_)mrFactorInputs.*txt'),
-            S_emissions=re.compile('(?<!\_)mrEmissions.*txt'),
-            S_materials=re.compile('(?<!\_)mrMaterials.*txt'),
-            S_resources=re.compile('(?<!\_)mrResources.*txt'),
-            FY_resources=re.compile('(?<!\_)mrFDResources.*txt'),
-            FY_emissions=re.compile('(?<!\_)mrFDEmissions.*txt'),
-            FY_materials=re.compile('(?<!\_)mrFDMaterials.*txt'),
+            A=re.compile(r'(?<!\_)mrIot.*txt'),
+            Y=re.compile(r'(?<!\_)mrFinalDemand.*txt'),
+            S_factor_inputs=re.compile(r'(?<!\_)mrFactorInputs.*txt'),
+            S_emissions=re.compile(r'(?<!\_)mrEmissions.*txt'),
+            S_materials=re.compile(r'(?<!\_)mrMaterials.*txt'),
+            S_resources=re.compile(r'(?<!\_)mrResources.*txt'),
+            FY_resources=re.compile(r'(?<!\_)mrFDResources.*txt'),
+            FY_emissions=re.compile(r'(?<!\_)mrFDEmissions.*txt'),
+            FY_materials=re.compile(r'(?<!\_)mrFDMaterials.*txt'),
             )
     else:
         exio_core_regex = dict(
             # don’t match file if starting with _
-            Z=re.compile('(?<!\_)mrIot.*txt'),
-            Y=re.compile('(?<!\_)mrFinalDemand.*txt'),
-            F_fac=re.compile('(?<!\_)mrFactorInputs.*txt'),
-            F_emissions=re.compile('(?<!\_)mrEmissions.*txt'),
-            F_materials=re.compile('(?<!\_)mrMaterials.*txt'),
-            F_resources=re.compile('(?<!\_)mrResources.*txt'),
-            FY_emissions=re.compile('(?<!\_)mrFDEmissions.*txt'),
-            FY_materials=re.compile('(?<!\_)mrFDMaterials.*txt'),
+            Z=re.compile(r'(?<!\_)mrIot.*txt'),
+            Y=re.compile(r'(?<!\_)mrFinalDemand.*txt'),
+            F_fac=re.compile(r'(?<!\_)mrFactorInputs.*txt'),
+            F_emissions=re.compile(r'(?<!\_)mrEmissions.*txt'),
+            F_materials=re.compile(r'(?<!\_)mrMaterials.*txt'),
+            F_resources=re.compile(r'(?<!\_)mrResources.*txt'),
+            FY_emissions=re.compile(r'(?<!\_)mrFDEmissions.*txt'),
+            FY_materials=re.compile(r'(?<!\_)mrFDMaterials.*txt'),
             )
 
     repo_content = get_repo_content(path)
@@ -234,6 +238,7 @@ def get_exiobase_files(path, coefficients=True):
         elif len(found_file) == 0:
             continue
         else:
+            logging.debug(f'Process file {found_file[0]}')
             if repo_content.iszip:
                 format_para = sniff_csv_format(found_file[0],
                                                zip_file=path)
@@ -293,15 +298,17 @@ def generic_exiobase12_parser(exio_files, system=None):
         logging.debug("Parse {}".format(full_file_path))
         if tpara['root_repo'][-3:] == 'zip':
             with zipfile.ZipFile(tpara['root_repo'], 'r') as zz:
-                raw_data = pd.read_table(
+                raw_data = pd.read_csv(
                     zz.open(tpara['file_path']),
                     index_col=list(range(tpara['index_col'])),
-                    header=list(range(tpara['index_rows'])))
+                    header=list(range(tpara['index_rows'])),
+                    sep='\t')
         else:
-            raw_data = pd.read_table(
+            raw_data = pd.read_csv(
                 full_file_path,
                 index_col=list(range(tpara['index_col'])),
-                header=list(range(tpara['index_rows'])))
+                header=list(range(tpara['index_rows'])),
+                sep='\t')
 
         meta_rec._add_fileio('EXIOBASE data {} parsed from {}'.format(
             tt, full_file_path))
@@ -364,6 +371,7 @@ def generic_exiobase12_parser(exio_files, system=None):
             _unit.reset_index(level='unit', drop=True, inplace=True)
             _unit = pd.DataFrame(_unit)
             _unit.columns = ['unit']
+
         _unit = pd.DataFrame(_unit)
         _unit.columns = ['unit']
         _new_unit = _unit.unit.str.replace('/'+mon_unit, '')
@@ -554,7 +562,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
                            for Qname in Qsheets}
         else:
             _content = get_repo_content(path)
-            charac_regex = re.compile('(?<!\_)(?<!\.)characterisation.*xlsx')
+            charac_regex = re.compile(r'(?<!\_)(?<!\.)characterisation.*xlsx')
             charac_files = [ff for ff in _content.filelist if
                             re.search(charac_regex, ff)]
             if len(charac_files) > 1:
@@ -607,7 +615,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
                     charac_data[Qname].iloc[:, Q_head_col_rowunit[Qname]])
             _unit[Qname].columns = ['unit']
             _unit[Qname].index.name = 'impact'
-            charac_data[Qname] = charac_data[Qname].ix[
+            charac_data[Qname] = charac_data[Qname].iloc[
                 :, Q_head_col_rowunit[Qname]+1:]
             charac_data[Qname].index.name = 'impact'
 
@@ -642,9 +650,9 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
 
     if popvector is 'exio2':
         logging.debug('Read population vector')
-        io.population = pd.read_table(os.path.join(PYMRIO_PATH['exio20'],
-                                                   './misc/population.txt'),
-                                      index_col=0).astype(float)
+        io.population = pd.read_csv(os.path.join(PYMRIO_PATH['exio20'],
+                                                 './misc/population.txt'),
+                                    index_col=0, sep='\t').astype(float)
     else:
         io.population = popvector
 
@@ -1021,7 +1029,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
 
     # SEA extension
     _F_sea_data, _F_sea_unit = __get_WIOD_SEA_extension(
-                            root_path=root_path, year=year)
+                            root_path=root_path, year=wiot_year)
     if _F_sea_data is not None:
         # None if no SEA file present
         _FY_sea = pd.DataFrame(index=_F_sea_data.index,
@@ -1105,7 +1113,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     _ss_FY_pressure_column = 'c37'
     for ik_ext in dl_envext_para:
         _dl_ex = __get_WIOD_env_extension(root_path=root_path,
-                                          year=year,
+                                          year=wiot_year,
                                           ll_co=ll_countries,
                                           para=dl_envext_para[ik_ext])
         if _dl_ex is not None:
@@ -1320,7 +1328,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     df_unit = pd.DataFrame(index=df_F.index, columns=['unit'])
     _ss_unit = para['unit'].get('all', 'undef')
     for ikr in df_unit.index:
-        df_unit.ix[ikr, 'unit'] = para['unit'].get(ikr, _ss_unit)
+        df_unit.loc[ikr, 'unit'] = para['unit'].get(ikr, _ss_unit)
 
     df_unit.columns.names = ['unit']
     df_unit.index.names = ['stressor']
@@ -1403,7 +1411,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet='DATA'):
         if 'RoW' not in ds_use_sea.index.get_level_values('Country'):
             ds_RoW = ds_use_sea.xs('USA',
                                    level='Country', drop_level=False)
-            ds_RoW.ix[:] = 0
+            ds_RoW.loc[:] = 0
             df_RoW = ds_RoW.reset_index()
             df_RoW['Country'] = 'RoW'
             ds_use_sea = pd.concat(
@@ -1440,9 +1448,9 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     Note
     ----
 
-    This parser deletes the statistical disrecpancy columns from
+    This parser deletes the statistical discrepancy columns from
     the parsed Eora system (reports the amount of loss in the
-    meta recors).
+    meta records).
 
     Eora does not provide any information on the unit of the
     monetary values. Based on personal communication the unit
@@ -1453,13 +1461,13 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     ----------
 
     path : string or pathlib.Path
-       Path to the eora raw storage folder or a specific eora zip file to
+       Path to the Eora raw storage folder or a specific eora zip file to
        parse.  There are several options to specify the data for parsing:
 
-       1) Pass the name of eora zip file. In this case the parameters 'year'
+       1) Pass the name of Eora zip file. In this case the parameters 'year'
           and 'price' will not be used
-       2) Pass a folder which eiter contains eora zip files or unpacked eora
-          data In that case, a year must be given
+       2) Pass a folder which either contains Eora zip files or unpacked Eora
+          data. In that case, a year must be given
        3) Pass a folder which contains subfolders in the format 'YYYY', e.g.
           '1998' This subfolder can either contain an Eora zip file or an
           unpacked Eora system
@@ -1486,7 +1494,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     elif country_names[0].lower() == 'f':
         country_names = 'full'
     else:
-        raise ParserError('Parameter country_names must be eora or full')
+        raise ParserError('Parameter country_names must be Eora or full')
 
     row_name = 'ROW'
     eora_zip_ext = '.zip'
@@ -1515,7 +1523,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
 
         if len(eora_file_list) > 1:
             raise ParserError('Multiple files for a given year '
-                              'found (specify a specific file in paramters)')
+                              'found (specify a specific file in parameters)')
         elif len(eora_file_list) == 1:
             eora_loc = os.path.join(path, eora_file_list[0])
             is_zip = True
@@ -1581,19 +1589,19 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     if is_zip:
         zip_file = zipfile.ZipFile(eora_loc)
         eora_data = {
-            key: pd.read_table(
+            key: pd.read_csv(
                 zip_file.open(filename),
                 sep=eora_sep,
-                header=None
+                header=None,
                 ) for
             key, filename in eora_files.items()}
         zip_file.close()
     else:
         eora_data = {
-            key: pd.read_table(
+            key: pd.read_csv(
                 os.path.join(eora_loc, filename),
                 sep=eora_sep,
-                header=None
+                header=None,
                 ) for
             key, filename in eora_files.items()}
     meta_rec._add_fileio(
