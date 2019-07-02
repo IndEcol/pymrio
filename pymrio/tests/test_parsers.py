@@ -151,6 +151,19 @@ def test_parse_wiod():
     assert ww_file.SEA.F.loc['EMP', ('RoW', '19')] == 0
 
 
+def test_oecd():
+    oecd_mockpath = os.path.join(testpath, 'mock_mrios', 'oecd_mock')
+    oecd_IO_file = os.path.join(oecd_mockpath, 'ICIO2016_2003.csv')
+
+    oecd_file = pymrio.parse_oecd(path=oecd_IO_file)
+    oecd_year = pymrio.parse_oecd(path=oecd_mockpath, year=2003)
+
+    with pytest.raises(pymrio.ParserError):
+        oecd_fail = pymrio.parse_oecd(oecd_mockpath, year=1077)
+
+    oecd_file.calc_all()
+
+
 def test_parse_eora26(fix_testmrio_calc):
     eora_mockpath = os.path.join(
         testpath, 'mock_mrios', 'eora26_mock')
