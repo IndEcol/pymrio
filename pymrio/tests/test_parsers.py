@@ -8,7 +8,11 @@ import pytest
 
 import numpy as np
 
-testpath = os.path.dirname(os.path.abspath(__file__))
+try:
+    testpath = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    testpath = os.getcwd()  # easy run in interpreter
+
 sys.path.insert(0, testpath + '/../../')
 
 import pymrio  # noqa
@@ -158,11 +162,25 @@ def test_oecd():
     oecd_file = pymrio.parse_oecd(path=oecd_IO_file)
     oecd_year = pymrio.parse_oecd(path=oecd_mockpath, year=2003)
 
+    pdt.assert_frame_equal(oecd_file.Z, oecd_year.Z)
+    pdt.assert_frame_equal(oecd_file.Y, oecd_year.Y)
+
     with pytest.raises(pymrio.ParserError):
-        oecd_fail = pymrio.parse_oecd(oecd_mockpath, year=1077)
+        _ = pymrio.parse_oecd(oecd_mockpath, year=1077)
 
     oecd_file.calc_all()
 
+    assert oecd_file.Z.loc[
+        ('AUS', 'C01T05AGR'), ('AUS', 'C01T05AGR')] == 23697.221
+    assert oecd_file.Z.loc[
+        ('NZL', 'C23PET'), ('AUS', 'C20WOD')] == 684.49784
+    assert oecd_file.Y.loc[
+        ('NZL', 'C23PET'), ('PER', 'DIRP')] == 14822221.0
+
+    # TODO test aggregation of China:
+    # added values
+    # number of regions
+    # name of regions
 
 def test_parse_eora26(fix_testmrio_calc):
     eora_mockpath = os.path.join(

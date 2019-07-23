@@ -28,6 +28,11 @@ EORA26_CONFIG = {
     'url_db_content': 'http://worldmrio.com/',
     }
 
+OECD_CONFIG = {
+    'url_db_view': 'https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm',     # NOQA
+    'url_db_content': 'https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm',    # NOQA
+    }
+
 
 def _get_url_datafiles(url_db_view, url_db_content,
                        mrio_regex, access_cookie=None):
@@ -110,6 +115,64 @@ def _download_urls(url_list, storage_folder, overwrite_existing,
         meta_handler.save()
 
     return meta_handler
+
+
+def download_oecd(storage_folder, version='SNA08', years=None, overwrite_existing=False)
+    """ Downloads the OECD ICIO tables
+
+
+    Parameters
+    ----------
+    storage_folder: str, valid path
+        Location to store the download, folder will be created if
+        not existing. If the file is already present in the folder,
+        the download of the specific file will be skipped.
+
+    years: list of int or str, optional
+        If years is given only downloads the specific years. 
+
+    overwrite_existing: boolean, optional
+        If False, skip download of file already existing in
+        the storage folder (default). Set to True to replace
+        files.
+
+    """
+
+    try:
+        os.makedirs(storage_folder)
+    except FileExistsError:
+        pass
+
+    # if type(years) is int or type(years) is str:
+        # years = [years]
+    # years = years if years else range(1995, 2012)
+    # years = [str(yy).zfill(2)[-2:] for yy in years]
+
+    # wiod_web_content = _get_url_datafiles(
+        # url_db_view=WIOD_CONFIG['url_db_view'],
+        # url_db_content=WIOD_CONFIG['url_db_content'],
+        # mrio_regex=r'protected.*?wiot\d\d.*?xlsx')
+
+    # restricted_wiod_io_urls = [url for url in wiod_web_content.data_urls if
+                               # re.search(r"(wiot)(\d\d)",
+                                         # os.path.basename(url)).group(2)
+                               # in years]
+
+    # meta = MRIOMetaData(location=storage_folder,
+                        # description='WIOD metadata file for pymrio',
+                        # name='WIOD',
+                        # system='ixi',
+                        # version='data13')
+
+    # meta = _download_urls(url_list=restricted_wiod_io_urls + satellite_urls,
+                          # storage_folder=storage_folder,
+                          # overwrite_existing=overwrite_existing,
+                          # meta_handler=meta)
+
+    # meta.save()
+    return meta
+
+
 
 
 def download_wiod2013(storage_folder, years=None, overwrite_existing=False,

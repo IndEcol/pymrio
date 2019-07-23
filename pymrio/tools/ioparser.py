@@ -1460,8 +1460,9 @@ def parse_oecd(path, year=None):
     if not os.path.isdir(path):
         # 1. case - one file specified in path
         oecd_file = path
+        path = os.path.split(oecd_file)[0] 
     else:
-        # 2. case: directory given-build wiot_file with the value given in year
+        # 2. case: directory given - build oecd_file with the value given in year
         oecd_file_list = [
             fl for fl in os.listdir(path)
             if (os.path.splitext(fl)[1] in ['.csv', '.CSV', '.zip'] and
@@ -1487,7 +1488,28 @@ def parse_oecd(path, year=None):
 
         oecd_file = os.path.join(path, oecd_file_list[0])
 
+    oecd_file_name = os.path.split(oecd_file)[1]
+
+    try:
+        years = re.findall(r'\d\d\d\d', oecd_file_name)
+        oecd_version = years[0]
+        oecd_year = years[1]
+        meta_desc = 'OECD ICIO for {}'.format(oecd_year)
+
+    except IndexError:
+        oecd_version = 'n/a'
+        oecd_year = 'n/a'
+        meta_desc = 'OECD ICIO - year undefined'
+
+    meta_rec = MRIOMetaData(location=path,
+                            name='OECD-ICIO',
+                            description=meta_desc,
+                            version=oecd_version)
+
     oecd_raw = pd.read_csv(oecd_file, sep=',', index_col=0).fillna(0)
+    meta_rec._add_fileio('OECD data parsed from {}'.format(oecd_file))
+    # IxI information based on the readme 
+    meta_rec.change_meta('system', 'IxI') 
 
     mon_unit = 'Million USD'
 
@@ -1548,12 +1570,16 @@ def parse_oecd(path, year=None):
         Z=Z,
         Y=Y,
         unit=unit,
+        meta=meta_rec,
         factor_inputs={
             'name': 'factor_inputs',
             'unit': F_unit,
             'F': F_factor_input,
             'FY': FY_factor_input}
     )
+
+    # TODO: aggregation of China and Mexico
+    
 
     return oecd
 
