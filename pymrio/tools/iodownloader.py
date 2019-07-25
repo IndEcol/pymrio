@@ -11,6 +11,7 @@ from pymrio.tools.iometadata import MRIOMetaData
 WIOD_CONFIG = {
     'url_db_view': 'http://www.wiod.org/database/wiots13',
     'url_db_content':  'http://www.wiod.org/',
+    'mrio_regex': r'protected.*?wiot\d\d.*?xlsx',
     'satellite_urls':  [
         'http://www.wiod.org/protected3/data13/SEA/WIOD_SEA_July14.xlsx',
         'http://www.wiod.org/protected3/data13/EU/EU_may12.zip',
@@ -29,13 +30,15 @@ EORA26_CONFIG = {
     }
 
 OECD_CONFIG = {
-    'url_db_view': 'https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm',     # NOQA
-    'url_db_content': 'https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm',    # NOQA
+    'url_db_view': 'https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm',  # NOQA
+    'url_db_content': 'https://www.oecd.org/sti/ind/',
+    'mrio_regex': r'ICIO\d\d\d\d_\d\d\d\d\.zip',
     }
 
 
 def _get_url_datafiles(url_db_view, url_db_content,
-                       mrio_regex, access_cookie=None):
+                       mrio_regex, access_cookie=None,
+                       requests_func=requests.post):
     """ Urls of mrio files by parsing url content for mrio_regex
 
     Parameters
@@ -54,6 +57,10 @@ def _get_url_datafiles(url_db_view, url_db_content,
     access_cookie: dict, optional
         If needed, cookie to access the database
 
+    requests_func: function
+        Function to use for retrieving the url content.
+        Can be requests.get or requests.post
+
     Returns
     -------
     Named tuple:
@@ -65,7 +72,7 @@ def _get_url_datafiles(url_db_view, url_db_content,
     # but currently works for wiod and eora
     returnvalue = namedtuple('url_content',
                              ['raw_text', 'data_urls'])
-    url_text = requests.post(url_db_view, cookies=access_cookie).text
+    url_text = requests_func(url_db_view, cookies=access_cookie).text
     data_urls = [url_db_content + ff
                  for ff in re.findall(mrio_regex, url_text)]
     return returnvalue(raw_text=url_text, data_urls=data_urls)
@@ -117,7 +124,8 @@ def _download_urls(url_list, storage_folder, overwrite_existing,
     return meta_handler
 
 
-def download_oecd(storage_folder, version='SNA08', years=None, overwrite_existing=False)
+def download_oecd(storage_folder, version='v2018', 
+                  years=None, overwrite_existing=False):
     """ Downloads the OECD ICIO tables
 
 
@@ -128,7 +136,14 @@ def download_oecd(storage_folder, version='SNA08', years=None, overwrite_existin
         not existing. If the file is already present in the folder,
         the download of the specific file will be skipped.
 
-    years: list of int or str, optional
+    version: string or int, optional
+        Two versions of the ICIO OECD tables are currently availabe:
+        Version >v2016<: based on >SNA93< / >ISIC Rev.3<
+        Version >v2018<: based on >SNA08< / >ISIC Rev.4< (default)
+        Pass any of the identifiers between >< to specifiy the 
+        version to be downloaded.
+
+    years: list of int (4 digit) or str, optional
         If years is given only downloads the specific years. 
 
     overwrite_existing: boolean, optional
@@ -143,15 +158,76 @@ def download_oecd(storage_folder, version='SNA08', years=None, overwrite_existin
     except FileExistsError:
         pass
 
-    # if type(years) is int or type(years) is str:
-        # years = [years]
-    # years = years if years else range(1995, 2012)
-    # years = [str(yy).zfill(2)[-2:] for yy in years]
+    if type(version) is int:
+            version = str(version)
 
-    # wiod_web_content = _get_url_datafiles(
-        # url_db_view=WIOD_CONFIG['url_db_view'],
-        # url_db_content=WIOD_CONFIG['url_db_content'],
-        # mrio_regex=r'protected.*?wiot\d\d.*?xlsx')
+    if ('8' in version) or ('4' in version):
+        version = 'v2018'
+    elif ('3' in version) or ('6' in version):
+        version = 'v2016'
+    else:
+        raise ParserError('Version not understood')
+
+    if type(years) is int or type(years) is str:
+        years = [years]
+    if not years:
+        if version == 'v2018':
+            years = range(2005, 2016)
+        else:
+            years = range(1995, 2012)
+    years = [str(yy) for yy in years]
+
+    # For OECD the generic download routines can not be used
+    # b/c the 2018 version is coded as aspx fileview property 
+    # in the html source - instead a hardcoded dict is used
+    # to select the url for download
+    #2016: https://www.oecd.org/sti/ind/ICIO2016_1995.zip
+
+    # 2018:
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1f134869-1820-49ce-b8b8-3973ec8db607"
+    # target="_blank">2005</a></td>
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=da62c835-f4fa-4450-bf19-1dd60f88a385"
+    # target="_blank">2006</a></td>
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=c4d4c21d-00db-48d8-9f9a-f722fcdca494"
+    # target="_blank">2007</a></td>
+    # </tr>
+    # <tr>
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1fd2fc03-c140-46f4-818e-9a66b671ff70"
+    # target="_blank">2008</a></td>
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=4cc79090-d1ee-48b6-a252-e75312d32a1c"
+    # target="_blank">2009</a></td>
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=16d04830-3c27-47a5-bc03-e429d27f585e"
+    # target="_blank">2010</a></td>
+    # </tr>
+    # <tr>
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=dc48c8c0-f200-487a-aecb-0c2c17fe3ddf"
+    # target="_blank">2011</a></td>
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=cfd03495-8a90-4449-8097-a30f06853cab"
+    # target="_blank">2012</a></td>
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=8c8ac674-1b6c-4c8e-94d1-158f06285659"
+    # target="_blank">2013</a></td>
+    # </tr>
+    # <tr>
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=0190bd9d-31d0-4171-bd1c-82d96b88e469"
+    # target="_blank">2014</a></td>
+    # <td><a
+    # href="http://stats.oecd.org/wbos/fileview2.aspx?IDFile=9f579ef3-4685-45e4-a0ba-d1acbd9755a6"
+    # target="_blank">2015</a></td>
+    # # web_content = _get_url_datafiles(
+        # url_db_view=OECD_CONFIG['url_db_view'],
+        # url_db_content=OECD_CONFIG['url_db_content'],
+        # mrio_regex=OECD_CONFIG['mrio_regex'],
+        # requests_func=requests.get)
 
     # restricted_wiod_io_urls = [url for url in wiod_web_content.data_urls if
                                # re.search(r"(wiot)(\d\d)",
@@ -225,7 +301,7 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
     wiod_web_content = _get_url_datafiles(
         url_db_view=WIOD_CONFIG['url_db_view'],
         url_db_content=WIOD_CONFIG['url_db_content'],
-        mrio_regex=r'protected.*?wiot\d\d.*?xlsx')
+        mrio_regex=WIOD_CONFIG['mrio_regex'])
 
     restricted_wiod_io_urls = [url for url in wiod_web_content.data_urls if
                                re.search(r"(wiot)(\d\d)",
