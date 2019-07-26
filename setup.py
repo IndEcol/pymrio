@@ -21,7 +21,7 @@ setup(
     install_requires=['pandas >= 0.22.0',
                       'matplotlib >= 2.0.0',
                       'requests >= 2.18',
-                      'numpy >= 0.12.0',
+                      'numpy >= 1.13.4',
                       'xlrd >= 1.1.0'
                      ],
     classifiers=[
