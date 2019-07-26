@@ -50,8 +50,9 @@ def test_parse_exio1(fix_testmrio_calc):
 
 
 def test_parse_exio2(fix_testmrio_calc):
-    exio2_mockpath = os.path.join(testpath, 'mock_mrios', 'exio2_mock',
-                                  'mrIOT_PxP_ita_coefficient_version2.2.2.zip')
+    # exio2_mockpath = os.path.join(testpath, 'mock_mrios', 'exio2_mock',
+    # 'mrIOT_PxP_ita_coefficient_version2.2.2.zip')
+    exio2_mockpath = os.path.join(testpath, 'mock_mrios', 'exio2_mock')
 
     test_mrio = fix_testmrio_calc.testmrio
 
