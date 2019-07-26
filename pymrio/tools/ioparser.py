@@ -174,7 +174,7 @@ def get_exiobase12_version(filename):
     try:
         ver_match = re.search(r'(\d+\w*(\.|\-|\_))*\d+\w*', filename)
         version = ver_match.string[ver_match.start():ver_match.end()]
-        if re.search('\_\d\d\d\d', version[-5:]):
+        if re.search(r'\_\d\d\d\d', version[-5:]):
             version = version[:-5]
     except AttributeError:
         version = None
@@ -1460,9 +1460,9 @@ def parse_oecd(path, year=None):
     if not os.path.isdir(path):
         # 1. case - one file specified in path
         oecd_file = path
-        path = os.path.split(oecd_file)[0] 
+        path = os.path.split(oecd_file)[0]
     else:
-        # 2. case: directory given - build oecd_file with the value given in year
+        # 2. case: dir given - build oecd_file with the value given in year
         oecd_file_list = [
             fl for fl in os.listdir(path)
             if (os.path.splitext(fl)[1] in ['.csv', '.CSV', '.zip'] and
@@ -1492,7 +1492,7 @@ def parse_oecd(path, year=None):
 
     try:
         years = re.findall(r'\d\d\d\d', oecd_file_name)
-        oecd_version = years[0]
+        oecd_version = 'v' + years[0]
         oecd_year = years[1]
         meta_desc = 'OECD ICIO for {}'.format(oecd_year)
 
@@ -1508,8 +1508,8 @@ def parse_oecd(path, year=None):
 
     oecd_raw = pd.read_csv(oecd_file, sep=',', index_col=0).fillna(0)
     meta_rec._add_fileio('OECD data parsed from {}'.format(oecd_file))
-    # IxI information based on the readme 
-    meta_rec.change_meta('system', 'IxI') 
+    # IxI information based on the readme
+    meta_rec.change_meta('system', 'IxI')
 
     mon_unit = 'Million USD'
 
@@ -1579,7 +1579,6 @@ def parse_oecd(path, year=None):
     )
 
     # TODO: aggregation of China and Mexico
-    
 
     return oecd
 

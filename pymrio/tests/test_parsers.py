@@ -137,6 +137,7 @@ def test_parse_exio_ext():
     assert ext2_wcmp.F.index.name == 'stressor'
 
 
+@pytest.mark.filterwarnings("ignore:Extension data")
 def test_parse_wiod():
     wiod_mockpath = os.path.join(testpath, 'mock_mrios', 'wiod_mock')
     ww_path = pymrio.parse_wiod(path=wiod_mockpath, year=2009)
@@ -182,6 +183,7 @@ def test_oecd():
     # number of regions
     # name of regions
 
+
 def test_parse_eora26(fix_testmrio_calc):
     eora_mockpath = os.path.join(
         testpath, 'mock_mrios', 'eora26_mock')
@@ -201,5 +203,5 @@ def test_parse_eora26(fix_testmrio_calc):
     assert eora_full.get_regions()[0] == 'Region 1'
 
     with pytest.raises(pymrio.ParserError):
-        eora_fail = pymrio.parse_eora26(eora_mockpath, year=2010,
-                                        country_names='bogus')
+        _ = pymrio.parse_eora26(eora_mockpath, year=2010,
+                                country_names='bogus')
