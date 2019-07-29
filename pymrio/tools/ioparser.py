@@ -1298,7 +1298,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         df_env = df_env[df_env.iloc[:, 0] != 'total']
         df_env = df_env[df_env.iloc[:, 0] != 'secTOT']
         df_env = df_env[df_env.iloc[:, 0] != 'secQ']
-        df_env.iloc[:, 0].astype(str, inplace=True)
+        df_env.iloc[:, 0] = df_env.iloc[:, 0].astype(str)
         df_env.iloc[:, 0].replace(to_replace='sec',
                                   value='',
                                   regex=True,
