@@ -1240,7 +1240,7 @@ class Extension(CoreSystem):
                                'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
-                return getattr(self, df).index.get_values()
+                return getattr(self, df).index
         else:
             logging.warn("No attributes available to get row names")
             return None
