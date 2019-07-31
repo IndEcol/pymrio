@@ -1710,7 +1710,7 @@ class IOSystem(CoreSystem):
 
     def aggregate(self, region_agg=None, sector_agg=None,
                   region_names=None, sector_names=None,
-                  inplace=True, pre_aggregation=False):
+                  inplace=True):
         """ Aggregates the IO system.
 
             Aggregation can be given as vector (use pymrio.build_agg_vec) or
