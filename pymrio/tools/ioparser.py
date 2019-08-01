@@ -1555,10 +1555,38 @@ def parse_oecd(path, year=None):
     Y.index = Z.index
 
     F_factor_input.columns = Z.columns
-    F_factor_input.index.name = IDX_NAMES['F_row_single']
+    F_factor_input.index.names = IDX_NAMES['VA_row_single']
     FY_factor_input.columns = Y.columns
     FY_factor_input.index = F_factor_input.index
 
+    # Aggregation of CN and MX subregions
+    core_co_names = Z.columns.get_level_values('region').unique()
+
+    agg_corr = dict(
+        CHN=[a for a in core_co_names if re.match(r'CN\d', a)],
+        MEX=[a for a in core_co_names if re.match(r'MX\d', a)])
+
+    for co_name, agg_list in agg_corr.items():
+        if (co_name not in core_co_names) or (len(agg_list) == 0):
+            continue
+        # aggregate rows
+        Z.loc[co_name, :] = (Z.loc[[co_name], :] +
+                             Z.loc[agg_list, :].sum(level='sector', axis=0))
+        Z = Z.drop(agg_list, axis=0)
+        Y.loc[co_name, :] = (Y.loc[[co_name], :] +
+                             Y.loc[agg_list, :].sum(level='sector', axis=0))
+        Y = Y.drop(agg_list, axis=0)
+
+        # aggregate columns
+        Z.loc[:, co_name] = (Z.loc[:, [co_name]] +
+                             Z.loc[:, agg_list].sum(level='sector', axis=1))
+        Z = Z.drop(agg_list, axis=1)
+        F_factor_input.loc[:, co_name] = (
+            F_factor_input.loc[:, [co_name]] +
+            F_factor_input.loc[:, agg_list].sum(level='sector', axis=1))
+        F_factor_input = F_factor_input.drop(agg_list, axis=1)
+
+    # unit df generation at the end to have consistent index
     unit = pd.DataFrame(index=Z.index,
                         data=mon_unit,
                         columns=['unit'])

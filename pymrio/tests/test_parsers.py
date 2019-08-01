@@ -171,17 +171,29 @@ def test_oecd():
 
     oecd_file.calc_all()
 
-    assert oecd_file.Z.loc[
-        ('AUS', 'C01T05AGR'), ('AUS', 'C01T05AGR')] == 23697.221
-    assert oecd_file.Z.loc[
-        ('NZL', 'C23PET'), ('AUS', 'C20WOD')] == 684.49784
-    assert oecd_file.Y.loc[
-        ('NZL', 'C23PET'), ('PER', 'DIRP')] == 14822221.0
+    # Test standard values
+    assert np.allclose(oecd_file.Z.loc[
+        ('AUS', 'C01T05AGR'), ('AUS', 'C01T05AGR')], 23697.221)
+    assert np.allclose(oecd_file.Z.loc[
+        ('NZL', 'C23PET'), ('AUS', 'C20WOD')], 684.49784)
+    assert np.allclose(oecd_file.Y.loc[
+        ('NZL', 'C23PET'), ('PER', 'DIRP')], 14822221.0)
 
-    # TODO test aggregation of China:
-    # added values
-    # number of regions
-    # name of regions
+    # Test aggregation
+    assert 'CHN' in oecd_file.get_regions()
+    assert 'CN1' not in oecd_file.get_regions()
+    assert 'CN2' not in oecd_file.get_regions()
+
+    assert oecd_file.Z.shape == (32, 32)
+
+    assert np.allclose(oecd_file.Z.loc[
+        ('CHN', 'C01T05AGR'), ('AUS', 'C15T16FOD')], 6932.1858)
+    assert np.allclose(oecd_file.Z.loc[
+        ('CHN', 'C01T05AGR'), ('AUS', 'C15T16FOD')], 6932.1858)
+    assert np.allclose(oecd_file.Y.loc[
+        ('CHN', 'C23PET'), ('NZL', 'HFCE')], 24074818)
+    assert np.allclose(oecd_file.factor_inputs.F.loc[
+        'VA+TAXSUB', ('CHN', 'C20WOD')], 569612.84)
 
 
 def test_parse_eora26(fix_testmrio_calc):
