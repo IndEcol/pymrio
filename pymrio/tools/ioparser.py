@@ -1480,7 +1480,7 @@ def parse_oecd(path, year=None):
 
             if len(unique_file_data) > 1:
                 raise ParserError('Multiple files for a given year '
-                                  'found(specify a specific file in the '
+                                  'found (specify a specific file in the '
                                   'parameter "path")')
 
         elif len(oecd_file_list) == 0:
@@ -1504,12 +1504,12 @@ def parse_oecd(path, year=None):
     meta_rec = MRIOMetaData(location=path,
                             name='OECD-ICIO',
                             description=meta_desc,
-                            version=oecd_version)
+                            version=oecd_version,
+                            system='IxI',   # base don the readme
+                            )
 
     oecd_raw = pd.read_csv(oecd_file, sep=',', index_col=0).fillna(0)
     meta_rec._add_fileio('OECD data parsed from {}'.format(oecd_file))
-    # IxI information based on the readme
-    meta_rec.change_meta('system', 'IxI')
 
     mon_unit = 'Million USD'
 
@@ -1519,7 +1519,8 @@ def parse_oecd(path, year=None):
     oecd_raw.drop(oecd_totals_col, axis=1, errors='ignore', inplace=True)
     oecd_raw.drop(oecd_totals_row, axis=0, errors='ignore', inplace=True)
 
-    factor_input = oecd_raw.filter(regex='VA|TAX', axis=0)
+    # Important - these must not match any country or industry name
+    factor_input = oecd_raw.filter(regex='VALU|TAX', axis=0)
     final_demand = oecd_raw.filter(
         regex='HFCE|NPISH|NPS|GGFC|GFCF|INVNT|INV|DIRP|FD|P33|DISC', axis=1)
 
