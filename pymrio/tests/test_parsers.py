@@ -156,44 +156,73 @@ def test_parse_wiod():
     assert ww_file.SEA.F.loc['EMP', ('RoW', '19')] == 0
 
 
-def test_oecd():
+def test_oecd_2016():
     oecd_mockpath = os.path.join(testpath, 'mock_mrios', 'oecd_mock')
     oecd_IO_file = os.path.join(oecd_mockpath, 'ICIO2016_2003.csv')
 
     oecd_file = pymrio.parse_oecd(path=oecd_IO_file)
     oecd_year = pymrio.parse_oecd(path=oecd_mockpath, year=2003)
 
-    pdt.assert_frame_equal(oecd_file.Z, oecd_year.Z)
-    pdt.assert_frame_equal(oecd_file.Y, oecd_year.Y)
+    assert oecd_file == oecd_year
 
-    with pytest.raises(pymrio.ParserError):
+    with pytest.raises(FileNotFoundError):
         _ = pymrio.parse_oecd(oecd_mockpath, year=1077)
+    with pytest.raises(pymrio.ParserError):
+        _ = pymrio.parse_oecd(oecd_mockpath)
 
-    oecd_file.calc_all()
+    oecd = oecd_file
+    oecd.calc_all()
 
     # Test standard values
-    assert np.allclose(oecd_file.Z.loc[
+    assert np.allclose(oecd.Z.loc[
         ('AUS', 'C01T05AGR'), ('AUS', 'C01T05AGR')], 23697.221)
-    assert np.allclose(oecd_file.Z.loc[
+    assert np.allclose(oecd.Z.loc[
         ('NZL', 'C23PET'), ('AUS', 'C20WOD')], 684.49784)
-    assert np.allclose(oecd_file.Y.loc[
+    assert np.allclose(oecd.Y.loc[
         ('NZL', 'C23PET'), ('PER', 'DIRP')], 14822221.0)
 
     # Test aggregation
-    assert 'CHN' in oecd_file.get_regions()
-    assert 'CN1' not in oecd_file.get_regions()
-    assert 'CN2' not in oecd_file.get_regions()
+    assert 'CHN' in oecd.get_regions()
+    assert 'CN1' not in oecd.get_regions()
+    assert 'CN2' not in oecd.get_regions()
 
-    assert oecd_file.Z.shape == (32, 32)
+    assert oecd.Z.shape == (32, 32)
 
-    assert np.allclose(oecd_file.Z.loc[
+    assert np.allclose(oecd.Z.loc[
         ('CHN', 'C01T05AGR'), ('AUS', 'C15T16FOD')], 6932.1858)
-    assert np.allclose(oecd_file.Z.loc[
+    assert np.allclose(oecd.Z.loc[
         ('CHN', 'C01T05AGR'), ('AUS', 'C15T16FOD')], 6932.1858)
-    assert np.allclose(oecd_file.Y.loc[
+    assert np.allclose(oecd.Y.loc[
         ('CHN', 'C23PET'), ('NZL', 'HFCE')], 24074818)
-    assert np.allclose(oecd_file.factor_inputs.F.loc[
+    assert np.allclose(oecd.factor_inputs.F.loc[
         'VA+TAXSUB', ('CHN', 'C20WOD')], 569612.84)
+
+
+def test_oecd_2018():
+    oecd_mockpath = os.path.join(testpath, 'mock_mrios', 'oecd_mock')
+    oecd_IO_csv = os.path.join(oecd_mockpath, 'ICIO2018_2010.CSV')
+    oecd_IO_zip = os.path.join(oecd_mockpath, 'ICIO2018_2010.zip')
+
+    oecd_csv = pymrio.parse_oecd(path=oecd_IO_csv)
+    oecd_zip = pymrio.parse_oecd(path=oecd_IO_zip)
+    oecd_year = pymrio.parse_oecd(path=oecd_mockpath, year=2010)
+
+    assert oecd_csv == oecd_zip == oecd_year
+
+    oecd = oecd_zip
+
+    # Test aggregation
+    assert 'MEX' in oecd.get_regions()
+    assert 'MX1' not in oecd.get_regions()
+
+    assert np.allclose(oecd.Z.loc[
+        ('BEL', '16'), ('AUS', '05T06')], 150.89421)
+    assert np.allclose(oecd.Y.loc[
+        ('BRA', '09'), ('COL', 'GGFC')], 11211977)
+    assert np.allclose(oecd.factor_inputs.F.loc[
+        'VALU', ('MEX', '01T03')], 284552.21)
+    assert np.allclose(oecd.factor_inputs.F.loc[
+        'MEX_TAXSUB', ('BEL', '16')], 1.66161232097811)
 
 
 def test_parse_eora26(fix_testmrio_calc):

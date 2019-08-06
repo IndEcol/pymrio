@@ -8,7 +8,8 @@ v0.4.0 (under development)
 
 * Improved test coverage (with focus on the mrio parser)
 * OECD Parser
-* Minimum version changed to 3.7
+* Minimum python version changed to 3.7
+* Equality comparison for MRIO System and Extension
 
 
 ***************************
