@@ -18,14 +18,14 @@ setup(
         '': ['*.txt', '*.dat', '*.doc', '*.rst', '*.json'],
     },
     # This some needs to be here and in requirments.txt (for conda)
-    install_requires=['pandas >= 0.22.0',
+    install_requires=['pandas >= 0.25.0',
                       'matplotlib >= 2.0.0',
                       'requests >= 2.18',
-                      'numpy >= 0.12.0',
+                      'numpy >= 1.13.4',
                       'xlrd >= 1.1.0'
                      ],
     classifiers=[
-          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
           'Programming Language :: Python :: 3 :: Only',
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
           'Development Status :: 4 - Beta',

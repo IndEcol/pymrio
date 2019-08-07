@@ -80,6 +80,19 @@ class CoreSystem():
                              '__' not in attr])
         return startstr + parastr
 
+    def __eq__(self, other):
+        """ Only the dataframes are compared. """
+        for key, item in self.__dict__.items():
+            if type(item) is pd.DataFrame:
+                if key not in other.__dict__:
+                    break
+                if not item.equals(other.__dict__[key]):
+                    break
+        else:
+            return True
+
+        return False
+
     def reset_full(self, force=False, _meta=None):
         """ Remove all accounts which can be recalculated based on Z, Y, F, FY
 
@@ -1240,7 +1253,7 @@ class Extension(CoreSystem):
                                'D_imp_cap', 'D_exp_cap', ]
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
-                return getattr(self, df).index.get_values()
+                return getattr(self, df).index
         else:
             logging.warn("No attributes available to get row names")
             return None
@@ -1426,6 +1439,19 @@ class IOSystem(CoreSystem):
 
     def __str__(self):
         return super().__str__("IO System with parameters: ")
+
+    def __eq__(self, other):
+        """ Only the dataframes are compared. """
+        self_ext = set(self.get_extensions(data=False))
+        other_ext = set(other.get_extensions(data=False))
+        if len(self_ext.difference(other_ext)) < 0:
+            return False
+
+        for ext in self_ext:
+            if self.__dict__[ext] != other.__dict__[ext]:
+                return False
+
+        return super().__eq__(other)
 
     @property
     def name(self):
@@ -1710,7 +1736,7 @@ class IOSystem(CoreSystem):
 
     def aggregate(self, region_agg=None, sector_agg=None,
                   region_names=None, sector_names=None,
-                  inplace=True, pre_aggregation=False):
+                  inplace=True):
         """ Aggregates the IO system.
 
             Aggregation can be given as vector (use pymrio.build_agg_vec) or
