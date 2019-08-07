@@ -6,11 +6,24 @@ Changelog
 v0.4.0 (under development)
 ***************************
 
-* Improved test coverage (with focus on the mrio parser)
-* OECD Parser
-* Minimum python version changed to 3.7
+New features
+============
+
+* New parser and automatic downloader for the OECD-ICIO tables (2016 and 2018 
+  release)
+* Improved test coverage to over 90 %
 * Equality comparison for MRIO System and Extension
 
+
+Bugfixes
+========
+
+* Fixed some typos
+
+Backward incompatible changes
+==============================
+
+* Minimum python version changed to 3.7
 
 ***************************
 v0.3.8 (November 06, 2018)

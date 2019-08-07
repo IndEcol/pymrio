@@ -185,6 +185,11 @@ def download_oecd(storage_folder, version='v2018',
         the storage folder (default). Set to True to replace
         files.
 
+    Returns
+    -------
+
+    Meta data of the downloaded MRIOs
+
     """
     # Implementation Notes:
     # For OECD the generic download routines can not be used
@@ -219,7 +224,7 @@ def download_oecd(storage_folder, version='v2018',
     meta = MRIOMetaData(location=storage_folder,
                         description='OECD-ICIO download',
                         name='OECD-ICIO',
-                        system='ixi',
+                        system='IxI',
                         version=version)
 
     oecd_webcontent = requests.get(OECD_CONFIG['url_db_view']).text
@@ -289,6 +294,11 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
         in WIOD_CONFIG - list of all available urls Remove items from this list
         to only download a subset of extensions
 
+    Returns
+    -------
+
+    Meta data of the downloaded MRIOs
+
     """
 
     try:
@@ -314,7 +324,7 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
     meta = MRIOMetaData(location=storage_folder,
                         description='WIOD metadata file for pymrio',
                         name='WIOD',
-                        system='ixi',
+                        system='IxI',
                         version='data13')
 
     meta = _download_urls(url_list=restricted_wiod_io_urls + satellite_urls,
