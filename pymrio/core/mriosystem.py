@@ -86,7 +86,10 @@ class CoreSystem():
             if type(item) is pd.DataFrame:
                 if key not in other.__dict__:
                     break
-                if not item.equals(other.__dict__[key]):
+                try:
+                    pd.testing.assert_frame_equal(item,
+                                                  other.__dict__[key])
+                except AssertionError:
                     break
         else:
             return True
