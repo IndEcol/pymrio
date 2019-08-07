@@ -23,11 +23,11 @@ import pandas as pd
 
 from pymrio.tools.iomath import calc_A
 from pymrio.tools.iomath import calc_F
-from pymrio.tools.iomath import calc_FY
+from pymrio.tools.iomath import calc_F_Y
 from pymrio.tools.iomath import calc_L
 from pymrio.tools.iomath import calc_M
 from pymrio.tools.iomath import calc_S
-from pymrio.tools.iomath import calc_SY
+from pymrio.tools.iomath import calc_S_Y
 from pymrio.tools.iomath import calc_Z
 from pymrio.tools.iomath import calc_accounts
 from pymrio.tools.iomath import calc_x
@@ -94,7 +94,7 @@ class CoreSystem():
         return False
 
     def reset_full(self, force=False, _meta=None):
-        """ Remove all accounts which can be recalculated based on Z, Y, F, FY
+        """ Remove all accounts which can be recalculated based on Z, Y, F, F_Y
 
         Parameters
         ----------
@@ -236,7 +236,7 @@ class CoreSystem():
             List of categories, None if no attribute to determine
             list is available
         """
-        possible_dataframes = ['Y', 'FY']
+        possible_dataframes = ['Y', 'F_Y']
 
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
@@ -277,7 +277,7 @@ class CoreSystem():
 
         """
 
-        possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'FY', 'M', 'S',
+        possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'F_Y', 'M', 'S',
                                'D_cba', 'D_pba',  'D_imp', 'D_exp',
                                'D_cba_reg', 'D_pba_reg',
                                'D_imp_reg', 'D_exp_reg',
@@ -328,7 +328,7 @@ class CoreSystem():
             None if now attribute to determine list is available
 
         """
-        possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'FY', 'M', 'S',
+        possible_dataframes = ['A', 'L', 'Z', 'Y', 'F', 'F_Y', 'M', 'S',
                                'D_cba', 'D_pba',  'D_imp', 'D_exp',
                                'D_cba_reg', 'D_pba_reg',
                                'D_imp_reg', 'D_exp_reg',
@@ -650,12 +650,12 @@ class Extension(CoreSystem):
         Total direct impacts with columns as Z. Index with (['stressor',
         'compartment']).
         The second level 'compartment' is optional
-    FY : pandas.DataFrame
+    F_Y : pandas.DataFrame
         Extension of final demand with columns a y and index as F
     S : pandas.DataFrame
         Direct impact (extensions) coefficients with multiindex as F
-    SY : pandas.DataFrame
-        Direct impact (extensions) coefficients of final demand. Index as FY
+    S_Y : pandas.DataFrame
+        Direct impact (extensions) coefficients of final demand. Index as F_Y
     M : pandas.DataFrame
         Multipliers with multiindex as F
     D_cba : pandas.DataFrame
@@ -688,15 +688,15 @@ class Extension(CoreSystem):
 
     """
 
-    def __init__(self, name, F=None, FY=None, S=None, SY=None, M=None,
+    def __init__(self, name, F=None, F_Y=None, S=None, S_Y=None, M=None,
                  D_cba=None, D_pba=None, D_imp=None, D_exp=None,
                  unit=None, **kwargs):
         """ Init function - see docstring class """
         self.name = name
         self.F = F
-        self.FY = FY
+        self.F_Y = F_Y
         self.S = S
-        self.SY = SY
+        self.S_Y = S_Y
         self.M = M
         self.D_cba = D_cba
         self.D_pba = D_pba
@@ -709,7 +709,7 @@ class Extension(CoreSystem):
 
         # Internal attributes
 
-        # minimal necessary to calc the rest excluding FY since this might be
+        # minimal necessary to calc the rest excluding F_Y since this might be
         # not necessarily present
         self.__basic__ = ['F']
         self.__D_accounts__ = ['D_cba', 'D_pba', 'D_imp', 'D_exp',
@@ -717,13 +717,13 @@ class Extension(CoreSystem):
                                'D_imp_reg', 'D_exp_reg',
                                'D_cba_cap', 'D_pba_cap',
                                'D_imp_cap', 'D_exp_cap']
-        self.__non_agg_attributes__ = ['S', 'SY', 'M',
+        self.__non_agg_attributes__ = ['S', 'S_Y', 'M',
                                        'D_cba_reg', 'D_pba_reg',
                                        'D_imp_reg', 'D_exp_reg',
                                        'D_cba_cap', 'D_pba_cap',
                                        'D_imp_cap', 'D_exp_cap']
 
-        self.__coefficients__ = ['S', 'SY', 'M']
+        self.__coefficients__ = ['S', 'S_Y', 'M']
 
         # check if all accounts are available
         for acc in self.__D_accounts__:
@@ -740,12 +740,12 @@ class Extension(CoreSystem):
 
         This method allows to specify an aggregated Y_agg for the
         account calculation (see Y_agg below). However, the full Y needs
-        to be specified for the calculation of FY or SY.
+        to be specified for the calculation of F_Y or S_Y.
 
         Calculates:
 
         - for each sector and country:
-            S, SY (if FY available), M, D_cba, D_pba_sector, D_imp_sector,
+            S, S_Y (if F_Y available), M, D_cba, D_pba_sector, D_imp_sector,
             D_exp_sector
         - for each region:
             D_cba_reg, D_pba_reg, D_imp_reg, D_exp_reg,
@@ -797,13 +797,13 @@ class Extension(CoreSystem):
             self.S = calc_S(self.F, x)
             logging.debug('{} - S calculated'.format(self.name))
 
-        if (self.FY is None) and (self.SY is not None):
-            self.FY = calc_FY(self.SY, y_vec)
-            logging.debug('{} - FY calculated'.format(self.name))
+        if (self.F_Y is None) and (self.S_Y is not None):
+            self.F_Y = calc_F_Y(self.S_Y, y_vec)
+            logging.debug('{} - F_Y calculated'.format(self.name))
 
-        if (self.SY is None) and (self.FY is not None):
-            self.SY = calc_SY(self.FY, y_vec)
-            logging.debug('{} - SY calculated'.format(self.name))
+        if (self.S_Y is None) and (self.F_Y is not None):
+            self.S_Y = calc_S_Y(self.F_Y, y_vec)
+            logging.debug('{} - S_Y calculated'.format(self.name))
 
         if self.M is None:
             if L is not None:
@@ -823,16 +823,16 @@ class Extension(CoreSystem):
                         'Recalculation of M not possible - cause: {}'.
                         format(ex))
 
-        FY_agg = 0
-        if self.FY is not None:
-            # FY_agg = ioutil.agg_columns(
-            # ext['FY'], self.get_Y_categories().size)
+        F_Y_agg = 0
+        if self.F_Y is not None:
+            # F_Y_agg = ioutil.agg_columns(
+            # ext['F_Y'], self.get_Y_categories().size)
             try:
-                FY_agg = (self.FY.sum(level='region', axis=1).
-                          reindex(self.get_regions(), axis=1))
+                F_Y_agg = (self.F_Y.sum(level='region', axis=1).
+                           reindex(self.get_regions(), axis=1))
             except (AssertionError, KeyError):
-                FY_agg = (self.FY.sum(level=0, axis=1).
-                          reindex(self.get_regions(), axis=1))
+                F_Y_agg = (self.F_Y.sum(level=0, axis=1).
+                           reindex(self.get_regions(), axis=1))
 
         if ((self.D_cba is None) or
                 (self.D_pba is None) or
@@ -854,19 +854,19 @@ class Extension(CoreSystem):
             try:
                 self.D_cba_reg = (
                     self.D_cba.sum(level='region', axis=1).
-                    reindex(self.get_regions(), axis=1) + FY_agg)
+                    reindex(self.get_regions(), axis=1) + F_Y_agg)
             except (AssertionError, KeyError):
                 self.D_cba_reg = (
                     self.D_cba.sum(level=0, axis=1).
-                    reindex(self.get_regions(), axis=1) + FY_agg)
+                    reindex(self.get_regions(), axis=1) + F_Y_agg)
             try:
                 self.D_pba_reg = (
                     self.D_pba.sum(level='region', axis=1).
-                    reindex(self.get_regions(), axis=1) + FY_agg)
+                    reindex(self.get_regions(), axis=1) + F_Y_agg)
             except (AssertionError, KeyError):
                 self.D_pba_reg = (
                     self.D_pba.sum(level=0, axis=1).
-                    reindex(self.get_regions(), axis=1) + FY_agg)
+                    reindex(self.get_regions(), axis=1) + F_Y_agg)
             try:
                 self.D_imp_reg = (
                     self.D_imp.sum(level='region', axis=1).
@@ -1245,7 +1245,7 @@ class Extension(CoreSystem):
 
     def get_rows(self):
         """ Returns the name of the rows of the extension"""
-        possible_dataframes = ['F', 'FY', 'M', 'S',
+        possible_dataframes = ['F', 'F_Y', 'M', 'S',
                                'D_cba', 'D_pba',  'D_imp', 'D_exp',
                                'D_cba_reg', 'D_pba_reg',
                                'D_imp_reg', 'D_exp_reg',
@@ -1294,7 +1294,7 @@ class Extension(CoreSystem):
         ----
 
         Since the type of analysis based on the disaggregated matrix is based
-        on flow, direct household emissions (FY) are not included.
+        on flow, direct household emissions (F_Y) are not included.
 
         Parameters
         ----------
@@ -1345,7 +1345,7 @@ class IOSystem(CoreSystem):
 
     The class collects pandas dataframes for a whole EE MRIO system. The
     attributes for the trade matrices (Z, L, A, x, Y) can be set directly,
-    extensions are given as dictionaries containing F, FY, D, m, D_cba, D_pba,
+    extensions are given as dictionaries containing F, F_Y, D, m, D_cba, D_pba,
     D_imp, D_exp
 
     Notes
@@ -1618,7 +1618,7 @@ class IOSystem(CoreSystem):
                 yield key
 
     def reset_full(self, force=False):
-        """ Remove all accounts which can be recalculated based on Z, Y, F, FY
+        """ Remove all accounts which can be recalculated based on Z, Y, F, F_Y
 
         Parameters
         ----------
@@ -1984,7 +1984,7 @@ class IOSystem(CoreSystem):
                     extension.__dict__[ik_name].index = mi_reg_sec
 
                 elif ik_df.columns.names == ['region', 'category']:
-                    # Satellite account connected to final demand (e.g. FY)
+                    # Satellite account connected to final demand (e.g. F_Y)
                     extension.__dict__[ik_name] = pd.DataFrame(
                         data=ik_df.dot(conc_y.T))
                     # next step must be done afterwards due to unknown reasons
@@ -2080,24 +2080,24 @@ def concate_extension(*extensions, name):
         extensions = extensions[0]
 
     # check if fd extensions is present in one of the given extensions
-    FY_present = False
-    SY_present = False
-    SFY_columns = None
+    F_Y_present = False
+    S_Y_present = False
+    SF_Y_columns = None
     for ext in extensions:
-        if 'FY' in ext.get_DataFrame(data=False):
-            FY_present = True
-            SFY_columns = ext.FY.columns
-        if 'SY' in ext.get_DataFrame(data=False):
-            SY_present = True
-            SFY_columns = ext.SY.columns
+        if 'F_Y' in ext.get_DataFrame(data=False):
+            F_Y_present = True
+            SF_Y_columns = ext.F_Y.columns
+        if 'S_Y' in ext.get_DataFrame(data=False):
+            S_Y_present = True
+            SF_Y_columns = ext.S_Y.columns
 
     # get the intersection of the available dataframes
     set_dfs = [set(ext.get_DataFrame(data=False)) for ext in extensions]
     df_dict = {key: None for key in set.intersection(*set_dfs)}
-    if FY_present:
-        df_dict['FY'] = None
-    if SY_present:
-        df_dict['SY'] = None
+    if F_Y_present:
+        df_dict['F_Y'] = None
+    if S_Y_present:
+        df_dict['S_Y'] = None
     empty_df_dict = df_dict.copy()
     attr_dict = {}
 
@@ -2122,24 +2122,24 @@ def concate_extension(*extensions, name):
 
         # add zero final demand extension if final demand extension present in
         # one extension
-        if FY_present:
-            # doesn't work with getattr b/c FY can be present as attribute but
+        if F_Y_present:
+            # doesn't work with getattr b/c F_Y can be present as attribute but
             # not as DataFrame
-            if 'FY' in ext.get_DataFrame(data=False):
-                cur_dict['FY'] = getattr(ext, 'FY')
+            if 'F_Y' in ext.get_DataFrame(data=False):
+                cur_dict['F_Y'] = getattr(ext, 'F_Y')
             else:
-                cur_dict['FY'] = pd.DataFrame(data=0,
-                                              index=ext.get_index(),
-                                              columns=SFY_columns)
-        if SY_present:
-            # doesn't work with getattr b/c SY can be present as attribute but
+                cur_dict['F_Y'] = pd.DataFrame(data=0,
+                                               index=ext.get_index(),
+                                               columns=SF_Y_columns)
+        if S_Y_present:
+            # doesn't work with getattr b/c S_Y can be present as attribute but
             # not as DataFrame
-            if 'SY' in ext.get_DataFrame(data=False):
-                cur_dict['SY'] = getattr(ext, 'SY')
+            if 'S_Y' in ext.get_DataFrame(data=False):
+                cur_dict['S_Y'] = getattr(ext, 'S_Y')
             else:
-                cur_dict['SY'] = pd.DataFrame(data=0,
-                                              index=ext.get_index(),
-                                              columns=SFY_columns)
+                cur_dict['S_Y'] = pd.DataFrame(data=0,
+                                               index=ext.get_index(),
+                                               columns=SF_Y_columns)
 
         # append all df data
         for key in cur_dict:

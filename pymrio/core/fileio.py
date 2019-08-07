@@ -249,7 +249,7 @@ def load(path, include_core=True, path_in_arc=''):
 
     for key in file_para.content['files']:
         if not include_core and key not in ['A', 'L', 'Z']:
-                continue
+            continue
 
         file_name = file_para.content['files'][key]['name']
         nr_index_col = file_para.content['files'][key]['nr_index_col']
@@ -258,6 +258,9 @@ def load(path, include_core=True, path_in_arc=''):
         _header = list(range(int(nr_header)))
         _index_col = 0 if _index_col == [0] else _index_col
         _header = 0 if _header == [0] else _header
+
+        if key == 'FY':  # Legacy code to read data saved with version < 0.4
+            key = 'F_Y'
 
         if zipfile.is_zipfile(str(path)):
             full_file_name = os.path.join(file_para.folder, file_name)
@@ -688,7 +691,7 @@ def load_test():
         - seven final demand categories
         - two extensions (emissions and factor_inputs)
 
-    The test system only contains Z, Y, F, FY. The rest can be calculated with
+    The test system only contains Z, Y, F, F_Y. The rest can be calculated with
     calc_all()
 
     Notes
@@ -752,7 +755,7 @@ def load_test():
 
     trade = dict(Z=data['Z'], Y=data['Y'])
     factor_inputs = dict(F=data['fac'])
-    emissions = dict(F=data['emissions'], FY=data['FDemissions'])
+    emissions = dict(F=data['emissions'], F_Y=data['FDemissions'])
 
     trade['Z'].index.names = ['region', 'sector', 'unit']
     trade['Z'].columns.names = ['region', 'sector']
@@ -777,9 +780,9 @@ def load_test():
     emissions['unit'] = (pd.DataFrame(emissions['F'].iloc[:, 0]
                          .reset_index(level='unit').unit))
     emissions['F'].reset_index(level='unit', drop=True, inplace=True)
-    emissions['FY'].index.names = ['stressor', 'compartment', 'unit']
-    emissions['FY'].columns.names = ['region', 'category']
-    emissions['FY'].reset_index(level='unit', drop=True, inplace=True)
+    emissions['F_Y'].index.names = ['stressor', 'compartment', 'unit']
+    emissions['F_Y'].columns.names = ['region', 'category']
+    emissions['F_Y'].reset_index(level='unit', drop=True, inplace=True)
 
     # the population data - this is optional (None can be passed if no data is
     # available)

@@ -152,7 +152,7 @@ def test_parse_wiod():
     pdt.assert_frame_equal(ww_path.SEA.D_pba, ww_file.SEA.D_pba)
     pdt.assert_frame_equal(ww_path.AIR.D_imp, ww_file.AIR.D_imp)
 
-    assert ww_file.AIR.FY.loc['NOX', ('LUX', 'c37')] == 999
+    assert ww_file.AIR.F_Y.loc['NOX', ('LUX', 'c37')] == 999
     assert ww_file.SEA.F.loc['EMP', ('RoW', '19')] == 0
 
 

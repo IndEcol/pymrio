@@ -76,7 +76,7 @@ def parse_exio12_ext(ext_file, index_col, name, drop_compartment=True,
     Notes
     -----
     So far this only parses factor of production extensions F (not
-    final demand extensions FY nor coeffiecents S).
+    final demand extensions F_Y nor coeffiecents S).
 
     Parameters
     ----------
@@ -207,21 +207,21 @@ def get_exiobase_files(path, coefficients=True):
             S_emissions=re.compile(r'(?<!\_)mrEmissions.*txt'),
             S_materials=re.compile(r'(?<!\_)mrMaterials.*txt'),
             S_resources=re.compile(r'(?<!\_)mrResources.*txt'),
-            FY_resources=re.compile(r'(?<!\_)mrFDResources.*txt'),
-            FY_emissions=re.compile(r'(?<!\_)mrFDEmissions.*txt'),
-            FY_materials=re.compile(r'(?<!\_)mrFDMaterials.*txt'),
+            F_Y_resources=re.compile(r'(?<!\_)mrFDResources.*txt'),
+            F_Y_emissions=re.compile(r'(?<!\_)mrFDEmissions.*txt'),
+            F_Y_materials=re.compile(r'(?<!\_)mrFDMaterials.*txt'),
         )
     else:
         exio_core_regex = dict(
             # don’t match file if starting with _
             Z=re.compile(r'(?<!\_)mrIot.*txt'),
             Y=re.compile(r'(?<!\_)mrFinalDemand.*txt'),
-            F_fac=re.compile(r'(?<!\_)mrFactorInputs.*txt'),
+            F_factor_inputs=re.compile(r'(?<!\_)mrFactorInputs.*txt'),
             F_emissions=re.compile(r'(?<!\_)mrEmissions.*txt'),
             F_materials=re.compile(r'(?<!\_)mrMaterials.*txt'),
             F_resources=re.compile(r'(?<!\_)mrResources.*txt'),
-            FY_emissions=re.compile(r'(?<!\_)mrFDEmissions.*txt'),
-            FY_materials=re.compile(r'(?<!\_)mrFDMaterials.*txt'),
+            F_Y_emissions=re.compile(r'(?<!\_)mrFDEmissions.*txt'),
+            F_Y_materials=re.compile(r'(?<!\_)mrFDMaterials.*txt'),
         )
 
     repo_content = get_repo_content(path)
@@ -341,8 +341,11 @@ def generic_exiobase12_parser(exio_files, system=None):
     for tt, tpara in exio_files.items():
         if tt in core_components:
             continue
-        ext_name = '_'.join(tt.split('_')[1:])
-        table_type = tt.split('_')[0]
+
+        # The following depends on the format (upper/lower case) of the
+        # dict keys returned by get_exiobase_files
+        ext_name = '_'.join(re.findall(r'[a-z]+', tt))
+        table_type = re.match(r'[A-Z_]+', tt)[0].rstrip('_')
 
         if tpara['index_col'] == 3:
             ext_data[tt].index.names = [
@@ -353,7 +356,7 @@ def generic_exiobase12_parser(exio_files, system=None):
         else:
             raise ParserError('Unknown EXIOBASE file structure')
 
-        if table_type == 'FY':
+        if table_type == 'F_Y':
             ext_data[tt].columns.names = [
                 'region', 'category']
         else:
@@ -620,14 +623,14 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
             charac_data[Qname].index.name = 'impact'
 
             try:
-                _FY = io.__dict__[Qsheets[Qname]].FY.values
+                _F_Y = io.__dict__[Qsheets[Qname]].F_Y.values
             except AttributeError:
-                _FY = np.zeros([io.__dict__[Qsheets[Qname]].S.shape[0],
-                                io.Y.shape[1]])
+                _F_Y = np.zeros([io.__dict__[Qsheets[Qname]].S.shape[0],
+                                 io.Y.shape[1]])
 
             _impact[Qname] = {'S': charac_data[Qname].dot(
                 io.__dict__[Qsheets[Qname]].S.values),
-                'FY': charac_data[Qname].dot(_FY),
+                'F_Y': charac_data[Qname].dot(_F_Y),
                 'unit': _unit[Qname]
             }
 
@@ -635,12 +638,12 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
                        .append(_impact['Q_emission']['S'])
                        .append(_impact['Q_materials']['S'])
                        .append(_impact['Q_resources']['S']))
-        impact['FY'] = (_impact['Q_factorinputs']['FY']
-                        .append(_impact['Q_emission']['FY'])
-                        .append(_impact['Q_materials']['FY'])
-                        .append(_impact['Q_resources']['FY']))
+        impact['F_Y'] = (_impact['Q_factorinputs']['F_Y']
+                         .append(_impact['Q_emission']['F_Y'])
+                         .append(_impact['Q_materials']['F_Y'])
+                         .append(_impact['Q_resources']['F_Y']))
         impact['S'].columns = io.emissions.S.columns
-        impact['FY'].columns = io.emissions.FY.columns
+        impact['F_Y'].columns = io.emissions.F_Y.columns
         impact['unit'] = (_impact['Q_factorinputs']['unit']
                           .append(_impact['Q_emission']['unit'])
                           .append(_impact['Q_materials']['unit'])
@@ -687,7 +690,7 @@ def parse_exiobase3(path):
     # need to rename the final demand satellite,
     # wrong name in the standard distribution
     try:
-        io.satellite.FY = io.satellite.F_hh.copy()
+        io.satellite.F_Y = io.satellite.F_hh.copy()
         del io.satellite.F_hh
     except AttributeError:
         pass
@@ -949,7 +952,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     Z = wiot_data.iloc[:Zshape[0]+1, :Zshape[1]+1].copy()
     Y = wiot_data.iloc[:Zshape[0]+1, Zshape[1]+1:].copy()
     F_fac = facinp.iloc[:, :Zshape[1]+1].copy()
-    FY_fac = facinp.iloc[:, Zshape[1]+1:].copy()
+    F_Y_fac = facinp.iloc[:, Zshape[1]+1:].copy()
 
     index_wiot_headers = [nr for nr in wiot_header.values()]
     # Save lookup of sectors and codes - to be used at the end of the parser
@@ -996,14 +999,14 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     F_fac.index.names = ['inputtype']
     F_fac = F_fac.iloc[:, max(index_wiot_headers)+1:]
     F_fac.columns = Z.columns
-    FY_fac.columns = Y.columns
-    FY_fac.index = F_fac.index
+    F_Y_fac.columns = Y.columns
+    F_Y_fac.index = F_fac.index
 
     # convert from object to float (was object because mixed float,str)
     Z = Z.astype('float')
     Y = Y.astype('float')
     F_fac = F_fac.astype('float')
-    FY_fac = FY_fac.astype('float')
+    F_Y_fac = F_Y_fac.astype('float')
 
     # save the units
     Z_unit = pd.DataFrame(Z.iloc[:, 0])
@@ -1020,7 +1023,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     ext = dict()
 
     ext['factor_inputs'] = {'F': F_fac,
-                            'FY': FY_fac,
+                            'F_Y': F_Y_fac,
                             'year': wiot_year,
                             'iosystem': wiot_iosystem,
                             'unit': F_fac_unit,
@@ -1032,12 +1035,12 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
         root_path=root_path, year=wiot_year)
     if _F_sea_data is not None:
         # None if no SEA file present
-        _FY_sea = pd.DataFrame(index=_F_sea_data.index,
-                               columns=FY_fac.columns, data=0)
-        _FY_sea = _FY_sea.astype('float')
+        _F_Y_sea = pd.DataFrame(index=_F_sea_data.index,
+                                columns=F_Y_fac.columns, data=0)
+        _F_Y_sea = _F_Y_sea.astype('float')
 
         ext['SEA'] = {'F': _F_sea_data,
-                      'FY': _FY_sea,
+                      'F_Y': _F_Y_sea,
                       'year': wiot_year,
                       'iosystem': wiot_iosystem,
                       'unit': _F_sea_unit,
@@ -1109,8 +1112,8 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                 },
     }
 
-    _FY_template = pd.DataFrame(columns=FY_fac.columns)
-    _ss_FY_pressure_column = 'c37'
+    _F_Y_template = pd.DataFrame(columns=F_Y_fac.columns)
+    _ss_F_Y_pressure_column = 'c37'
     for ik_ext in dl_envext_para:
         _dl_ex = __get_WIOD_env_extension(root_path=root_path,
                                           year=wiot_year,
@@ -1118,20 +1121,20 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
                                           para=dl_envext_para[ik_ext])
         if _dl_ex is not None:
             # None if extension not available
-            _FY = _dl_ex['FY']
+            _F_Y = _dl_ex['F_Y']
 
-            _FY.columns = pd.MultiIndex.from_product([
-                _FY.columns, [_ss_FY_pressure_column]])
-            _FY = _FY_template.append(_FY)
-            _FY.fillna(0, inplace=True)
-            _FY.index.names = _dl_ex['F'].index.names
-            _FY.columns.names = _FY_template.columns.names
-            _FY = _FY[ll_countries]
-            _FY = _FY.astype('float')
+            _F_Y.columns = pd.MultiIndex.from_product([
+                _F_Y.columns, [_ss_F_Y_pressure_column]])
+            _F_Y = _F_Y_template.append(_F_Y)
+            _F_Y.fillna(0, inplace=True)
+            _F_Y.index.names = _dl_ex['F'].index.names
+            _F_Y.columns.names = _F_Y_template.columns.names
+            _F_Y = _F_Y[ll_countries]
+            _F_Y = _F_Y.astype('float')
 
             ext[ik_ext] = {
                 'F': _dl_ex['F'],
-                'FY': _FY,
+                'F_Y': _F_Y,
                 'year': wiot_year,
                 'iosystem': wiot_iosystem,
                 'unit': _dl_ex['unit'],
@@ -1176,7 +1179,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
     wiod.Y.rename(columns=dd_fd_rename, index=dd_sec_rename, inplace=True)
     for ext in wiod.get_extensions(data=True):
         ext.F.rename(columns=dd_sec_rename, inplace=True)
-        ext.FY.rename(columns=dd_fd_rename, inplace=True)
+        ext.F_Y.rename(columns=dd_fd_rename, inplace=True)
 
     return wiod
 
@@ -1211,7 +1214,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     -------
     dict with keys
         F : pd.DataFrame with index 'stressor' and columns 'region', 'sector'
-        FY : pd.Dataframe with index 'stressor' and column 'region'
+        F_Y : pd.Dataframe with index 'stressor' and column 'region'
             This data is for household stressors - must be applied to the right
             final demand column afterwards.
         unit : pd.DataFrame with index 'stressor' and column 'unit'
@@ -1314,15 +1317,15 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         dl_env[co] = df_env
 
     df_F = pd.concat(dl_env, axis=1)[ll_co]
-    df_FY = pd.concat(dl_env_hh, axis=1)[ll_co]
+    df_F_Y = pd.concat(dl_env_hh, axis=1)[ll_co]
     df_F.fillna(0, inplace=True)
-    df_FY.fillna(0, inplace=True)
+    df_F_Y.fillna(0, inplace=True)
 
     df_F.columns.names = IDX_NAMES['F_col']
     df_F.index.names = IDX_NAMES['F_row_single']
 
-    df_FY.columns.names = IDX_NAMES['Y_col1']
-    df_FY.index.names = IDX_NAMES['F_row_single']
+    df_F_Y.columns.names = IDX_NAMES['Y_col1']
+    df_F_Y.index.names = IDX_NAMES['F_row_single']
 
     # build the unit df
     df_unit = pd.DataFrame(index=df_F.index, columns=['unit'])
@@ -1337,7 +1340,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         rf_zip.close()
 
     return {'F': df_F,
-            'FY': df_FY,
+            'F_Y': df_F_Y,
             'unit': df_unit
             }
 
@@ -1528,7 +1531,7 @@ def parse_oecd(path, year=None):
                      oecd_raw.columns.difference(final_demand.columns)]
     F_factor_input = factor_input.loc[
         :, factor_input.columns.difference(final_demand.columns)]
-    FY_factor_input = factor_input.loc[
+    F_Y_factor_input = factor_input.loc[
         :, final_demand.columns]
     Y = final_demand.loc[final_demand.index.difference(
         F_factor_input.index), :]
@@ -1557,8 +1560,8 @@ def parse_oecd(path, year=None):
 
     F_factor_input.columns = Z.columns
     F_factor_input.index.names = IDX_NAMES['VA_row_single']
-    FY_factor_input.columns = Y.columns
-    FY_factor_input.index = F_factor_input.index
+    F_Y_factor_input.columns = Y.columns
+    F_Y_factor_input.index = F_factor_input.index
 
     # Aggregation of CN and MX subregions
     core_co_names = Z.columns.get_level_values('region').unique()
@@ -1604,7 +1607,7 @@ def parse_oecd(path, year=None):
             'name': 'factor_inputs',
             'unit': F_unit,
             'F': F_factor_input,
-            'FY': FY_factor_input}
+            'F_Y': F_Y_factor_input}
     )
 
     # TODO: aggregation of China and Mexico
@@ -1843,7 +1846,7 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
             'name': 'Q',
             'unit': Q_unit,
             'F': eora_data['Q'],
-            'FY': eora_data['QY']
+            'F_Y': eora_data['QY']
         },
         VA={
             'name': 'VA',
