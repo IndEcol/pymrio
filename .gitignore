@@ -29,6 +29,7 @@ Session.vim
 /.cache
 /.idea
 /**/.ipynb_checkpoints/
+tags
 
 # Coverage stuff
 .coverage
