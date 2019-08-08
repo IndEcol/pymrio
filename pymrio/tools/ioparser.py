@@ -1593,10 +1593,10 @@ def parse_oecd(path, year=None):
     # unit df generation at the end to have consistent index
     unit = pd.DataFrame(index=Z.index,
                         data=mon_unit,
-                        columns=['unit'])
+                        columns=IDX_NAMES['unit'])
     F_unit = pd.DataFrame(index=F_factor_input.index,
                           data=mon_unit,
-                          columns=['unit'])
+                          columns=IDX_NAMES['unit'])
 
     oecd = IOSystem(
         Z=Z,
@@ -1790,7 +1790,8 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
     labQ = eora_data[
         'labels_Q'].iloc[:, :len(eora_header_spec['Q'].column_names)]
     labQ.columns = IDX_NAMES['F_row_src']
-    Q_unit = labQ['stressor'].str.extract(r'\((.*)\)', expand=False)
+    Q_unit = pd.DataFrame(
+        labQ['stressor'].str.extract(r'\((.*)\)', expand=False))
     Q_unit.columns = IDX_NAMES['unit']
 
     labQ['stressor'] = labQ['stressor'].str.replace(r'\s\((.*)\)', '')
