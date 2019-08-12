@@ -818,7 +818,7 @@ def parse_wiod(path, year=None, names=('isic', 'c_codes'),
         insensitive and passing the first character is sufficient.
     TODO popvector : TO BE IMPLEMENTED (consistent with EXIOBASE)
 
-    Yields
+    Returns
     -------
     IOSystem
 
@@ -1446,13 +1446,40 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet='DATA'):
 
 
 def parse_oecd(path, year=None):
-    """ Parse the OECD data -
-    TODO spec versions (or both)
+    """ Parse the OECD ICIO tables
+
+    This function works for both, the 2016 and 2018 release.
+    The OECd webpage provides the data as csv files in zip compressed
+    archives. This function works with both, the compressed archives
+    and the unpacked csv files.
+
+    Note
+    ----
+    If a given storage folder contains both releases, the datafile
+    must be specified in the 'path' parameter.
 
     Parameters
     ----------
     path: str or pathlib.Path
-        Path to one OECD csv or zip file TODO ZIP
+        Either the full path to one specific OECD ICIO file
+        or the path to a storage folder with several OECD files.
+        In the later case, a specific year needs to be specified.
+
+    year: str or int, optional
+        Year to parse if 'path' is given as a folder.
+        If path points to a specific file, this parameter is not used.
+
+    Returns
+    -------
+    IOSystem
+
+    Raises
+    ------
+    ParserError
+        If the file to parse could not be definitely identified.
+    FileNotFoundError
+        If the specified data file could not be found.
+
     """
 
     path = os.path.abspath(os.path.normpath(str(path)))
