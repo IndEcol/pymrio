@@ -1455,7 +1455,13 @@ def parse_oecd(path, year=None):
 
     Note
     ----
-    If a given storage folder contains both releases, the datafile
+
+    I) The original OECD ICIO tables provide some disaggregation of the Mexican 
+    and Chinese tables for the interindustry flows. The pymrio parser 
+    automatically aggregates these into Chinese And Mexican totals. Thus, the 
+    MX1, MX2, ..  and CN1, CN2, ... entries are aggregated into MEX and CHN.
+
+    II) If a given storage folder contains both releases, the datafile
     must be specified in the 'path' parameter.
 
     Parameters
