@@ -23,18 +23,20 @@ Download MRIO databases
 ===========================
 
 Download publicly EE MRIO databases from the web.
-This is currently implemented for the WIOD_ database
+This is currently implemented for the WIOD_ and OECD_ICIO_ database
 (EXIOBASE_ and EORA26_ require registration before downloading).
 
 
 .. _EXIOBASE: http://www.exiobase.eu/
 .. _WIOD: http://www.wiod.org/home
+.. _OECD_ICIO: https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm
 .. _EORA26: http://www.worldmrio.com/simplified/
 
 .. autosummary::
     :toctree: api_doc/
 
     download_wiod2013
+    download_oecd
 
 Raw data
 ========
@@ -48,6 +50,7 @@ Raw data
     generic_exiobase12_parser
     parse_wiod
     parse_eora26
+    parse_oecd
 
 
 Save data

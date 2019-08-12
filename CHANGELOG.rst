@@ -3,7 +3,7 @@ Changelog
 #########
 
 ***************************
-v0.4.0 (under development)
+v0.4.0 (August 12, 2019)
 ***************************
 
 New features
@@ -24,6 +24,9 @@ Backward incompatible changes
 ==============================
 
 * Minimum python version changed to 3.7
+* The FY and SY matrixes has been renamed to F_Y and S_Y. Previously stored 
+  data, however, can still be read (FY/SY files are automatically parsed as F_Y 
+  and S_Y)
 
 ***************************
 v0.3.8 (November 06, 2018)
