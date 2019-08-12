@@ -65,9 +65,9 @@ from pymrio.tools.iomath import calc_Z
 from pymrio.tools.iomath import calc_A
 from pymrio.tools.iomath import calc_L
 from pymrio.tools.iomath import calc_S
-from pymrio.tools.iomath import calc_SY
+from pymrio.tools.iomath import calc_S_Y
 from pymrio.tools.iomath import calc_F
-from pymrio.tools.iomath import calc_FY
+from pymrio.tools.iomath import calc_F_Y
 from pymrio.tools.iomath import calc_M
 from pymrio.tools.iomath import calc_e
 from pymrio.tools.iomath import calc_accounts

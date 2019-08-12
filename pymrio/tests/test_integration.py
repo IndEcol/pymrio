@@ -54,7 +54,7 @@ def test_all(td_testmrio):
 
     assert len(sat_new.D_cba) == 3
     assert mr.emissions.F.index[0] in sat_new.F.index
-    assert mr.factor_inputs.F.index[0] in sat_new.FY.index
+    assert mr.factor_inputs.F.index[0] in sat_new.F_Y.index
     assert all(mr.emissions.get_regions() == sat_new.get_regions())
     assert all(mr.emissions.get_sectors() == sat_new.get_sectors())
 
@@ -77,7 +77,7 @@ def test_fileio(tmpdir):
     fc = pymrio.get_repo_content(save_path)
     assert fc.iszip is False
     assert 'Z.txt' in [os.path.basename(f) for f in fc.filelist]
-    assert 'FY.txt' in [os.path.basename(f) for f in fc.filelist]
+    assert 'F_Y.txt' in [os.path.basename(f) for f in fc.filelist]
     assert 'unit.txt' in [os.path.basename(f) for f in fc.filelist]
 
     mr2 = pymrio.load_all(save_path)
@@ -113,7 +113,7 @@ def test_fileio(tmpdir):
     fc = pymrio.get_repo_content(zip_arc)
     assert fc.iszip is True
     assert 'Z.txt' in [os.path.basename(f) for f in fc.filelist]
-    assert 'FY.txt' in [os.path.basename(f) for f in fc.filelist]
+    assert 'F_Y.txt' in [os.path.basename(f) for f in fc.filelist]
     assert 'unit.txt' in [os.path.basename(f) for f in fc.filelist]
 
     emissions = pymrio.load(zip_arc, path_in_arc='test/emissions')
