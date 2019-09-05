@@ -113,7 +113,7 @@ with the factor of production coefficients :math:`S` given by
     \end{equation}
 
 
-Multipliers for :math:`F` are obtained by
+Multipliers (total, direct and indirect, requirement factors for one unit of output) are then obtained by
 
 .. math::
     
@@ -149,6 +149,7 @@ other countries is given by:
         D_{exp} = S\widehat{LY_{t}e}
     \end{equation}
 
+with the hat indicating diagonalization of the resulting column-vector of the term underneath.
 
 If the factor of production represent required environmental impacts, these can
 also occur during the final use phase. In that case :math:`F_Y` describe the impacts
