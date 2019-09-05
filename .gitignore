@@ -20,7 +20,7 @@ Session.vim
 #
 .~lock.*
 Session.vim
-/.cache
+/.cache/
 /dist/
 /pymrio.egg-info/
 /**/build/
