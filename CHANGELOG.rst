@@ -3,6 +3,17 @@ Changelog
 #########
 
 ***************************
+v0.4.1 (October 04, 2019)
+***************************
+
+Bugfixes
+========
+
+* Fixed: Parsing EXIOBASE 3 from zip on Windows system
+* Fixed: Doc spelling
+
+
+***************************
 v0.4.0 (August 12, 2019)
 ***************************
 
