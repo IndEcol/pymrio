@@ -87,7 +87,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
             if path_in_arc not in zipcontent:
                 # Not using os.path.join here b/c this adds the wrong
                 # separator when reading the zip in windows
-                path_in_arc = (path_in_arc + '/' + 
+                path_in_arc = (path_in_arc + '/' +
                                DEFAULT_FILE_NAMES['filepara'])
                 if path_in_arc not in zipcontent:
                     raise ReadError('File parameter file {} not found in {}. '
@@ -142,7 +142,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
             subfolder_name = os.path.basename(os.path.normpath(subfolder_name))
 
             if subfolder_name not in zipcontent:
-                subfolder_full_meta = (subfolder_full + '/' + 
+                subfolder_full_meta = (subfolder_full + '/' +
                                        DEFAULT_FILE_NAMES['filepara'])
             else:
                 subfolder_full_meta = subfolder_full
@@ -511,7 +511,7 @@ def _load_ini_based_io(path, recursive=False, ini=None,
             if os.path.splitext(file)[1] == '.ini':
                 if _inifound:
                     raise ReadError(
-                            'Found multiple ini files in folder - specify one')
+                        'Found multiple ini files in folder - specify one')
                     return None
                 ini_file_name = file
                 _inifound = True
@@ -560,8 +560,8 @@ def _load_ini_based_io(path, recursive=False, ini=None,
 
         if (nr_index_col is None) or (nr_header is None):
             raise ReadError(
-                    'Index or column specification missing for {}'.
-                    format(str(file_name)))
+                'Index or column specification missing for {}'.
+                format(str(file_name)))
             return None
 
         _index_col = list(range(int(nr_index_col)))
@@ -722,7 +722,7 @@ def load_test():
     #
     # unit_col: column containing the unit for the table
     file_data = collections.namedtuple(
-            'file_data', ['file_name', 'row_header', 'col_header', 'unit_col'])
+        'file_data', ['file_name', 'row_header', 'col_header', 'unit_col'])
 
     # file names and header specs of the system
     test_system = dict(
@@ -736,18 +736,18 @@ def load_test():
                             row_header=2, col_header=3, unit_col=2),
         FDemissions=file_data(file_name='FDemissions.txt',
                               row_header=2, col_header=3, unit_col=2),
-        )
+    )
 
     meta_rec = MRIOMetaData(location=PYMRIO_PATH['test_mrio'])
 
     # read the data into a dicts as pandas.DataFrame
     data = {key: pd.read_csv(
-                 os.path.join(PYMRIO_PATH['test_mrio'],
-                              test_system[key].file_name),
-                 index_col=list(range(test_system[key].col_header)),
-                 header=list(range(test_system[key].row_header)),
-                 sep='\t')
-            for key in test_system}
+        os.path.join(PYMRIO_PATH['test_mrio'],
+                     test_system[key].file_name),
+        index_col=list(range(test_system[key].col_header)),
+        header=list(range(test_system[key].row_header)),
+        sep='\t')
+        for key in test_system}
 
     meta_rec._add_fileio('Load test_mrio from {}'.format(
         PYMRIO_PATH['test_mrio']))
@@ -764,7 +764,7 @@ def load_test():
     trade['Z'].index.names = ['region', 'sector', 'unit']
     trade['Z'].columns.names = ['region', 'sector']
     trade['unit'] = (pd.DataFrame(trade['Z'].iloc[:, 0]
-                     .reset_index(level='unit').unit))
+                                  .reset_index(level='unit').unit))
     trade['Z'].reset_index(level='unit', drop=True, inplace=True)
 
     trade['Y'].index.names = ['region', 'sector', 'unit']
@@ -775,14 +775,14 @@ def load_test():
     factor_inputs['F'].index.names = ['inputtype', 'unit', ]
     factor_inputs['F'].columns.names = ['region', 'sector']
     factor_inputs['unit'] = (pd.DataFrame(factor_inputs['F'].iloc[:, 0]
-                             .reset_index(level='unit').unit))
+                                          .reset_index(level='unit').unit))
     factor_inputs['F'].reset_index(level='unit', drop=True, inplace=True)
 
     emissions['name'] = 'Emissions'
     emissions['F'].index.names = ['stressor', 'compartment', 'unit', ]
     emissions['F'].columns.names = ['region', 'sector']
     emissions['unit'] = (pd.DataFrame(emissions['F'].iloc[:, 0]
-                         .reset_index(level='unit').unit))
+                                      .reset_index(level='unit').unit))
     emissions['F'].reset_index(level='unit', drop=True, inplace=True)
     emissions['F_Y'].index.names = ['stressor', 'compartment', 'unit']
     emissions['F_Y'].columns.names = ['region', 'category']
@@ -791,8 +791,8 @@ def load_test():
     # the population data - this is optional (None can be passed if no data is
     # available)
     popdata = pd.read_csv(
-            os.path.join(PYMRIO_PATH['test_mrio'], './population.txt'),
-            index_col=0, sep='\t').astype(float)
+        os.path.join(PYMRIO_PATH['test_mrio'], './population.txt'),
+        index_col=0, sep='\t').astype(float)
 
     return IOSystem(Z=data['Z'],
                     Y=data['Y'],
