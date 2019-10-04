@@ -126,7 +126,8 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
         root_in_zip = os.path.dirname(path_in_arc)
         if subfolders is None:
             subfolders = {
-                os.path.relpath(os.path.dirname(p), root_in_zip)
+                Path(os.path.relpath(os.path.dirname(p),
+                                     root_in_zip)).as_posix()
                 for p in zipcontent
                 if p.startswith(root_in_zip) and
                 os.path.dirname(p) != root_in_zip}
