@@ -124,8 +124,13 @@ def get_file_para(path, path_in_arc=''):
         files = [str(f) for f in path.glob('**/*')]
 
     if para_file_folder not in files:
-        para_file_full_path = os.path.join(
-            para_file_folder, DEFAULT_FILE_NAMES['filepara'])
+        if zipfile.is_zipfile(str(path)):
+            # b/c in win os.path.join adds \ also for within zipfile
+            para_file_full_path = (para_file_folder + '/' +
+                                   DEFAULT_FILE_NAMES['filepara'])
+        else:
+            para_file_full_path = os.path.join(
+                para_file_folder, DEFAULT_FILE_NAMES['filepara'])
     else:
         para_file_full_path = para_file_folder
         para_file_folder = os.path.dirname(para_file_full_path)
@@ -510,9 +515,10 @@ def sniff_csv_format(csv_file,
         with open(csv_file, 'r') as ff:
             test_lines = read_first_lines(ff)
 
-    sep_aly_lines = [sorted([(line.count(sep), sep)
-                     for sep in potential_sep if line.count(sep) > 0],
-                     key=lambda x: x[0], reverse=True) for line in test_lines]
+    sep_aly_lines = [sorted(
+        [(line.count(sep), sep)
+         for sep in potential_sep if line.count(sep) > 0],
+        key=lambda x: x[0], reverse=True) for line in test_lines]
 
     for nr, (count, sep) in enumerate(sep_aly_lines[0]):
         for line in sep_aly_lines:
