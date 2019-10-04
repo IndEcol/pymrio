@@ -232,10 +232,13 @@ def load(path, include_core=True, path_in_arc=''):
 
     if file_para.content['systemtype'] == GENERIC_NAMES['iosys']:
         if zipfile.is_zipfile(str(path)):
+            # Not using os.path.join here b/c this adds the wrong
+            # separator when reading the zip in windows
+            metadata_folder = (file_para.folder + '/' +
+                               DEFAULT_FILE_NAMES['metadata'])
             ret_system = IOSystem(meta=MRIOMetaData(
                 location=path,
-                path_in_arc=os.path.join(file_para.folder,
-                                         DEFAULT_FILE_NAMES['metadata'])))
+                path_in_arc=metadata_folder))
             ret_system.meta._add_fileio(
                 "Loaded IO system from {} - {}".format(path, path_in_arc))
         else:
