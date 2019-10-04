@@ -85,8 +85,10 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
         if path_in_arc:
             path_in_arc = str(path_in_arc)
             if path_in_arc not in zipcontent:
-                path_in_arc = os.path.join(path_in_arc,
-                                           DEFAULT_FILE_NAMES['filepara'])
+                # Not using os.path.join here b/c this adds the wrong
+                # separator when reading the zip in windows
+                path_in_arc = (path_in_arc + '/' + 
+                               DEFAULT_FILE_NAMES['filepara'])
                 if path_in_arc not in zipcontent:
                     raise ReadError('File parameter file {} not found in {}. '
                                     'Tip: specify fileparameter filename '
@@ -132,14 +134,16 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
         for subfolder_name in subfolders:
             if subfolder_name not in zipcontent + list({
                     os.path.dirname(p) for p in zipcontent}):
-                subfolder_full = os.path.join(root_in_zip, subfolder_name)
+                # Not using os.path.join here b/c this adds the wrong
+                # separator when reading the zip in windows
+                subfolder_full = root_in_zip + '/' + subfolder_name
             else:
                 subfolder_full = subfolder_name
             subfolder_name = os.path.basename(os.path.normpath(subfolder_name))
 
             if subfolder_name not in zipcontent:
-                subfolder_full_meta = os.path.join(
-                    subfolder_full, DEFAULT_FILE_NAMES['filepara'])
+                subfolder_full_meta = (subfolder_full + '/' + 
+                                       DEFAULT_FILE_NAMES['filepara'])
             else:
                 subfolder_full_meta = subfolder_full
 
