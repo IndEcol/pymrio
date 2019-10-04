@@ -270,7 +270,9 @@ def load(path, include_core=True, path_in_arc=''):
             key = 'F_Y'
 
         if zipfile.is_zipfile(str(path)):
-            full_file_name = os.path.join(file_para.folder, file_name)
+            # Not using os.path.join here b/c this adds the wrong
+            # separator when reading the zip in windows
+            full_file_name = file_para.folder + '/' + file_name
             logging.info('Load data from {}'.format(full_file_name))
 
             with zipfile.ZipFile(file=str(path)) as zf:
