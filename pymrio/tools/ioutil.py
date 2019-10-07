@@ -126,8 +126,13 @@ def get_file_para(path, path_in_arc=''):
     if para_file_folder not in files:
         if zipfile.is_zipfile(str(path)):
             # b/c in win os.path.join adds \ also for within zipfile
-            para_file_full_path = (para_file_folder + '/' +
-                                   DEFAULT_FILE_NAMES['filepara'])
+            if para_file_folder != '':
+                para_file_full_path = (para_file_folder + '/' +
+                                       DEFAULT_FILE_NAMES['filepara']).replace(
+                                           '//', '/')
+            else:
+                para_file_full_path = DEFAULT_FILE_NAMES['filepara']
+
         else:
             para_file_full_path = os.path.join(
                 para_file_folder, DEFAULT_FILE_NAMES['filepara'])

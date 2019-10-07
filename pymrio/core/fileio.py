@@ -87,8 +87,13 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
             if path_in_arc not in zipcontent:
                 # Not using os.path.join here b/c this adds the wrong
                 # separator when reading the zip in windows
-                path_in_arc = (path_in_arc + '/' +
-                               DEFAULT_FILE_NAMES['filepara'])
+                if path_in_arc != '':
+                    path_in_arc = (path_in_arc + '/' +
+                                   DEFAULT_FILE_NAMES['filepara']).replace(
+                                       '//', '/')
+                else:
+                    path_in_arc = DEFAULT_FILE_NAMES['filepara']
+
                 if path_in_arc not in zipcontent:
                     raise ReadError('File parameter file {} not found in {}. '
                                     'Tip: specify fileparameter filename '
@@ -138,6 +143,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                 # Not using os.path.join here b/c this adds the wrong
                 # separator when reading the zip in windows
                 subfolder_full = root_in_zip + '/' + subfolder_name
+                subfolder_full = subfolder_full.replace('//', '/')
             else:
                 subfolder_full = subfolder_name
             subfolder_name = os.path.basename(os.path.normpath(subfolder_name))
@@ -235,8 +241,13 @@ def load(path, include_core=True, path_in_arc=''):
         if zipfile.is_zipfile(str(path)):
             # Not using os.path.join here b/c this adds the wrong
             # separator when reading the zip in windows
-            metadata_folder = (file_para.folder + '/' +
-                               DEFAULT_FILE_NAMES['metadata'])
+            if file_para.folder != '':
+                metadata_folder = (file_para.folder + '/' +
+                                   DEFAULT_FILE_NAMES['metadata']).replace(
+                                       '//', '/')
+            else:
+                metadata_folder = DEFAULT_FILE_NAMES['metadata']
+
             ret_system = IOSystem(meta=MRIOMetaData(
                 location=path,
                 path_in_arc=metadata_folder))
@@ -273,7 +284,11 @@ def load(path, include_core=True, path_in_arc=''):
         if zipfile.is_zipfile(str(path)):
             # Not using os.path.join here b/c this adds the wrong
             # separator when reading the zip in windows
-            full_file_name = file_para.folder + '/' + file_name
+            if file_para.folder != '':
+                full_file_name = file_para.folder + '/' + file_name
+                full_file_name = full_file_name.replace('//', '/')
+            else:
+                full_file_name = file_name
             logging.info('Load data from {}'.format(full_file_name))
 
             with zipfile.ZipFile(file=str(path)) as zf:

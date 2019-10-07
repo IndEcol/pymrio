@@ -56,9 +56,27 @@ To run the tests install these two packages (and the Pandas_ dependency) and run
 
 in the root of your local copy of pymrio.
 
+In addition to the unit tests, the Jupyter notebook tutorials are also used 
+for integration tests of the full software. Some of them (the EXIOBASE and Eora
+example) require a pre-download of the respective MRIOs to a specific folder. 
+Also, most of the tutorials have POSIX path specifications. However, in case 
+you update some integral part of Pymrio, please either also check if the 
+notebooks run or specify that you did not test them in the pull request.
+
+For testing the notebooks install the nbval_ extension for py.test_ . 
+Pymrio includes a sanitizing file to handle changing timestamps and object ids 
+of the notebooks. To test all notebooks run the following command in the pymrio root directory:
+
+::
+	
+	pytest --nbval --sanitize-with .notebook_test_sanitize.cfg  
+
+
+
 .. _py.test: http://pytest.org/
 .. _pytest-pep8: https://pypi.python.org/pypi/pytest-pep8
 .. _Pandas: https://pandas.pydata.org/
+.. _nbval: https://nbval.readthedocs.io/en/latest/
 
 
 Debugging and logging
