@@ -132,12 +132,11 @@ Open points
 ***********
 
 
-pymrio is under acitive deveopment. Open points include:
+Pymrio is under active development. Open points include:
 
 - parser for other available MRIOs
 
     * OPEN:EU (http://www.oneplaneteconomynetwork.org/)
-    * OECD MRIO
 
 - improve test cases
 - wrapper for time series analysis
