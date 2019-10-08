@@ -3,7 +3,7 @@ Changelog
 #########
 
 ***************************
-v0.4.1 (October 04, 2019)
+v0.4.1 (October 08, 2019)
 ***************************
 
 Bugfixes
@@ -12,6 +12,11 @@ Bugfixes
 * Fixed: Parsing EXIOBASE 3 from zip on Windows system
 * Fixed: Doc spelling
 
+New features
+============
+
+* The tutorial notebooks of the documentation are now also used for integration 
+  tests. See CONTIBUTING.rst for more infos.
 
 ***************************
 v0.4.0 (August 12, 2019)
