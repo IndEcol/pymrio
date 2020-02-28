@@ -19,24 +19,24 @@ Test system
 
     load_test
 
-Download MRIO databases    
+Download MRIO databases
 ===========================
 
-Download publicly EE MRIO databases from the web. 
-This is currently implemented for the WIOD_ and EORA26_ database 
-(EXIOBASE_ requires registration before downloading).
+Download publicly EE MRIO databases from the web.
+This is currently implemented for the WIOD_ and OECD_ICIO_ database
+(EXIOBASE_ and EORA26_ require registration before downloading).
 
 
 .. _EXIOBASE: http://www.exiobase.eu/
 .. _WIOD: http://www.wiod.org/home
+.. _OECD_ICIO: https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm
 .. _EORA26: http://www.worldmrio.com/simplified/
 
 .. autosummary::
     :toctree: api_doc/
 
     download_wiod2013
-    download_eora26
-
+    download_oecd
 
 Raw data
 ========
@@ -44,8 +44,14 @@ Raw data
 .. autosummary::
     :toctree: api_doc/
 
+    parse_exiobase1
     parse_exiobase2
+    parse_exiobase3
+    generic_exiobase12_parser
     parse_wiod
+    parse_eora26
+    parse_oecd
+
 
 Save data
 =========
@@ -59,11 +65,18 @@ binary format ('pickle'). Both formats work with the same API interface:
    IOSystem.save
    IOSystem.save_all
 
+Already saved MRIO databases can be archived with
+
+.. autosummary::
+   :toctree: api_doc/
+
+   archive
+
 
 Load processed data
 ===================
 
-This functions load IOSystems or individual extensions which 
+This functions load IOSystems or individual extensions which
 have been saved with pymrio before.
 
 .. autosummary::
@@ -86,8 +99,8 @@ fact yield) several tables at once:
    IOSystem.get_DataFrame
    IOSystem.get_extensions
 
-For the extensions, it is also possible to receive all data (F, S, M, D_cba, ...) 
-for one specified row. 
+For the extensions, it is also possible to receive all data (F, S, M, D_cba, ...)
+for one specified row.
 
 .. autosummary::
    :toctree: api_doc/
@@ -98,7 +111,7 @@ for one specified row.
 Exploring the IO System
 ***********************
 
-The following functions provide informations about the structure of 
+The following functions provide informations about the structure of
 the IO System and the extensions. The methods work on the IOSystem as well as
 directly on the Extensions.
 
@@ -138,7 +151,7 @@ Low level matrix calculations
 
 The top level functions work by calling the following low level functions.
 These can also be used independently from the IO System for pandas DataFrames and
-numpy array. 
+numpy array.
 
 .. autosummary::
    :toctree: api_doc/
@@ -157,13 +170,13 @@ numpy array.
 *********************************
 Metadata and history recording
 *********************************
-  
-   
+
+
 Each pymrio core system object contains a field 'meta' which stores meta data as well as changes to the MRIO system. This data is stored as json file in the root of a saved MRIO data and accessible through the attribute '.meta'.
 
 .. autosummary::
    :toctree: api_doc/
-    
+
    MRIOMetaData
    MRIOMetaData.note
    MRIOMetaData.history
@@ -204,7 +217,8 @@ Changing extensions
    :toctree: api_doc/
 
    IOSystem.remove_extension
-   parse_exio_ext
+   concate_extension
+   parse_exio12_ext
 
 Renaming
 ========

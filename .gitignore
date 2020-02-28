@@ -17,8 +17,10 @@ Session.vim
 #*.png
 #*.gif
 #*.pyc
+#
+.~lock.*
 Session.vim
-/.cache
+/.cache/
 /dist/
 /pymrio.egg-info/
 /**/build/
@@ -27,3 +29,9 @@ Session.vim
 /.cache
 /.idea
 /**/.ipynb_checkpoints/
+tags
+
+# Coverage stuff
+.coverage
+/htmlcov
+/**/htmlcov

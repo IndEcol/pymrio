@@ -3,6 +3,8 @@
 import os
 import sys
 import numpy as np
+import numpy.testing as npt
+
 from unittest.mock import mock_open, patch
 from collections import namedtuple
 
@@ -15,7 +17,8 @@ sys.path.insert(0, _pymriopath + '/../../')
 from pymrio.tools.ioutil import find_first_number          # noqa
 from pymrio.tools.ioutil import sniff_csv_format           # noqa
 from pymrio.tools.ioutil import build_agg_matrix           # noqa
-from pymrio.tools.ioutil import build_agg_vec           # noqa
+from pymrio.tools.ioutil import build_agg_vec              # noqa
+from pymrio.tools.ioutil import set_block                  # noqa
 
 
 @pytest.fixture()
@@ -73,7 +76,7 @@ def csv_test_files_content():
                       sep=';',
                       header_rows=3,
                       index_col=2),
-            ]
+        ]
     return example_csv_content
 
 
@@ -120,3 +123,23 @@ def test_build_agg_vec():
     vec = build_agg_vec(['OECD', 'EU'], path='test', miss='RoW')
     expected = ['OECD', 'EU', 'OECD', 'OECD', 'RoW', 'RoW']
     assert vec == expected
+
+
+def test_set_block():
+    """ Set block util function """
+    full_arr = np.random.random((10, 10))
+    block_arr = np.zeros((2, 2))
+
+    mod_arr = set_block(full_arr, block_arr)
+    npt.assert_array_equal(mod_arr[0:2, 0:2], block_arr)
+    npt.assert_array_equal(mod_arr[2:4, 2:4], block_arr)
+    npt.assert_array_equal(mod_arr[0:2, 3:-1], full_arr[0:2, 3:-1])
+
+    with pytest.raises(ValueError):
+        block_arr = np.zeros((3, 3))
+        mod_arr = set_block(full_arr, block_arr)
+
+    with pytest.raises(ValueError):
+        full_arr = np.random.random((10, 12))
+        block_arr = np.zeros((2, 2))
+        mod_arr = set_block(full_arr, block_arr)

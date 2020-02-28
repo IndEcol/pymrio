@@ -34,10 +34,14 @@ def calc_x(Z, Y):
         The type is determined by the type of Z. If DataFrame index as Z
 
     """
-    result = np.reshape(np.sum(np.hstack((Z, Y)), 1), (-1, 1))
+    x = np.reshape(np.sum(np.hstack((Z, Y)), 1), (-1, 1))
     if type(Z) is pd.DataFrame:
-        result = pd.DataFrame(result, index=Z.index, columns=['indout'])
-    return result
+        x = pd.DataFrame(x, index=Z.index, columns=['indout'])
+    if type(x) is pd.Series:
+        x = pd.DataFrame(x)
+    if type(x) is pd.DataFrame:
+        x.columns = ['indout']
+    return x
 
 
 def calc_x_from_L(L, y):
@@ -58,7 +62,9 @@ def calc_x_from_L(L, y):
 
     """
     x = L.dot(y)
-    if type(L) is pd.DataFrame:
+    if type(x) is pd.Series:
+        x = pd.DataFrame(x)
+    if type(x) is pd.DataFrame:
         x.columns = ['indout']
     return x
 
@@ -177,6 +183,27 @@ def calc_S(F, x):
     return calc_A(F, x)
 
 
+def calc_S_Y(F_Y, y):
+    """ Calculate extensions/factor inputs coefficients for the final demand
+
+    Parameters
+    ----------
+    F_Y : pandas.DataFrame or numpy.array
+         Final demand impacts
+    y : pandas.DataFrame or numpy.array
+        Final demand column vector (e.g. mrio.Y.sum())
+
+    Returns
+    -------
+    pandas.DataFrame or numpy.array
+        Direct impact coefficients of final demand S_Y
+        The type is determined by the type of F.
+        If DataFrame index/columns as F
+
+    """
+    return calc_A(F_Y, y)
+
+
 def calc_F(S, x):
     """ Calculate total direct impacts from the impact coefficients
 
@@ -196,6 +223,27 @@ def calc_F(S, x):
 
     """
     return calc_Z(S, x)
+
+
+def calc_F_Y(S_Y, y):
+    """ Calc. total direct impacts from the impact coefficients of final demand
+
+    Parameters
+    ----------
+    S_Y : pandas.DataFrame or numpy.array
+        Direct impact coefficients of final demand
+    y : pandas.DataFrame or numpy.array
+        Final demand column vector (e.g. mrio.Y.sum())
+
+    Returns
+    -------
+    pandas.DataFrame or numpy.array
+        Total direct impacts of final demand F_Y
+        The type is determined by the type of S_Y.
+        If DataFrame index/columns as S_Y
+
+    """
+    return calc_Z(S_Y, y)
 
 
 def calc_M(S, L):

@@ -19,7 +19,9 @@ from pymrio.tools.iomath import calc_Z          # noqa
 from pymrio.tools.iomath import calc_A          # noqa
 from pymrio.tools.iomath import calc_L          # noqa
 from pymrio.tools.iomath import calc_S          # noqa
+from pymrio.tools.iomath import calc_S_Y         # noqa
 from pymrio.tools.iomath import calc_F          # noqa
+from pymrio.tools.iomath import calc_F_Y         # noqa
 from pymrio.tools.iomath import calc_M          # noqa
 from pymrio.tools.iomath import calc_e          # noqa
 from pymrio.tools.iomath import calc_accounts   # noqa
@@ -168,6 +170,26 @@ def td_small_MRIO():
                     ],
                 index=['ext_type_1', 'ext_type_2'],
                 columns=_Z_multiindex,
+                dtype=('float64')
+                )
+
+        F_Y = pd.DataFrame(
+                data=[
+                    [50, 10],
+                    [100, 20]
+                    ],
+                index=['ext_type_1', 'ext_type_2'],
+                columns=_Y_multiindex,
+                dtype=('float64')
+                )
+
+        S_Y = pd.DataFrame(
+                data=[
+                    [1.0526315789473684, 0.1941747572815534],
+                    [2.1052631578947367, 0.3883495145631068]
+                    ],
+                index=['ext_type_1', 'ext_type_2'],
+                columns=_Y_multiindex,
                 dtype=('float64')
                 )
 
@@ -394,6 +416,19 @@ def test_calc_S_MRIO(td_small_MRIO):
             td_small_MRIO.S,
             calc_S(td_small_MRIO.F, td_small_MRIO.x)
                 )
+
+
+def test_calc_S_Y_MRIO(td_small_MRIO):
+    pdt.assert_frame_equal(
+            td_small_MRIO.S_Y,
+            calc_S_Y(td_small_MRIO.F_Y, td_small_MRIO.Y.sum(axis=0)))
+
+
+def test_calc_F_Y_MRIO(td_small_MRIO):
+    S_Y = calc_S_Y(td_small_MRIO.F_Y, td_small_MRIO.Y.sum(axis=0))
+    pdt.assert_frame_equal(
+        td_small_MRIO.F_Y,
+        calc_F_Y(S_Y, td_small_MRIO.Y.sum(axis=0)))
 
 
 def test_calc_M_MRIO(td_small_MRIO):

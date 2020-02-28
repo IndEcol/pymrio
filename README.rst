@@ -10,6 +10,8 @@ Pymrio: Multi-Regional Input-Output Analysis in Python.
      :target: https://anaconda.org/konstantinstadler/pymrio
 .. image:: https://travis-ci.org/konstantinstadler/pymrio.svg?branch=master
     :target: https://travis-ci.org/konstantinstadler/pymrio
+.. image:: https://coveralls.io/repos/github/konstantinstadler/pymrio/badge.svg?branch=master
+    :target: https://coveralls.io/github/konstantinstadler/pymrio
 .. image:: https://readthedocs.org/projects/pymrio/badge/?version=latest
     :target: http://pymrio.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
@@ -116,7 +118,7 @@ See the documentation_ and tutorials_ for further examples.
 Tutorials
 =========
 
-The documentation_ includes information about how to use pymrio for automatic downloading_ and parsing_ of the EE MRIOs EXIOBASE_, WIOD_ and EORA26_ as well as tutorials_ for the handling, aggregating and analysis of these databases. 
+The documentation_ includes information about how to use pymrio for automatic downloading_ and parsing_ of the EE MRIOs EXIOBASE_, WIOD_, OECD_ and EORA26_ as well as tutorials_ for the handling, aggregating and analysis of these databases. 
 
 Contributing
 =============
@@ -142,5 +144,6 @@ You can follow me on twitter_ to get the latest news about all my open-source an
 
 .. _EXIOBASE: http://www.exiobase.eu/
 .. _WIOD: http://www.wiod.org/home
+.. _OECD: https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm
 .. _EORA26: http://www.worldmrio.com/simplified/
 

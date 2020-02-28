@@ -3,15 +3,17 @@ Utility function for pymrio
 
 KST 20140502
 """
+import json
 import logging
 import os
 import zipfile
 
 import numpy as np
-import pandas as pd
 from collections import namedtuple
+from pathlib import Path
 
 from pymrio.core.constants import PYMRIO_PATH
+from pymrio.core.constants import DEFAULT_FILE_NAMES
 
 
 def is_vector(inp):
@@ -44,22 +46,118 @@ def is_vector(inp):
 def get_repo_content(path):
     """ List of files in a repo (path or zip)
 
+
+    Parameters
+    ----------
+
+    path: string or pathlib.Path
+
+    Returns
+    -------
+
     Returns a namedtuple with .iszip and .filelist
+    The path in filelist are pure strings.
+
     """
-    if os.path.splitext(path)[1] == '.zip':
+    path = Path(path)
+
+    if zipfile.is_zipfile(str(path)):
+        with zipfile.ZipFile(str(path)) as zz:
+            filelist = [info.filename for info in zz.infolist()]
         iszip = True
-        zz = zipfile.ZipFile(path)
-        filelist = [info.filename for info in zz.infolist()]
-        zz.close()
     else:
         iszip = False
-        filelist = []
-        for root, directories, filenames in os.walk(path):
-            for filename in filenames:
-                filelist.append(os.path.relpath(
-                    os.path.join(root, filename),
-                    path))
+        filelist = [str(f) for f in path.glob('**/*') if f.is_file()]
     return namedtuple('repocontent', ['iszip', 'filelist'])(iszip, filelist)
+
+
+def get_file_para(path, path_in_arc=''):
+    """ Generic method to read the file parameter file
+
+    Helper function to consistently read the file parameter file, which can
+    either be uncompressed or included in a zip archive.  By default, the file
+    name is to be expected as set in DEFAULT_FILE_NAMES['filepara'] (currently
+    file_parameters.json), but can defined otherwise by including the file
+    name of the parameter file in the parameter path.
+
+    Parameters
+    ----------
+
+    path: pathlib.Path or string
+        Path or path with para file name for the data to load.
+        This must either point to the directory containing the uncompressed
+        data or the location of a compressed zip file with the data. In the
+        later case the parameter 'path_in_arc' needs to be specific to
+        further indicate the location of the data in the compressed file.
+
+    path_in_arc: string, optional
+        Path to the data in the zip file (where the fileparameters file is
+        located). path_in_arc must be given without leading dot and slash;
+        thus to point to the data in the root of the compressed file pass ''
+        (default), for data in e.g. the folder 'emissions' pass 'emissions/'.
+        Only used if parameter 'path' points to an compressed zip file.
+
+    Returns
+    -------
+
+    Returns a namedtuple with
+    .folder: str with the absolute path containing the
+           file parameter file. In case of a zip the path
+           is relative to the root in the zip
+    .name: Filename without folder of the used parameter file.
+    .content: Dictionary with the content oft the file parameter file
+
+    Raises
+    ------
+
+    FileNotFoundError if parameter file not found
+
+    """
+    path = Path(path)
+
+    if zipfile.is_zipfile(str(path)):
+        para_file_folder = str(path_in_arc)
+        with zipfile.ZipFile(file=str(path)) as zf:
+            files = zf.namelist()
+    else:
+        para_file_folder = str(path)
+        files = [str(f) for f in path.glob('**/*')]
+
+    if para_file_folder not in files:
+        if zipfile.is_zipfile(str(path)):
+            # b/c in win os.path.join adds \ also for within zipfile
+            if para_file_folder != '':
+                para_file_full_path = (para_file_folder + '/' +
+                                       DEFAULT_FILE_NAMES['filepara']).replace(
+                                           '//', '/')
+            else:
+                para_file_full_path = DEFAULT_FILE_NAMES['filepara']
+
+        else:
+            para_file_full_path = os.path.join(
+                para_file_folder, DEFAULT_FILE_NAMES['filepara'])
+    else:
+        para_file_full_path = para_file_folder
+        para_file_folder = os.path.dirname(para_file_full_path)
+
+    if para_file_full_path not in files:
+        raise FileNotFoundError(
+            'File parameter file {} not found'.format(
+                para_file_full_path))
+
+    if zipfile.is_zipfile(str(path)):
+        with zipfile.ZipFile(file=str(path)) as zf:
+            para_file_content = json.loads(
+                zf.read(para_file_full_path).decode('utf-8'))
+    else:
+        with open(para_file_full_path, 'r') as pf:
+            para_file_content = json.load(pf)
+
+    return namedtuple('file_parameter',
+                      ['folder', 'name', 'content'])(
+        para_file_folder,
+        os.path.basename(para_file_full_path),
+        para_file_content)
 
 
 def build_agg_matrix(agg_vector, pos_dict=None):
@@ -244,141 +342,6 @@ def unique_element(ll):
     return result
 
 
-def concate_extension(*extensions, name):
-    """ Concatenate extensions
-
-    Notes
-    ----
-    The method assumes that the first index is the name of the
-    stressor/impact/input type. To provide a consistent naming this is renamed
-    to 'indicator' if they differ. All other index names ('compartments', ...)
-    are added to the concatenated extensions and set to NaN for missing values.
-
-    Notes
-    ----
-    Attributes which are not DataFrames will be set to None if they differ
-    between the extensions
-
-    Parameters
-    ----------
-
-    extensions : Extensions
-        The Extensions to concatenate as multiple parameters
-
-    name : string
-        Name of the new extension
-
-    Returns
-    -------
-
-    Concatenated extension
-
-    """
-    if type(extensions[0]) is tuple or type(extensions[0]) is list:
-        extensions = extensions[0]
-
-    # check if fd extensions is present in one of the given extensions
-    FY_present = False
-    SY_present = False
-    SFY_columns = None
-    for ext in extensions:
-        if 'FY' in ext.get_DataFrame(data=False):
-            FY_present = True
-            SFY_columns = ext.FY.columns
-        if 'SY' in ext.get_DataFrame(data=False):
-            SY_present = True
-            SFY_columns = ext.SY.columns
-
-    # get the intersection of the available dataframes
-    set_dfs = [set(ext.get_DataFrame(data=False)) for ext in extensions]
-    df_dict = {key: None for key in set.intersection(*set_dfs)}
-    if FY_present:
-        df_dict['FY'] = None
-    if SY_present:
-        df_dict['SY'] = None
-    empty_df_dict = df_dict.copy()
-    attr_dict = {}
-
-    # get data from each extension
-    first_run = True
-    for ext in extensions:
-        # get corresponding attributes of all extensions
-        for key in ext.__dict__:
-            if type(ext.__dict__[key]) is not pd.DataFrame:
-                if attr_dict.get(key, -99) == -99:
-                    attr_dict[key] = ext.__dict__[key]
-                elif attr_dict[key] == ext.__dict__[key]:
-                    continue
-                else:
-                    attr_dict[key] = None
-
-        # get DataFrame data
-        cur_dict = empty_df_dict.copy()
-
-        for df in cur_dict:
-            cur_dict[df] = getattr(ext, df)
-
-        # add zero final demand extension if final demand extension present in
-        # one extension
-        if FY_present:
-            # doesn't work with getattr b/c FY can be present as attribute but
-            # not as DataFrame
-            if 'FY' in ext.get_DataFrame(data=False):
-                cur_dict['FY'] = getattr(ext, 'FY')
-            else:
-                cur_dict['FY'] = pd.DataFrame(data=0,
-                                              index=ext.get_index(),
-                                              columns=SFY_columns)
-        if SY_present:
-            # doesn't work with getattr b/c SY can be present as attribute but
-            # not as DataFrame
-            if 'SY' in ext.get_DataFrame(data=False):
-                cur_dict['SY'] = getattr(ext, 'SY')
-            else:
-                cur_dict['SY'] = pd.DataFrame(data=0,
-                                              index=ext.get_index(),
-                                              columns=SFY_columns)
-
-        # append all df data
-        for key in cur_dict:
-            if not first_run:
-                if cur_dict[key].index.names != df_dict[key].index.names:
-                    cur_ind_names = list(cur_dict[key].index.names)
-                    df_ind_names = list(df_dict[key].index.names)
-                    cur_ind_names[0] = 'indicator'
-                    df_ind_names[0] = cur_ind_names[0]
-                    cur_dict[key].index.set_names(cur_ind_names,
-                                                  inplace=True)
-                    df_dict[key].index.set_names(df_ind_names,
-                                                 inplace=True)
-
-                    for ind in cur_ind_names:
-                        if ind not in df_ind_names:
-                            df_dict[key] = (df_dict[key].
-                                            set_index(pd.DataFrame(
-                                                data=None,
-                                                index=df_dict[key].index,
-                                                columns=[ind])[ind],
-                                                append=True))
-                    for ind in df_ind_names:
-                        if ind not in cur_ind_names:
-                            cur_dict[key] = (cur_dict[key].set_index(
-                                                pd.DataFrame(
-                                                    data=None,
-                                                    index=cur_dict[key].index,
-                                                    columns=[ind])
-                                                [ind], append=True))
-
-            df_dict[key] = pd.concat([df_dict[key], cur_dict[key]])
-
-        first_run = False
-
-        all_dict = dict(list(attr_dict.items()) + list(df_dict.items()))
-        all_dict['name'] = name
-
-    return Extension(**all_dict)
-
-
 def build_agg_vec(agg_vec, **source):
     """ Builds an combined aggregation vector based on various classifications
 
@@ -470,8 +433,8 @@ def build_agg_vec(agg_vec, **source):
                     break
             else:
                 logging.error(
-                        'Aggregation vector -- {} -- not found'
-                        .format(str(entry)))
+                    'Aggregation vector -- {} -- not found'
+                    .format(str(entry)))
 
     # build the summary aggregation vector
     def _rep(ll, ii, vv): ll[ii] = vv
@@ -541,7 +504,7 @@ def sniff_csv_format(csv_file,
         for i in range(max_test_lines):
             line = ff.readline()
             if line == '':
-                break
+                continue
             try:
                 line = line.decode('utf-8')
             except AttributeError:
@@ -557,9 +520,10 @@ def sniff_csv_format(csv_file,
         with open(csv_file, 'r') as ff:
             test_lines = read_first_lines(ff)
 
-    sep_aly_lines = [sorted([(line.count(sep), sep)
-                     for sep in potential_sep if line.count(sep) > 0],
-                     key=lambda x: x[0], reverse=True) for line in test_lines]
+    sep_aly_lines = [sorted(
+        [(line.count(sep), sep)
+         for sep in potential_sep if line.count(sep) > 0],
+        key=lambda x: x[0], reverse=True) for line in test_lines]
 
     for nr, (count, sep) in enumerate(sep_aly_lines[0]):
         for line in sep_aly_lines:
@@ -571,13 +535,15 @@ def sniff_csv_format(csv_file,
         if sep:
             break
 
+    lines_with_sep = [line for line in test_lines if sep in line]
+
     nr_header_row = None
     nr_index_col = None
 
     if sep:
-        nr_index_col = find_first_number(test_lines[-1].split(sep))
+        nr_index_col = find_first_number(lines_with_sep[-1].split(sep))
         if nr_index_col:
-            for nr_header_row, line in enumerate(test_lines):
+            for nr_header_row, line in enumerate(lines_with_sep):
                 if find_first_number(line.split(sep)) == nr_index_col:
                     break
 

@@ -5,6 +5,8 @@ import datetime
 import json
 import os
 import logging
+import zipfile
+from pathlib import Path
 
 from collections import OrderedDict
 
@@ -19,7 +21,7 @@ class MRIOMetaData(object):
                  name=None,
                  system=None,
                  version=None,
-                 year=None,
+                 path_in_arc='',
                  logger_function=logging.info):
 
         """ Organzises the MRIO meta data
@@ -44,7 +46,11 @@ class MRIOMetaData(object):
             location by default).  This can be the full file path or just the
             storage folder.  In the latter case, the filename defined in
             DEFAULT_FILE_NAMES['metadata'] (currently 'metadata.json') is
-            assumed.
+            assumed. The metadata can also be read from an archived zip file.
+            In this case the data is 'read only' and can not be stored back
+            to the same archive directly (writing data as zip archive not
+            implemented yet). This means, that a new file has to be specified
+            when saving the metadata.
 
         description: str, optional
             Description of the metadata file purpose and mrio,
@@ -67,6 +73,13 @@ class MRIOMetaData(object):
             Will be set the first time the metadata file gets established;
             subsequent changes are recorded in 'history'.
 
+        path_in_arc: string, optional
+            Path to the meta data in a zip file. path_in_arc must be given
+            without leading dot or slash; thus to point to the data in the
+            root of the compressed file pass '', for data in e.g. the folder
+            'emissions' pass 'emissions/'.  Only used if parameter 'location'
+            points to a compressed zip file.
+
         logger_function: func, optional
             Function accepting strings.
             The info string written to the metadata is also
@@ -75,15 +88,25 @@ class MRIOMetaData(object):
 
         """
         if location:
-            if os.path.isfile(location):
+            location = Path(location)
+            self._path_in_arc = None
+            if location.is_file():
                 self._metadata_file = location
-            elif os.path.isdir(location):
-                self._metadata_file = os.path.abspath(
-                    os.path.join(location, DEFAULT_FILE_NAMES['metadata']))
+                if zipfile.is_zipfile(str(location)):
+                    with zipfile.ZipFile(file=str(location)) as zf:
+                        if path_in_arc not in zf.namelist():
+                            path_in_arc = os.path.join(
+                                path_in_arc,
+                                DEFAULT_FILE_NAMES['metadata'])
+
+                    self._path_in_arc = str(path_in_arc)
+
+            elif location.is_dir():
+                self._metadata_file = location / DEFAULT_FILE_NAMES['metadata']
             else:
-                if os.path.splitext(location)[1] == '':
-                    self._metadata_file = os.path.abspath(
-                        os.path.join(location, DEFAULT_FILE_NAMES['metadata']))
+                if os.path.splitext(str(location))[1] == '':
+                    self._metadata_file = (
+                        location / DEFAULT_FILE_NAMES['metadata'])
                 else:
                     self._metadata_file = location
         else:
@@ -91,9 +114,14 @@ class MRIOMetaData(object):
 
         self.logger = logger_function if logger_function else lambda x: None
 
-        if self._metadata_file and os.path.isfile(self._metadata_file):
+        if self._metadata_file and self._metadata_file.is_file():
             self._read_content()
             self.logger("Read metadata from {}".format(self._metadata_file))
+
+            if zipfile.is_zipfile(str(self._metadata_file)):
+                self._metadata_file = None
+                self._path_in_arc = None
+
             if description:
                 self.change_meta('description', description)
             if name:
@@ -257,15 +285,21 @@ class MRIOMetaData(object):
         return '{:%Y%m%d %H:%M:%S}'.format(datetime.datetime.now())
 
     def _read_content(self):
-        """ Reads metadata from location
+        """ Reads metadata from location (and path_in_arc if archive)
 
         This function is called during the init process and
         should not be used in isolation: it overwrites
         unsafed metadata.
         """
-        with open(self._metadata_file, 'r') as mdf:
-            self._content = json.load(mdf,
-                                      object_pairs_hook=OrderedDict)
+        if self._path_in_arc:
+            with zipfile.ZipFile(file=str(self._metadata_file)) as zf:
+                self._content = json.loads(
+                    zf.read(self._path_in_arc).decode('utf-8'),
+                    object_pairs_hook=OrderedDict)
+        else:
+            with self._metadata_file.open('r') as mdf:
+                self._content = json.load(mdf,
+                                          object_pairs_hook=OrderedDict)
 
     def save(self, location=None):
         """ Saves the current status of the metadata
@@ -279,23 +313,22 @@ class MRIOMetaData(object):
 
         Parameters
         ----------
-        filename: str, optional
+        location: str, optional
             Path or file for saving the metadata.
             This can be the full file path or just the storage folder.
             In the latter case, the filename defined in
             DEFAULT_FILE_NAMES['metadata'] (currently 'metadata.json') is
             assumed.
-
         """
         if location:
-            if os.path.splitext(location)[1] == '':
-                self._metadata_file = os.path.abspath(
-                    os.path.join(location, DEFAULT_FILE_NAMES['metadata']))
+            location = Path(location)
+            if os.path.splitext(str(location))[1] == '':
+                self._metadata_file = location / DEFAULT_FILE_NAMES['metadata']
             else:
                 self._metadata_file = location
 
         if self._metadata_file:
-            with open(self._metadata_file, 'w') as mdf:
+            with self._metadata_file.open(mode='w') as mdf:
                 json.dump(self._content, mdf, indent=4)
         else:
             logging.error("No metadata file given for storing the file")

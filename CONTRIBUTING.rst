@@ -11,15 +11,19 @@ There are many ways you can help to improve pymrio.
 - File bug reports and describe ideas for enhancement.
 - Add new functionality to the code.
 
-Independent of your contribution, please use pull requests to inform me about any improvements you did and make sure all tests pass (see below).
+Pymrio follows an "issue/ticket driven development". 
+This means, before you start working file an issue describing the planned changes or comment on an existing one to indicate that you work on it.
+This allows us to discuss changes before you actually start and gives us the chance to identify synergies across ongoing work and avoid potential double work.
+When you have finished, use a pull request to inform me about the improvements and make sure all tests pass (see below).
+In the pull request you can use various phrases_ which automatically close the issue you have been working on.
 
+.. _phrases: https://blog.github.com/2013-05-14-closing-issues-via-pull-requests/
 
 ****************************
 Working on the documentation
 ****************************
 
-The documentation of pymrio is currently not complete, any contribution to the description of pymrio is of huge value! 
-I also very much appreciate tutorials which show how you can use pymrio in actual research.
+Any contribution to the description of pymrio is of huge value, in particular I very much appreciate tutorials which show how you can use pymrio in actual research.
 
 The pymrio documentation combines reStructuredText_ and Jupyter_ notebooks.
 The Sphinx Documentation has an excellent introduction to reStructuredText_. Review the Sphinx docs to perform more complex changes to the documentation as well.
@@ -31,8 +35,6 @@ The Sphinx Documentation has an excellent introduction to reStructuredText_. Rev
 Changing the code base
 **********************
 
-If you plan any changes to the source code of this repo, please first discuss the change you wish to make via a filing an issue (labelled Enhancement or Bug) before making a change.
-All code contribution must be provided as pull requests connected to a filed issue.
 Use numpy style docstrings_ and follow pep8_ style guide.
 The latter is a requirement to pass the tests before merging a pull request.
 Since pymrio is already used in research projects, please aim for keeping compatibility with previous versions.
@@ -54,12 +56,61 @@ To run the tests install these two packages (and the Pandas_ dependency) and run
 
 in the root of your local copy of pymrio.
 
+In addition to the unit tests, the Jupyter notebook tutorials are also used 
+for integration tests of the full software. Some of them (the EXIOBASE and Eora
+example) require a pre-download of the respective MRIOs to a specific folder. 
+Also, most of the tutorials have POSIX path specifications. However, in case 
+you update some integral part of Pymrio, please either also check if the 
+notebooks run or specify that you did not test them in the pull request.
+
+For testing the notebooks install the nbval_ extension for py.test_ . 
+Pymrio includes a sanitizing file to handle changing timestamps and object ids 
+of the notebooks. To test all notebooks run the following command in the pymrio root directory:
+
+::
+	
+	pytest --nbval --sanitize-with .notebook_test_sanitize.cfg  
+
+
+
 .. _py.test: http://pytest.org/
 .. _pytest-pep8: https://pypi.python.org/pypi/pytest-pep8
 .. _Pandas: https://pandas.pydata.org/
+.. _nbval: https://nbval.readthedocs.io/en/latest/
 
 
+Debugging and logging
+=====================
 
+Pymrio includes a logging class which is used for documenting changes in the IO system through Pymrio.
+This is defined in tools/iometadata.py. 
+
+To use is import it by
+
+:: 
+
+    from pymrio.tools.iometadata import MRIOMetaData
+    
+and than document changes by using the methods provided by the class.
+
+
+All logs necessary only for development or later debugging should be logged by
+
+::
+
+    import logging    
+    logging.debug("Message")
+
+
+In the python terminal you can show these debug messages by:
+
+::
+
+    import logging
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+   
+    
 
 **********
 Versioning
@@ -81,12 +132,11 @@ Open points
 ***********
 
 
-pymrio is under acitive deveopment. Open points include:
+Pymrio is under active development. Open points include:
 
 - parser for other available MRIOs
 
     * OPEN:EU (http://www.oneplaneteconomynetwork.org/)
-    * OECD MRIO
 
 - improve test cases
 - wrapper for time series analysis
@@ -103,4 +153,3 @@ pymrio is under acitive deveopment. Open points include:
     * choropleth map for footprints
 
 - structural decomposition analysis
-- improving the documentation (of course...)

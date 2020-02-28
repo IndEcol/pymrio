@@ -1,0 +1,21 @@
+{
+    "files": {
+        "F": {
+            "name": "F.txt",
+            "nr_index_col": "1",
+            "nr_header": "2"
+        },
+        "F_hh": {
+            "name": "F_hh.txt",
+            "nr_index_col": "1",
+            "nr_header": "2"
+        },
+        "unit": {
+            "name": "unit.txt",
+            "nr_index_col": "2",
+            "nr_header": "1"
+        }
+    },
+    "systemtype": "Extension",
+    "name": "Satellite Accounts"
+}

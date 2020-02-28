@@ -11,6 +11,7 @@ from pymrio.tools.iometadata import MRIOMetaData
 WIOD_CONFIG = {
     'url_db_view': 'http://www.wiod.org/database/wiots13',
     'url_db_content':  'http://www.wiod.org/',
+    'mrio_regex': r'protected.*?wiot\d\d.*?xlsx',
     'satellite_urls':  [
         'http://www.wiod.org/protected3/data13/SEA/WIOD_SEA_July14.xlsx',
         'http://www.wiod.org/protected3/data13/EU/EU_may12.zip',
@@ -21,16 +22,57 @@ WIOD_CONFIG = {
         'http://www.wiod.org/protected3/data13/materials/mat_may12.zip',
         'http://www.wiod.org/protected3/data13/water/wat_may12.zip',
     ],
-    }
+}
 
 EORA26_CONFIG = {
     'url_db_view': 'http://worldmrio.com/simplified/',
     'url_db_content': 'http://worldmrio.com/',
+}
+
+OECD_CONFIG = {
+    'url_db_view': 'https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm',  # NOQA
+    'url_db_content': 'https://www.oecd.org/sti/ind/',
+    'mrio_regex': r'ICIO\d\d\d\d_\d\d\d\d\.zip',
+    'datafiles': {
+        'v2016': {
+            '1995': 'https://www.oecd.org/sti/ind/ICIO2016_1995.zip',
+            '1996': 'https://www.oecd.org/sti/ind/ICIO2016_1996.zip',
+            '1997': 'https://www.oecd.org/sti/ind/ICIO2016_1997.zip',
+            '1998': 'https://www.oecd.org/sti/ind/ICIO2016_1998.zip',
+            '1999': 'https://www.oecd.org/sti/ind/ICIO2016_1999.zip',
+            '2000': 'https://www.oecd.org/sti/ind/ICIO2016_2000.zip',
+            '2001': 'https://www.oecd.org/sti/ind/ICIO2016_2001.zip',
+            '2002': 'https://www.oecd.org/sti/ind/ICIO2016_2002.zip',
+            '2003': 'https://www.oecd.org/sti/ind/ICIO2016_2003.zip',
+            '2004': 'https://www.oecd.org/sti/ind/ICIO2016_2004.zip',
+            '2005': 'https://www.oecd.org/sti/ind/ICIO2016_2005.zip',
+            '2006': 'https://www.oecd.org/sti/ind/ICIO2016_2006.zip',
+            '2007': 'https://www.oecd.org/sti/ind/ICIO2016_2007.zip',
+            '2008': 'https://www.oecd.org/sti/ind/ICIO2016_2008.zip',
+            '2009': 'https://www.oecd.org/sti/ind/ICIO2016_2009.zip',
+            '2010': 'https://www.oecd.org/sti/ind/ICIO2016_2010.zip',
+            '2011': 'https://www.oecd.org/sti/ind/ICIO2016_2011.zip',
+            },
+        'v2018': {
+            '2005': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1f134869-1820-49ce-b8b8-3973ec8db607',   # NOQA
+            '2006': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=da62c835-f4fa-4450-bf19-1dd60f88a385',   # NOQA
+            '2007': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=c4d4c21d-00db-48d8-9f9a-f722fcdca494',   # NOQA
+            '2008': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1fd2fc03-c140-46f4-818e-9a66b671ff70',   # NOQA
+            '2009': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=4cc79090-d1ee-48b6-a252-e75312d32a1c',   # NOQA
+            '2010': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=16d04830-3c27-47a5-bc03-e429d27f585e',   # NOQA
+            '2011': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=dc48c8c0-f200-487a-aecb-0c2c17fe3ddf',   # NOQA
+            '2012': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=cfd03495-8a90-4449-8097-a30f06853cab',   # NOQA
+            '2013': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=8c8ac674-1b6c-4c8e-94d1-158f06285659',   # NOQA
+            '2014': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=0190bd9d-31d0-4171-bd1c-82d96b88e469',   # NOQA
+            '2015': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=9f579ef3-4685-45e4-a0ba-d1acbd9755a6',   # NOQA
+            }
+        }
     }
 
 
 def _get_url_datafiles(url_db_view, url_db_content,
-                       mrio_regex, access_cookie=None):
+                       mrio_regex, access_cookie=None,
+                       requests_func=requests.post):
     """ Urls of mrio files by parsing url content for mrio_regex
 
     Parameters
@@ -49,6 +91,10 @@ def _get_url_datafiles(url_db_view, url_db_content,
     access_cookie: dict, optional
         If needed, cookie to access the database
 
+    requests_func: function
+        Function to use for retrieving the url content.
+        Can be requests.get or requests.post
+
     Returns
     -------
     Named tuple:
@@ -60,7 +106,7 @@ def _get_url_datafiles(url_db_view, url_db_content,
     # but currently works for wiod and eora
     returnvalue = namedtuple('url_content',
                              ['raw_text', 'data_urls'])
-    url_text = requests.post(url_db_view, cookies=access_cookie).text
+    url_text = requests_func(url_db_view, cookies=access_cookie).text
     data_urls = [url_db_content + ff
                  for ff in re.findall(mrio_regex, url_text)]
     return returnvalue(raw_text=url_text, data_urls=data_urls)
@@ -112,6 +158,106 @@ def _download_urls(url_list, storage_folder, overwrite_existing,
     return meta_handler
 
 
+def download_oecd(storage_folder, version='v2018',
+                  years=None, overwrite_existing=False):
+    """ Downloads the OECD ICIO tables
+
+    Parameters
+    ----------
+    storage_folder: str, valid path
+        Location to store the download, folder will be created if
+        not existing. If the file is already present in the folder,
+        the download of the specific file will be skipped.
+
+    version: string or int, optional
+        Two versions of the ICIO OECD tables are currently availabe:
+        Version >v2016<: based on >SNA93< / >ISIC Rev.3<
+        Version >v2018<: based on >SNA08< / >ISIC Rev.4< (default)
+        Pass any of the identifiers between >< to specifiy the
+        version to be downloaded.
+
+    years: list of int (4 digit) or str, optional
+        If years is given only downloads the specific years.
+
+    overwrite_existing: boolean, optional
+        If False, skip download of file already existing in
+        the storage folder (default). Set to True to replace
+        files.
+
+    Returns
+    -------
+
+    Meta data of the downloaded MRIOs
+
+    """
+    # Implementation Notes:
+    # For OECD the generic download routines can not be used
+    # b/c the 2018 version is coded as aspx fileview property
+    # in the html source - instead a hardcoded dict is used
+    # to select the url for download
+
+    try:
+        os.makedirs(storage_folder)
+    except FileExistsError:
+        pass
+
+    if type(version) is int:
+        version = str(version)
+
+    if ('8' in version) or ('4' in version):
+        version = 'v2018'
+    elif ('3' in version) or ('6' in version):
+        version = 'v2016'
+    else:
+        raise ValueError('Version not understood')
+
+    if type(years) is int or type(years) is str:
+        years = [years]
+    if not years:
+        if version == 'v2018':
+            years = range(2005, 2016)
+        else:
+            years = range(1995, 2012)
+    years = [str(yy) for yy in years]
+
+    meta = MRIOMetaData(location=storage_folder,
+                        description='OECD-ICIO download',
+                        name='OECD-ICIO',
+                        system='IxI',
+                        version=version)
+
+    oecd_webcontent = requests.get(OECD_CONFIG['url_db_view']).text
+    for yy in years:
+        if yy not in OECD_CONFIG['datafiles'][version].keys():
+            raise ValueError(
+                'Datafile for {} not specified or available.'.format(yy))
+        if version == 'v2016':
+            url_to_check = os.path.basename(
+                OECD_CONFIG['datafiles'][version][yy])
+        else:
+            url_to_check = OECD_CONFIG['datafiles'][version][yy]
+        if url_to_check not in oecd_webcontent:
+            raise ValueError(
+                'Specified datafile for {} () not found in the current'
+                'OECD ICIO webpage.\n'
+                'Perhaps filenames have been changed - update OECD_CONFIG '
+                'to the new filenames'.format(yy, url_to_check))
+
+        filename = 'ICIO' + version.lstrip('v') + '_' + yy + '.zip'
+        storage_file = os.path.join(storage_folder, filename)
+        req = requests.get(OECD_CONFIG['datafiles'][version][yy],
+                           stream=True)
+        with open(storage_file, 'wb') as lf:
+            for chunk in req.iter_content(1024*5):
+                lf.write(chunk)
+
+        meta._add_fileio('Downloaded {} to {}'.format(
+            OECD_CONFIG['datafiles'][version][yy], filename))
+
+    meta.save()
+    return meta
+
+
 def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
                       satellite_urls=WIOD_CONFIG['satellite_urls']):
     """ Downloads the 2013 wiod release
@@ -147,6 +293,11 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
         in WIOD_CONFIG - list of all available urls Remove items from this list
         to only download a subset of extensions
 
+    Returns
+    -------
+
+    Meta data of the downloaded MRIOs
+
     """
 
     try:
@@ -162,7 +313,7 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
     wiod_web_content = _get_url_datafiles(
         url_db_view=WIOD_CONFIG['url_db_view'],
         url_db_content=WIOD_CONFIG['url_db_content'],
-        mrio_regex='protected.*?wiot\d\d.*?xlsx')
+        mrio_regex=WIOD_CONFIG['mrio_regex'])
 
     restricted_wiod_io_urls = [url for url in wiod_web_content.data_urls if
                                re.search(r"(wiot)(\d\d)",
@@ -172,7 +323,7 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
     meta = MRIOMetaData(location=storage_folder,
                         description='WIOD metadata file for pymrio',
                         name='WIOD',
-                        system='ixi',
+                        system='IxI',
                         version='data13')
 
     meta = _download_urls(url_list=restricted_wiod_io_urls + satellite_urls,
@@ -184,134 +335,58 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
     return meta
 
 
-def download_eora26(storage_folder, years=None, prices=['bp'],
-                    overwrite_existing=False):
-    """ Downloads Eora 26
-
-    Parameters
-    ----------
-    storage_folder: str, valid path
-        Location to store the download, folder will be created if
-        not existing. If the file is already present in the folder,
-        the download of the specific file will be skipped.
-
-
-    years: list of int or str, optional
-        If years is given only downloads the specific years. This
-        only applies to the IO tables because extensions are stored
-        by country and not per year.
-        The years can be given in 2 or 4 digits.
-
-    prices: list of str
-        If bp (default), download basic price tables.
-        If pp, download purchaser prices. ['bp', 'pp'] possible.
-
-    overwrite_existing: boolean, optional
-        If False, skip download of file already existing in
-        the storage folder (default). Set to True to replace
-        files.
-
+def download_eora26():
+    """ Downloading eora26 not implemented (registration required)
     """
-    try:
-        os.makedirs(storage_folder)
-    except FileExistsError:
-        pass
+    raise NotImplementedError(
+        "Eora26 3 requires registration prior to download. "
+        "Please register at http://www.worldmrio.com and download the "
+        "Eora26 files from the subdomain /simplified")
+    return None
 
-    print("The Eora MRIO is free for academic (university or grant-funded) "
-          "work at degree-granting institutions. "
-          "All other uses require a data license before the "
-          "results are shared.\n\n "
-          "When using Eora, the Eora authors ask you cite "
-          "these publications: \n\n "
-          "Lenzen, M., Kanemoto, K., Moran, D., Geschke, A. "
-          "Mapping the Structure of the World Economy (2012). "
-          "Env. Sci. Tech. 46(15) pp 8374-8381. DOI:10.1021/es300171x \n\n "
-          "Lenzen, M., Moran, D., Kanemoto, K., Geschke, A. (2013) "
-          "Building Eora: A Global Multi-regional Input-Output Database "
-          "at High Country and Sector Resolution, Economic Systems Research, "
-          " 25:1, 20-49, DOI:10.1080/09535314.2013.769 938\n\n ")
-
-    agree = input("Do you agree with these conditions [y/n]: ")
-
-    if agree.lower() != 'y':
-        raise ValueError("Download of Eora not possible")
-
-    if type(years) is int or type(years) is str:
-        years = [years]
-    years = years if years else range(1995, 2012)
-    years = [str(yy).zfill(4) for yy in years]
-
-    if type(prices) is str:
-        prices = [prices]
-
-    eora_cookie_str = requests.post(
-        EORA26_CONFIG['url_db_content'],
-        data={'licenseagree': 'true'}
-        ).headers['Set-Cookie']
-
-    _cookie_content = eora_cookie_str.split(';')[0].split('=')
-    eora_access_cookie = {_cookie_content[0]: _cookie_content[1]}
-
-    eora26_web_content = _get_url_datafiles(
-            url_db_view=EORA26_CONFIG['url_db_view'],
-            url_db_content=EORA26_CONFIG['url_db_content'],
-            mrio_regex='Computations.*?Eora26_\d\d\d\d_.*?.zip',
-            access_cookie=eora_access_cookie)
-
-    version_number = re.findall(">v\d+\.\d+<",
-                                eora26_web_content.raw_text)[-1][1:-1]
-
-    restricted_eora_urls = [url for url in eora26_web_content.data_urls if
-                            re.search(r"(Eora26_)(\d\d\d\d)",
-                                      os.path.basename(url)).group(2)
-                            in years and
-                            re.search(r"(Eora26_\d\d\d\d_)(..)",
-                                      os.path.basename(url)).group(2)
-                            in prices
-                            ]
-
-    meta = MRIOMetaData(location=storage_folder,
-                        description='Eora metadata file for pymrio',
-                        name='Eora',
-                        system='ixi',
-                        version=version_number)
-
-    meta = _download_urls(url_list=restricted_eora_urls,
-                          storage_folder=storage_folder,
-                          overwrite_existing=overwrite_existing,
-                          meta_handler=meta,
-                          access_cookie=eora_access_cookie)
-
-    # phase=re.findall('v\d+\.', version_number)[0][1:-1]
-    # loop=re.findall('\.\d+', version_number)[0][1:]
-    # if len(loop) == 2: loop = '0' + loop
-    meta.save()
-
-    return meta
+    # Development note:
+    # Eora 26 autodownload was implemented before but was
+    # removed since worldmrio does require
+    # a registration now (by summer 2018).
+    # The previous implementation can be found
+    # in the github history (e.g. at 2e61424 2018-10-09
+    # or before)
 
 
 def download_exiobase1():
-    """ Downloading exiobase not implemented (registration required
+    """ Downloading exiobase not implemented (registration required)
     """
-    print("EXIOBASE 1 requires registration prior to download. "
-          "Please register at www.exiobase.eu and download the "
-          "EXIOBASE MRIO files "
-          "pxp_ita_44_regions_coeff_txt or "
-          "ixi_fpa_44_regions_coeff_txt "
-          "manually (tab Data Download - EXIOBASE 1 (full data set)."
-          )
+    raise NotImplementedError(
+        "EXIOBASE 1 requires registration prior to download. "
+        "Please register at www.exiobase.eu and download the "
+        "EXIOBASE MRIO files "
+        "pxp_ita_44_regions_coeff_txt or "
+        "ixi_fpa_44_regions_coeff_txt "
+        "manually (tab Data Download - EXIOBASE 1 (full data set)."
+    )
     return None
 
 
 def download_exiobase2():
-    """ Downloading exiobase not implemented (registration required
+    """ Downloading exiobase not implemented (registration required)
     """
-    print("EXIOBASE 2 requires registration prior to download. "
-          "Please register at www.exiobase.eu and download the "
-          "EXIOBASE MRIO files "
-          ">MrIOT_IxI_fpa_coefficient_version2.2.2.zip<_"
-          "and/or_"
-          ">MrIOT_PxP_ita_coefficient_version2.2.2.zip<_"
-          "manually (tab Data Download - EXIOBASE 2)."
-          )
+    raise NotImplementedError(
+        "EXIOBASE 2 requires registration prior to download. "
+        "Please register at www.exiobase.eu and download the "
+        "EXIOBASE MRIO files "
+        ">MrIOT_IxI_fpa_coefficient_version2.2.2.zip<_"
+        "and/or_"
+        ">MrIOT_PxP_ita_coefficient_version2.2.2.zip<_"
+        "manually (tab Data Download - EXIOBASE 2)."
+    )
+    return None
+
+
+def download_exiobase3():
+    """ Downloading exiobase not implemented (registration required)
+    """
+    raise NotImplementedError(
+        "EXIOBASE 3 requires registration prior to download. "
+        "Please register at www.exiobase.eu and download the "
+        "EXIOBASE 3 MRIO files ")
     return None

@@ -2,6 +2,87 @@
 Changelog
 #########
 
+***************************
+v0.4.1 (October 08, 2019)
+***************************
+
+Bugfixes
+========
+
+* Fixed: Parsing EXIOBASE 3 from zip on Windows system
+* Fixed: Doc spelling
+
+New features
+============
+
+* The tutorial notebooks of the documentation are now also used for integration 
+  tests. See CONTIBUTING.rst for more infos.
+
+***************************
+v0.4.0 (August 12, 2019)
+***************************
+
+New features
+============
+
+* New parser and automatic downloader for the OECD-ICIO tables (2016 and 2018 
+  release)
+* Improved test coverage to over 90 %
+* Equality comparison for MRIO System and Extension
+
+
+Bugfixes
+========
+
+* Fixed some typos
+
+Backward incompatible changes
+==============================
+
+* Minimum python version changed to 3.7
+* The FY and SY matrixes has been renamed to F_Y and S_Y. Previously stored 
+  data, however, can still be read (FY/SY files are automatically parsed as F_Y 
+  and S_Y)
+
+***************************
+v0.3.8 (November 06, 2018)
+***************************
+
+Hotfix for two EXIOBASE 3 issues
+
+* FY in the raw files is named F_hh. F_hh now get automatically renamed to FY.
+* In the ixi tables of EXIOBASE 3 some tables had ISO3 country names. The parser now renames these names to the standard ISO2. 
+
+*************************
+v0.3.7 (October 10, 2018)
+*************************
+
+New features
+============
+
+* pymrio.parse_exiobase3, accepting the compressed archive files and extraced data (solves #26)
+* pymrio.archive for archiving MRIO databases into zipfiles (solves #26)
+* pymrio.load and pymrio.load_all can read data directly from a zipfile (solves #26)
+
+Bugfixes
+========
+
+* Calculate FY and SY when final demand impacts are available (fixes issue #28) 
+* Ensures that mrio.x is a pandas DataFrame (fixes issue #24)
+* Some warning if a reset method would remove data beyond recovery by calc_all (see issue #23 discussion)
+
+  
+Removed functionality
+=====================
+
+* Removed the Eora26 autodownloader b/c worldmrio.com needs a registration now (short time fix for #34)
+  
+Misc
+====
+
+* pymrio now depends on python > 3.6
+* Stressed the issue driven development in CONTRIBUTING.rst
+
 
 ***********************
 v0.3.6 (March 12, 2018)

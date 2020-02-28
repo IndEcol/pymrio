@@ -1,12 +1,13 @@
 language: python
 python:
-  - "3.5"
-  - "3.6"
+  - "3.7"
 install:
   - pip install pytest-pep8
   - pip install .
   - pip install pytest-cov python-coveralls
   - pip install -r requirements.txt
+before_script:
+    pip list
 script:
     py.test --pep8 -vv --cov pymrio
 after_success:
