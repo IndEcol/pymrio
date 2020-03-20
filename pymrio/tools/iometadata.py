@@ -21,8 +21,9 @@ class MRIOMetaData(object):
                  name=None,
                  system=None,
                  version=None,
+                 year=None,
                  path_in_arc='',
-                 logger_function=logging.info):
+                 logger_function=logging.info): #   
 
         """ Organzises the MRIO meta data
 

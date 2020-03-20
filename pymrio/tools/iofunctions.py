@@ -129,7 +129,7 @@ def nb_regions(self): return(len(self.regions))
 @property
 def nb_sectors(self): return(len(self.sectors))
 
-def find(self, string, vec='impacts'): # TODO: allow insensitivity to case
+def find(self, string, vec='impacts', unit = False): # TODO: allow insensitivity to case
     '''
     Find vec=impacts/sectors containing string.
     '''
@@ -137,7 +137,8 @@ def find(self, string, vec='impacts'): # TODO: allow insensitivity to case
         if self.name == 'THEMIS': array = np.array(self.labels.idx_impacts)
         else: array = np.array(self.impact.unit.iloc[:,0].index) # TODO: check to replace by impact.S.index
     elif vec=='sectors' or vec=='sector': array = np.array(self.sectors)
-    return([x for i,x in enumerate(array) if string in x])
+    if unit: return([self.impact.unit.iloc[i,:] for i,x in enumerate(array) if string in x]) 
+    else: return([x for i,x in enumerate(array) if string in x])
 
 def is_in(self, secs = None, regs = None): # TODO: trim spaces for themis' foreground
     '''
@@ -197,14 +198,14 @@ def production(self, secs=None, regs=None, non_unitary_themis = True): # TODO: c
     same estimates as True when the sector is unique (e.g. one sector in one region) and covers foreground, but is imprecise for several sectors or regions
     '''    
     secs, regs = self.prepare_secs_regs(secs, regs)
-    if self.name!='Cecilia':
+    if self.name!='Cecilia' and self.name!='exio34_ntnu':
         if not hasattr(self, 'secondary_energy_supply'): self.secondary_energy_supply = self.energy_supply * self.is_in(self.energy_sectors('secondary'))
         if not hasattr(self, 'secondary_fuel_supply'): self.secondary_fuel_supply = self.energy_supply * self.is_in(self.energy_sectors('secondary_fuels'))
     if self.name=='THEMIS': 
         if non_unitary_themis: return(self.is_in(secs, regs) * div0(self.secondary_energy_demand, self.energy_supply))
         else: return(self.is_in(secs, regs))
     else: return(self.x*self.is_in(secs, regs)) 
-
+    
 def impacts(self, var='Total Energy supply', regs=None, secs=None, join_sort=False): # var = 'Value Added'
     '''
     Returns the vector of impact of type var related directly to (sec, reg) in secs x regs, computed from F.
@@ -310,7 +311,7 @@ def embodied_impact(self, secs=None, regs=None, var='Total Energy supply', sourc
     else:
         share_demand = div0(self.embodied_prod(secs, regs, production)-production, self.x)
         impacts = self.impacts(var)*share_demand        
-    impacts = impacts[self.index_secs_regs(self.energy_sectors(source))]
+    if self.name!='exio34_ntnu': impacts = impacts[self.index_secs_regs(self.energy_sectors(source))] # /!\ hack: c'est pck sur THEMIS je m'intéresse à energy mais pas sur Exio 3 
     if sort: return(sorted_series(impacts.groupby(group_by).sum()))
     else: return(impacts.groupby(group_by).sum())  
     
@@ -921,6 +922,30 @@ def export_all_excel(path_themis, themis):
     res.to_excel(writer, 'Share of direct energy')
     writer.save()
 
+def consumption_sectors(self, notion): # TODO: other sectors, difference from elecs_names to add after elec and to display
+    '''
+    Returns the list of sectors (or names) corresponding to notion, which can be: food, drug, cloth, housing, furniture, health, transport, communication, leisure, education, catering, diverse
+    '''
+    if notion is None or notion == 'total': sectors = self.sectors
+    elif notion not in ['food', 'tobacco', 'cloth', 'housing', 'furniture', 'health', 'transport', 'communication', 'leisure', 'education', 'catering', 'diverse']:
+        print('Error: notion unknown')
+    elif notion=='food': sectors = ['Paddy rice',  'Wheat',  'Cereal grains nec',  'Vegetables, fruit, nuts',  'Oil seeds',  'Sugar cane, sugar beet',  'Plant-based fibers',  'Crops nec',  'Cattle',  'Pigs',  'Poultry',  'Meat animals nec',  'Animal products nec',  'Raw milk', 'Fish and other fishing products; services incidental of fishing (05)', 
+'Products of meat cattle', 'Products of meat pigs', 'Products of meat poultry', 'Meat products nec', 'products of Vegetable oils and fats', 'Dairy products', 'Processed rice', 'Sugar', 'Food products nec', 'Beverages', 'Fish products']
+    elif notion=='tobacco': sectors = ['Tobacco products (16)']
+    elif notion=='cloth': sectors = ['Textiles (17)', 'Wearing apparel; furs (18)', 'Leather and leather products (19)']
+    elif notion=='housing': sectors = ['Electricity by coal', 'Electricity by gas', 'Electricity by nuclear', 'Electricity by hydro', 'Electricity by wind', 'Electricity by petroleum and other oil derivatives', 'Electricity by biomass and waste', 'Electricity by solar photovoltaic', 'Electricity by solar thermal', 'Electricity by tide, wave, ocean', 'Electricity by Geothermal', 'Electricity nec', 'Steam and hot water supply services', 'Collected and purified water, distribution services of water (41)', 'Construction work (45)', 'Real estate services (70)']
+    elif notion=='furniture': sectors = ['Paper and paper products', 'Printed matter and recorded media (22)', 'Furniture; other manufactured goods n.e.c. (36)'] 
+    elif notion=='health': sectors = ['Health and social work services (85)'] 
+    elif notion=='transport': sectors = ['Motor Gasoline', 'Gas/Diesel Oil', 'Heavy Fuel Oil', 'Refinery Gas', 'Liquefied Petroleum Gases (LPG)', 'Kerosene', 'Motor vehicles, trailers and semi-trailers (34)', 'Other transport equipment (35)', 'Sale, maintenance, repair of motor vehicles, motor vehicles parts, motorcycles, motor cycles parts and accessoiries', 'Retail trade services of motor fuel', 'Railway transportation services', 'Other land transportation services', 'Transportation services via pipelines', 'Sea and coastal water transportation services', 'Inland water transportation services', 'Air transport services (62)', 'Supporting and auxiliary transport services; travel agency services (63)'] 
+    elif notion=='communication': sectors = ['Office machinery and computers (30)', 'Electrical machinery and apparatus n.e.c. (31)', 'Radio, television and communication equipment and apparatus (32)', 'Post and telecommunication services (64)'] 
+    elif notion=='leisure': sectors = ['Recreational, cultural and sporting services (92)'] 
+    elif notion=='education': sectors = ['Education services (80)'] 
+    elif notion=='catering': sectors = ['Hotel and restaurant services (55)'] 
+    elif notion=='diverse': sectors = ['Fabricated metal products, except machinery and equipment (28)', 'Machinery and equipment n.e.c. (29)', 'Wholesale trade and commission trade services, except of motor vehicles and motorcycles (51)', 'Retail  trade services, except of motor vehicles and motorcycles; repair services of personal and household goods (52)', 
+'Wool, silk-worm cocoons',  'Manure (conventional treatment)',  'Manure (biogas treatment)',  'Products of forestry, logging and related services (02)', 'Anthracite',  'Coking Coal',  'Other Bituminous Coal',  'Sub-Bituminous Coal',  'Patent Fuel',  'Lignite/Brown Coal',  'BKB/Peat Briquettes',  'Peat', 'Natural Gas Liquids', 'Other Hydrocarbons', 'Uranium and thorium ores (12)', 'Iron ores', 'Copper ores and concentrates', 'Nickel ores and concentrates', 'Aluminium ores and concentrates', 'Precious metal ores and concentrates', 'Lead, zinc and tin ores and concentrates', 'Other non-ferrous metal ores and concentrates', 'Stone', 'Sand and clay', 'Chemical and fertilizer minerals, salt and other mining and quarrying products n.e.c.', 'Wood and products of wood and cork (except furniture); articles of straw and plaiting materials (20)', 'Wood material for treatment, Re-processing of secondary wood material into new wood material', 'Pulp', 'Secondary paper for treatment, Re-processing of secondary paper into new pulp', 'Crude petroleum and services related to crude oil extraction, excluding surveying', 'Natural gas and services related to natural gas extraction, excluding surveying', 'Coke Oven Coke', 'Gas Coke', 'Coal Tar', 'Aviation Gasoline', 'Gasoline Type Jet Fuel', 'Kerosene Type Jet Fuel', 'Refinery Feedstocks', 'Ethane', 'Naphtha', 'White Spirit & SBP', 'Lubricants', 'Bitumen', 'Paraffin Waxes', 'Petroleum Coke', 'Non-specified Petroleum Products', 'Nuclear fuel', 'Plastics, basic', 'Secondary plastic for treatment, Re-processing of secondary plastic into new plastic', 'N-fertiliser', 'P- and other fertiliser', 'Chemicals nec', 'Charcoal', 'Additives/Blending Components', 'Biogasoline', 'Biodiesels', 'Other Liquid Biofuels', 'Rubber and plastic products (25)', 'Glass and glass products', 'Secondary glass for treatment, Re-processing of secondary glass into new glass', 'Ceramic goods', 'Bricks, tiles and construction products, in baked clay', 'Cement, lime and plaster', 'Ash for treatment, Re-processing of ash into clinker', 'Other non-metallic mineral products', 'Basic iron and steel and of ferro-alloys and first products thereof', 'Secondary steel for treatment, Re-processing of secondary steel into new steel', 'Precious metals', 'Secondary preciuos metals for treatment, Re-processing of secondary preciuos metals into new preciuos metals', 'Aluminium and aluminium products', 'Secondary aluminium for treatment, Re-processing of secondary aluminium into new aluminium', 'Lead, zinc and tin and products thereof', 'Secondary lead for treatment, Re-processing of secondary lead into new lead', 'Copper products', 'Secondary copper for treatment, Re-processing of secondary copper into new copper', 'Other non-ferrous metal products', 'Secondary other non-ferrous metals for treatment, Re-processing of secondary other non-ferrous metals into new other non-ferrous metals', 'Foundry work services', 'Medical, precision and optical instruments, watches and clocks (33)', 'Secondary raw materials', 'Bottles for treatment, Recycling of bottles by direct reuse', 'Transmission services of electricity', 'Distribution and trade services of electricity', 'Coke oven gas', 'Blast Furnace Gas', 'Oxygen Steel Furnace Gas', 'Gas Works Gas', 'Biogas', 'Distribution services of gaseous fuels through mains', 'Secondary construction material for treatment, Re-processing of secondary construction material into aggregates', 'Financial intermediation services, except insurance and pension funding services (65)', 'Insurance and pension funding services, except compulsory social security services (66)', 'Services auxiliary to financial intermediation (67)', 'Renting services of machinery and equipment without operator and of personal and household goods (71)', 'Computer and related services (72)', 'Research and development services (73)', 'Other business services (74)', 'Public administration and defence services; compulsory social security services (75)', 'Food waste for treatment: incineration', 'Paper waste for treatment: incineration', 'Plastic waste for treatment: incineration', 'Intert/metal waste for treatment: incineration', 'Textiles waste for treatment: incineration', 'Wood waste for treatment: incineration', 'Oil/hazardous waste for treatment: incineration', 'Food waste for treatment: biogasification and land application', 'Paper waste for treatment: biogasification and land application', 'Sewage sludge for treatment: biogasification and land application', 'Food waste for treatment: composting and land application', 'Paper and wood waste for treatment: composting and land application', 'Food waste for treatment: waste water treatment', 'Other waste for treatment: waste water treatment', 'Food waste for treatment: landfill', 'Paper for treatment: landfill', 'Plastic waste for treatment: landfill', 'Inert/metal/hazardous waste for treatment: landfill', 'Textiles waste for treatment: landfill', 'Wood waste for treatment: landfill', 'Membership organisation services n.e.c. (91)', 'Other services (93)', 'Private households with employed persons (95)', 'Extra-territorial organizations and bodies'] 
+    elif notion=='undecided': sectors = ['Beverages', 'Paper and paper products', 'Printed matter and recorded media (22)']
+    return(sectors)
+
 IOS.aggregate_mix = aggregate_mix
 IOS.mix_matrix = mix_matrix
 IOS.change_mix = change_mix
@@ -964,6 +989,7 @@ IOS.employment_all   = employment_all
 IOS.employments = employments
 IOS.employment = employment
 IOS.results = results
+IOS.consumption_sectors = consumption_sectors
 # IOS. = 
 # IOS. = 
 # other: internal_energy, composition_impact, change IOT for efficiency or gdp, calc_Z, etc., not_regs, regs_or_no, gdp, import, embodied_import
