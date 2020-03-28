@@ -123,6 +123,14 @@ def index_regs(self, regs, vec_regions=None):
     if type(regs)==str: return(np.array([i for i,x in enumerate(vec_regions) if x == regs]))
     else: return(np.array([i for i,x in enumerate(vec_regions) if x in regs]))
 
+def regs_or_no(self, regs, yes=True):
+    if yes: res = regs
+    else: res = self, not_regs(regs)
+    if type(res)==str: res=[res]
+    return(res)
+
+def not_regs(self, regs): return(list(filter(lambda r: r not in regs, self.regions)))
+
 @property
 def nb_regions(self): return(len(self.regions))
 
@@ -301,7 +309,7 @@ def embodied_prod(self, secs=None, regs=None, prod = None):
 def embodied_impact(self, secs=None, regs=None, var='Total Energy supply', source='secondary', group_by='region', sort=False, production = None):
     '''
     Returns a vector of impact of type var embodied in the production of (sec, reg) in secs x regs, excluding their own production, and including only impacts
-    from sectors in energy_sectors(source). Results are grouped by group_by (default: region) and can be sorted in decreasing order (default: unsorted).
+    from sectors in energy_sectors(source) if self.name!='exio34_ntnu'. Results are grouped by group_by (default: region) and can be sorted in decreasing order (default: unsorted).
     '''
     secs, regs = self.prepare_secs_regs(secs, regs) # TODO: source = None
     if production is None: production = self.production(secs, regs)
@@ -946,6 +954,127 @@ def consumption_sectors(self, notion): # TODO: other sectors, difference from el
     elif notion=='undecided': sectors = ['Beverages', 'Paper and paper products', 'Printed matter and recorded media (22)']
     return(sectors)
 
+def embodied_conso(self, regs, secs): return(np.dot(self.L, final_demand(self, secs, regs)))
+
+def embodied_import(self, var, secs, regs_imp, regs_exp=None, add=True, join=False, round_bn=False): 
+    # TODO: /!\ this function hasn't been checked/tested
+    '''
+    sums across all regions embodied hours/employment/gain (=var) imported from sectors secs in regs_exp to regs_imp,
+    where var embodied in imports from reg to regs_imp in sector secs is equal to the product of:
+    . share of production in sec in reg exported to regs_imp
+    . (hours of, if var='hours') employment in sec in reg
+    . (if var=='gain') hourly wage in reg_ref - hourly wage in reg
+    join=False returns the results per country
+    add=True sums all hours/gain/employment across sectors
+    '''
+    # taking share_export if function of embodied_conso instead of embodied_value_added amounts to assume that the 
+    #    ratio of value_added per production is constant within a sector-region among the different processes
+    #    Indeed, if say all Korean imports of embodied Chinese labor and only them consist in small transformation
+    #    of an higly valued imported product (say from Vietnam), then our calculations of Korean imports of Chinese labor 
+    #    will be biased upward, and imports of Chinese labor by other countries biased downard. 
+    #    Still, this assumption seems reasonable. And we cannot relax it simply (if so, we could not use L any more,
+    #    we would have to compute A, A^2, A^3,... and the value added at each step in the global value chain).
+    if join:
+        if regs_imp is None: print('regs_imp should not be None for join=True')
+        if type(regs_exp)==str: nb_regs_exp = 1
+        else: nb_regs_exp = len(regs_exp)
+        if regs_exp is None: regs_exp = self.not_regs(regs_imp)
+        share_export = div0(self.embodied_conso(regs_imp)[self.index_secs_regs(secs, regs_exp)], self.x.loc[regs_exp,secs])
+        if var!='gain': res = self.impacts(var, regs_exp, secs)*share_export
+        else: 
+            hourly_wage_ref = np.tile(hourly_wage(regs_imp, secs), nb_regs_exp)
+            res = (hourly_wage_ref - hourly_wage(regs_exp, secs))*impact('Employment hour', regs_exp, secs)*share_export
+    else:
+        if regs_exp is None: 
+            regs_ref = regs_imp
+            yes = True
+        elif regs_imp is None:
+            regs_ref = regs_exp
+            yes = False
+        else: print("regs_exp or regs_imp should be None for join=False")
+        share_export = np.array([div0(self.embodied_conso(self.regs_or_no(reg, yes))[self.index_secs_regs(self.regs_or_no(reg, not yes), \
+                                secs)], self.x.loc[self.regs_or_no(reg, not yes),secs]) for reg in regs_ref])
+        if  var!='unknown':
+            res = np.array([self.impacts(var, self.regs_or_no(reg, not yes), secs) for reg in regs_ref])*share_export
+        else:          
+            hourly_wage_ref = np.array([np.tile(hourly_wage(reg, secs), len(regions)-1) for reg in regs_ref])
+            hourly_wage_not_ref = np.array([hourly_wage(self.regs_or_no(reg, not yes), secs) for reg in regs_ref])
+            hours = np.array([impact('Employment hour', self.regs_or_no(reg, not yes), secs) for reg in regs_ref])
+#              # /!\ Employment hours are computed indirectly because data is aberrant
+#             hours = 1600*np.array([impact('Employment', regs_or_no(reg, not yes), secs) for reg in regs_ref])
+            if regs_imp is None:
+                share_export = np.array([np.concatenate([div0(self.embodied_conso(r)[self.index_secs_regs([reg], secs)], \
+                    self.x.loc[[reg],secs]) for r in self.not_regs(reg)]) for reg in regs_ref])
+                hours = np.array(list(map(lambda r: np.tile(r,(len(regions)-1)), hours))) 
+                hourly_wage_not_ref = np.array([np.concatenate([hourly_wage(r, secs, indirect=True, \
+                    positive=True) for r in self.not_regs(reg)]) for reg in regs_ref]) # TODO: better assessment of hourly wages
+            res = (hourly_wage_ref - hourly_wage_not_ref)*hours*share_export
+    if not add:
+        if round_bn:
+            return(round(res*pow(10,-9)))
+        else:
+            return(res)
+    else:
+        if join: 
+            r = res.sum()
+            if Var=='Employment hour': res = print(round(r), 'hours')
+            elif Var=='Employment': print(round(r*pow(10,-3),1), 'M persons')
+            else: print(round(r*pow(10,-9),1), 'G€')
+        else: r = [res[i].sum() for i in range(len(res))]
+        if round_bn:
+            return(round(r*pow(10,-9)))
+        else:
+            return(r)
+
+def imports(self, secs, regs_imp, regs_exp=None):
+    '''
+    Returns value of imports by regions in regs_imp from sectors in secs from regions in regs_exp, decomposed by secs, regs_exp.
+    '''
+
+    if regs_imp is None: print('regs_imp should not be None for join=True')
+    if regs_exp is None: regs_exp = self.not_regs(regs_imp)
+    imps = (self.Z.loc[[(r, s) for r in regs_exp for s in secs], [(r, s) for r in regs_imp for s in self.sectors]].sum(1)
+        + self.Y.loc[[(r, s) for r in regs_exp for s in secs], [r in regs_imp for r in self.Y.columns.get_level_values('region')]].sum(1))
+    return(imps)
+    
+def impact_imports(self, var, secs, regs_imp, regs_exp=None):  
+    '''
+    Returns impact of type var of goods imported by regions in regs_imp from sectors in secs from regions in regs_exp.
+    '''
+    if regs_exp is None: regs_exp = self.not_regs(regs_imp)
+    imps = self.imports(secs, regs_imp, regs_exp)
+    share_export = div0(imps, self.x.loc[regs_exp,secs])
+    impact = self.impacts(var, regs_exp, secs) * share_export
+    return(impact.sum())
+           
+def disseminate(self, vec, regs, secs):
+    '''
+    Returns a vector of the same size as self.x where the coefficients of vec are 'disseminated' 
+    at locations of regs, secs (other coefficients are 0).
+    '''
+    temp = self.x.copy()
+    temp.at[[(r, s) for r in regs for s in secs]] = vec
+    temp = temp*self.is_in(secs = secs, regs = regs)    
+    return(temp)
+
+def embodied_impact_imports(self, var, secs, regs_imp, regs_exp=None):  
+    '''
+    Returns embodied impact of type var of goods imported by regions in regs_imp from sectors in secs from regions in regs_exp.
+    '''
+    if regs_exp is None: regs_exp = self.not_regs(regs_imp)
+    imps = self.imports(secs, regs_imp, regs_exp)
+    prod = self.disseminate(imps, regs_exp, secs)
+    impact = self.embodied_impact(var = var, production = prod)
+    return(impact.sum() + self.impact_imports(var, secs, regs_imp, regs_exp))
+
+IOS.imports = imports
+IOS.impact_imports = impact_imports
+IOS.disseminate = disseminate
+IOS.embodied_impact_imports = embodied_impact_imports
+IOS.not_regs = not_regs
+IOS.regs_or_no = regs_or_no
+IOS.embodied_conso = embodied_conso
+IOS.embodied_import = embodied_import
 IOS.aggregate_mix = aggregate_mix
 IOS.mix_matrix = mix_matrix
 IOS.change_mix = change_mix
