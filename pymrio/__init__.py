@@ -71,3 +71,15 @@ from pymrio.tools.iomath import calc_F_Y
 from pymrio.tools.iomath import calc_M
 from pymrio.tools.iomath import calc_e
 from pymrio.tools.iomath import calc_accounts
+
+
+# #############################################################################
+# Checking python version at run-time
+# #############################################################################
+
+if not (sys.version_info.major == 3 and sys.version_info.minor >= 7):
+    msg = ("Python 3.7 or higher is required\n"
+           + "You are running Python {}.{}".format(sys.version_info.major,
+                                                   sys.version_info.minor))
+    raise Exception(msg)
+    # sys.exit(1)
