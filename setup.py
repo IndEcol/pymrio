@@ -24,6 +24,10 @@ setup(
                       'numpy >= 1.13.4',
                       'xlrd >= 1.1.0'
                      ],
+
+    # Minimum python version
+    python_requires = '>=3.7',
+
     classifiers=[
           'Programming Language :: Python :: 3.7',
           'Programming Language :: Python :: 3 :: Only',
