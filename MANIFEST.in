@@ -1,0 +1,7 @@
+# all files to be included
+
+include MANIFEST.in
+# include LICENSE.txt
+# include pyproject.toml
+recursive-include pymrio/mrio_models/exio20/misc *.txt
+recursive-include pymrio/mrio_models/exio20/concordance *.txt
