@@ -20,8 +20,8 @@ import os
 
 import pytest
 
-_pymriopath = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, _pymriopath + '/../../')
+TESTPATH = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(TESTPATH, ".."))
 
 import pymrio  # noqa
 

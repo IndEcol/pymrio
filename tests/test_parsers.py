@@ -13,7 +13,7 @@ try:
 except NameError:
     testpath = os.getcwd()  # easy run in interpreter
 
-sys.path.insert(0, testpath + '/../../')
+sys.path.append(os.path.join(testpath, ".."))
 
 import pymrio  # noqa
 
@@ -246,3 +246,7 @@ def test_parse_eora26(fix_testmrio_calc):
     with pytest.raises(pymrio.ParserError):
         _ = pymrio.parse_eora26(eora_mockpath, year=2010,
                                 country_names='bogus')
+
+
+if __name__ == '__main__':
+    test_oecd_2016()

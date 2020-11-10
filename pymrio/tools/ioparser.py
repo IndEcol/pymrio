@@ -603,7 +603,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         for Qname in Qsheets:
             # unfortunately the names in Q_emissions are
             # not completely unique - fix that
-            if Qname is 'Q_emission':
+            if Qname == 'Q_emission':
                 _index = charac_data[Qname][Q_head_col_rowname[Qname]].copy()
                 _index.iloc[42] = _index.iloc[42] + ' 2008'
                 _index.iloc[43] = _index.iloc[43] + ' 2008'
@@ -651,7 +651,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
         impact['name'] = 'impact'
         io.impact = Extension(**impact)
 
-    if popvector is 'exio2':
+    if popvector == 'exio2':
         logging.debug('Read population vector')
         io.population = pd.read_csv(os.path.join(PYMRIO_PATH['exio20'],
                                                  'misc', 'population.txt'),
@@ -1618,9 +1618,12 @@ def parse_oecd(path, year=None):
         Z.loc[:, co_name] = (Z.loc[:, [co_name]] +
                              Z.loc[:, agg_list].sum(level='sector', axis=1))
         Z = Z.drop(agg_list, axis=1)
+
+        # DEBUG note: have to assign by values due to alignment issues bug in 
+        # pandas, see https://github.com/pandas-dev/pandas/issues/10440
         F_factor_input.loc[:, co_name] = (
-            F_factor_input.loc[:, [co_name]] +
-            F_factor_input.loc[:, agg_list].sum(level='sector', axis=1))
+            F_factor_input.loc[:, co_name] +
+            F_factor_input.loc[:, agg_list].sum(level='sector', axis=1)).values
         F_factor_input = F_factor_input.drop(agg_list, axis=1)
 
     # unit df generation at the end to have consistent index
