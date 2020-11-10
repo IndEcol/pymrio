@@ -1425,7 +1425,8 @@ class IOSystem(CoreSystem):
                 description=description,
                 name=name,
                 system=system,
-                version=version
+                version=version,
+                year=year
             )
 
         if not getattr(self.meta, 'name', None):
@@ -1795,7 +1796,7 @@ class IOSystem(CoreSystem):
         # work.
 
         if not inplace:
-            self = self.copy()
+            self = self.copy(new_name=self.name) # DONE: to avoid "_copy" at the end of the name so that methods like 'production' work well
 
         try:
             self.reset_to_flows()
@@ -1940,7 +1941,7 @@ class IOSystem(CoreSystem):
             self.x = pd.DataFrame(
                 data=conc.dot(self.x),
                 index=mi_reg_sec,
-                columns=self.x.columns,
+                # columns=self.x.columns,
             )
             self.meta._add_modify('Aggregate industry output x')
         else:
@@ -1954,64 +1955,67 @@ class IOSystem(CoreSystem):
                 index=self.population.index,
             )
 
+        first = True
         for extension in self.get_extensions(data=True):
-            self.meta._add_modify('Aggregate extensions...')
-            extension.reset_to_flows()
-            st_redo_unit = False
-            for ik_name, ik_df in zip(
-                    extension.get_DataFrame(data=False, with_unit=False),
-                    extension.get_DataFrame(data=True, with_unit=False)):
+            if first:
+                first = False
+                self.meta._add_modify('Aggregate extensions...')
+                extension.reset_to_flows()
+                st_redo_unit = False
+                for ik_name, ik_df in zip(
+                        extension.get_DataFrame(data=False, with_unit=False),
+                        extension.get_DataFrame(data=True, with_unit=False)):
 
-                # Without unit - this is reset aftwards if necessary
-                if ik_df.index.names == ['region',
-                                         'sector'] == ik_df.columns.names:
-                    # Full disaggregated extensions - aggregate both axis
-                    # (this is the case if the extions shows the flows from
-                    # pda to cba)
-                    extension.__dict__[ik_name] = pd.DataFrame(
-                        data=conc.dot(ik_df).dot(conc.T))
+                    # Without unit - this is reset aftwards if necessary
+                    if ik_df.index.names == ['region',
+                                             'sector'] == ik_df.columns.names:
+                        # Full disaggregated extensions - aggregate both axis
+                        # (this is the case if the extions shows the flows from
+                        # pda to cba)
+                        extension.__dict__[ik_name] = pd.DataFrame(
+                            data=conc.dot(ik_df).dot(conc.T))
 
-                    # next step must be done afterwards due to unknown reasons
-                    extension.__dict__[ik_name].columns = mi_reg_sec
-                    extension.__dict__[ik_name].index = mi_reg_sec
-                    st_redo_unit = True
-                elif (ik_df.index.names == ['region', 'sector'] and
-                      ik_df.columns.names == ['region', 'category']):
+                        # next step must be done afterwards due to unknown reasons
+                        extension.__dict__[ik_name].columns = mi_reg_sec
+                        extension.__dict__[ik_name].index = mi_reg_sec
+                        st_redo_unit = True
+                    elif (ik_df.index.names == ['region', 'sector'] and
+                          ik_df.columns.names == ['region', 'category']):
 
-                    # Full disaggregated finald demand satellite account.
-                    # Thats not implemented yet - but aggregation is in place
-                    extension.__dict__[ik_name] = pd.DataFrame(
-                        data=conc.dot(ik_df).dot(conc_y.T))
-                    # next step must be done afterwards due to unknown reasons
-                    extension.__dict__[ik_name].columns = mi_reg_Ycat
-                    extension.__dict__[ik_name].index = mi_reg_sec
+                        # Full disaggregated finald demand satellite account.
+                        # Thats not implemented yet - but aggregation is in place
+                        extension.__dict__[ik_name] = pd.DataFrame(
+                            data=conc.dot(ik_df).dot(conc_y.T))
+                        # next step must be done afterwards due to unknown reasons
+                        extension.__dict__[ik_name].columns = mi_reg_Ycat
+                        extension.__dict__[ik_name].index = mi_reg_sec
 
-                elif ik_df.columns.names == ['region', 'category']:
-                    # Satellite account connected to final demand (e.g. F_Y)
-                    extension.__dict__[ik_name] = pd.DataFrame(
-                        data=ik_df.dot(conc_y.T))
-                    # next step must be done afterwards due to unknown reasons
-                    extension.__dict__[ik_name].columns = mi_reg_Ycat
-                    extension.__dict__[ik_name].index = ik_df.index
+                    elif ik_df.columns.names == ['region', 'category']:
+                        # Satellite account connected to final demand (e.g. F_Y)
+                        extension.__dict__[ik_name] = pd.DataFrame(
+                            data=ik_df.dot(conc_y.T))
+                        # next step must be done afterwards due to unknown reasons
+                        extension.__dict__[ik_name].columns = mi_reg_Ycat
+                        extension.__dict__[ik_name].index = ik_df.index
 
-                else:
-                    # Standard case - aggregated columns, keep stressor rows
-                    extension.__dict__[ik_name] = pd.DataFrame(
-                        data=ik_df.dot(conc.T))
-                    # next step must be done afterwards due to unknown reasons
-                    extension.__dict__[ik_name].columns = mi_reg_sec
-                    extension.__dict__[ik_name].index = ik_df.index
+                    else:
+                        # Standard case - aggregated columns, keep stressor rows
+                        extension.__dict__[ik_name] = pd.DataFrame(
+                            data=ik_df.dot(conc.T))
+                        # next step must be done afterwards due to unknown reasons
+                        extension.__dict__[ik_name].columns = mi_reg_sec
+                        extension.__dict__[ik_name].index = ik_df.index
 
-                if st_redo_unit:
-                    try:
-                        _value = extension.unit.iloc[0].tolist()[0]
-                        extension.unit = pd.DataFrame(
-                            index=mi_reg_sec,
-                            columns=extension.unit.columns,
-                            data=_value)
-                    except AttributeError:
-                        # could fail if no unit available
-                        extension.unit = None
+                    if st_redo_unit:
+                        try:
+                            _value = extension.unit.iloc[0].tolist()[0]
+                            extension.unit = pd.DataFrame(
+                                index=mi_reg_sec,
+                                columns=extension.unit.columns,
+                                data=_value)
+                        except AttributeError:
+                            # could fail if no unit available
+                            extension.unit = None
         self.calc_extensions()
         return self
 

@@ -12,6 +12,8 @@ import warnings
 
 import pandas as pd
 import numpy as np
+import scipy.io
+import scipy.sparse as sp
 import zipfile
 from collections import namedtuple
 
@@ -24,6 +26,8 @@ from pymrio.tools.ioutil import get_repo_content
 
 # Constants and global variables
 from pymrio.core.constants import PYMRIO_PATH
+
+from pymrio.tools.iomath import div0
 
 
 # Exceptions
@@ -1890,3 +1894,246 @@ def parse_eora26(path, year=None, price='bp', country_names='eora'):
         meta=meta_rec)
 
     return eora
+
+def themis_parser(exio_files, year = None, scenario = None, themis = None, themis_caracs=None, labels=None, dlr_files=None, combo=True, compute_all=False):
+    """ THEMIS parser (by adrien fabre aka. bixiou on github)
+
+    The THEMIS model is not open. You can ask NTNU for it, they might accept.
+
+    Two options for this parser: 1. either provide the year (2010, 2030, or 2050) and scenario ('BL' or 'BM'),
+                                 2. either provide none of them, and all combinations will be loaded in a dict
+    exio_files must give the path to the root folder of THEMIS
+    if dlr_files is provided, the 3 Greenpeace=DLR scenarios are added (in case 2.); dlr_files = True is equivalent to dlr_files = exio_files
+    if combo = True and dlr_files is provided, create 3 'combo' scenarios (improperly named): 
+        2010 : ADV 2050 mix on 2010 techno (i.e. 2010 transformation matrix A); 2030: ER 2050 mix on 2010 techno; 2050: BL 2010 mix on 2050 techno
+    compute_all precalculates EROIs, prices, value-added, employments
+    The folder should include a file called 'Supplementary info & mixes.xlsx' which provides the IEA scenarios of energy demand.
+        You can ask this file to adrien.fabre@psemail.eu
+    themis_parser runs in ~1h if combo=True and compute_all=True, ~1 min if they are false
+    """
+    
+    def load_themis(matrix='A', year=2010, scenario='BL'):
+        # matrix is A, Sb, Sf or S; year is 2010, 2030 or 2050; scenario is BL or BM
+        if matrix=='S': 
+            Sb = load_themis('Sb', year, scenario)
+            Sf = load_themis('Sf', year, scenario)       
+            nb_stressors_b = Sb.shape[0] - Sf.shape[0] # check .shape for sparse
+            nb_sectors_f = Sf.shape[1]
+            res = sp.hstack([sp.vstack([Sf, sp.csc_matrix((nb_stressors_b, nb_sectors_f))]), Sb])
+        else:
+            if matrix=='A': data = 'A'
+            elif matrix=='Sb': data = 'S'
+            elif matrix=='Sf': data = 'S_f'
+            else: data = matrix
+
+            year = '_' + str(year)
+            if data=='S_f': matrix_name = data + '_' + scenario
+            else: matrix_name = data + year + '_' + scenario
+
+            if data=='S_f': res = themis[matrix_name][:,:,2]
+            else: res = themis[matrix_name]
+        return(res)  
+    
+    def secondary_energy_demand():
+        TWh2TJ = 3.60 * 1e3
+        secondary_energy_demand = np.array([0]*A.shape[0])
+        for name in energy_demand.index: 
+            if name in list(labels['sectors']):
+                secondary_energy_demand[np.where(list(map(lambda s: s == name, labels['idx_sectors'])))[0]] = \
+                    energy_demand[[(reg, year) for reg in labels['regions']]].loc[name] * TWh2TJ
+        return(secondary_energy_demand)
+    
+    if themis is None or themis_caracs is None or labels is None: 
+        themis = scipy.io.loadmat(exio_files + 'Data/THEMIS2.mat')
+        themis_caracs = scipy.io.loadmat(exio_files + 'Data/Characterization_endpoint2.mat')
+        label = pd.read_excel(exio_files + 'Data/THEMIS2_labels.xls', header=0)
+        idx_name = label['Name']
+        idx_region = label['Region']
+        idx_region.loc[np.where(idx_region=='AME')] = 'Africa and Middle East'
+        idx_region.loc[np.where(idx_region=='CN')] = 'China'
+        idx_region.loc[np.where(idx_region=='EIT')] = 'Economies in transition'
+        idx_region.loc[np.where(idx_region=='IN')] = 'India'
+        idx_region.loc[np.where(idx_region=='LA')] = 'Latin America'
+        idx_region.loc[np.where(idx_region=='PAC')] = 'OECD Pacific'
+        idx_region.loc[np.where(idx_region=='US')] = 'OECD North America'
+        idx_region.loc[np.where(idx_region=='RER')] = 'OECD Europe'
+        idx_region.loc[np.where(idx_region=='AS')] = 'Rest of developing Asia'
+        label2 = pd.read_excel(exio_files + 'Data/THEMIS2_labels.xls', header=0, sheet_name=2)
+        idx_impacts = label2['FullName']
+        label3 = pd.read_excel(exio_files + 'Data/THEMIS2_labels.xls', header=0, sheet_name=3)
+        idx_caracs = label3['Abbreviation THEMIS']
+        labels = {'regions': idx_region.unique(), 'idx_regions': idx_region, 'impacts': idx_impacts.unique(), 'idx_impacts': idx_impacts, 
+                  'sectors': idx_name.unique(), 'idx_sectors': idx_name, 'caracs': idx_caracs.unique(), 'idx_caracs': idx_caracs, 'name': 'labels'}
+    if year is None and scenario is None: 
+        if dlr_files is not None: 
+            if combo: scenarios = ['BL', 'BM', 'REF', 'ER', 'ADV', 'combo'] 
+            else: scenarios = ['BL', 'BM', 'REF', 'ER', 'ADV']
+            if type(dlr_files)!=str: dlr_files = exio_files
+        else: scenarios = ['BL', 'BM']
+        all_themis = dict()
+        for s in scenarios:
+            all_themis[s] = dict()
+            for y in [2010, 2030, 2050]:
+                if s == 'BL' or s == 'BM': 
+                    all_themis[s][y] = themis_parser(exio_files, y, s, themis, themis_caracs, labels)
+                    all_themis[s][y].scenario = s
+                else:
+                    if s == 'combo':
+                        if y in [2010, 2030]: 
+                            yr, not_yr, sc = 2010, 2050, 'ADV'
+                            if y == 2030: sc = 'ER'
+                            all_themis[s][y] = all_themis['BL'][yr].copy(new_name='THEMIS')
+                            all_themis[s][y].dlr_elec = all_themis[sc][2050].dlr_elec
+                            all_themis[s][y].dlr_capacity = all_themis[sc][2050].dlr_capacity
+                            global_mix = all_themis[sc][not_yr].mix(scenario = sc, path_dlr = dlr_files)[y]
+                        else: 
+                            yr, not_yr, sc = 2050, 2010, 'BL'
+                            all_themis[s][y] = all_themis['BL'][yr].copy(new_name='THEMIS')
+                            global_mix = all_themis['BL'][2010].mix_matrix(global_mix = False)
+                        all_themis[s][y].aggregate_mix(mix = global_mix)
+                        all_themis[s][y].change_mix(global_mix = global_mix, year = not_yr, only_exiobase = False)
+                        
+                    elif s == 'REF': all_themis[s][y] = all_themis['BL'][y].copy(new_name='THEMIS') # TODO: include attribute scenario
+                    else: all_themis[s][y] = all_themis['BM'][y].copy(new_name='THEMIS') 
+                    all_themis[s][y].scenario = s
+                    if s != 'combo':
+                        global_mix = all_themis[s][2010].mix(scenario = s, path_dlr = dlr_files)[y]
+                        all_themis[s][y].dlr_elec = all_themis[s][2010].dlr_elec
+                        all_themis[s][y].dlr_capacity = all_themis[s][2010].dlr_capacity
+                        all_themis[s][y].adjust_capacity = all_themis[s][2010].adjust_capacity
+                        all_themis[s][y].adjustment_capacity = all_themis[s][2010].adjustment_capacity
+                        if s in ['REF', 'ER', 'ADV']: 
+                            all_themis[s][y].wo_GW_adj = all_themis[s][y].copy(new_name='THEMIS')
+                            all_themis[s][y].wo_GW_adj.change_mix(global_mix = global_mix, year = y, only_exiobase = False, adjust_GW = False)
+                        all_themis[s][y].change_mix(global_mix = global_mix, year = y, only_exiobase = False, adjust_GW=True)
+        if compute_all:
+            for s in scenarios:
+                for y in [2010, 2030, 2050]:                  
+                    if s=='combo' and y==2050: all_themis[s][y].world_mix = all_themis[s][y].agg_mix
+                    else: all_themis[s][y].world_mix = all_themis[s][y].aggregate_mix(recompute=True)
+                    if s in ['REF', 'ER', 'ADV']: 
+                        all_themis[s][y].wo_GW_adj.eroi_adj = all_themis[s][y].wo_GW_adj.erois(factor_elec = 2.6, \
+                                                                                               recompute=True).rename(index={'Power sector': 'total'})
+                        all_themis[s][y].wo_GW_adj.eroi = all_themis[s][y].wo_GW_adj.erois(recompute=True).rename(index={'Power sector': 'total'})
+                        all_themis[s][y].wo_GW_adj.energy_prices()
+                        all_themis[s][y].wo_GW_adj.employ_direct = all_themis[s][y].wo_GW_adj.employments()
+                        all_themis[s][y].wo_GW_adj.employments(indirect = False, recompute = True)
+                    all_themis[s][y].eroi_adj = all_themis[s][y].erois(factor_elec = 2.6, recompute=True).rename(index={'Power sector': 'total'})
+                    all_themis[s][y].eroi = all_themis[s][y].erois(recompute=True).rename(index={'Power sector': 'total'})
+                    all_themis[s][y].energy_prices()
+                    all_themis[s][y].employ_direct = all_themis[s][y].employments()
+                    all_themis[s][y].employments(indirect = False, recompute = True) # pb with employments combo 2050
+
+        return(all_themis)
+    elif year is None or scenario is None: print('scenario and year must be both given or None')
+    else:
+        A = load_themis('A', year, scenario)
+        S = load_themis('S', year, scenario)
+        if scenario=='BL': skip, skipfoot = 6, 67 # TODO: make a separate function the extraction of IEA scenarios
+        elif scenario=='BM': skip, skipfoot = 52, 21
+        energy_demand = pd.read_excel(exio_files+'Supplementary info & mixes.xlsx', \
+                                         header=[0,1], index_col=0, skiprows=list(range(skip)), skipfooter=skipfoot, sheet_name=11) #TODO: select good columns>?
+        energy_demand.index = ['Electricity by ' + name[0].lower() + name[1:] for name in list(energy_demand.index)]
+        if scenario=='BL': skip, skipfoot = 27, 46
+        if scenario=='BM': skip, skipfoot = 73, 0
+        capacity = pd.read_excel(exio_files+'Supplementary info & mixes.xlsx', \
+                                         header=[0,1], index_col=0, skiprows=list(range(skip)), skipfooter=skipfoot, sheet_name=11)
+        capacity.index = ['Electricity by ' + name[0].lower() + name[1:] for name in list(capacity.index)] # in GW
+#         C = themis_caracs['C_H_CED_22'] # midpoint characterization
+#         C_large = themis_caracs['C_H_CED_large'] # midpoint characterization taken by Thomas Gibon: should be preferred to C
+#         C_index = themis_caracs['EP_H_CED_22']
+#         G = themis_caracs['G_H_CED_22'] # endpoint characterization
+#         G_index = themis_caracs['IMP_H_CED_22'] # cf. THEMIS2_labels.xls/C_IMP for more details
+#         mid2end = themis_caracs['mid2end']
+        meta_rec = MRIOMetaData(system='pxp', name='THEMIS', version=scenario)
+        core_data = dict()
+        extensions = {'labels':labels, 'impact': {'S': S, 'name': 'impact'}, 
+                      'energy':{'demand': energy_demand, 'secondary_demand': secondary_energy_demand(), 'capacity': capacity, 'name': 'energy'}} 
+
+        return IOSystem(A=A, name='THEMIS', version=scenario, year=year, meta=meta_rec, **dict(core_data, **extensions))
+
+def cecilia_parser(path, step = None, system='pxp'):
+    """ Cecilia 2050 parser (by adrien fabre aka. bixiou on github)
+
+    The Cecilia 2050 model is open and can be found at https://cecilia2050.eu/publications/168
+
+    Two options for this parser: either provide the step (-1: original aggregated S & U tables, 
+                                                           0: preprocessed tables, after balancing with the GRAS algorithm
+                                                           1: (BAU) efficiency gains (less inputs per output (cf. EffVector), and more output (cf. GDPVector))
+                                                           2a: new energy mix 
+                                                           2b: (techno) technical change
+                                                           3: curbing growth to respect the 2 degree scenario)
+                                 either provide none of them, and all combinations will be loaded in a dict
+    path must give the path to the root folder of Cecilia 2050, and files of both .zip should be placed in that folder.
+    For further information, ask adrien.fabre@psemail.eu
+    """
+    
+    def IOT_from_SUT(S, U, kind='p'): # Computes Z table
+        S = np.array(S, dtype='float')
+        if kind=='pxp': return(np.transpose(U.dot(div0(S,np.diag(np.sum(S, axis=1)).dot(np.ones(S.shape)))))) #sum(S).ones=sum of rows of S
+        elif kind=='ixi': return(div0(S,(np.ones(S.shape)).dot(np.diag(np.sum(S, axis=0)))).dot(U)) # ones.sum(S) = sum of columns of S
+
+    def load_matrix(matrix='U', step=0, system='pxp'):
+        if type(step) == str: step_num = int(step[0])
+        else: 
+            step_num = step
+            step = str(step)
+        if step_num<=0: step = 'preprocess/'
+        if step_num==-1: # TODO: other matrices
+            if matrix=='U':
+                M = np.loadtxt(path + 'preprocess/mrUseAggregated.txt', delimiter='\t', skiprows=2, usecols=list(range(3,519)))
+            elif matrix=='V':
+                M = np.loadtxt(path + 'preprocess/mrSupplyAggregated.txt', delimiter='\t', skiprows=2, usecols=list(range(3,519))) 
+            elif matrix=='Y': 
+                M = np.loadtxt(path + 'preprocess/mrFinalDemandAggregated.txt', delimiter='\t', skiprows=2, usecols=list(range(3,31)))
+        elif step_num==0: M = np.loadtxt(path + step + matrix + '.txt', delimiter='\t')
+        else: M = np.loadtxt(path + 'step' + step + '/' + matrix + 'end.txt', delimiter='\t')                
+        return(M)
+    
+    def load_extensions():
+        sectors = pd.read_excel(path + 'supply_use_tables_bau_2050.xlsx', 2, skiprows=2).iloc[0:129,2]
+        regions = ['EU', 'HI', 'BX', 'WW'] # EU, High Income, Fast developing countries, RoW
+        index = pd.MultiIndex.from_product([regions, sectors], names=['region', 'sector'])
+        F_init = np.loadtxt(path + 'preprocess/mrMaterialsAggregated.txt', delimiter='\t', skiprows=2, usecols=tuple(range(2,518)))
+        index_F = np.loadtxt(path + 'preprocess/mrMaterialsAggregated.txt', dtype='str', delimiter='\t', skiprows=2, usecols=0)
+        F_init = pd.DataFrame(F_init, index = index_F, columns = index)
+        return({'labels': {'regions': regions, 'sectors': sectors, 'index': index, 'name': 'labels'}, 'materials': {'F_init': F_init, 'index': index_F, 'name': 'impact'}})
+
+    def load_system(step=0, system='pxp', x_init = None):
+        S = load_matrix('V', step, system)
+        U = load_matrix('U', step, system)
+        y = load_matrix('Y', step, system)
+        Z = IOT_from_SUT(S, U, system)
+        x = y.sum(axis=1) + Z.sum(axis=1)
+        A = Z.dot(np.diag(div0(1,x)))
+        L = np.linalg.inv(np.eye(A.shape[0])-A)
+        index = extensions['labels']['index']
+        index_y = pd.MultiIndex.from_product([extensions['labels']['regions'], ['Final consumption expenditure by households', \
+            'Final consumption expenditure by non-profit organisations serving households (NPISH)', 'Final consumption expenditure by government', \
+            'Gross fixed capital formation', 'Changes in inventories', 'Changes in valuables', 'Export']], names=['region', 'sector'])
+        if step==-1: x_init = x
+        elif x_init is None: 
+            S_init = load_matrix('V', -1, system)
+            U_init = load_matrix('U', -1, system)
+            y_init = load_matrix('Y', -1, system)
+            Z_init = IOT_from_SUT(S_init, U_init, system)
+            x_init = y_init.sum(axis=1) + Z_init.sum(axis=1)            
+        extensions['materials'].update({'S': pd.DataFrame(div0(extensions['materials']['F_init'], x_init), index = extensions['materials']['index'], columns = index)})
+        extensions['materials'].update({'F': pd.DataFrame(extensions['materials']['S'] * x, index = extensions['materials']['index'], columns = index)})
+        Z = pd.DataFrame(Z, index = index, columns = index)
+        Y = pd.DataFrame(y, index = index, columns = index_y)
+        x = pd.Series(x, index = index)
+
+        meta_rec = MRIOMetaData(system=system, name='Cecilia', version=step)
+        if step==0 or step==-1: year = 2000
+        else: year = 2050
+        core_data = dict()
+        return IOSystem(A=A, Z=Z, Y=Y, x=x, L=L, name='Cecilia', version=step, year=year, meta=meta_rec, **dict(core_data, **extensions))
+    x_init = None
+    extensions = load_extensions()
+    if step is None:
+        cecilias = dict()
+        for step in [-1, 0, 1, '2a', '2b', 3]: cecilias[step] = load_system(step, system, x_init)
+        if step==-1: x_init = cecilias[-1].x
+        return(cecilias)
+    else: return(load_system(step, system, x_init))

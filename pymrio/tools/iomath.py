@@ -10,7 +10,9 @@ To avoid namespace pollution everythin here starts with calc_
 
 import pandas as pd
 import numpy as np
+import scipy.sparse as sp
 import warnings
+import operator
 
 import pymrio.tools.ioutil as ioutil
 
@@ -388,3 +390,224 @@ def calc_accounts(S, L, Y, nr_sectors):
                          columns=S.columns)
 
     return (D_cba, D_pba, D_imp, D_exp)
+
+def sorted_series(series): 
+    '''
+    Returns the sorted panda series, grouped by group_by if it is not None, and indexed by index (the default index is that of regions x sectors)
+    '''
+    return(sorted(series.items(), reverse=True, key=operator.itemgetter(1)))
+
+def approx_solution(A, y, n=10):
+    '''
+    Returns the approximate solution x of the sparse matrix equation: (1-A).x=y, by computing the series of A^k.y, with k<n
+    '''
+    s, x = sp.csc_matrix(y).transpose(), sp.csc_matrix(y).transpose()
+    for i in range(n):
+        x = A.dot(x)
+        s += x
+    return(s)
+
+def div0(a, b, replace_by=0):
+    '''
+    Returns the Hadamard division of the arrays (or matrices) of same shape a and b, where elements of the results are 0 in locations where those of b are 0.
+    '''
+    if sp.issparse(b): 
+        b = np.array(b.toarray(), dtype='float')
+        sparse = True
+    else: sparse = False
+    if type(a)==int or type(a)==float: a = a*np.ones_like(b)
+    if sp.issparse(a): a = a.toarray()
+    a = np.array(a, dtype='float')
+#     b = np.array(b, dtype='float')
+    div = np.divide(a, b, out=np.array(replace_by*np.ones_like(a)), where=b!=0)
+    if sparse: return(sp.csc_matrix(div)) # TODO: a true sparse division, not through dense matrix
+    else: return(div)
+
+def mult_rows(mat, vec):
+    '''
+    Multiply (each element of) the k-th row of matrix by k-th element of vector for all k, returns the resulting matrix.
+    '''
+    if type(vec)==list: vec = np.array(vec)
+    if sp.issparse(mat): #         return(matrix.toarray() * sp.diags([vector]).dot(np.ones(matrix.shape))) 
+        nb_r, nb_c = mat.shape
+        if sp.issparse(vec): vec = vec.toarray()
+#         return(mat.multiply(sp.csc_matrix((np.tile(vec.data,nb_c).flatten(), np.tile(np.arange(nb_r),nb_c), np.arange(0,nb_c*np.max(vec.shape)+1,nb_r)), \
+        return(mat.multiply(sp.csc_matrix((np.tile(vec,nb_c).flatten(), np.tile(np.arange(nb_r),nb_c), np.arange(0,nb_c*np.max(vec.shape)+1,nb_r)), \
+                                          shape=mat.shape)))
+    else: return(np.array(mat) * np.diag(vec).dot(np.ones(mat.shape))) 
+
+def mult_cols(mat, vec): 
+    '''
+    Multiply (each element of) the k-th column of matrix by k-th element of vector for all k, returns the resulting matrix.
+    '''
+    if type(vec)==list: vec = np.array(vec)
+    if sp.issparse(mat): #         return(matrix.toarray() * (np.ones(matrix.shape)).dot(sp.diags([vector])))
+        nb_r, nb_c = mat.shape
+        if sp.issparse(vec): vec = vec.toarray()
+#         return(mat.multiply(sp.csc_matrix((np.repeat(vec.data, nb_r).flatten(),np.tile(np.arange(nb_r),nb_c),np.arange(0,nb_r*np.max(vec.shape)+1,nb_r)),\
+        return(mat.multiply(sp.csc_matrix((np.repeat(vec, nb_r).flatten(),np.tile(np.arange(nb_r),nb_c),np.arange(0,nb_r*np.max(vec.shape)+1,nb_r)),\
+                                          shape=mat.shape)))
+    else: return(np.array(mat) * (np.ones(mat.shape)).dot(np.diag(vec)))
+        
+def inter_secs(secs1, secs2): 
+    '''
+    Returns the intersection of lists secs1 and secs2.
+    '''
+    return(list(np.array(secs1)[np.where([sec in secs2 for sec in secs1])[0]]))
+    
+def gras(A, new_row_sums = None, new_col_sums = None, max_iter=1e2, criterion='relative', tol=1e0): 
+    '''
+    GRAS algorithm, which balances a matrix A in order to respect new_row_sums and new_col_sums (see Junius & Oosterhaven, 2003).
+    FOR DENSE MATRIX
+    criterion can be: 'absolute', 'relative' (default), or 'convergence': in the latter, it stops when improvement falls below tol.
+    
+    Algorithm directly transcripted from matlab: results are the same as in matlab; I haven't checked that the code is valid but it seems.
+    Original program of Bertus Talsma, adapted by Dirk Stelder in Gauss, transferred to Matlab by Maaike Bouwmeester.
+    Matlab code can be found in /util/gras.m at https://cecilia2050.eu/system/files/cecilia_scenario_tool_version1.zip
+    '''
+    if sp.issparse(A): print('Your matrix is sparse: use grasp() instead.')
+    if new_row_sums is None: u = A.sum(axis=1)
+    else: u = np.array(new_row_sums)
+    if new_col_sums is None: v = A.sum(axis=0)
+    else: v = np.array(new_col_sums)
+    nb_rows, nb_cols = A.shape
+    sm = 0.00000000000000001
+    converged = False
+    P, N = np.clip(A, 0, None), np.clip(-np.array(A), 0, None)
+    r, s = np.ones(nb_rows), np.ones(nb_cols)
+#     nnn, nn = np.ones(nb_rows), np.ones(nb_cols)
+#     ppp, pp = np.ones(nb_rows), np.ones(nb_cols)
+#     r_inv = div0(1, r)
+    iterator = 1
+    while iterator < max_iter:
+        s_inv, r_inv = div0(1, s), div0(1, r)
+        pp = mult_rows(P, r).sum(axis=0) # pp[col] = (P[:,col] * r).sum()
+        nn = mult_rows(N, r_inv).sum(axis=0) # nn[col] = (N[:,col] * r_inv).sum()
+        s = (v + (v**2 + 4*pp*nn)**0.5) / (2*pp + sm)
+        row_new = (np.diag(r).dot(P).dot(np.diag(s)) - np.diag(r_inv).dot(N).dot(np.diag(s_inv))).dot(np.ones(nb_cols))
+        eps1_abs = np.ones(nb_rows).dot(np.abs(row_new - u))
+        rel = np.abs(row_new / (u + sm) - 1)
+        rel[np.where(u==0)] = 0
+        eps1_rel = np.max(rel)
+        ppp = mult_cols(P, s).sum(axis=1)
+        nnn = mult_cols(N, s_inv).sum(axis=1)
+        r = (u + (u**2 + 4*ppp*nnn)**0.5) / (2*ppp + sm)
+        ri = div0(1, r)
+        col_new = np.ones(nb_rows).dot((np.diag(r).dot(P).dot(np.diag(s)) - np.diag(r_inv).dot(N).dot(np.diag(s_inv))))
+        eps2_abs = np.ones(nb_cols).dot(np.abs(col_new - v))
+        rel = np.abs(col_new / (v + sm) - 1)
+        rel[np.where(v==0)] = 0
+        eps2_rel = np.max(rel)
+        if criterion == 'relative': tol_current = (eps1_rel + eps2_rel)/2
+        else: tol_current = (eps1_abs + eps2_abs)/2
+        if iterator > 1: improvement = (tol_previous - tol_current)/tol_previous
+        if (criterion in ['relative', 'absolute'] and tol_current < tol) or (criterion=='convergence' and (iterator > 1 and improvement < tol)):
+            iterator = max_iter
+            converged = True
+#             print('converged')
+        else: 
+            iterator += 1
+            tol_previous = tol_current
+            if iterator>1: print(time()-time_i)
+            time_i = time()
+            print(iterator, tol_previous)
+    if converged:
+#         return(P-N) # why not simply this?
+#         P = np.diag(r).dot(A).dot(np.diag(s))
+#         N = np.diag(div0(1, r)).dot(A).dot(np.diag(div0(1, s)))
+#         N[np.where(P>=0)] = 0
+#         X = np.clip(P, 0, None) + N 
+#         return(X)
+        return(np.diag(r).dot(P).dot(np.diag(s))-np.diag(div0(1, r)).dot(N).dot(np.diag(div0(1, s))))
+    else: print('did not converged')
+        
+def grasp(A, new_row_sums = None, new_col_sums = None, max_iter=1e2, criterion='convergence', tol=1e-5): 
+    '''
+    GRAS algorithm, which balances a matrix A in order to respect new_row_sums and new_col_sums (see Junius & Oosterhaven, 2003).
+    FOR SPARE MATRIX
+    criterion can be: 'absolute', 'relative' (default), or 'convergence': in the latter, it stops when improvement falls below tol.
+    
+    Algorithm directly transcripted from matlab: results are the same as in matlab; I haven't checked that the code is valid but it seems.
+    Original program of Bertus Talsma, adapted by Dirk Stelder in Gauss, transferred to Matlab by Maaike Bouwmeester.
+    Matlab code can be found in /util/gras.m at https://cecilia2050.eu/system/files/cecilia_scenario_tool_version1.zip
+    '''
+    if not sp.issparse(A): print('Your matrix is not sparse, you should use gras instead.')
+    if new_row_sums is None: u = sp.csc_matrix(A.sum(axis=1))
+    else: u = sp.csc_matrix(new_row_sums)
+    if new_col_sums is None: v = sp.csc_matrix(A.sum(axis=0))
+    else: v = sp.csc_matrix(new_col_sums)
+    if u.shape[0]<u.shape[1]: u = u.transpose()
+    if v.shape[0]>v.shape[1]: v = v.transpose()
+    nb_rows, nb_cols = A.shape
+    sm = 0.00000000000000001
+    converged = False
+    P, N = A.multiply(A > 0), -A.multiply(A < 0)
+    r, s = sp.csc_matrix(np.ones(nb_rows)).transpose(), sp.csc_matrix(np.ones(nb_cols)) # r,u,ppp,nnn are columns / s,v,pp,nn are rows
+    improvements_saturated, iterator = 0, 1
+    while iterator < max_iter:
+        s_inv, r_inv = div0(1, s), div0(1, r)
+        pp = sp.csc_matrix(mult_rows(P, r).sum(axis=0)) # pp[col] = (P[:,col] * r).sum()
+        nn = sp.csc_matrix(mult_rows(N, r_inv).sum(axis=0)) # nn[col] = (N[:,col] * r_inv).sum()
+        s = (v + (v.power(2) + 4*pp.multiply(nn)).power(0.5)) / (2*pp + sp.csc_matrix(sm*np.ones(nb_cols)))
+        s_inv = sp.csc_matrix(div0(1, s))
+        row_new = (mult_rows(sp.eye(nb_rows),r).dot(P).dot(mult_cols(sp.eye(nb_cols),s)) - \
+                   mult_rows(sp.eye(nb_rows),r_inv).dot(N).dot(mult_cols(sp.eye(nb_cols), s_inv))).dot(sp.csc_matrix(np.ones(nb_cols)).transpose())
+        eps1_abs = np.abs(row_new - u).sum()
+        rel = np.abs(row_new / (u + sp.csc_matrix(sm*np.ones(nb_rows)).transpose()) - 1)
+        rel[np.where(u.toarray()==0)] = 0
+        eps1_rel = np.max(rel)
+        ppp = sp.csc_matrix(mult_cols(P, s).dot(np.ones(nb_cols))).transpose() # mult_cols(P, s).sum(axis=1)
+        nnn = sp.csc_matrix(mult_cols(N, s_inv).dot(np.ones(nb_cols))).transpose() # mult_cols(N, s_inv).sum(axis=1)
+        r = (u + (u.power(2) + 4*ppp.multiply(nnn)).power(0.5)) / (2*ppp + sp.csc_matrix(sm*np.ones(nb_rows)).transpose())
+        r_inv = sp.csc_matrix(div0(1, r))
+        col_new = sp.csc_matrix(np.ones(nb_rows)).dot((mult_rows(sp.eye(nb_rows),r).dot(P).dot(mult_cols(sp.eye(nb_cols),s)) - \
+                                                       mult_rows(sp.eye(nb_rows),r_inv).dot(N).dot(mult_cols(sp.eye(nb_cols),s_inv)))) # mult_rows(...)=diag(s)
+        eps2_abs = np.abs(col_new - v).sum()
+        rel = np.abs(col_new / (v + sp.csc_matrix(sm*np.ones(nb_cols))) - 1)
+        rel[np.where(v.toarray()==0)] = 0
+        eps2_rel = np.max(rel)
+        if criterion == 'relative': tol_current = (eps1_rel + eps2_rel)/2
+        else: tol_current = (eps1_abs + eps2_abs)/2
+        if iterator > 1: improvement = (tol_previous - tol_current)/tol_previous
+        else: improvement = tol + 1
+        if (criterion in ['relative', 'absolute'] and tol_current < tol) or (criterion=='convergence' and iterator > 1 and improvements_saturated > 5):
+            iterator = max_iter
+            converged = True
+#             print('converged')
+        else: 
+            if improvement < tol: improvements_saturated += 1
+            iterator += 1
+            tol_previous = tol_current
+            if iterator>2: print(time.time()-time_i)
+            time_i = time.time()
+            if iterator%7==0: print(iterator, tol_previous, improvement)
+    if converged:
+#         return(P-N) # why not simply this?
+#         P = np.diag(r).dot(A).dot(np.diag(s))
+#         N = np.diag(div0(1, r)).dot(A).dot(np.diag(div0(1, s)))
+#         N[np.where(P>=0)] = 0
+#         X = np.clip(P, 0, None) + N 
+        X = mult_rows(sp.eye(nb_rows),r).dot(P).dot(mult_cols(sp.eye(nb_cols),s))-\
+                mult_rows(sp.eye(nb_rows),div0(1, r)).dot(N).dot(mult_cols(sp.eye(nb_cols),div0(1, s)))
+        return(X)
+    else: print('did not converged')
+
+def global_objects(): 
+    '''
+    Returns the list of global objects.
+    '''
+    return(np.array(list(globals().keys()))[[s[0]!='_' for s in list(globals().keys())]])
+
+def max_gap(a, b): 
+    '''
+    Returns the maximum (non infinite) spread/gap between two vectors.
+    '''
+    return(np.max(div0(np.abs(a-b), a)))
+
+def max_diff(a, b): 
+    '''
+    Returns the maximum absolute difference between two vectors.
+    '''
+    return(np.max(np.abs(a-b)))
+    
+def bip(): os.system('play --no-show-progress --null --channels 1 synth 0.2 sine 500')
