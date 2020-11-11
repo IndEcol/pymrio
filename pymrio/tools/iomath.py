@@ -16,7 +16,7 @@ import pymrio.tools.ioutil as ioutil
 
 
 def calc_x(Z, Y):
-    """ Calculate the industry output x from the Z and Y matrix
+    """Calculate the industry output x from the Z and Y matrix
 
     Parameters
     ----------
@@ -34,16 +34,16 @@ def calc_x(Z, Y):
     """
     x = np.reshape(np.sum(np.hstack((Z, Y)), 1), (-1, 1))
     if type(Z) is pd.DataFrame:
-        x = pd.DataFrame(x, index=Z.index, columns=['indout'])
+        x = pd.DataFrame(x, index=Z.index, columns=["indout"])
     if type(x) is pd.Series:
         x = pd.DataFrame(x)
     if type(x) is pd.DataFrame:
-        x.columns = ['indout']
+        x.columns = ["indout"]
     return x
 
 
 def calc_x_from_L(L, y):
-    """ Calculate the industry output x from L and a y vector
+    """Calculate the industry output x from L and a y vector
 
     Parameters
     ----------
@@ -63,12 +63,12 @@ def calc_x_from_L(L, y):
     if type(x) is pd.Series:
         x = pd.DataFrame(x)
     if type(x) is pd.DataFrame:
-        x.columns = ['indout']
+        x.columns = ["indout"]
     return x
 
 
 def calc_Z(A, x):
-    """ calculate the Z matrix (flows) from A and x
+    """calculate the Z matrix (flows) from A and x
 
     Parameters
     ----------
@@ -87,18 +87,18 @@ def calc_Z(A, x):
     """
     if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
         x = x.values
-    x = x.reshape((1, -1))   # use numpy broadcasting - much faster
+    x = x.reshape((1, -1))  # use numpy broadcasting - much faster
     # (but has to ensure that x is a row vector)
     # old mathematical form:
     # return A.dot(np.diagflat(x))
     if type(A) is pd.DataFrame:
         return pd.DataFrame(A.values * x, index=A.index, columns=A.columns)
     else:
-        return A*x
+        return A * x
 
 
 def calc_A(Z, x):
-    """ Calculate the A matrix (coefficients) from Z and x
+    """Calculate the A matrix (coefficients) from Z and x
 
     Parameters
     ----------
@@ -123,8 +123,8 @@ def calc_A(Z, x):
         with warnings.catch_warnings():
             # catch the divide by zero warning
             # we deal wit that by setting to 0 afterwards
-            warnings.simplefilter('ignore')
-            recix = 1/x
+            warnings.simplefilter("ignore")
+            recix = 1 / x
         recix[recix == np.inf] = 0
         recix = recix.reshape((1, -1))
     # use numpy broadcasting - factor ten faster
@@ -133,11 +133,11 @@ def calc_A(Z, x):
     if type(Z) is pd.DataFrame:
         return pd.DataFrame(Z.values * recix, index=Z.index, columns=Z.columns)
     else:
-        return Z*recix
+        return Z * recix
 
 
 def calc_L(A):
-    """ Calculate the Leontief L from A
+    """Calculate the Leontief L from A
 
     Parameters
     ----------
@@ -152,16 +152,15 @@ def calc_L(A):
         If DataFrame index/columns as A
 
     """
-    I = np.eye(A.shape[0])   # noqa
+    I = np.eye(A.shape[0])  # noqa
     if type(A) is pd.DataFrame:
-        return pd.DataFrame(np.linalg.inv(I-A),
-                            index=A.index, columns=A.columns)
+        return pd.DataFrame(np.linalg.inv(I - A), index=A.index, columns=A.columns)
     else:
-        return np.linalg.inv(I-A)
+        return np.linalg.inv(I - A)
 
 
 def calc_S(F, x):
-    """ Calculate extensions/factor inputs coefficients
+    """Calculate extensions/factor inputs coefficients
 
     Parameters
     ----------
@@ -182,7 +181,7 @@ def calc_S(F, x):
 
 
 def calc_S_Y(F_Y, y):
-    """ Calculate extensions/factor inputs coefficients for the final demand
+    """Calculate extensions/factor inputs coefficients for the final demand
 
     Parameters
     ----------
@@ -203,7 +202,7 @@ def calc_S_Y(F_Y, y):
 
 
 def calc_F(S, x):
-    """ Calculate total direct impacts from the impact coefficients
+    """Calculate total direct impacts from the impact coefficients
 
     Parameters
     ----------
@@ -224,7 +223,7 @@ def calc_F(S, x):
 
 
 def calc_F_Y(S_Y, y):
-    """ Calc. total direct impacts from the impact coefficients of final demand
+    """Calc. total direct impacts from the impact coefficients of final demand
 
     Parameters
     ----------
@@ -245,7 +244,7 @@ def calc_F_Y(S_Y, y):
 
 
 def calc_M(S, L):
-    """ Calculate multipliers of the extensions
+    """Calculate multipliers of the extensions
 
     Parameters
     ----------
@@ -266,7 +265,7 @@ def calc_M(S, L):
 
 
 def calc_e(M, Y):
-    """ Calculate total impacts (footprints of consumption Y)
+    """Calculate total impacts (footprints of consumption Y)
 
     Parameters
     ----------
@@ -283,13 +282,13 @@ def calc_e(M, Y):
         Multipliers m
         The type is determined by the type of M.
         If DataFrame index/columns as M
-    The calcubased on multipliers M and finald demand Y """
+    The calcubased on multipliers M and finald demand Y"""
 
     return M.dot(Y)
 
 
 def recalc_M(S, D_cba, Y, nr_sectors):
-    """ Calculate Multipliers based on footprints.
+    """Calculate Multipliers based on footprints.
 
     Parameters
     ----------
@@ -324,7 +323,7 @@ def recalc_M(S, D_cba, Y, nr_sectors):
 
 
 def calc_accounts(S, L, Y, nr_sectors):
-    """ Calculate sector specific cba and pba based accounts, imp and exp accounts
+    """Calculate sector specific cba and pba based accounts, imp and exp accounts
 
     The total industry output x for the calculation
     is recalculated from L and y
@@ -364,27 +363,23 @@ def calc_accounts(S, L, Y, nr_sectors):
     x_tot = x_diag.values.sum(1)
     del Y_diag
 
-    D_cba = pd.DataFrame(S.values.dot(x_diag),
-                         index=S.index,
-                         columns=S.columns)
+    D_cba = pd.DataFrame(S.values.dot(x_diag), index=S.index, columns=S.columns)
     # D_pba = S.dot(np.diagflat(x_tot))
     # faster broadcasted calculation:
-    D_pba = pd.DataFrame(S.values*x_tot.reshape((1, -1)),
-                         index=S.index,
-                         columns=S.columns)
+    D_pba = pd.DataFrame(
+        S.values * x_tot.reshape((1, -1)), index=S.index, columns=S.columns
+    )
 
     # for the traded accounts set the domestic industry output to zero
     dom_block = np.zeros((nr_sectors, nr_sectors))
     x_trade = ioutil.set_block(x_diag.values, dom_block)
-    D_imp = pd.DataFrame(S.values.dot(x_trade),
-                         index=S.index,
-                         columns=S.columns)
+    D_imp = pd.DataFrame(S.values.dot(x_trade), index=S.index, columns=S.columns)
 
     x_exp = x_trade.sum(1)
     # D_exp = S.dot(np.diagflat(x_exp))
     # faster broadcasted version:
-    D_exp = pd.DataFrame(S.values * x_exp.reshape((1, -1)),
-                         index=S.index,
-                         columns=S.columns)
+    D_exp = pd.DataFrame(
+        S.values * x_exp.reshape((1, -1)), index=S.index, columns=S.columns
+    )
 
     return (D_cba, D_pba, D_imp, D_exp)

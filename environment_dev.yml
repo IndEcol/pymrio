@@ -1,0 +1,24 @@
+name: pymrio_dev
+channels: 
+  - defaults
+  - anaconda
+  - conda-forge
+dependencies: 
+  # core
+  - pandas >= 1.0
+  - numpy >= 1.13.4
+  - matplotlib >= 2.0.0
+  - requests >= 2.18
+  - xlrd >= 1.1.0 
+  - docutils >= 0.14
+  # testing and developing
+  - pytest=5.4.3
+  - pytest-black
+  - pytest-cov
+  - black
+  - ipython
+  - jupyterlab
+  - isort
+  - coveralls
+  - pynvim
+
