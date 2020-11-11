@@ -4,7 +4,7 @@ import os
 import sys
 
 import numpy as np
-import pandas.util.testing as pdt
+import pandas.testing as pdt
 import pytest
 
 try:

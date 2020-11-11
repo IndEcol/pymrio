@@ -12,13 +12,14 @@ dependencies:
   - xlrd >= 1.1.0 
   - docutils >= 0.14
   # testing and developing
+  - ipdb
   - pytest=5.4.3
+  - isort >= 5.6.0
   - pytest-black
   - pytest-cov
   - black
   - ipython
   - jupyterlab
-  - isort
   - coveralls
   - pynvim
   - pip

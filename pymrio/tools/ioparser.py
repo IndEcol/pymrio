@@ -1648,24 +1648,27 @@ def parse_oecd(path, year=None):
     for co_name, agg_list in agg_corr.items():
         if (co_name not in core_co_names) or (len(agg_list) == 0):
             continue
+
+        # DEBUG note for all below: have to assign with np values due to
+        # alignment issues bug in pandas,
+        # see https://github.com/pandas-dev/pandas/issues/10440
+
         # aggregate rows
-        Z.loc[co_name, :] = Z.loc[[co_name], :] + Z.loc[agg_list, :].sum(
-            level="sector", axis=0
-        )
+        Z.loc[co_name, :] = (
+            Z.loc[co_name, :] + Z.loc[agg_list, :].sum(level="sector", axis=0)
+        ).values
         Z = Z.drop(agg_list, axis=0)
-        Y.loc[co_name, :] = Y.loc[[co_name], :] + Y.loc[agg_list, :].sum(
-            level="sector", axis=0
-        )
+        Y.loc[co_name, :] = (
+            Y.loc[co_name, :] + Y.loc[agg_list, :].sum(level="sector", axis=0)
+        ).values
         Y = Y.drop(agg_list, axis=0)
 
         # aggregate columns
-        Z.loc[:, co_name] = Z.loc[:, [co_name]] + Z.loc[:, agg_list].sum(
-            level="sector", axis=1
-        )
+        Z.loc[:, co_name] = (
+            Z.loc[:, co_name] + Z.loc[:, agg_list].sum(level="sector", axis=1)
+        ).values
         Z = Z.drop(agg_list, axis=1)
 
-        # DEBUG note: have to assign by values due to alignment issues bug in
-        # pandas, see https://github.com/pandas-dev/pandas/issues/10440
         F_factor_input.loc[:, co_name] = (
             F_factor_input.loc[:, co_name]
             + F_factor_input.loc[:, agg_list].sum(level="sector", axis=1)
