@@ -8,9 +8,9 @@ see test_util.py
 import os
 import sys
 
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))

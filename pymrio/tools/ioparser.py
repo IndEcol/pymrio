@@ -5,25 +5,22 @@ as
 KST 20140903
 """
 
+import logging
 import os
 import re
-import logging
 import warnings
-
-import pandas as pd
-import numpy as np
 import zipfile
 from collections import namedtuple
 
-from pymrio.core.mriosystem import IOSystem
-from pymrio.core.mriosystem import Extension
-from pymrio.core.fileio import load_all
-from pymrio.tools.iometadata import MRIOMetaData
-from pymrio.tools.ioutil import sniff_csv_format
-from pymrio.tools.ioutil import get_repo_content
+import numpy as np
+import pandas as pd
 
 # Constants and global variables
 from pymrio.core.constants import PYMRIO_PATH
+from pymrio.core.fileio import load_all
+from pymrio.core.mriosystem import Extension, IOSystem
+from pymrio.tools.iometadata import MRIOMetaData
+from pymrio.tools.ioutil import get_repo_content, sniff_csv_format
 
 
 # Exceptions

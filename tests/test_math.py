@@ -1,30 +1,31 @@
 """ test cases for all mathematical functions """
 
-import sys
 import os
+import sys
+
 import numpy as np
-import pandas as pd
-import pytest
 import numpy.testing as npt
+import pandas as pd
 import pandas.testing as pdt
+import pytest
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
 
 
 # the function which should be tested here
+from pymrio.tools.iomath import calc_A  # noqa
+from pymrio.tools.iomath import calc_accounts  # noqa
+from pymrio.tools.iomath import calc_e  # noqa
+from pymrio.tools.iomath import calc_F  # noqa
+from pymrio.tools.iomath import calc_F_Y  # noqa
+from pymrio.tools.iomath import calc_L  # noqa
+from pymrio.tools.iomath import calc_M  # noqa
+from pymrio.tools.iomath import calc_S  # noqa
+from pymrio.tools.iomath import calc_S_Y  # noqa
 from pymrio.tools.iomath import calc_x  # noqa
 from pymrio.tools.iomath import calc_x_from_L  # noqa
 from pymrio.tools.iomath import calc_Z  # noqa
-from pymrio.tools.iomath import calc_A  # noqa
-from pymrio.tools.iomath import calc_L  # noqa
-from pymrio.tools.iomath import calc_S  # noqa
-from pymrio.tools.iomath import calc_S_Y  # noqa
-from pymrio.tools.iomath import calc_F  # noqa
-from pymrio.tools.iomath import calc_F_Y  # noqa
-from pymrio.tools.iomath import calc_M  # noqa
-from pymrio.tools.iomath import calc_e  # noqa
-from pymrio.tools.iomath import calc_accounts  # noqa
 
 
 # test data

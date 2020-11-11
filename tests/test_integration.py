@@ -6,11 +6,12 @@ This tests the full computation and fileio.
 Might be the slowest test to run - make optional if it takes to long.
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
-import pytest
 import numpy.testing as npt
+import pytest
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))

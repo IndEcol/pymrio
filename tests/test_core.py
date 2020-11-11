@@ -1,12 +1,12 @@
 """ Testing core functionality of pymrio
 """
 
-import sys
 import os
+import sys
 
-import pytest
 import pandas as pd
 import pandas.testing as pdt
+import pytest
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))

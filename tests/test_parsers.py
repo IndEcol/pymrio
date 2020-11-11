@@ -3,10 +3,9 @@
 import os
 import sys
 
+import numpy as np
 import pandas.util.testing as pdt
 import pytest
-
-import numpy as np
 
 try:
     testpath = os.path.dirname(os.path.abspath(__file__))

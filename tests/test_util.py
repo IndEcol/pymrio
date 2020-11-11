@@ -2,22 +2,21 @@
 
 import os
 import sys
+from collections import namedtuple
+from unittest.mock import mock_open, patch
+
 import numpy as np
 import numpy.testing as npt
-
-from unittest.mock import mock_open, patch
-from collections import namedtuple
-
 import pytest
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
 
-from pymrio.tools.ioutil import find_first_number  # noqa
-from pymrio.tools.ioutil import sniff_csv_format  # noqa
 from pymrio.tools.ioutil import build_agg_matrix  # noqa
 from pymrio.tools.ioutil import build_agg_vec  # noqa
+from pymrio.tools.ioutil import find_first_number  # noqa
 from pymrio.tools.ioutil import set_block  # noqa
+from pymrio.tools.ioutil import sniff_csv_format  # noqa
 
 
 @pytest.fixture()

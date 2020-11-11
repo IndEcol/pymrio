@@ -3,12 +3,11 @@
 
 import datetime
 import json
-import os
 import logging
+import os
 import zipfile
-from pathlib import Path
-
 from collections import OrderedDict
+from pathlib import Path
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES
 

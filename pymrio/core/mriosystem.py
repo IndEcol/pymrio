@@ -21,24 +21,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from pymrio.tools.iomath import calc_A
-from pymrio.tools.iomath import calc_F
-from pymrio.tools.iomath import calc_F_Y
-from pymrio.tools.iomath import calc_L
-from pymrio.tools.iomath import calc_M
-from pymrio.tools.iomath import calc_S
-from pymrio.tools.iomath import calc_S_Y
-from pymrio.tools.iomath import calc_Z
-from pymrio.tools.iomath import calc_accounts
-from pymrio.tools.iomath import calc_x
-from pymrio.tools.iomath import calc_x_from_L
-from pymrio.tools.iomath import recalc_M
-
 import pymrio.tools.ioutil as ioutil
-
-from pymrio.core.constants import DEFAULT_FILE_NAMES
-from pymrio.core.constants import GENERIC_NAMES
-from pymrio.core.constants import MISSING_AGG_ENTRY
+from pymrio.core.constants import DEFAULT_FILE_NAMES, GENERIC_NAMES, MISSING_AGG_ENTRY
+from pymrio.tools.iomath import (
+    calc_A,
+    calc_accounts,
+    calc_F,
+    calc_F_Y,
+    calc_L,
+    calc_M,
+    calc_S,
+    calc_S_Y,
+    calc_x,
+    calc_x_from_L,
+    calc_Z,
+    recalc_M,
+)
 from pymrio.tools.iometadata import MRIOMetaData
 
 
@@ -882,10 +880,7 @@ class Extension(CoreSystem):
                 )
 
             except (AssertionError, KeyError):
-                Y_agg = Y.sum(
-                    level=0,
-                    axis=1,
-                ).reindex(self.get_regions(), axis=1)
+                Y_agg = Y.sum(level=0, axis=1,).reindex(self.get_regions(), axis=1)
 
         y_vec = Y.sum(axis=0)
 
@@ -2114,25 +2109,19 @@ class IOSystem(CoreSystem):
         # Aggregate
         self.meta._add_modify("Aggregate final demand y")
         self.Y = pd.DataFrame(
-            data=conc.dot(self.Y).dot(conc_y.T),
-            index=mi_reg_sec,
-            columns=mi_reg_Ycat,
+            data=conc.dot(self.Y).dot(conc_y.T), index=mi_reg_sec, columns=mi_reg_Ycat,
         )
 
         self.meta._add_modify("Aggregate transaction matrix Z")
         self.Z = pd.DataFrame(
-            data=conc.dot(self.Z).dot(conc.T),
-            index=mi_reg_sec,
-            columns=mi_reg_sec,
+            data=conc.dot(self.Z).dot(conc.T), index=mi_reg_sec, columns=mi_reg_sec,
         )
 
         if self.x is not None:
             # x could also be obtained from the
             # aggregated Z, but aggregate if available
             self.x = pd.DataFrame(
-                data=conc.dot(self.x),
-                index=mi_reg_sec,
-                columns=self.x.columns,
+                data=conc.dot(self.x), index=mi_reg_sec, columns=self.x.columns,
             )
             self.meta._add_modify("Aggregate industry output x")
         else:
@@ -2168,14 +2157,10 @@ class IOSystem(CoreSystem):
                     extension.__dict__[ik_name].columns = mi_reg_sec
                     extension.__dict__[ik_name].index = mi_reg_sec
                     st_redo_unit = True
-                elif (
-                    ik_df.index.names
-                    == [
-                        "region",
-                        "sector",
-                    ]
-                    and ik_df.columns.names == ["region", "category"]
-                ):
+                elif ik_df.index.names == [
+                    "region",
+                    "sector",
+                ] and ik_df.columns.names == ["region", "category"]:
 
                     # Full disaggregated finald demand satellite account.
                     # Thats not implemented yet - but aggregation is in place

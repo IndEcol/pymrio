@@ -8,9 +8,10 @@ To avoid namespace pollution everythin here starts with calc_
 
 """
 
-import pandas as pd
-import numpy as np
 import warnings
+
+import numpy as np
+import pandas as pd
 
 import pymrio.tools.ioutil as ioutil
 

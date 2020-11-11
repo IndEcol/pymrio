@@ -7,13 +7,12 @@ import json
 import logging
 import os
 import zipfile
-
-import numpy as np
 from collections import namedtuple
 from pathlib import Path
 
-from pymrio.core.constants import PYMRIO_PATH
-from pymrio.core.constants import DEFAULT_FILE_NAMES
+import numpy as np
+
+from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH
 
 
 def is_vector(inp):

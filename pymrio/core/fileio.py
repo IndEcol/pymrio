@@ -5,24 +5,20 @@ Methods to load previously save mrios
 
 import collections
 import configparser
-import logging
 import json
-import re
-import pandas as pd
+import logging
 import os
+import re
 import sys
 import zipfile
 from pathlib import Path
 
-from pymrio.core.constants import PYMRIO_PATH
+import pandas as pd
 
-from pymrio.core.mriosystem import IOSystem
-from pymrio.core.mriosystem import Extension
+from pymrio.core.constants import DEFAULT_FILE_NAMES, GENERIC_NAMES, PYMRIO_PATH
+from pymrio.core.mriosystem import Extension, IOSystem
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import get_file_para
-
-from pymrio.core.constants import DEFAULT_FILE_NAMES
-from pymrio.core.constants import GENERIC_NAMES
 
 
 # Exceptions

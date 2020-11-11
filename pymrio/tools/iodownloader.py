@@ -3,8 +3,9 @@
 
 import os
 import re
-import requests
 from collections import namedtuple
+
+import requests
 
 from pymrio.tools.iometadata import MRIOMetaData
 
