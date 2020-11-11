@@ -95,7 +95,7 @@ Now, all accounts are calculated, including footprints and emissions embodied in
 .. code:: python
 
     test_mrio.A
-    test_mrio.emissions.D_fp
+    test_mrio.emissions.D_cba
     test_mrio.emissions.D_exp
 
 To visualize the accounts:
