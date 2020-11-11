@@ -15,7 +15,9 @@ setup(
     version=__version__,  # noqa
     packages=find_packages(),
     include_package_data=True,
-    package_data={"": ["*.txt", "*.dat", "*.doc", "*.rst", "*.json"],},
+    package_data={
+        "": ["*.txt", "*.dat", "*.doc", "*.rst", "*.json"],
+    },
     # This some needs to be here and in requirments.txt (for conda)
     install_requires=[
         "pandas >= 0.25.0",

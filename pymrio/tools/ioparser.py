@@ -157,7 +157,12 @@ def parse_exio12_ext(
             pass
 
     return Extension(
-        name=name, F=F, unit=unit, iosystem=iosystem, version=version, year=year,
+        name=name,
+        F=F,
+        unit=unit,
+        iosystem=iosystem,
+        version=version,
+        year=year,
     )
 
 
@@ -1849,14 +1854,20 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
     if is_zip:
         zip_file = zipfile.ZipFile(eora_loc)
         eora_data = {
-            key: pd.read_csv(zip_file.open(filename), sep=eora_sep, header=None,)
+            key: pd.read_csv(
+                zip_file.open(filename),
+                sep=eora_sep,
+                header=None,
+            )
             for key, filename in eora_files.items()
         }
         zip_file.close()
     else:
         eora_data = {
             key: pd.read_csv(
-                os.path.join(eora_loc, filename), sep=eora_sep, header=None,
+                os.path.join(eora_loc, filename),
+                sep=eora_sep,
+                header=None,
             )
             for key, filename in eora_files.items()
         }
@@ -1942,7 +1953,11 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
         Y=eora_data["Y"],
         unit=Z_unit,
         Q={"name": "Q", "unit": Q_unit, "F": eora_data["Q"], "F_Y": eora_data["QY"]},
-        VA={"name": "VA", "F": eora_data["VA"], "unit": VA_unit,},
+        VA={
+            "name": "VA",
+            "F": eora_data["VA"],
+            "unit": VA_unit,
+        },
         meta=meta_rec,
     )
 

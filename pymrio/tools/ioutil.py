@@ -447,7 +447,9 @@ def build_agg_vec(agg_vec, **source):
     miss_val = source.get("miss", "REST")
 
     vec_list = [agg_dict[ee] for ee in agg_vec]
-    out = [None,] * len(vec_list[0])
+    out = [
+        None,
+    ] * len(vec_list[0])
     for currvec in vec_list:
         if len(currvec) != len(out):
             logging.warn("Inconsistent vector length")

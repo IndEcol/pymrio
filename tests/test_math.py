@@ -40,22 +40,34 @@ def td_IO_Data_Miller():
         # Table 2.3 of the Book
         Z_arr = np.array([[150, 500], [200, 100]]).astype("float")
         Z_df = pd.DataFrame(
-            data=Z_arr, index=["sec1", "sec2"], columns=["sec1", "sec2"],
+            data=Z_arr,
+            index=["sec1", "sec2"],
+            columns=["sec1", "sec2"],
         )
 
         # Table 2.4 of the Book
         A_arr = np.array([[0.15, 0.25], [0.20, 0.05]]).astype("float")
         A_df = pd.DataFrame(
-            data=A_arr, index=["sec1", "sec2"], columns=["sec1", "sec2"],
+            data=A_arr,
+            index=["sec1", "sec2"],
+            columns=["sec1", "sec2"],
         )
 
         # Table 2.3 of the Book
         fd_arr = np.array([[350], [1700]]).astype("float")
-        fd_df = pd.DataFrame(data=fd_arr, index=["sec1", "sec2"], columns=["fi"],)
+        fd_df = pd.DataFrame(
+            data=fd_arr,
+            index=["sec1", "sec2"],
+            columns=["fi"],
+        )
 
         # Table 2.3 of the Book
         x_arr = np.array([[1000], [2000]]).astype("float")
-        x_df = pd.DataFrame(data=x_arr, index=["sec1", "sec2"], columns=["indout"],)
+        x_df = pd.DataFrame(
+            data=x_arr,
+            index=["sec1", "sec2"],
+            columns=["indout"],
+        )
 
         # At the example following Table 2.3, additional
         # decimals where calculated
@@ -63,23 +75,39 @@ def td_IO_Data_Miller():
             "float"
         )
         L_df = pd.DataFrame(
-            data=L_arr, index=["sec1", "sec2"], columns=["sec1", "sec2"],
+            data=L_arr,
+            index=["sec1", "sec2"],
+            columns=["sec1", "sec2"],
         )
 
         # Example epsilon from chapter 2, it uses the new x
         xnew_arr = np.array([[1247.5], [1841.6]]).astype("float")
         xnew_df = pd.DataFrame(
-            data=xnew_arr, index=["sec1", "sec2"], columns=["indout"],
+            data=xnew_arr,
+            index=["sec1", "sec2"],
+            columns=["indout"],
         )
 
-        labcoeff_arr = np.array([[0.3, 0.25],])
+        labcoeff_arr = np.array(
+            [
+                [0.3, 0.25],
+            ]
+        )
         labcoeff_df = pd.DataFrame(
-            data=labcoeff_arr, index=["total labor"], columns=["sec1", "sec2"],
+            data=labcoeff_arr,
+            index=["total labor"],
+            columns=["sec1", "sec2"],
         )
 
-        labtot_arr = np.array([[374.25, 460.4],])  # .25 because of rounding
+        labtot_arr = np.array(
+            [
+                [374.25, 460.4],
+            ]
+        )  # .25 because of rounding
         labtot_df = pd.DataFrame(
-            data=labtot_arr, index=["total labor"], columns=["sec1", "sec2"],
+            data=labtot_arr,
+            index=["total labor"],
+            columns=["sec1", "sec2"],
         )
 
     return IO_Data_Miller
@@ -260,7 +288,14 @@ def td_small_MRIO():
         )
 
         x = pd.DataFrame(
-            data=[[51], [15], [58], [50], [52], [39],],
+            data=[
+                [51],
+                [15],
+                [58],
+                [50],
+                [52],
+                [39],
+            ],
             columns=["indout"],
             index=_Z_multiindex,
             dtype=("float64"),
@@ -529,16 +564,20 @@ def test_calc_accounts_MRIO(td_small_MRIO):
     )
     # test all
     pdt.assert_frame_equal(
-        td_small_MRIO.D_cba, nD_cba,
+        td_small_MRIO.D_cba,
+        nD_cba,
     )
     pdt.assert_frame_equal(
-        td_small_MRIO.D_pba, nD_pba,
+        td_small_MRIO.D_pba,
+        nD_pba,
     )
     pdt.assert_frame_equal(
-        td_small_MRIO.D_imp, nD_imp,
+        td_small_MRIO.D_imp,
+        nD_imp,
     )
     pdt.assert_frame_equal(
-        td_small_MRIO.D_exp, nD_exp,
+        td_small_MRIO.D_exp,
+        nD_exp,
     )
     # test if fp = terr + imp - exp on the total level
     # that tests if imp == exp and fp == terr
