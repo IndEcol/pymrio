@@ -1,0 +1,7 @@
+# all files to be included
+
+include MANIFEST.in
+# include LICENSE.txt
+# include pyproject.toml
+recursive-include pymrio/ *.txt
+recursive-include pymrio/ *.json
