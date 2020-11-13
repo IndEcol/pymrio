@@ -35,7 +35,8 @@ The Sphinx Documentation has an excellent introduction to reStructuredText_. Rev
 Changing the code base
 **********************
 
-All code contribution must be provided as pull requests connected to a filed issue.
+All code contribution must be provided as pull requests connected to a filed issue. 
+Please set-up pull requests against the master branch of the repository. 
 Use numpy style docstrings_ and lint using black_ and isort_, and follow the pep8_ style guide.
 Passing the black_ and isort_ liter is a requirement to pass the tests before merging a pull request.
 
@@ -54,20 +55,31 @@ Since pymrio is already used in research projects, please aim for keeping compat
 
 .. _docstrings: https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
 .. _pep8: https://www.python.org/dev/peps/pep-0008/
+.. _black: https://github.com/psf/black/
+.. _isort: https://github.com/pycqa/isort/
+
 
 Running and extending the tests
 ===============================
 
 
 Before filing a pull request, make sure your changes pass all tests.
-Pymrio uses the py.test_ package with the pytest-pep8_ extension for testing.
-To run the tests install these two packages (and the Pandas_ dependency) and run
+Pymrio uses the py.test_ package for testing.
+To run the tests either activate the environment_dev.yml file (if you are using 
+Anaconda) or install the test requirments defined in requirments_test.txt.
+
+Then run
 
 ::
 
-    py.test -v -pep8
+  coverage erase
+  isort --profile black --check-only .
+  coverage run -m pytest --black -vv .
+  coverage report 
 
-in the root of your local copy of pymrio.
+in the root of your local copy of pymrio. The file format_and_test.sh can be 
+used in Linux environments to format the code according to the black_ / isort_ format 
+and run all tests.
 
 In addition to the unit tests, the Jupyter notebook tutorials are also used 
 for integration tests of the full software. Some of them (the EXIOBASE and Eora
