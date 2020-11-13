@@ -35,8 +35,21 @@ The Sphinx Documentation has an excellent introduction to reStructuredText_. Rev
 Changing the code base
 **********************
 
-Use numpy style docstrings_ and follow pep8_ style guide.
-The latter is a requirement to pass the tests before merging a pull request.
+All code contribution must be provided as pull requests connected to a filed issue.
+Use numpy style docstrings_ and lint using black_ and isort_, and follow the pep8_ style guide.
+Passing the black_ and isort_ liter is a requirement to pass the tests before merging a pull request.
+
+The following commands can be used to automatically apply the black_ and isort_ formatting.
+
+.. code-block:: bash
+
+   pip install black isort
+   isort --project pymrio --profile black .
+   black .
+
+Check the "script" part in .travis.yml to check the required tests.
+If you are using Conda you can build a development environment from environment_dev.yml which includes all packages necessary for development, testing and running.
+
 Since pymrio is already used in research projects, please aim for keeping compatibility with previous versions.
 
 .. _docstrings: https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt

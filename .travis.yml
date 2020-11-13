@@ -1,14 +1,15 @@
 language: python
 python:
+  - "3.7"
   - "3.8"
+  - "3.9"
 install:
-  - pip install pytest-pep8
+  - pip install -r requirements_test.txt
   - pip install .
-  - pip install pytest-cov python-coveralls
-  - pip install -r requirements.txt
 before_script:
     pip list
 script:
-    py.test --pep8 -vv --cov pymrio
+    - isort --project pymrio --profile black --check-only .
+    - coverage run -m pytest --black -vv
 after_success:
     coveralls

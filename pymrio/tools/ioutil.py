@@ -7,17 +7,16 @@ import json
 import logging
 import os
 import zipfile
-
-import numpy as np
 from collections import namedtuple
 from pathlib import Path
 
-from pymrio.core.constants import PYMRIO_PATH
-from pymrio.core.constants import DEFAULT_FILE_NAMES
+import numpy as np
+
+from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH
 
 
 def is_vector(inp):
-    """ Returns true if the input can be interpreted as a 'true' vector
+    """Returns true if the input can be interpreted as a 'true' vector
 
     Note
     ----
@@ -44,7 +43,7 @@ def is_vector(inp):
 
 
 def get_repo_content(path):
-    """ List of files in a repo (path or zip)
+    """List of files in a repo (path or zip)
 
 
     Parameters
@@ -67,12 +66,12 @@ def get_repo_content(path):
         iszip = True
     else:
         iszip = False
-        filelist = [str(f) for f in path.glob('**/*') if f.is_file()]
-    return namedtuple('repocontent', ['iszip', 'filelist'])(iszip, filelist)
+        filelist = [str(f) for f in path.glob("**/*") if f.is_file()]
+    return namedtuple("repocontent", ["iszip", "filelist"])(iszip, filelist)
 
 
-def get_file_para(path, path_in_arc=''):
-    """ Generic method to read the file parameter file
+def get_file_para(path, path_in_arc=""):
+    """Generic method to read the file parameter file
 
     Helper function to consistently read the file parameter file, which can
     either be uncompressed or included in a zip archive.  By default, the file
@@ -121,47 +120,45 @@ def get_file_para(path, path_in_arc=''):
             files = zf.namelist()
     else:
         para_file_folder = str(path)
-        files = [str(f) for f in path.glob('**/*')]
+        files = [str(f) for f in path.glob("**/*")]
 
     if para_file_folder not in files:
         if zipfile.is_zipfile(str(path)):
             # b/c in win os.path.join adds \ also for within zipfile
-            if para_file_folder != '':
-                para_file_full_path = (para_file_folder + '/' +
-                                       DEFAULT_FILE_NAMES['filepara']).replace(
-                                           '//', '/')
+            if para_file_folder != "":
+                para_file_full_path = (
+                    para_file_folder + "/" + DEFAULT_FILE_NAMES["filepara"]
+                ).replace("//", "/")
             else:
-                para_file_full_path = DEFAULT_FILE_NAMES['filepara']
+                para_file_full_path = DEFAULT_FILE_NAMES["filepara"]
 
         else:
             para_file_full_path = os.path.join(
-                para_file_folder, DEFAULT_FILE_NAMES['filepara'])
+                para_file_folder, DEFAULT_FILE_NAMES["filepara"]
+            )
     else:
         para_file_full_path = para_file_folder
         para_file_folder = os.path.dirname(para_file_full_path)
 
     if para_file_full_path not in files:
         raise FileNotFoundError(
-            'File parameter file {} not found'.format(
-                para_file_full_path))
+            "File parameter file {} not found".format(para_file_full_path)
+        )
 
     if zipfile.is_zipfile(str(path)):
         with zipfile.ZipFile(file=str(path)) as zf:
-            para_file_content = json.loads(
-                zf.read(para_file_full_path).decode('utf-8'))
+            para_file_content = json.loads(zf.read(para_file_full_path).decode("utf-8"))
     else:
-        with open(para_file_full_path, 'r') as pf:
+        with open(para_file_full_path, "r") as pf:
             para_file_content = json.load(pf)
 
-    return namedtuple('file_parameter',
-                      ['folder', 'name', 'content'])(
-        para_file_folder,
-        os.path.basename(para_file_full_path),
-        para_file_content)
+    return namedtuple("file_parameter", ["folder", "name", "content"])(
+        para_file_folder, os.path.basename(para_file_full_path), para_file_content
+    )
 
 
 def build_agg_matrix(agg_vector, pos_dict=None):
-    """ Agg. matrix based on mapping given in input as numerical or str vector.
+    """Agg. matrix based on mapping given in input as numerical or str vector.
 
     The aggregation matrix has the from nxm with
 
@@ -214,7 +211,8 @@ def build_agg_matrix(agg_vector, pos_dict=None):
         if pos_dict:
             if len(pos_dict.keys()) != len(set(str_vector)):
                 raise ValueError(
-                    'Posistion elements inconsistent with aggregation vector')
+                    "Posistion elements inconsistent with aggregation vector"
+                )
             seen = pos_dict
         else:
             seen = {}
@@ -230,7 +228,7 @@ def build_agg_matrix(agg_vector, pos_dict=None):
     row_corr = agg_vector
     col_corr = np.arange(agg_vector.size)
 
-    agg_matrix = np.zeros((row_corr.max()+1, col_corr.max()+1))
+    agg_matrix = np.zeros((row_corr.max() + 1, col_corr.max() + 1))
     agg_matrix[row_corr, col_corr] = 1
 
     # set columns with -1 value to 0
@@ -240,7 +238,7 @@ def build_agg_matrix(agg_vector, pos_dict=None):
 
 
 def diagonalize_blocks(arr, blocksize):
-    """ Diagonalize sections of columns of an array for the whole array
+    """Diagonalize sections of columns of an array for the whole array
 
     Parameters
     ----------
@@ -273,24 +271,26 @@ def diagonalize_blocks(arr, blocksize):
 
     if np.mod(nr_row, blocksize):
         raise ValueError(
-            'Number of rows of input array must be a multiple of blocksize')
+            "Number of rows of input array must be a multiple of blocksize"
+        )
 
-    arr_diag = np.zeros((nr_row, blocksize*nr_col))
+    arr_diag = np.zeros((nr_row, blocksize * nr_col))
 
     for col_ind, col_val in enumerate(arr.T):
-        col_start = col_ind*blocksize
-        col_end = blocksize + col_ind*blocksize
-        for _ind in range(int(nr_row/blocksize)):
-            row_start = _ind*blocksize
+        col_start = col_ind * blocksize
+        col_end = blocksize + col_ind * blocksize
+        for _ind in range(int(nr_row / blocksize)):
+            row_start = _ind * blocksize
             row_end = blocksize + _ind * blocksize
-            arr_diag[row_start:row_end,
-                     col_start:col_end] = np.diag(col_val[row_start:row_end])
+            arr_diag[row_start:row_end, col_start:col_end] = np.diag(
+                col_val[row_start:row_end]
+            )
 
     return arr_diag
 
 
 def set_block(arr, arr_block):
-    """ Sets the diagonal blocks of an array to an given array
+    """Sets the diagonal blocks of an array to an given array
 
     Parameters
     ----------
@@ -311,19 +311,22 @@ def set_block(arr, arr_block):
     nr_row_block = arr_block.shape[0]
 
     if np.mod(nr_row, nr_row_block) or np.mod(nr_col, nr_col_block):
-        raise ValueError('Number of rows/columns of the input array '
-                         'must be a multiple of block shape')
-    if nr_row/nr_row_block != nr_col/nr_col_block:
-        raise ValueError('Block array can not be filled as '
-                         'diagonal blocks in the given array')
+        raise ValueError(
+            "Number of rows/columns of the input array "
+            "must be a multiple of block shape"
+        )
+    if nr_row / nr_row_block != nr_col / nr_col_block:
+        raise ValueError(
+            "Block array can not be filled as " "diagonal blocks in the given array"
+        )
 
     arr_out = arr.copy()
 
-    for row_ind in range(int(nr_row/nr_row_block)):
-        row_start = row_ind*nr_row_block
-        row_end = nr_row_block+nr_row_block*row_ind
-        col_start = row_ind*nr_col_block
-        col_end = nr_col_block+nr_col_block*row_ind
+    for row_ind in range(int(nr_row / nr_row_block)):
+        row_start = row_ind * nr_row_block
+        row_end = nr_row_block + nr_row_block * row_ind
+        col_start = row_ind * nr_col_block
+        col_end = nr_col_block + nr_col_block * row_ind
 
         arr_out[row_start:row_end, col_start:col_end] = arr_block
 
@@ -343,7 +346,7 @@ def unique_element(ll):
 
 
 def build_agg_vec(agg_vec, **source):
-    """ Builds an combined aggregation vector based on various classifications
+    """Builds an combined aggregation vector based on various classifications
 
     This function build an aggregation vector based on the order in agg_vec.
     The naming and actual mapping is given in source, either explicitly or by
@@ -418,35 +421,39 @@ def build_agg_vec(agg_vec, **source):
         try:
             agg_dict[entry] = source[entry]
         except KeyError:
-            folder = source.get('path', './')
-            folder = os.path.join(PYMRIO_PATH[folder], 'concordance')
+            folder = source.get("path", "./")
+            folder = os.path.join(PYMRIO_PATH[folder], "concordance")
             for file in os.listdir(folder):
                 if entry == os.path.splitext(file)[0]:
                     _tmp = np.genfromtxt(os.path.join(folder, file), dtype=str)
                     if _tmp.ndim == 1:
-                        agg_dict[entry] = [None if ee == 'None'
-                                           else ee for ee in _tmp.tolist()]
+                        agg_dict[entry] = [
+                            None if ee == "None" else ee for ee in _tmp.tolist()
+                        ]
                     else:
-                        agg_dict[entry] = [None if ee == 'None'
-                                           else ee
-                                           for ee in _tmp[:, -1].tolist()]
+                        agg_dict[entry] = [
+                            None if ee == "None" else ee for ee in _tmp[:, -1].tolist()
+                        ]
                     break
             else:
                 logging.error(
-                    'Aggregation vector -- {} -- not found'
-                    .format(str(entry)))
+                    "Aggregation vector -- {} -- not found".format(str(entry))
+                )
 
     # build the summary aggregation vector
-    def _rep(ll, ii, vv): ll[ii] = vv
-    miss_val = source.get('miss', 'REST')
+    def _rep(ll, ii, vv):
+        ll[ii] = vv
+
+    miss_val = source.get("miss", "REST")
 
     vec_list = [agg_dict[ee] for ee in agg_vec]
-    out = [None, ] * len(vec_list[0])
+    out = [
+        None,
+    ] * len(vec_list[0])
     for currvec in vec_list:
         if len(currvec) != len(out):
-            logging.warn('Inconsistent vector length')
-        [_rep(out, ind, val) for ind, val in
-         enumerate(currvec) if not out[ind]]
+            logging.warn("Inconsistent vector length")
+        [_rep(out, ind, val) for ind, val in enumerate(currvec) if not out[ind]]
 
     [_rep(out, ind, miss_val) for ind, val in enumerate(out) if not val]
 
@@ -465,11 +472,13 @@ def find_first_number(ll):
     return None
 
 
-def sniff_csv_format(csv_file,
-                     potential_sep=['\t', ',', ';', '|', '-', '_'],
-                     max_test_lines=10,
-                     zip_file=None):
-    """ Tries to get the separator, nr of index cols and header rows in a csv file
+def sniff_csv_format(
+    csv_file,
+    potential_sep=["\t", ",", ";", "|", "-", "_"],
+    max_test_lines=10,
+    zip_file=None,
+):
+    """Tries to get the separator, nr of index cols and header rows in a csv file
 
     Parameters
     ----------
@@ -503,27 +512,31 @@ def sniff_csv_format(csv_file,
         lines = []
         for i in range(max_test_lines):
             line = ff.readline()
-            if line == '':
+            if line == "":
                 continue
             try:
-                line = line.decode('utf-8')
+                line = line.decode("utf-8")
             except AttributeError:
                 pass
             lines.append(line[:-1])
         return lines
 
     if zip_file:
-        with zipfile.ZipFile(zip_file, 'r') as zz:
-            with zz.open(csv_file, 'r') as ff:
+        with zipfile.ZipFile(zip_file, "r") as zz:
+            with zz.open(csv_file, "r") as ff:
                 test_lines = read_first_lines(ff)
     else:
-        with open(csv_file, 'r') as ff:
+        with open(csv_file, "r") as ff:
             test_lines = read_first_lines(ff)
 
-    sep_aly_lines = [sorted(
-        [(line.count(sep), sep)
-         for sep in potential_sep if line.count(sep) > 0],
-        key=lambda x: x[0], reverse=True) for line in test_lines]
+    sep_aly_lines = [
+        sorted(
+            [(line.count(sep), sep) for sep in potential_sep if line.count(sep) > 0],
+            key=lambda x: x[0],
+            reverse=True,
+        )
+        for line in test_lines
+    ]
 
     for nr, (count, sep) in enumerate(sep_aly_lines[0]):
         for line in sep_aly_lines:
@@ -547,6 +560,4 @@ def sniff_csv_format(csv_file,
                 if find_first_number(line.split(sep)) == nr_index_col:
                     break
 
-    return dict(sep=sep,
-                nr_header_row=nr_header_row,
-                nr_index_col=nr_index_col)
+    return dict(sep=sep, nr_header_row=nr_header_row, nr_index_col=nr_index_col)

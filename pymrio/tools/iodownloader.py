@@ -3,77 +3,82 @@
 
 import os
 import re
-import requests
 from collections import namedtuple
+
+import requests
 
 from pymrio.tools.iometadata import MRIOMetaData
 
 WIOD_CONFIG = {
-    'url_db_view': 'http://www.wiod.org/database/wiots13',
-    'url_db_content':  'http://www.wiod.org/',
-    'mrio_regex': r'protected.*?wiot\d\d.*?xlsx',
-    'satellite_urls':  [
-        'http://www.wiod.org/protected3/data13/SEA/WIOD_SEA_July14.xlsx',
-        'http://www.wiod.org/protected3/data13/EU/EU_may12.zip',
-        'http://www.wiod.org/protected3/data13/EM/EM_may12.zip',
-        'http://www.wiod.org/protected3/data13/CO2/CO2_may12.zip',
-        'http://www.wiod.org/protected3/data13/AIR/AIR_may12.zip',
-        'http://www.wiod.org/protected3/data13/land/lan_may12.zip',
-        'http://www.wiod.org/protected3/data13/materials/mat_may12.zip',
-        'http://www.wiod.org/protected3/data13/water/wat_may12.zip',
+    "url_db_view": "http://www.wiod.org/database/wiots13",
+    "url_db_content": "http://www.wiod.org/",
+    "mrio_regex": r"protected.*?wiot\d\d.*?xlsx",
+    "satellite_urls": [
+        "http://www.wiod.org/protected3/data13/SEA/WIOD_SEA_July14.xlsx",
+        "http://www.wiod.org/protected3/data13/EU/EU_may12.zip",
+        "http://www.wiod.org/protected3/data13/EM/EM_may12.zip",
+        "http://www.wiod.org/protected3/data13/CO2/CO2_may12.zip",
+        "http://www.wiod.org/protected3/data13/AIR/AIR_may12.zip",
+        "http://www.wiod.org/protected3/data13/land/lan_may12.zip",
+        "http://www.wiod.org/protected3/data13/materials/mat_may12.zip",
+        "http://www.wiod.org/protected3/data13/water/wat_may12.zip",
     ],
 }
 
 EORA26_CONFIG = {
-    'url_db_view': 'http://worldmrio.com/simplified/',
-    'url_db_content': 'http://worldmrio.com/',
+    "url_db_view": "http://worldmrio.com/simplified/",
+    "url_db_content": "http://worldmrio.com/",
 }
 
 OECD_CONFIG = {
-    'url_db_view': 'https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm',  # NOQA
-    'url_db_content': 'https://www.oecd.org/sti/ind/',
-    'mrio_regex': r'ICIO\d\d\d\d_\d\d\d\d\.zip',
-    'datafiles': {
-        'v2016': {
-            '1995': 'https://www.oecd.org/sti/ind/ICIO2016_1995.zip',
-            '1996': 'https://www.oecd.org/sti/ind/ICIO2016_1996.zip',
-            '1997': 'https://www.oecd.org/sti/ind/ICIO2016_1997.zip',
-            '1998': 'https://www.oecd.org/sti/ind/ICIO2016_1998.zip',
-            '1999': 'https://www.oecd.org/sti/ind/ICIO2016_1999.zip',
-            '2000': 'https://www.oecd.org/sti/ind/ICIO2016_2000.zip',
-            '2001': 'https://www.oecd.org/sti/ind/ICIO2016_2001.zip',
-            '2002': 'https://www.oecd.org/sti/ind/ICIO2016_2002.zip',
-            '2003': 'https://www.oecd.org/sti/ind/ICIO2016_2003.zip',
-            '2004': 'https://www.oecd.org/sti/ind/ICIO2016_2004.zip',
-            '2005': 'https://www.oecd.org/sti/ind/ICIO2016_2005.zip',
-            '2006': 'https://www.oecd.org/sti/ind/ICIO2016_2006.zip',
-            '2007': 'https://www.oecd.org/sti/ind/ICIO2016_2007.zip',
-            '2008': 'https://www.oecd.org/sti/ind/ICIO2016_2008.zip',
-            '2009': 'https://www.oecd.org/sti/ind/ICIO2016_2009.zip',
-            '2010': 'https://www.oecd.org/sti/ind/ICIO2016_2010.zip',
-            '2011': 'https://www.oecd.org/sti/ind/ICIO2016_2011.zip',
-            },
-        'v2018': {
-            '2005': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1f134869-1820-49ce-b8b8-3973ec8db607',   # NOQA
-            '2006': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=da62c835-f4fa-4450-bf19-1dd60f88a385',   # NOQA
-            '2007': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=c4d4c21d-00db-48d8-9f9a-f722fcdca494',   # NOQA
-            '2008': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1fd2fc03-c140-46f4-818e-9a66b671ff70',   # NOQA
-            '2009': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=4cc79090-d1ee-48b6-a252-e75312d32a1c',   # NOQA
-            '2010': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=16d04830-3c27-47a5-bc03-e429d27f585e',   # NOQA
-            '2011': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=dc48c8c0-f200-487a-aecb-0c2c17fe3ddf',   # NOQA
-            '2012': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=cfd03495-8a90-4449-8097-a30f06853cab',   # NOQA
-            '2013': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=8c8ac674-1b6c-4c8e-94d1-158f06285659',   # NOQA
-            '2014': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=0190bd9d-31d0-4171-bd1c-82d96b88e469',   # NOQA
-            '2015': 'http://stats.oecd.org/wbos/fileview2.aspx?IDFile=9f579ef3-4685-45e4-a0ba-d1acbd9755a6',   # NOQA
-            }
-        }
-    }
+    "url_db_view": "https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm",  # NOQA
+    "url_db_content": "https://www.oecd.org/sti/ind/",
+    "mrio_regex": r"ICIO\d\d\d\d_\d\d\d\d\.zip",
+    "datafiles": {
+        "v2016": {
+            "1995": "https://www.oecd.org/sti/ind/ICIO2016_1995.zip",
+            "1996": "https://www.oecd.org/sti/ind/ICIO2016_1996.zip",
+            "1997": "https://www.oecd.org/sti/ind/ICIO2016_1997.zip",
+            "1998": "https://www.oecd.org/sti/ind/ICIO2016_1998.zip",
+            "1999": "https://www.oecd.org/sti/ind/ICIO2016_1999.zip",
+            "2000": "https://www.oecd.org/sti/ind/ICIO2016_2000.zip",
+            "2001": "https://www.oecd.org/sti/ind/ICIO2016_2001.zip",
+            "2002": "https://www.oecd.org/sti/ind/ICIO2016_2002.zip",
+            "2003": "https://www.oecd.org/sti/ind/ICIO2016_2003.zip",
+            "2004": "https://www.oecd.org/sti/ind/ICIO2016_2004.zip",
+            "2005": "https://www.oecd.org/sti/ind/ICIO2016_2005.zip",
+            "2006": "https://www.oecd.org/sti/ind/ICIO2016_2006.zip",
+            "2007": "https://www.oecd.org/sti/ind/ICIO2016_2007.zip",
+            "2008": "https://www.oecd.org/sti/ind/ICIO2016_2008.zip",
+            "2009": "https://www.oecd.org/sti/ind/ICIO2016_2009.zip",
+            "2010": "https://www.oecd.org/sti/ind/ICIO2016_2010.zip",
+            "2011": "https://www.oecd.org/sti/ind/ICIO2016_2011.zip",
+        },
+        "v2018": {
+            "2005": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1f134869-1820-49ce-b8b8-3973ec8db607",  # NOQA
+            "2006": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=da62c835-f4fa-4450-bf19-1dd60f88a385",  # NOQA
+            "2007": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=c4d4c21d-00db-48d8-9f9a-f722fcdca494",  # NOQA
+            "2008": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1fd2fc03-c140-46f4-818e-9a66b671ff70",  # NOQA
+            "2009": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=4cc79090-d1ee-48b6-a252-e75312d32a1c",  # NOQA
+            "2010": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=16d04830-3c27-47a5-bc03-e429d27f585e",  # NOQA
+            "2011": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=dc48c8c0-f200-487a-aecb-0c2c17fe3ddf",  # NOQA
+            "2012": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=cfd03495-8a90-4449-8097-a30f06853cab",  # NOQA
+            "2013": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=8c8ac674-1b6c-4c8e-94d1-158f06285659",  # NOQA
+            "2014": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=0190bd9d-31d0-4171-bd1c-82d96b88e469",  # NOQA
+            "2015": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=9f579ef3-4685-45e4-a0ba-d1acbd9755a6",  # NOQA
+        },
+    },
+}
 
 
-def _get_url_datafiles(url_db_view, url_db_content,
-                       mrio_regex, access_cookie=None,
-                       requests_func=requests.post):
-    """ Urls of mrio files by parsing url content for mrio_regex
+def _get_url_datafiles(
+    url_db_view,
+    url_db_content,
+    mrio_regex,
+    access_cookie=None,
+    requests_func=requests.post,
+):
+    """Urls of mrio files by parsing url content for mrio_regex
 
     Parameters
     ----------
@@ -104,17 +109,16 @@ def _get_url_datafiles(url_db_view, url_db_content,
     """
     # Use post here - NB: get could be necessary for some other pages
     # but currently works for wiod and eora
-    returnvalue = namedtuple('url_content',
-                             ['raw_text', 'data_urls'])
+    returnvalue = namedtuple("url_content", ["raw_text", "data_urls"])
     url_text = requests_func(url_db_view, cookies=access_cookie).text
-    data_urls = [url_db_content + ff
-                 for ff in re.findall(mrio_regex, url_text)]
+    data_urls = [url_db_content + ff for ff in re.findall(mrio_regex, url_text)]
     return returnvalue(raw_text=url_text, data_urls=data_urls)
 
 
-def _download_urls(url_list, storage_folder, overwrite_existing,
-                   meta_handler, access_cookie=None):
-    """ Save url from url_list to storage_folder
+def _download_urls(
+    url_list, storage_folder, overwrite_existing, meta_handler, access_cookie=None
+):
+    """Save url from url_list to storage_folder
 
     Parameters
     ----------
@@ -148,19 +152,20 @@ def _download_urls(url_list, storage_folder, overwrite_existing,
         # Using requests here - tried with aiohttp but was actually slower
         # Also don’t use shutil.copyfileobj - corrupts zips from Eora
         req = requests.post(url, stream=True, cookies=access_cookie)
-        with open(storage_file, 'wb') as lf:
-            for chunk in req.iter_content(1024*5):
+        with open(storage_file, "wb") as lf:
+            for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
 
-        meta_handler._add_fileio('Downloaded {} to {}'.format(url, filename))
+        meta_handler._add_fileio("Downloaded {} to {}".format(url, filename))
         meta_handler.save()
 
     return meta_handler
 
 
-def download_oecd(storage_folder, version='v2018',
-                  years=None, overwrite_existing=False):
-    """ Downloads the OECD ICIO tables
+def download_oecd(
+    storage_folder, version="v2018", years=None, overwrite_existing=False
+):
+    """Downloads the OECD ICIO tables
 
     Parameters
     ----------
@@ -204,63 +209,70 @@ def download_oecd(storage_folder, version='v2018',
     if type(version) is int:
         version = str(version)
 
-    if ('8' in version) or ('4' in version):
-        version = 'v2018'
-    elif ('3' in version) or ('6' in version):
-        version = 'v2016'
+    if ("8" in version) or ("4" in version):
+        version = "v2018"
+    elif ("3" in version) or ("6" in version):
+        version = "v2016"
     else:
-        raise ValueError('Version not understood')
+        raise ValueError("Version not understood")
 
     if type(years) is int or type(years) is str:
         years = [years]
     if not years:
-        if version == 'v2018':
+        if version == "v2018":
             years = range(2005, 2016)
         else:
             years = range(1995, 2012)
     years = [str(yy) for yy in years]
 
-    meta = MRIOMetaData(location=storage_folder,
-                        description='OECD-ICIO download',
-                        name='OECD-ICIO',
-                        system='IxI',
-                        version=version)
+    meta = MRIOMetaData(
+        location=storage_folder,
+        description="OECD-ICIO download",
+        name="OECD-ICIO",
+        system="IxI",
+        version=version,
+    )
 
-    oecd_webcontent = requests.get(OECD_CONFIG['url_db_view']).text
+    oecd_webcontent = requests.get(OECD_CONFIG["url_db_view"]).text
     for yy in years:
-        if yy not in OECD_CONFIG['datafiles'][version].keys():
-            raise ValueError(
-                'Datafile for {} not specified or available.'.format(yy))
-        if version == 'v2016':
-            url_to_check = os.path.basename(
-                OECD_CONFIG['datafiles'][version][yy])
+        if yy not in OECD_CONFIG["datafiles"][version].keys():
+            raise ValueError("Datafile for {} not specified or available.".format(yy))
+        if version == "v2016":
+            url_to_check = os.path.basename(OECD_CONFIG["datafiles"][version][yy])
         else:
-            url_to_check = OECD_CONFIG['datafiles'][version][yy]
+            url_to_check = OECD_CONFIG["datafiles"][version][yy]
         if url_to_check not in oecd_webcontent:
             raise ValueError(
-                'Specified datafile for {} () not found in the current'
-                'OECD ICIO webpage.\n'
-                'Perhaps filenames have been changed - update OECD_CONFIG '
-                'to the new filenames'.format(yy, url_to_check))
+                "Specified datafile for {} () not found in the current"
+                "OECD ICIO webpage.\n"
+                "Perhaps filenames have been changed - update OECD_CONFIG "
+                "to the new filenames".format(yy, url_to_check)
+            )
 
-        filename = 'ICIO' + version.lstrip('v') + '_' + yy + '.zip'
+        filename = "ICIO" + version.lstrip("v") + "_" + yy + ".zip"
         storage_file = os.path.join(storage_folder, filename)
-        req = requests.get(OECD_CONFIG['datafiles'][version][yy],
-                           stream=True)
-        with open(storage_file, 'wb') as lf:
-            for chunk in req.iter_content(1024*5):
+        req = requests.get(OECD_CONFIG["datafiles"][version][yy], stream=True)
+        with open(storage_file, "wb") as lf:
+            for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
 
-        meta._add_fileio('Downloaded {} to {}'.format(
-            OECD_CONFIG['datafiles'][version][yy], filename))
+        meta._add_fileio(
+            "Downloaded {} to {}".format(
+                OECD_CONFIG["datafiles"][version][yy], filename
+            )
+        )
 
     meta.save()
     return meta
 
 
-def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
-                      satellite_urls=WIOD_CONFIG['satellite_urls']):
-    """ Downloads the 2013 wiod release
+def download_wiod2013(
+    storage_folder,
+    years=None,
+    overwrite_existing=False,
+    satellite_urls=WIOD_CONFIG["satellite_urls"],
+):
+    """Downloads the 2013 wiod release
 
     Note
     ----
@@ -311,37 +323,43 @@ def download_wiod2013(storage_folder, years=None, overwrite_existing=False,
     years = [str(yy).zfill(2)[-2:] for yy in years]
 
     wiod_web_content = _get_url_datafiles(
-        url_db_view=WIOD_CONFIG['url_db_view'],
-        url_db_content=WIOD_CONFIG['url_db_content'],
-        mrio_regex=WIOD_CONFIG['mrio_regex'])
+        url_db_view=WIOD_CONFIG["url_db_view"],
+        url_db_content=WIOD_CONFIG["url_db_content"],
+        mrio_regex=WIOD_CONFIG["mrio_regex"],
+    )
 
-    restricted_wiod_io_urls = [url for url in wiod_web_content.data_urls if
-                               re.search(r"(wiot)(\d\d)",
-                                         os.path.basename(url)).group(2)
-                               in years]
+    restricted_wiod_io_urls = [
+        url
+        for url in wiod_web_content.data_urls
+        if re.search(r"(wiot)(\d\d)", os.path.basename(url)).group(2) in years
+    ]
 
-    meta = MRIOMetaData(location=storage_folder,
-                        description='WIOD metadata file for pymrio',
-                        name='WIOD',
-                        system='IxI',
-                        version='data13')
+    meta = MRIOMetaData(
+        location=storage_folder,
+        description="WIOD metadata file for pymrio",
+        name="WIOD",
+        system="IxI",
+        version="data13",
+    )
 
-    meta = _download_urls(url_list=restricted_wiod_io_urls + satellite_urls,
-                          storage_folder=storage_folder,
-                          overwrite_existing=overwrite_existing,
-                          meta_handler=meta)
+    meta = _download_urls(
+        url_list=restricted_wiod_io_urls + satellite_urls,
+        storage_folder=storage_folder,
+        overwrite_existing=overwrite_existing,
+        meta_handler=meta,
+    )
 
     meta.save()
     return meta
 
 
 def download_eora26():
-    """ Downloading eora26 not implemented (registration required)
-    """
+    """Downloading eora26 not implemented (registration required)"""
     raise NotImplementedError(
         "Eora26 3 requires registration prior to download. "
         "Please register at http://www.worldmrio.com and download the "
-        "Eora26 files from the subdomain /simplified")
+        "Eora26 files from the subdomain /simplified"
+    )
     return None
 
     # Development note:
@@ -354,8 +372,7 @@ def download_eora26():
 
 
 def download_exiobase1():
-    """ Downloading exiobase not implemented (registration required)
-    """
+    """Downloading exiobase not implemented (registration required)"""
     raise NotImplementedError(
         "EXIOBASE 1 requires registration prior to download. "
         "Please register at www.exiobase.eu and download the "
@@ -368,8 +385,7 @@ def download_exiobase1():
 
 
 def download_exiobase2():
-    """ Downloading exiobase not implemented (registration required)
-    """
+    """Downloading exiobase not implemented (registration required)"""
     raise NotImplementedError(
         "EXIOBASE 2 requires registration prior to download. "
         "Please register at www.exiobase.eu and download the "
@@ -383,10 +399,10 @@ def download_exiobase2():
 
 
 def download_exiobase3():
-    """ Downloading exiobase not implemented (registration required)
-    """
+    """Downloading exiobase not implemented (registration required)"""
     raise NotImplementedError(
         "EXIOBASE 3 requires registration prior to download. "
         "Please register at www.exiobase.eu and download the "
-        "EXIOBASE 3 MRIO files ")
+        "EXIOBASE 3 MRIO files "
+    )
     return None
