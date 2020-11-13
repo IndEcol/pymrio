@@ -10,6 +10,6 @@ before_script:
     pip list
 script:
     - isort --project pymrio --profile black --check-only .
-    - coverage run -m pytest --black -vv
+    - coverage run --source=pymrio -m pytest --black -vv
 after_success:
     coveralls
