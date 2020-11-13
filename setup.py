@@ -15,6 +15,7 @@ setup(
     version=__version__,  # noqa
     packages=find_packages(),
     include_package_data=True,
+    python_requires=">=3.7.0",
     package_data={
         "": ["*.txt", "*.dat", "*.doc", "*.rst", "*.json"],
     },

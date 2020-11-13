@@ -13,7 +13,7 @@ Data storage
 ------------
 Txt files together with a ini file are used for storing data. In addition,
 the IOSystem with all data can also be pickled (binary).
-Conversion to hdf5 and mat should be implemented...
+
 
 Misc
 ----
