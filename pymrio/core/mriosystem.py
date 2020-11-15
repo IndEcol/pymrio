@@ -1388,7 +1388,7 @@ class Extension(CoreSystem):
             plt.ion()
 
     def get_rows(self):
-        """ Returns the name of the rows of the extension"""
+        """ Returns the name of the rows of the extension """
         possible_dataframes = [
             "F",
             "F_Y",
@@ -1518,9 +1518,9 @@ class IOSystem(CoreSystem):
         final demand with MultiIndex with index.names = (['region', 'sector'])
         and column.names = (['region', 'category'])
     A : pandas.DataFrame
-        coefficient input output table, MultiTndex as Z
+        coefficient input output table, MultiIndex as Z
     L : pandas.DataFrame
-        Leontief, MultiTndex as Z
+        Leontief (= inv(I-A)), MultiIndex as Z
     unit : pandas.DataFrame
         Unit for each row of Z
     system : string
@@ -1642,7 +1642,13 @@ class IOSystem(CoreSystem):
         """
         Calculates the missing part of the core IOSystem
 
-        The method checks Z, x, A, L and calculates all which are None
+        The method checks Z, A, x, L and calculates all which are None
+
+        The possible cases are:
+            Case    Provided    Calculated
+            1)      Z           A, x, L
+            2)      A, x        Z, L
+            3)      A, Y        L, x, Z
         """
 
         # Possible cases:

@@ -19,6 +19,8 @@ import pymrio.tools.ioutil as ioutil
 def calc_x(Z, Y):
     """Calculate the industry output x from the Z and Y matrix
 
+    industry output x = flows(Z) + final demand(Y)
+
     Parameters
     ----------
     Z : pandas.DataFrame or numpy.array
@@ -33,7 +35,9 @@ def calc_x(Z, Y):
         The type is determined by the type of Z. If DataFrame index as Z
 
     """
-    x = np.reshape(np.sum(np.hstack((Z, Y)), 1), (-1, 1))
+
+    # [:, None] syntax more compact and explicit?
+    x = np.sum(np.hstack((Z, Y)), 1)[:, None]
     if type(Z) is pd.DataFrame:
         x = pd.DataFrame(x, index=Z.index, columns=["indout"])
     if type(x) is pd.Series:
@@ -45,6 +49,10 @@ def calc_x(Z, Y):
 
 def calc_x_from_L(L, y):
     """Calculate the industry output x from L and a y vector
+
+    x = Ly
+
+    The industry output x is computed from a demand vector y
 
     Parameters
     ----------
@@ -71,6 +79,11 @@ def calc_x_from_L(L, y):
 def calc_Z(A, x):
     """calculate the Z matrix (flows) from A and x
 
+    A = Z / x[None, :]  =>  Z = A * x[None, :]
+
+    By definition, the coefficient matrix A is basically the normalized flows
+    So Z is just derived from A by un-normalizing using the industrial output x
+
     Parameters
     ----------
     A : pandas.DataFrame or numpy.array
@@ -88,18 +101,26 @@ def calc_Z(A, x):
     """
     if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
         x = x.values
-    x = x.reshape((1, -1))  # use numpy broadcasting - much faster
+    # Syntax x[None, :] is faster than x.reshape((1, -1))
+    # (checked using timeit)
+    # it is also somewhat more explicit
+    # And using directly in the final line avoids storing an intermediate value
+    # 
+    # x = x.reshape((1, -1))  # use numpy broadcasting - much faster
     # (but has to ensure that x is a row vector)
     # old mathematical form:
     # return A.dot(np.diagflat(x))
     if type(A) is pd.DataFrame:
-        return pd.DataFrame(A.values * x, index=A.index, columns=A.columns)
+        return pd.DataFrame(A.values * x[None, :],
+                            index=A.index, columns=A.columns)
     else:
-        return A * x
+        return A * x[None, :]
 
 
 def calc_A(Z, x):
     """Calculate the A matrix (coefficients) from Z and x
+
+    A is a normalized version of the industrial flows Z
 
     Parameters
     ----------
@@ -127,7 +148,8 @@ def calc_A(Z, x):
             warnings.simplefilter("ignore")
             recix = 1 / x
         recix[recix == np.inf] = 0
-        recix = recix.reshape((1, -1))
+        # recix = recix.reshape((1, -1))
+        recix = recix[None, :]
     # use numpy broadcasting - factor ten faster
     # Mathematical form - slow
     # return Z.dot(np.diagflat(recix))
@@ -139,6 +161,19 @@ def calc_A(Z, x):
 
 def calc_L(A):
     """Calculate the Leontief L from A
+
+    L = inverse matrix of (I - A)
+
+    Where I is an identity matrix of same shape as A
+
+    Comes from:
+        x = Ax + y  =>  (I-A)x = y
+    Where:
+        A: coefficient input () - output () table
+        x: output vector
+        y: final demand vector
+
+    Hence, L allows to derive a required output vector x for a given demand y
 
     Parameters
     ----------
