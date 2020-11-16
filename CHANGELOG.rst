@@ -3,6 +3,28 @@ Changelog
 #########
 
 ***************************
+v0.4.2 (November 13, 2020)
+***************************
+
+
+Bugfixes
+========
+
+* Fixed: OECD parsing bug caused by pandas update
+* Fixed: Missing inclusion of auxiliary data for exiobase 2
+* Fixed: Making python version explicit and update package requirements
+* Fixed: hard-coded OS specific path
+
+Development
+===========
+
+* switched to black code style
+* updated travis.yml for testing different python versions
+* added github workflows for automated releases
+* switched to git trunk based development
+
+
+***************************
 v0.4.1 (October 08, 2019)
 ***************************
 
