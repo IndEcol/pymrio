@@ -527,6 +527,24 @@ def test_calc_x_MRIO(td_small_MRIO):
 
 def test_calc_A_MRIO(td_small_MRIO):
     pdt.assert_frame_equal(td_small_MRIO.A, calc_A(td_small_MRIO.Z, td_small_MRIO.x))
+    # we also test the different methods to provide x:
+    x_values = td_small_MRIO.x.values
+    x_Tvalues = td_small_MRIO.x.T.values
+    x_series = pd.Series(td_small_MRIO.x.iloc[:, 0])
+    pdt.assert_frame_equal(td_small_MRIO.A, calc_A(td_small_MRIO.Z, x_series))
+    pdt.assert_frame_equal(td_small_MRIO.A, calc_A(td_small_MRIO.Z, x_values))
+    pdt.assert_frame_equal(td_small_MRIO.A, calc_A(td_small_MRIO.Z, x_Tvalues))
+
+
+def test_calc_Z_MRIO(td_small_MRIO):
+    pdt.assert_frame_equal(td_small_MRIO.Z, calc_Z(td_small_MRIO.A, td_small_MRIO.x))
+    # we also test the different methods to provide x:
+    x_values = td_small_MRIO.x.values
+    x_Tvalues = td_small_MRIO.x.T.values
+    x_series = pd.Series(td_small_MRIO.x.iloc[:, 0])
+    pdt.assert_frame_equal(td_small_MRIO.Z, calc_Z(td_small_MRIO.A, x_series))
+    pdt.assert_frame_equal(td_small_MRIO.Z, calc_Z(td_small_MRIO.A, x_values))
+    pdt.assert_frame_equal(td_small_MRIO.Z, calc_Z(td_small_MRIO.A, x_Tvalues))
 
 
 def test_calc_L_MRIO(td_small_MRIO):
