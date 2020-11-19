@@ -10,13 +10,16 @@ dependencies:
   - matplotlib >= 2.0.0
   - requests >= 2.18
   - xlrd >= 1.1.0 
+  - openpyxl
   - docutils >= 0.14
   # testing and developing
   - ipdb
+  - country_converter >= 0.7.0
   - pytest=5.4.3
   - isort >= 5.6.0
   - pytest-black
   - pytest-cov
+  - nbval
   - black >= 20.8b1
   - ipython
   - jupyterlab
