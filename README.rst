@@ -19,6 +19,8 @@ Pymrio: Multi-Regional Input-Output Analysis in Python.
     :target: https://www.gnu.org/licenses/gpl-3.0
 .. image:: https://zenodo.org/badge/21688312.svg
     :target: https://zenodo.org/badge/latestdoi/21688312
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
 
 What is it
 ==========
