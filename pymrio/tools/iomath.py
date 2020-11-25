@@ -35,9 +35,7 @@ def calc_x(Z, Y):
         The type is determined by the type of Z. If DataFrame index as Z
 
     """
-
-    # [:, None] syntax more compact and explicit?
-    x = np.sum(np.hstack((Z, Y)), 1)[:, None]
+    x = np.reshape(np.sum(np.hstack((Z, Y)), 1), (-1, 1))
     if type(Z) is pd.DataFrame:
         x = pd.DataFrame(x, index=Z.index, columns=["indout"])
     if type(x) is pd.Series:
@@ -101,12 +99,7 @@ def calc_Z(A, x):
     """
     if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
         x = x.values
-    # Syntax x[None, :] is faster than x.reshape((1, -1))
-    # (checked using timeit)
-    # it is also somewhat more explicit
-    # And using directly in the final line avoids storing an intermediate value
-    # 
-    # x = x.reshape((1, -1))  # use numpy broadcasting - much faster
+    x = x.reshape((1, -1))  # use numpy broadcasting - much faster
     # (but has to ensure that x is a row vector)
     # old mathematical form:
     # return A.dot(np.diagflat(x))
@@ -114,7 +107,7 @@ def calc_Z(A, x):
         return pd.DataFrame(A.values * x[None, :],
                             index=A.index, columns=A.columns)
     else:
-        return A * x[None, :]
+        return A * x
 
 
 def calc_A(Z, x):
@@ -148,8 +141,7 @@ def calc_A(Z, x):
             warnings.simplefilter("ignore")
             recix = 1 / x
         recix[recix == np.inf] = 0
-        # recix = recix.reshape((1, -1))
-        recix = recix[None, :]
+        recix = recix.reshape((1, -1))
     # use numpy broadcasting - factor ten faster
     # Mathematical form - slow
     # return Z.dot(np.diagflat(recix))
