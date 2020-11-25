@@ -104,8 +104,7 @@ def calc_Z(A, x):
     # old mathematical form:
     # return A.dot(np.diagflat(x))
     if type(A) is pd.DataFrame:
-        return pd.DataFrame(A.values * x[None, :],
-                            index=A.index, columns=A.columns)
+        return pd.DataFrame(A.values * x, index=A.index, columns=A.columns)
     else:
         return A * x
 
