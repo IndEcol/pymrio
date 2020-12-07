@@ -19,7 +19,7 @@ import pymrio.tools.ioutil as ioutil
 def calc_x(Z, Y):
     """Calculate the industry output x from the Z and Y matrix
 
-    industry output x = flows(Z) + final demand(Y)
+    industry output (x) = flows (sum_columns(Z)) + final demand (sum_columns(Y))
 
     Parameters
     ----------
