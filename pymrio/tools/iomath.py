@@ -19,6 +19,8 @@ import pymrio.tools.ioutil as ioutil
 def calc_x(Z, Y):
     """Calculate the industry output x from the Z and Y matrix
 
+    industry output (x) = flows (sum_columns(Z)) + final demand (sum_columns(Y))
+
     Parameters
     ----------
     Z : pandas.DataFrame or numpy.array
@@ -46,6 +48,10 @@ def calc_x(Z, Y):
 def calc_x_from_L(L, y):
     """Calculate the industry output x from L and a y vector
 
+    x = Ly
+
+    The industry output x is computed from a demand vector y
+
     Parameters
     ----------
     L : pandas.DataFrame or numpy.array
@@ -70,6 +76,11 @@ def calc_x_from_L(L, y):
 
 def calc_Z(A, x):
     """calculate the Z matrix (flows) from A and x
+
+    A = Z / x[None, :]  =>  Z = A * x[None, :]
+
+    By definition, the coefficient matrix A is basically the normalized flows
+    So Z is just derived from A by un-normalizing using the industrial output x
 
     Parameters
     ----------
@@ -100,6 +111,8 @@ def calc_Z(A, x):
 
 def calc_A(Z, x):
     """Calculate the A matrix (coefficients) from Z and x
+
+    A is a normalized version of the industrial flows Z
 
     Parameters
     ----------
@@ -139,6 +152,19 @@ def calc_A(Z, x):
 
 def calc_L(A):
     """Calculate the Leontief L from A
+
+    L = inverse matrix of (I - A)
+
+    Where I is an identity matrix of same shape as A
+
+    Comes from:
+        x = Ax + y  =>  (I-A)x = y
+    Where:
+        A: coefficient input () - output () table
+        x: output vector
+        y: final demand vector
+
+    Hence, L allows to derive a required output vector x for a given demand y
 
     Parameters
     ----------
