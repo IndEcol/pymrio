@@ -46,7 +46,13 @@ jobs:
       run: |
          isort --project pymrio --profile black --check-only .
          coverage run --source=pymrio -m pytest --black -vv
-      
+
+    - name: Coveralls analysis
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        flag-name: run-${{ matrix.python-version }}
+        parallel: true
 
  finish:
     needs: test
