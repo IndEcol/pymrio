@@ -1,4 +1,4 @@
-name: Testing and coverage
+name: build
 
 on: ["push", "pull_request"]
 
