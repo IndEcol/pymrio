@@ -6,11 +6,11 @@ channels:
   - konstantinstadler
 dependencies: 
   - pandas >= 1.0
-  - numpy >= 1.13.4
+  - numpy >= 1.20
   - matplotlib >= 2.0.0
   - requests >= 2.18
-  - xlrd >= 1.1.0 
-  - openpyxl
+  - xlrd > 1.1.0 
+  - openpyxl >= 3.0.6
   - docutils >= 0.14
   - pip
   - pip:
