@@ -46,7 +46,7 @@ jobs:
       run: |
          isort --project pymrio --profile black --check-only .
          coverage run --source=pymrio -m pytest --black -vv
-      parallel: true
+      
 
  finish:
     needs: test
