@@ -2,6 +2,16 @@
 Changelog
 #########
 
+
+***************************
+v0.4.3d 
+***************************
+
+Bugfixes
+========
+
+* Fixed: xlrd and numpy requirments for later pandas versions
+
 ***************************
 v0.4.2 (November 19, 2020)
 ***************************
