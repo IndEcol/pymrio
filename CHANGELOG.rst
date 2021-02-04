@@ -12,6 +12,11 @@ Bugfixes
 
 * Fixed: xlrd and numpy requirments for later pandas versions
 
+Development
+===========
+
+* Switched from travis to github actions for testing and converage reports
+
 ***************************
 v0.4.2 (November 19, 2020)
 ***************************

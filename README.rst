@@ -4,12 +4,12 @@ Pymrio
 
 Pymrio: Multi-Regional Input-Output Analysis in Python.
 
-.. image:: https://badge.fury.io/py/pymrio.svg
-    :target: https://badge.fury.io/py/pymrio
+.. image:: https://img.shields.io/pypi/v/pymrio.svg
+    :target: https://pypi.python.org/pypi/pymrio/
 .. image:: https://anaconda.org/conda-forge/pymrio/badges/version.svg   
     :target: https://anaconda.org/conda-forge/pymrio
-.. image:: https://travis-ci.org/konstantinstadler/pymrio.svg?branch=master
-    :target: https://travis-ci.org/konstantinstadler/pymrio
+.. image:: https://github.com/konstantinstadler/pymrio/workflows/build/badge.svg
+    :target: https://github.com/konstantinstadler/pymrio/actions
 .. image:: https://coveralls.io/repos/github/konstantinstadler/pymrio/badge.svg?branch=master
     :target: https://coveralls.io/github/konstantinstadler/pymrio
 .. image:: https://readthedocs.org/projects/pymrio/badge/?version=latest
