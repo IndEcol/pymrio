@@ -48,18 +48,19 @@ jobs:
          coverage run --source=pymrio -m pytest --black -vv
 
     - name: Coveralls analysis
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.github_token }}
-        flag-name: run-${{ matrix.python-version }}
-        parallel: true
+      run: COVERALLS_REPO_TOKEN=Om5uiItcP8u6aHRGWiWKjmNkZL1LKoHSB coveralls
+      #uses: coverallsapp/github-action@master
+      #with:
+        #github-token: ${{ secrets.github_token }}
+        #flag-name: run-${{ matrix.python-version }}
+        #parallel: true
 
- finish:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-    - name: Coveralls Finished
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.github_token }}
-        parallel-finished: true
+ #finish:
+    #needs: test
+    #runs-on: ubuntu-latest
+    #steps:
+    #- name: Coveralls Finished
+      #uses: coverallsapp/github-action@master
+      #with:
+        #github-token: ${{ secrets.github_token }}
+        #parallel-finished: true
