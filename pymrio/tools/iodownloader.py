@@ -30,6 +30,16 @@ EORA26_CONFIG = {
     "url_db_content": "http://worldmrio.com/",
 }
 
+EXIOBASE3_CONFIG = {
+    "url_db_view": "https://doi.org/10.5281/zenodo.3583070",  # lastest version
+    # "url_db_view": "https://doi.org/10.5281/zenodo.3583071",  # version 3.7
+    # "url_db_view": "https://doi.org/10.5281/zenodo.4277368",  # version 3.8
+    "url_db_content": "https://zenodo.org/api/files",
+    "mrio_regex": r"/[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/IOT_\d\d\d\d_[p,i]x[p,i].zip",
+    "requests_func": requests.get,
+}
+
+
 OECD_CONFIG = {
     "url_db_view": "https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm",  # NOQA
     "url_db_content": "https://www.oecd.org/sti/ind/",
@@ -398,11 +408,67 @@ def download_exiobase2():
     return None
 
 
-def download_exiobase3():
-    """Downloading exiobase not implemented (registration required)"""
-    raise NotImplementedError(
-        "EXIOBASE 3 requires registration prior to download. "
-        "Please register at www.exiobase.eu and download the "
-        "EXIOBASE 3 MRIO files "
-    )
-    return None
+# def download_exiobase3():
+
+
+def download_exiobase3(
+    storage_folder,
+    years=None,
+    overwrite_existing=False,
+    doi="10.5281/zenodo.3583070",
+):
+    """
+    Downloads EXIOBASE 3 files from Zenodo
+
+    Since version 3.7 EXIOBASE gets published on the Zenodo scientific data
+    repository.  This function download the lastest available version from
+    Zenodo, for previous version the corresponding DOI (parameter 'doi') needs
+    to specified.
+
+    Version 3.7: 10.5281/zenodo.3583071
+    Version 3.8: 10.5281/zenodo.4277368
+
+
+    Parameters
+    ----------
+    storage_folder: str, valid path
+        Location to store the download, folder will be created if
+        not existing. If the file is already present in the folder,
+        the download of the specific file will be skipped.
+
+
+    years: list of int or str, optional
+        If years is given only downloads the specific years (be default all years will be downloaded).
+        Years can be given in 2 or 4 digits.
+
+    overwrite_existing: boolean, optional
+        If False, skip download of file already existing in
+        the storage folder (default). Set to True to replace
+        files.
+
+    doi: string, optional.
+        The EXIOBASE DOI to be downloaded. By default that resolves
+        to the DOI citing the latest available version. For the previous DOI
+        see the block 'Versions' on the right hand side of
+        https://zenodo.org/record/4277368.
+
+    Returns
+    -------
+
+    Meta data of the downloaded MRIOs
+
+    """
+
+    doi_url = "https://doi.org/" + doi
+    EXIOBASE3_CONFIG["url_db_view"] = doi_url
+
+    exio_web_content = _get_url_datafiles(**EXIOBASE3_CONFIG)
+
+    return locals()
+
+
+
+
+
+if __name__ == "__main__":
+    locals().update(download_exiobase3())
