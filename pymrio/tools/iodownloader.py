@@ -3,6 +3,7 @@
 
 import os
 import re
+import itertools
 from collections import namedtuple
 
 import requests
@@ -34,8 +35,8 @@ EXIOBASE3_CONFIG = {
     "url_db_view": "https://doi.org/10.5281/zenodo.3583070",  # lastest version
     # "url_db_view": "https://doi.org/10.5281/zenodo.3583071",  # version 3.7
     # "url_db_view": "https://doi.org/10.5281/zenodo.4277368",  # version 3.8
-    "url_db_content": "https://zenodo.org/api/files",
-    "mrio_regex": r"/[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/IOT_\d\d\d\d_[p,i]x[p,i].zip",
+    "url_db_content": "",
+    "mrio_regex": r"https://zenodo.org/record/\d*/files/IOT_\d\d\d\d_[p,i]x[p,i].zip",
     "requests_func": requests.get,
 }
 
@@ -147,6 +148,10 @@ def _download_urls(
 
     meta_handler: instance of MRIOMetaData
 
+    access_cookie: cookie, optional
+        Cookie to be passed to the requests.post function fetching the data
+
+
     Returns
     -------
 
@@ -161,7 +166,8 @@ def _download_urls(
 
         # Using requests here - tried with aiohttp but was actually slower
         # Also don’t use shutil.copyfileobj - corrupts zips from Eora
-        req = requests.post(url, stream=True, cookies=access_cookie)
+        # req = requests.post(url, stream=True, cookies=access_cookie)
+        req = requests.get(url, stream=True, cookies=access_cookie)
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
@@ -434,7 +440,7 @@ def download_exiobase3(
 
     years: list of int or str, optional
         If years is given only downloads the specific years (be default all years will be downloaded).
-        Years can be given in 2 or 4 digits.
+        Years must be given in 4 digits.
 
     system: string or list of strings, optional
         'pxp': download product by product classification
@@ -461,28 +467,62 @@ def download_exiobase3(
 
     os.makedirs(storage_folder, exist_ok=True)
 
-    if type(years) is int or type(years) is str:
-        years = [years]
-    years = years if years else range(1995, 2012)
-    years = [str(yy).zfill(2)[-2:] for yy in years]
-
-
+    meta = MRIOMetaData(
+        location=storage_folder,
+        description="EXIOBASE3 metadata file for pymrio",
+        name="EXIO3",
+        system=",".join(system),
+        version="TODO, get from file specs",
+    )
 
     doi_url = "https://doi.org/" + doi
     EXIOBASE3_CONFIG["url_db_view"] = doi_url
 
     exio_web_content = _get_url_datafiles(**EXIOBASE3_CONFIG)
 
+    file_pattern = re.compile(r"IOT_[1,2]\d\d\d_[p,i]x[p,i]\.zip")
+    available_files = [
+        file_pattern.search(url).group() for url in exio_web_content.data_urls
+    ]
+
+    available_years = {filename.split("_")[1] for filename in available_files}
+    if type(years) is int or type(years) is str:
+        years = [years]
+    years = years if years else list(available_years)
+
+    system = system if system else ["pxp", "ixi"]
+    if type(system) is str:
+        system = [system]
+
+    requested_urls = []
+    for file_specs in itertools.product(years, system):
+        filename = list(
+            filter(
+                lambda x: str(file_specs[0]) in x and str(file_specs[1]) in x,
+                available_files,
+            )
+        )
+
+        if not filename:
+            meta._add_fileio(
+                "Could not find EXIOBASE 3 source file with >{}< and >{}<".format(
+                    file_specs[0], file_specs[1]
+                )
+            )
+            continue
+        requested_urls += [
+            u for u in exio_web_content.data_urls for f in filename if f in u
+        ]
+
+    meta = _download_urls(
+        url_list=requested_urls,
+        storage_folder=storage_folder,
+        overwrite_existing=overwrite_existing,
+        meta_handler=meta,
+    )
+
+    meta.save()
+    return meta
 
 
 
-    return locals()
-
-
-
-
-
-if __name__ == "__main__":
-    from pathlib import Path
-    locals().update(download_exiobase3(storage_folder=Path(
-        '/home/konstans/tmp/exiotest')))
