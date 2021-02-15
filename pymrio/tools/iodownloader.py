@@ -1,9 +1,9 @@
 """ Utility functions for automatic downloading of public MRIO databases
 """
 
+import itertools
 import os
 import re
-import itertools
 from collections import namedtuple
 
 import requests
@@ -523,6 +523,3 @@ def download_exiobase3(
 
     meta.save()
     return meta
-
-
-
