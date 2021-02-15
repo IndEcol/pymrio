@@ -7,6 +7,11 @@ Changelog
 v0.4.3d 
 ***************************
 
+New features
+============
+
+* Added automatic downloader for EXIOBASE 3 files
+
 Bugfixes
 ========
 
