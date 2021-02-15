@@ -211,10 +211,7 @@ def download_oecd(
     # in the html source - instead a hardcoded dict is used
     # to select the url for download
 
-    try:
-        os.makedirs(storage_folder)
-    except FileExistsError:
-        pass
+    os.makedirs(storage_folder, exist_ok=True)
 
     if type(version) is int:
         version = str(version)
@@ -322,10 +319,7 @@ def download_wiod2013(
 
     """
 
-    try:
-        os.makedirs(storage_folder)
-    except FileExistsError:
-        pass
+    os.makedirs(storage_folder, exist_ok=True)
 
     if type(years) is int or type(years) is str:
         years = [years]
@@ -414,6 +408,7 @@ def download_exiobase2():
 def download_exiobase3(
     storage_folder,
     years=None,
+    system=None,
     overwrite_existing=False,
     doi="10.5281/zenodo.3583070",
 ):
@@ -441,6 +436,11 @@ def download_exiobase3(
         If years is given only downloads the specific years (be default all years will be downloaded).
         Years can be given in 2 or 4 digits.
 
+    system: string or list of strings, optional
+        'pxp': download product by product classification
+        'ixi': download industry by industry classification
+        ['ixi', 'pxp'] or None (default): download both classifications
+
     overwrite_existing: boolean, optional
         If False, skip download of file already existing in
         the storage folder (default). Set to True to replace
@@ -459,10 +459,22 @@ def download_exiobase3(
 
     """
 
+    os.makedirs(storage_folder, exist_ok=True)
+
+    if type(years) is int or type(years) is str:
+        years = [years]
+    years = years if years else range(1995, 2012)
+    years = [str(yy).zfill(2)[-2:] for yy in years]
+
+
+
     doi_url = "https://doi.org/" + doi
     EXIOBASE3_CONFIG["url_db_view"] = doi_url
 
     exio_web_content = _get_url_datafiles(**EXIOBASE3_CONFIG)
+
+
+
 
     return locals()
 
@@ -471,4 +483,6 @@ def download_exiobase3(
 
 
 if __name__ == "__main__":
-    locals().update(download_exiobase3())
+    from pathlib import Path
+    locals().update(download_exiobase3(storage_folder=Path(
+        '/home/konstans/tmp/exiotest')))
