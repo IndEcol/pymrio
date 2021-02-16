@@ -467,14 +467,6 @@ def download_exiobase3(
 
     os.makedirs(storage_folder, exist_ok=True)
 
-    meta = MRIOMetaData(
-        location=storage_folder,
-        description="EXIOBASE3 metadata file for pymrio",
-        name="EXIO3",
-        system=",".join(system),
-        version="TODO, get from file specs",
-    )
-
     doi_url = "https://doi.org/" + doi
     EXIOBASE3_CONFIG["url_db_view"] = doi_url
 
@@ -493,6 +485,14 @@ def download_exiobase3(
     system = system if system else ["pxp", "ixi"]
     if type(system) is str:
         system = [system]
+
+    meta = MRIOMetaData(
+        location=storage_folder,
+        description="EXIOBASE3 metadata file for pymrio",
+        name="EXIO3",
+        system=",".join(system),
+        version="TODO, get from file specs",
+    )
 
     requested_urls = []
     for file_specs in itertools.product(years, system):
