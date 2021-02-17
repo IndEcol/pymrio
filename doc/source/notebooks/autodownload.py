@@ -34,12 +34,36 @@ exio3_folder = '/tmp/mrios/autodownload/EXIO3'
 
 # With that we can start the download with (this might take a moment):
 
-exio_meta = pymrio.download_exiobase3(storage_folder=wiod_folder, system='pxp', years=[2011,2012])
+exio_meta = pymrio.download_exiobase3(storage_folder=exio3_folder, system='pxp', years=[2011,2012])
 
 # The command above will download the latest EXIOBASE 3 tables in the product 
 # by product classification (system='pxp') for the years 2011 and 2012. Both 
 # parameters (system and years) are optional and when omitted the function will 
 # download all available files.
+
+# The function returns the meta data for the release (which is stored in ```metadata.json``` in the download folder).
+# You can inspect the meta data by:
+
+# + jupyter={"outputs_hidden": false}
+print(exio_meta)
+# -
+
+# By default, the download_exiobase3 fetches the latest version of EXIOBASE3 
+# available at the [EXIOBASE 3 Zenodo repository](https://doi.org/10.5281/zenodo.3583070).
+# To download one of the previous versions specify the DOI with the doi 
+# parameter:
+
+prev_version_storage = '/tmp/mrios/autodownload/EXIO3_7'
+exio_meta = pymrio.download_exiobase3(storage_folder=prev_version_storage, system='ixi', years=2004, doi='10.5281/zenodo.3583071')
+
+# Currently (Feb 2021), the following versions are available. Please 
+# double-check at the [EXIOBASE 3 Zenodo 
+# repository](https://doi.org/10.5281/zenodo.3583070) (a box at the left 
+# sidebar titled 'Versions')
+#
+# - Version 3.7: 10.5281/zenodo.3583071 (only ixi files from 1995 to 2011 are 
+# available)
+# - Version 3.8: 10.5281/zenodo.4277368
 
 
 # ## WIOD download
