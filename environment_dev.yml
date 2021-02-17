@@ -22,7 +22,8 @@ dependencies:
   - nbval
   - black >= 20.8b1
   - ipython
-  - jupyterlab
+  - jupyterlab=3
+  - jupytext
   - coveralls
   - pynvim
   - pip

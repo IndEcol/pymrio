@@ -498,9 +498,9 @@ class CoreSystem:
         """
 
         for key in self.__dict__:
-            if (key is "unit") and not with_unit:
+            if (key == "unit") and not with_unit:
                 continue
-            if (key is "population") and not with_population:
+            if (key == "population") and not with_population:
                 continue
             if type(self.__dict__[key]) is pd.DataFrame:
                 if data:
@@ -1351,7 +1351,7 @@ class Extension(CoreSystem):
             # write report file and convert to given format
             report_txt.append("\nReport written on " + time.strftime("%Y%m%d %H%M%S"))
             fin_txt = "\n".join(report_txt)
-            if format is not "rst":
+            if format != "rst":
                 try:
                     import docutils.core as dc
 

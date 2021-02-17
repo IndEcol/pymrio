@@ -1,6 +1,7 @@
 """ Utility functions for automatic downloading of public MRIO databases
 """
 
+import itertools
 import os
 import re
 from collections import namedtuple
@@ -29,6 +30,16 @@ EORA26_CONFIG = {
     "url_db_view": "http://worldmrio.com/simplified/",
     "url_db_content": "http://worldmrio.com/",
 }
+
+EXIOBASE3_CONFIG = {
+    "url_db_view": "https://doi.org/10.5281/zenodo.3583070",  # lastest version
+    # "url_db_view": "https://doi.org/10.5281/zenodo.3583071",  # version 3.7
+    # "url_db_view": "https://doi.org/10.5281/zenodo.4277368",  # version 3.8
+    "url_db_content": "",
+    "mrio_regex": r"https://zenodo.org/record/\d*/files/IOT_\d\d\d\d_[p,i]x[p,i].zip",
+    "requests_func": requests.get,
+}
+
 
 OECD_CONFIG = {
     "url_db_view": "https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm",  # NOQA
@@ -137,6 +148,10 @@ def _download_urls(
 
     meta_handler: instance of MRIOMetaData
 
+    access_cookie: cookie, optional
+        Cookie to be passed to the requests.post function fetching the data
+
+
     Returns
     -------
 
@@ -151,7 +166,8 @@ def _download_urls(
 
         # Using requests here - tried with aiohttp but was actually slower
         # Also don’t use shutil.copyfileobj - corrupts zips from Eora
-        req = requests.post(url, stream=True, cookies=access_cookie)
+        # req = requests.post(url, stream=True, cookies=access_cookie)
+        req = requests.get(url, stream=True, cookies=access_cookie)
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
@@ -201,10 +217,7 @@ def download_oecd(
     # in the html source - instead a hardcoded dict is used
     # to select the url for download
 
-    try:
-        os.makedirs(storage_folder)
-    except FileExistsError:
-        pass
+    os.makedirs(storage_folder, exist_ok=True)
 
     if type(version) is int:
         version = str(version)
@@ -312,10 +325,7 @@ def download_wiod2013(
 
     """
 
-    try:
-        os.makedirs(storage_folder)
-    except FileExistsError:
-        pass
+    os.makedirs(storage_folder, exist_ok=True)
 
     if type(years) is int or type(years) is str:
         years = [years]
@@ -398,11 +408,118 @@ def download_exiobase2():
     return None
 
 
-def download_exiobase3():
-    """Downloading exiobase not implemented (registration required)"""
-    raise NotImplementedError(
-        "EXIOBASE 3 requires registration prior to download. "
-        "Please register at www.exiobase.eu and download the "
-        "EXIOBASE 3 MRIO files "
+# def download_exiobase3():
+
+
+def download_exiobase3(
+    storage_folder,
+    years=None,
+    system=None,
+    overwrite_existing=False,
+    doi="10.5281/zenodo.3583070",
+):
+    """
+    Downloads EXIOBASE 3 files from Zenodo
+
+    Since version 3.7 EXIOBASE gets published on the Zenodo scientific data
+    repository.  This function download the lastest available version from
+    Zenodo, for previous version the corresponding DOI (parameter 'doi') needs
+    to specified.
+
+    Version 3.7: 10.5281/zenodo.3583071
+    Version 3.8: 10.5281/zenodo.4277368
+
+
+    Parameters
+    ----------
+    storage_folder: str, valid path
+        Location to store the download, folder will be created if
+        not existing. If the file is already present in the folder,
+        the download of the specific file will be skipped.
+
+
+    years: list of int or str, optional
+        If years is given only downloads the specific years (be default all years will be downloaded).
+        Years must be given in 4 digits.
+
+    system: string or list of strings, optional
+        'pxp': download product by product classification
+        'ixi': download industry by industry classification
+        ['ixi', 'pxp'] or None (default): download both classifications
+
+    overwrite_existing: boolean, optional
+        If False, skip download of file already existing in
+        the storage folder (default). Set to True to replace
+        files.
+
+    doi: string, optional.
+        The EXIOBASE DOI to be downloaded. By default that resolves
+        to the DOI citing the latest available version. For the previous DOI
+        see the block 'Versions' on the right hand side of
+        https://zenodo.org/record/4277368.
+
+    Returns
+    -------
+
+    Meta data of the downloaded MRIOs
+
+    """
+
+    os.makedirs(storage_folder, exist_ok=True)
+
+    doi_url = "https://doi.org/" + doi
+    EXIOBASE3_CONFIG["url_db_view"] = doi_url
+
+    exio_web_content = _get_url_datafiles(**EXIOBASE3_CONFIG)
+
+    file_pattern = re.compile(r"IOT_[1,2]\d\d\d_[p,i]x[p,i]\.zip")
+    available_files = [
+        file_pattern.search(url).group() for url in exio_web_content.data_urls
+    ]
+
+    available_years = {filename.split("_")[1] for filename in available_files}
+    if type(years) is int or type(years) is str:
+        years = [years]
+    years = years if years else list(available_years)
+
+    system = system if system else ["pxp", "ixi"]
+    if type(system) is str:
+        system = [system]
+
+    meta = MRIOMetaData(
+        location=storage_folder,
+        description="EXIOBASE3 metadata file for pymrio",
+        name="EXIO3",
+        system=",".join(system),
+        version="TODO, get from file specs",
     )
-    return None
+
+    requested_urls = []
+    for file_specs in itertools.product(years, system):
+        filename = list(
+            filter(
+                lambda x: str(file_specs[0]) in x and str(file_specs[1]) in x,
+                available_files,
+            )
+        )
+
+        if not filename:
+            meta._add_fileio(
+                "Could not find EXIOBASE 3 source file with >{}< and >{}<".format(
+                    file_specs[0], file_specs[1]
+                )
+            )
+            continue
+        requested_urls += [
+            u for u in exio_web_content.data_urls for f in filename if f in u
+        ]
+
+    meta = _download_urls(
+        url_list=requested_urls,
+        storage_folder=storage_folder,
+        overwrite_existing=overwrite_existing,
+        meta_handler=meta,
+    )
+
+    meta.save()
+    return meta
