@@ -56,12 +56,14 @@ print(exio_meta)
 # parameter:
 
 prev_version_storage = "/tmp/mrios/autodownload/EXIO3_7"
-exio_meta = pymrio.download_exiobase3(
+exio_meta_37 = pymrio.download_exiobase3(
     storage_folder=prev_version_storage,
     system="ixi",
     years=2004,
     doi="10.5281/zenodo.3583071",
 )
+
+print(exio_meta_37)
 
 # Currently (Feb 2021), the following versions are available. Please
 # double-check at the [EXIOBASE 3 Zenodo

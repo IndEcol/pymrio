@@ -261,12 +261,10 @@ class CoreSystem:
             if (df in self.__dict__) and (getattr(self, df) is not None):
                 try:
                     ind = (
-                        getattr(self, df).columns.get_level_values(
-                            "category").unique()
+                        getattr(self, df).columns.get_level_values("category").unique()
                     )
                 except (AssertionError, KeyError):
-                    ind = getattr(self, df).columns.get_level_values(
-                        1).unique()
+                    ind = getattr(self, df).columns.get_level_values(1).unique()
                 if entries:
                     if type(entries) is str:
                         entries = [entries]
@@ -404,11 +402,9 @@ class CoreSystem:
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
                 try:
-                    ind = getattr(self, df).columns.get_level_values(
-                        "region").unique()
+                    ind = getattr(self, df).columns.get_level_values("region").unique()
                 except (AssertionError, KeyError):
-                    ind = getattr(self, df).columns.get_level_values(
-                        0).unique()
+                    ind = getattr(self, df).columns.get_level_values(0).unique()
                 if entries:
                     if type(entries) is str:
                         entries = [entries]
@@ -458,11 +454,9 @@ class CoreSystem:
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
                 try:
-                    ind = getattr(self, df).columns.get_level_values(
-                        "sector").unique()
+                    ind = getattr(self, df).columns.get_level_values("sector").unique()
                 except (AssertionError, KeyError):
-                    ind = getattr(self, df).columns.get_level_values(
-                        1).unique()
+                    ind = getattr(self, df).columns.get_level_values(1).unique()
                 if entries:
                     if type(entries) is str:
                         entries = [entries]
@@ -577,8 +571,7 @@ class CoreSystem:
             file_para["name"] = self.name
         else:
             logging.warn(
-                'Unknown system type {} - set to "undef"'.format(
-                    str(type(self)))
+                'Unknown system type {} - set to "undef"'.format(str(type(self)))
             )
             file_para["systemtype"] = "undef"
 
@@ -597,8 +590,7 @@ class CoreSystem:
             save_file_with_path = path / save_file
             logging.info("Save file {}".format(save_file_with_path))
             if table_format == "txt":
-                df.to_csv(save_file_with_path, sep=sep,
-                          float_format=float_format)
+                df.to_csv(save_file_with_path, sep=sep, float_format=float_format)
             else:
                 df.to_pickle(save_file_with_path)
 
@@ -633,8 +625,7 @@ class CoreSystem:
         """
 
         if type(regions) is list:
-            regions = {old: new for old, new in zip(
-                self.get_regions(), regions)}
+            regions = {old: new for old, new in zip(self.get_regions(), regions)}
 
         for df in self.get_DataFrame(data=True):
             df.rename(index=regions, columns=regions, inplace=True)
@@ -663,8 +654,7 @@ class CoreSystem:
         """
 
         if type(sectors) is list:
-            sectors = {old: new for old, new in zip(
-                self.get_sectors(), sectors)}
+            sectors = {old: new for old, new in zip(self.get_sectors(), sectors)}
 
         for df in self.get_DataFrame(data=True):
             df.rename(index=sectors, columns=sectors, inplace=True)
@@ -702,8 +692,7 @@ class CoreSystem:
         try:
             for ext in self.get_extensions(data=True):
                 for df in ext.get_DataFrame(data=True):
-                    df.rename(index=Y_categories,
-                              columns=Y_categories, inplace=True)
+                    df.rename(index=Y_categories, columns=Y_categories, inplace=True)
         except:
             pass
 
@@ -924,13 +913,11 @@ class Extension(CoreSystem):
                         self.S, self.D_cba, Y=Y_agg, nr_sectors=self.get_sectors().size
                     )
                     logging.debug(
-                        "{} - M calculated based on " "D_cba and Y".format(
-                            self.name)
+                        "{} - M calculated based on " "D_cba and Y".format(self.name)
                     )
                 except Exception as ex:
                     logging.debug(
-                        "Recalculation of M not possible - cause: {}".format(
-                            ex)
+                        "Recalculation of M not possible - cause: {}".format(ex)
                     )
 
         F_Y_agg = 0
@@ -953,8 +940,7 @@ class Extension(CoreSystem):
             or (self.D_exp is None)
         ):
             if L is None:
-                logging.debug(
-                    "Not possilbe to calculate D accounts - L not present")
+                logging.debug("Not possilbe to calculate D accounts - L not present")
                 return
             else:
                 self.D_cba, self.D_pba, self.D_imp, self.D_exp = calc_accounts(
@@ -978,8 +964,7 @@ class Extension(CoreSystem):
                 )
             except (AssertionError, KeyError):
                 self.D_cba_reg = (
-                    self.D_cba.sum(level=0, axis=1).reindex(
-                        self.get_regions(), axis=1)
+                    self.D_cba.sum(level=0, axis=1).reindex(self.get_regions(), axis=1)
                     + F_Y_agg
                 )
             try:
@@ -991,8 +976,7 @@ class Extension(CoreSystem):
                 )
             except (AssertionError, KeyError):
                 self.D_pba_reg = (
-                    self.D_pba.sum(level=0, axis=1).reindex(
-                        self.get_regions(), axis=1)
+                    self.D_pba.sum(level=0, axis=1).reindex(self.get_regions(), axis=1)
                     + F_Y_agg
                 )
             try:
@@ -1012,8 +996,7 @@ class Extension(CoreSystem):
                     self.get_regions(), axis=1
                 )
 
-            logging.debug(
-                "{} - Accounts D for regions calculated".format(self.name))
+            logging.debug("{} - Accounts D for regions calculated".format(self.name))
 
         # calc accounts per capita if population data is available
         if population is not None:
@@ -1031,22 +1014,17 @@ class Extension(CoreSystem):
                 or (self.D_imp_cap is None)
                 or (self.D_exp_cap is None)
             ):
-                self.D_cba_cap = self.D_cba_reg.dot(
-                    np.diagflat(1.0 / population))
-                self.D_pba_cap = self.D_pba_reg.dot(
-                    np.diagflat(1.0 / population))
-                self.D_imp_cap = self.D_imp_reg.dot(
-                    np.diagflat(1.0 / population))
-                self.D_exp_cap = self.D_exp_reg.dot(
-                    np.diagflat(1.0 / population))
+                self.D_cba_cap = self.D_cba_reg.dot(np.diagflat(1.0 / population))
+                self.D_pba_cap = self.D_pba_reg.dot(np.diagflat(1.0 / population))
+                self.D_imp_cap = self.D_imp_reg.dot(np.diagflat(1.0 / population))
+                self.D_exp_cap = self.D_exp_reg.dot(np.diagflat(1.0 / population))
 
                 self.D_cba_cap.columns = self.D_cba_reg.columns
                 self.D_pba_cap.columns = self.D_pba_reg.columns
                 self.D_imp_cap.columns = self.D_imp_reg.columns
                 self.D_exp_cap.columns = self.D_exp_reg.columns
 
-                logging.debug(
-                    "{} - Accounts D per capita calculated".format(self.name))
+                logging.debug("{} - Accounts D per capita calculated".format(self.name))
         return self
 
     def plot_account(
@@ -1130,12 +1108,10 @@ class Extension(CoreSystem):
                 # for multiindex the entry is given with header,
                 # for single index just the entry
                 y_label_name = (
-                    name_row +
-                    " (" + str(self.unit.loc[row, "unit"].tolist()[0]) + ")"
+                    name_row + " (" + str(self.unit.loc[row, "unit"].tolist()[0]) + ")"
                 )
             except:
-                y_label_name = name_row + \
-                    " (" + str(self.unit.loc[row, "unit"]) + ")"
+                y_label_name = name_row + " (" + str(self.unit.loc[row, "unit"]) + ")"
         else:
             y_label_name = name_row
 
@@ -1338,8 +1314,7 @@ class Extension(CoreSystem):
                 def clean(varStr):
                     return re.sub(r"\W|^(?=\d)", "_", varStr)
 
-                file_name = clean(
-                    name_row + reports_to_write[arep].spec_string)
+                file_name = clean(name_row + reports_to_write[arep].spec_string)
                 # possibility of still having __ in there:
                 file_name = re.sub("_+", "_", file_name)
 
@@ -1374,8 +1349,7 @@ class Extension(CoreSystem):
                 report_txt.append("   :width: {} \n".format(int(pic_size)))
 
             # write report file and convert to given format
-            report_txt.append("\nReport written on " +
-                              time.strftime("%Y%m%d %H%M%S"))
+            report_txt.append("\nReport written on " + time.strftime("%Y%m%d %H%M%S"))
             fin_txt = "\n".join(report_txt)
             if format != "rst":
                 try:
@@ -1384,8 +1358,7 @@ class Extension(CoreSystem):
                     if format == "tex":
                         format == "latex"
                     with warnings.catch_warnings():
-                        warnings.filterwarnings(
-                            "ignore", category=DeprecationWarning)
+                        warnings.filterwarnings("ignore", category=DeprecationWarning)
                         fin_txt = dc.publish_string(
                             fin_txt,
                             writer_name=format,
@@ -1393,8 +1366,7 @@ class Extension(CoreSystem):
                         )
 
                 except:  # pragma: no cover
-                    logging.warn(
-                        "Module docutils not available - write rst instead")
+                    logging.warn("Module docutils not available - write rst instead")
                     format = "rst"
             format_str = {
                 "latex": "tex",
@@ -1491,7 +1463,7 @@ class Extension(CoreSystem):
 
         Returns
         -------
-        Extension
+        pymrio.Extension
 
         """
         if type(stressor) is int:
@@ -1535,7 +1507,7 @@ class Extension(CoreSystem):
 
         Note
         ----
-        Accordance of units is not checked - you must ensure that the 
+        Accordance of units is not checked - you must ensure that the
         characterization factors correspond to the units of the extension to be
         characterized.
 
@@ -1548,11 +1520,11 @@ class Extension(CoreSystem):
             'characterized_unit_column'
 
         characterized_name_column: str (optional)
-            Name of the column with the names of the 
+            Name of the column with the names of the
             characterized account (default: "impact")
 
         characterization_factors_column: str (optional)
-            Name of the column with the factors for the 
+            Name of the column with the factors for the
             characterization (default: "factor")
 
         characterized_unit_column: str (optional)
@@ -1570,39 +1542,47 @@ class Extension(CoreSystem):
 
         """
 
-        # TODO assert correct column names - otherwise it breaks unexpectaccly
         name = name if name else self.name + "_characterized"
         rows = self.get_rows()
-        df_stressors = pd.DataFrame.from_records(
-            list(rows), columns=rows.names)
+        df_stressors = pd.DataFrame.from_records(list(rows), columns=rows.names)
+
+        required_columns = rows.names + [
+            characterization_factors_column,
+            characterized_name_column,
+            characterized_unit_column,
+        ]
+
+        assert set(required_columns).issubset(
+            set(factors.columns)
+        ), "Not all required columns in the passed DataFrame >factors<"
 
         impacts_stressors_missing = []
         factors_cleaned_gathered = []
         for charact_name in factors[characterized_name_column].drop_duplicates():
             fac_rest = factors[factors[characterized_name_column] == charact_name]
-            # This works since a inner merge returns a df with index present in both df
+            # This works since an inner merge returns a df with index present in both df
             if len(fac_rest.merge(df_stressors, how="inner")) < len(fac_rest):
                 impacts_stressors_missing.append(charact_name)
             else:
                 factors_cleaned_gathered.append(fac_rest)
 
-        for imiss in impacts_stressors_missing:
+        for imissi in impacts_stressors_missing:
             logging.warn(
-                f"Impact >{imiss}< removed - calculation requires stressors "
+                f"Impact >{imissi}< removed - calculation requires stressors "
                 f"not present in extension >{self.name}<"
             )
         df_char = pd.concat(factors_cleaned_gathered)
         units = (
             df_char.loc[:, [characterized_name_column, characterized_unit_column]]
             .drop_duplicates()
-            .set_index("impact")
+            .set_index(characterized_name_column)
+            .rename({characterized_unit_column: "unit"}, axis=1)
         )
         calc_matrix = (
             df_char.set_index(rows.names + [characterized_name_column])
             .loc[:, characterization_factors_column]
-            .unstack()
+            .unstack(rows.names)
             .fillna(0)
-            .T
         )
 
         res = {
@@ -1979,8 +1959,7 @@ class IOSystem(CoreSystem):
 
         """
         self.reset_to_flows(force=force)
-        [ee.reset_to_flows(force=force)
-         for ee in self.get_extensions(data=True)]
+        [ee.reset_to_flows(force=force) for ee in self.get_extensions(data=True)]
         self.meta._add_modify("Reset full system to absolute flows")
         return self
 
@@ -2207,11 +2186,9 @@ class IOSystem(CoreSystem):
                 "Region aggregation does not " "correspond to the number of regions."
             )
         if not len(sector_names) == sector_conc.shape[0]:
-            raise ValueError(
-                "New sector names do not " "match sector aggregation.")
+            raise ValueError("New sector names do not " "match sector aggregation.")
         if not len(region_names) == region_conc.shape[0]:
-            raise ValueError(
-                "New region names do not " "match region aggregation.")
+            raise ValueError("New region names do not " "match region aggregation.")
 
         # build pandas.MultiIndex for the aggregated system
         _reg_list_for_sec = [[r] * sector_conc.shape[0] for r in region_names]
@@ -2219,8 +2196,7 @@ class IOSystem(CoreSystem):
             entry for entrylist in _reg_list_for_sec for entry in entrylist
         ]
 
-        _reg_list_for_Ycat = [
-            [r] * len(self.get_Y_categories()) for r in region_names]
+        _reg_list_for_Ycat = [[r] * len(self.get_Y_categories()) for r in region_names]
         _reg_list_for_Ycat = [
             entry for entrylist in _reg_list_for_Ycat for entry in entrylist
         ]
@@ -2316,16 +2292,14 @@ class IOSystem(CoreSystem):
 
                 elif ik_df.columns.names == ["region", "category"]:
                     # Satellite account connected to final demand (e.g. F_Y)
-                    extension.__dict__[ik_name] = pd.DataFrame(
-                        data=ik_df.dot(conc_y.T))
+                    extension.__dict__[ik_name] = pd.DataFrame(data=ik_df.dot(conc_y.T))
                     # next step must be done afterwards due to unknown reasons
                     extension.__dict__[ik_name].columns = mi_reg_Ycat
                     extension.__dict__[ik_name].index = ik_df.index
 
                 else:
                     # Standard case - aggregated columns, keep stressor rows
-                    extension.__dict__[ik_name] = pd.DataFrame(
-                        data=ik_df.dot(conc.T))
+                    extension.__dict__[ik_name] = pd.DataFrame(data=ik_df.dot(conc.T))
                     # next step must be done afterwards due to unknown reasons
                     extension.__dict__[ik_name].columns = mi_reg_sec
                     extension.__dict__[ik_name].index = ik_df.index
@@ -2368,8 +2342,7 @@ class IOSystem(CoreSystem):
                 del self.__dict__[ee]
             except KeyError:
                 for exinstancename, exdata in zip(
-                    self.get_extensions(
-                        data=False), self.get_extensions(data=True)
+                    self.get_extensions(data=False), self.get_extensions(data=True)
                 ):
                     if exdata.name == ee:
                         del self.__dict__[exinstancename]
