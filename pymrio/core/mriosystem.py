@@ -1513,7 +1513,11 @@ class Extension(CoreSystem):
         return_char_matrix=False,
         _meta=None,
     ):
-        """ " Characterize stressors
+        """ Characterize stressors
+
+        Characterizes the extension with the characterization factors given in factors.
+        Factors can contain more characterization factors which depend on stressors not
+        present in the Extension - these will be automatically removed.
 
         Note
         ----
@@ -1548,7 +1552,7 @@ class Extension(CoreSystem):
 
         return_char_matrix: boolean (optional)
             If False (default), returns just the characterized extension.
-            If True, returns a namedtuple with extension and the acutally used
+            If True, returns a namedtuple with extension and the actually used
             characterization matrix.
 
         _meta: MRIOMetaData, optional
@@ -1619,7 +1623,7 @@ class Extension(CoreSystem):
 
         if _meta:
             _meta._add_modify(
-                f"Calculated charaterized accounts {name} from  {self.name}"
+                f"Calculated characterized accounts {name} from  {self.name}"
             )
 
         if return_char_matrix:
