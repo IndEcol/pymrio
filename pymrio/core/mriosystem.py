@@ -1513,7 +1513,7 @@ class Extension(CoreSystem):
         return_char_matrix=False,
         _meta=None,
     ):
-        """ Characterize stressors
+        """Characterize stressors
 
         Characterizes the extension with the characterization factors given in factors.
         Factors can contain more characterization factors which depend on stressors not
@@ -1568,8 +1568,16 @@ class Extension(CoreSystem):
         """
 
         name = name if name else self.name + "_characterized"
+
+        # making a dataframe with indexes (stressors) as values (with multiple
+        # columns if multiindex)
         rows = self.get_rows()
-        df_stressors = pd.DataFrame.from_records(list(rows), columns=rows.names)
+        if type(rows) == pd.core.indexes.multi.MultiIndex:
+            df_stressors = pd.DataFrame.from_records(list(rows), columns=rows.names)
+        elif type(rows) == pd.core.indexes.base.Index:
+            df_stressors = pd.DataFrame.from_records(
+                list([[r] for r in rows]), columns=rows.names
+            )
 
         required_columns = rows.names + [
             characterization_factors_column,

@@ -12,6 +12,9 @@ PYMRIO_PATH = {
     "test_mrio": os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../mrio_models/test_mrio")
     ),
+    "testmrio": os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../mrio_models/test_mrio")
+    ),
     "test": os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../mrio_models/test_mrio")
     ),
