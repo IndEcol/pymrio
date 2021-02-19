@@ -1437,7 +1437,7 @@ class Extension(CoreSystem):
             retdict["name"] = name
         return retdict
 
-    def diag_stressor(self, stressor, name=None):
+    def diag_stressor(self, stressor, name=None, _meta=None):
         """Diagonalize one row of the stressor matrix for a flow analysis.
 
         This method takes one row of the F matrix and diagonalize
@@ -1460,6 +1460,9 @@ class Extension(CoreSystem):
         name : string (optional)
             The new name for the extension,
             if None (default): string based on the given stressor (row name)
+
+        _meta: MRIOMetaData, optional
+            Metadata handler for logging, optional. Internal
 
         Returns
         -------
@@ -1493,6 +1496,11 @@ class Extension(CoreSystem):
             # If no unit in stressor, self.unit.columns break
             ext_diag.unit = None
 
+        if _meta:
+            _meta._add_modify(
+                f"Calculated diagonalized accounts {name} from  {self.name}"
+            )
+
         return ext_diag
 
     def characterize(
@@ -1502,6 +1510,8 @@ class Extension(CoreSystem):
         characterization_factors_column="factor",
         characterized_unit_column="impact_unit",
         name=None,
+        return_char_matrix=False,
+        _meta=None,
     ):
         """ " Characterize stressors
 
@@ -1531,14 +1541,25 @@ class Extension(CoreSystem):
             Name of the column with the units of the characterized accounts
             characterization (default: "unit")
 
-        name : string (optional)
+        name: string (optional)
             The new name for the extension,
-            if None (default): name of the current extension with suffix '_characterized'
+            if None (default): name of the current extension with suffix
+            '_characterized'
 
+        return_char_matrix: boolean (optional)
+            If False (default), returns just the characterized extension.
+            If True, returns a namedtuple with extension and the acutally used
+            characterization matrix.
+
+        _meta: MRIOMetaData, optional
+            Metadata handler for logging, optional. Internal
 
         Returns
         --------
-        pymrio.Extensions
+        pymrio.Extensions or
+        namedtuple with (extension: pymrio.Extension, factors: pd.DataFrame)
+        depending on return_char_matrix. Only the factors used for the calculation
+        are returned.
 
         """
 
@@ -1585,15 +1606,28 @@ class Extension(CoreSystem):
             .fillna(0)
         )
 
-        res = {
-            acc: calc_matrix @ self.__dict__[acc]
-            for acc in set(self.get_DataFrame(data=False, with_unit=False)).difference(
-                set(self.__coefficients__)
-            )
-        }
+        ex = Extension(
+            name=name,
+            unit=units,
+            **{
+                acc: calc_matrix @ self.__dict__[acc]
+                for acc in set(
+                    self.get_DataFrame(data=False, with_unit=False)
+                ).difference(set(self.__coefficients__))
+            },
+        )
 
-        ex = Extension(name=name, unit=units, **res)
-        return locals()
+        if _meta:
+            _meta._add_modify(
+                f"Calculated charaterized accounts {name} from  {self.name}"
+            )
+
+        if return_char_matrix:
+            return collections.namedtuple("characterization", ["extension", "factors"])(
+                extension=ex, factors=df_char
+            )
+        else:
+            return ex
 
 
 class IOSystem(CoreSystem):
