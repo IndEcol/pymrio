@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 import pandas.testing as pdt
+import numpy.testing as npt
 import pytest
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
@@ -234,17 +235,20 @@ def test_characterize_extension(fix_testmrio):
     # The test characterization matrix is all in t, the emissions in test are
     # all in kg
     assert ex_calc.unit.loc["total air emissions", "unit"] == "t"
-    assert (
-        ex_uncalc.F.loc["total air emissions"].sum()
-        == (t_calc.emissions.F.loc[("emission_type1", "air"), :] / 1000).sum()
+    npt.assert_allclose(
+        ex_uncalc.F.loc["total air emissions"].sum(),
+        (t_calc.emissions.F.loc[("emission_type1", "air"), :] / 1000).sum(),
     )
-    assert (
-        ex_calc.D_imp.loc["total air emissions"].sum()
-        == (t_calc.emissions.D_imp.loc[("emission_type1", "air"), :] / 1000).sum()
+    npt.assert_allclose(
+        ex_calc.D_imp.loc["total air emissions"].sum(),
+        (t_calc.emissions.D_imp.loc[("emission_type1", "air"), :] / 1000).sum(),
     )
-    assert (
-        ex_calc.D_cba.loc["air water emissions"].sum()
-        == (t_calc.emissions.D_cba.sum(axis=0) / 1000).sum()
+    npt.assert_allclose(
+        ex_calc.D_cba.loc["air water impact"].sum(),
+        (
+            (t_calc.emissions.D_cba.loc[("emission_type1", "air"), :] * 2 / 1000)
+            + (t_calc.emissions.D_cba.loc[("emission_type2", "water"), :] * 1 / 1000)
+        ).sum(),
     )
 
     # coefficients and multipliers can not characterized directly, so these
