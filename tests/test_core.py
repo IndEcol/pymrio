@@ -5,9 +5,9 @@ import os
 import sys
 from pathlib import Path
 
+import numpy.testing as npt
 import pandas as pd
 import pandas.testing as pdt
-import numpy.testing as npt
 import pytest
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
