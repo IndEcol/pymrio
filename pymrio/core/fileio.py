@@ -15,8 +15,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from pymrio.core.constants import (DEFAULT_FILE_NAMES, GENERIC_NAMES,
-                                   PYMRIO_PATH)
+from pymrio.core.constants import DEFAULT_FILE_NAMES, GENERIC_NAMES, PYMRIO_PATH
 from pymrio.core.mriosystem import Extension, IOSystem
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import get_file_para

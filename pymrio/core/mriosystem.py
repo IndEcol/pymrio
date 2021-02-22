@@ -22,11 +22,21 @@ import numpy as np
 import pandas as pd
 
 import pymrio.tools.ioutil as ioutil
-from pymrio.core.constants import (DEFAULT_FILE_NAMES, GENERIC_NAMES,
-                                   MISSING_AGG_ENTRY)
-from pymrio.tools.iomath import (calc_A, calc_accounts, calc_F, calc_F_Y,
-                                 calc_L, calc_M, calc_S, calc_S_Y, calc_x,
-                                 calc_x_from_L, calc_Z, recalc_M)
+from pymrio.core.constants import DEFAULT_FILE_NAMES, GENERIC_NAMES, MISSING_AGG_ENTRY
+from pymrio.tools.iomath import (
+    calc_A,
+    calc_accounts,
+    calc_F,
+    calc_F_Y,
+    calc_L,
+    calc_M,
+    calc_S,
+    calc_S_Y,
+    calc_x,
+    calc_x_from_L,
+    calc_Z,
+    recalc_M,
+)
 from pymrio.tools.iometadata import MRIOMetaData
 
 
