@@ -1,5 +1,5 @@
-pymrio\.MRIOMetaData\.save
-==========================
+﻿pymrio.MRIOMetaData.save
+========================
 
 .. currentmodule:: pymrio
 

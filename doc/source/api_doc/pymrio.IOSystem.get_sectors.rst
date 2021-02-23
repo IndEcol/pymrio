@@ -1,5 +1,5 @@
-pymrio\.IOSystem\.get\_sectors
-==============================
+﻿pymrio.IOSystem.get\_sectors
+============================
 
 .. currentmodule:: pymrio
 

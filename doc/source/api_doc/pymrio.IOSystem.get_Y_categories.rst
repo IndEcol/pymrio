@@ -1,5 +1,5 @@
-pymrio\.IOSystem\.get\_Y\_categories
-====================================
+﻿pymrio.IOSystem.get\_Y\_categories
+==================================
 
 .. currentmodule:: pymrio
 

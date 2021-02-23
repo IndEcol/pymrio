@@ -1,5 +1,5 @@
-pymrio\.load
-============
+﻿pymrio.load
+===========
 
 .. currentmodule:: pymrio
 

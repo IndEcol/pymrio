@@ -1,5 +1,5 @@
-pymrio\.parse\_eora26
-=====================
+﻿pymrio.parse\_eora26
+====================
 
 .. currentmodule:: pymrio
 

@@ -35,6 +35,7 @@ This is currently implemented for the WIOD_ and OECD_ICIO_ database
 .. autosummary::
     :toctree: api_doc/
 
+    download_exiobase3
     download_wiod2013
     download_oecd
 
@@ -201,6 +202,14 @@ aggregation levels for the test system and EXIOBASE 2.
 
    IOSystem.aggregate
    build_agg_vec
+
+Characterizing stressors
+===============================
+
+.. autosummary::
+   :toctree: api_doc/
+
+   Extension.characterize 
 
 Analysing the source of impacts
 ===============================

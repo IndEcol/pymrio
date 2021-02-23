@@ -1,5 +1,5 @@
-pymrio\.build\_agg\_vec
-=======================
+﻿pymrio.build\_agg\_vec
+======================
 
 .. currentmodule:: pymrio
 

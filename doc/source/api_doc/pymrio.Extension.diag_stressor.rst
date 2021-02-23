@@ -1,5 +1,5 @@
-pymrio\.Extension\.diag\_stressor
-=================================
+﻿pymrio.Extension.diag\_stressor
+===============================
 
 .. currentmodule:: pymrio
 

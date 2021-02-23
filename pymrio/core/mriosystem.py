@@ -1543,7 +1543,7 @@ class Extension(CoreSystem):
 
         characterized_unit_column: str (optional)
             Name of the column with the units of the characterized accounts
-            characterization (default: "unit")
+            characterization (default: "impact_unit")
 
         name: string (optional)
             The new name for the extension,

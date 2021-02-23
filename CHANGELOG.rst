@@ -4,13 +4,14 @@ Changelog
 
 
 ***************************
-v0.4.3d 
+v0.4.3 (February 23, 2021) 
 ***************************
 
 New features
 ============
 
 * Added automatic downloader for EXIOBASE 3 files
+* Method for characterizing stressors (pymrio.Extension.characterize)
 
 Bugfixes
 ========

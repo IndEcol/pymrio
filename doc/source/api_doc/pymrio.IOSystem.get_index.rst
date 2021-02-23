@@ -1,5 +1,5 @@
-pymrio\.IOSystem\.get\_index
-============================
+﻿pymrio.IOSystem.get\_index
+==========================
 
 .. currentmodule:: pymrio
 

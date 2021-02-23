@@ -1,5 +1,5 @@
-pymrio\.parse\_exiobase3
-========================
+﻿pymrio.parse\_exiobase3
+=======================
 
 .. currentmodule:: pymrio
 

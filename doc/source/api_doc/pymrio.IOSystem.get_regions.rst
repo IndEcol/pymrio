@@ -1,5 +1,5 @@
-pymrio\.IOSystem\.get\_regions
-==============================
+﻿pymrio.IOSystem.get\_regions
+============================
 
 .. currentmodule:: pymrio
 
