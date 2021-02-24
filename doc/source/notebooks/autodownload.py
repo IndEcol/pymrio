@@ -192,7 +192,7 @@ print(meta_2018)
 # Eora26 requires registration prior to download and therefore an automatic download has not been implemented.
 # For further information check the download instruction at the [Eora26 example notebook.](working_with_eora26.ipynb#Getting-Eora26)
 
-# ## EXIOBASE download
+# ## EXIOBASE download (previous version 1 and 2)
 
-# EXIOBASE requires registration prior to download and therefore an automatic download has not been implemented.
+# Previous EXIOBASE version requires registration prior to download and therefore an automatic download has not been implemented.
 # For further information check the download instruction at the [EXIOBASE example notebook.](working_with_exiobase.ipynb#Getting-EXIOBASE)
