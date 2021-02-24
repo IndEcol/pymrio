@@ -1,5 +1,5 @@
-pymrio\.Extension\.get\_rows
-============================
+﻿pymrio.Extension.get\_rows
+==========================
 
 .. currentmodule:: pymrio
 

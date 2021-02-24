@@ -3,7 +3,9 @@
 
 import os
 import sys
+from pathlib import Path
 
+import numpy.testing as npt
 import pandas as pd
 import pandas.testing as pdt
 import pytest
@@ -12,6 +14,7 @@ TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
 
 import pymrio  # noqa
+from pymrio.core.constants import PYMRIO_PATH  # noqa
 
 
 @pytest.fixture()
@@ -210,6 +213,74 @@ def test_diag_stressor(fix_testmrio):
     assert dext_name.F.iloc[1, 1] == ext.F.iloc[stressor_number, 1]
     assert sum(dext_name.F.iloc[0, 1:-1]) == 0
     assert sum(dext_name.F.iloc[1:-1, 0]) == 0
+
+
+def test_characterize_extension(fix_testmrio):
+    factors = pd.read_csv(
+        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
+        sep="\t",
+    )
+
+    shuffled = factors.sample(len(factors.index), random_state=666, axis=0)
+
+    t_uncalc = fix_testmrio.testmrio
+    t_calc = fix_testmrio.testmrio.calc_all()
+    uncalc_name = "emissions_charact_uncalc"
+    ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name)
+    ex_calc = t_uncalc.emissions.characterize(factors)
+
+    assert ex_uncalc.name == uncalc_name
+    assert ex_calc.name == t_calc.emissions.name + "_characterized"
+
+    # The test characterization matrix is all in t, the emissions in test are
+    # all in kg
+    assert ex_calc.unit.loc["total air emissions", "unit"] == "t"
+    npt.assert_allclose(
+        ex_uncalc.F.loc["total air emissions"].sum(),
+        (t_calc.emissions.F.loc[("emission_type1", "air"), :] / 1000).sum(),
+    )
+    npt.assert_allclose(
+        ex_calc.D_imp.loc["total air emissions"].sum(),
+        (t_calc.emissions.D_imp.loc[("emission_type1", "air"), :] / 1000).sum(),
+    )
+    npt.assert_allclose(
+        ex_calc.D_cba.loc["air water impact"].sum(),
+        (
+            (t_calc.emissions.D_cba.loc[("emission_type1", "air"), :] * 2 / 1000)
+            + (t_calc.emissions.D_cba.loc[("emission_type2", "water"), :] * 1 / 1000)
+        ).sum(),
+    )
+
+    # coefficients and multipliers can not characterized directly, so these
+    # should be removed and then recalculated
+
+    assert ex_calc.M == None
+    assert ex_calc.S == None
+    t_calc.impacts = ex_calc
+    t_calc.calc_all()
+    pdt.assert_series_equal(
+        t_calc.impacts.M.loc["total air emissions", :],
+        t_calc.emissions.M.loc[("emission_type1", "air"), :] / 1000,
+        check_names=False,
+    )
+    pdt.assert_series_equal(
+        t_calc.impacts.S.loc["total air emissions", :],
+        t_calc.emissions.S.loc[("emission_type1", "air"), :] / 1000,
+        check_names=False,
+    )
+
+    with pytest.raises(AssertionError):
+        ex_error = t_uncalc.emissions.characterize(
+            factors, characterization_factors_column="foo"
+        )
+    with pytest.raises(AssertionError):
+        ex_error = t_uncalc.factor_inputs.characterize(
+            factors, characterization_factors_column="foo"
+        )
+
+    # testing used characterization matrix
+    ret = t_uncalc.emissions.characterize(factors, return_char_matrix=True)
+    assert "emissions_type3" not in ret.factors.index
 
 
 def test_reset_to_flows(fix_testmrio):

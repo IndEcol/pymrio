@@ -1,5 +1,5 @@
-pymrio\.MRIOMetaData\.note
-==========================
+﻿pymrio.MRIOMetaData.note
+========================
 
 .. currentmodule:: pymrio
 

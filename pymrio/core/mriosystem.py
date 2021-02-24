@@ -772,7 +772,7 @@ class Extension(CoreSystem):
         D_imp=None,
         D_exp=None,
         unit=None,
-        **kwargs
+        **kwargs,
     ):
         """ Init function - see docstring class """
         self.name = name
@@ -1035,7 +1035,7 @@ class Extension(CoreSystem):
         file_name=False,
         file_dpi=600,
         population=None,
-        **kwargs
+        **kwargs,
     ):
         """Plots D_pba, D_cba, D_imp and D_exp for the specified row (account)
 
@@ -1207,7 +1207,7 @@ class Extension(CoreSystem):
         pic_size=1000,
         format="rst",
         ffname=None,
-        **kwargs
+        **kwargs,
     ):
         """Writes a report to the given path for the regional accounts
 
@@ -1338,7 +1338,7 @@ class Extension(CoreSystem):
                     row,
                     file_name=file_name,
                     per_capita=reports_to_write[arep].is_per_capita,
-                    **kwargs
+                    **kwargs,
                 )
                 plt.close()
 
@@ -1437,7 +1437,7 @@ class Extension(CoreSystem):
             retdict["name"] = name
         return retdict
 
-    def diag_stressor(self, stressor, name=None):
+    def diag_stressor(self, stressor, name=None, _meta=None):
         """Diagonalize one row of the stressor matrix for a flow analysis.
 
         This method takes one row of the F matrix and diagonalize
@@ -1449,7 +1449,7 @@ class Extension(CoreSystem):
         ----
 
         Since the type of analysis based on the disaggregated matrix is based
-        on flow, direct household emissions (F_Y) are not included.
+        on flows, direct household emissions (F_Y) are not included.
 
         Parameters
         ----------
@@ -1461,9 +1461,12 @@ class Extension(CoreSystem):
             The new name for the extension,
             if None (default): string based on the given stressor (row name)
 
+        _meta: MRIOMetaData, optional
+            Metadata handler for logging, optional. Internal
+
         Returns
         -------
-        Extension
+        pymrio.Extension
 
         """
         if type(stressor) is int:
@@ -1493,7 +1496,150 @@ class Extension(CoreSystem):
             # If no unit in stressor, self.unit.columns break
             ext_diag.unit = None
 
+        if _meta:
+            _meta._add_modify(
+                f"Calculated diagonalized accounts {name} from  {self.name}"
+            )
+
         return ext_diag
+
+    def characterize(
+        self,
+        factors,
+        characterized_name_column="impact",
+        characterization_factors_column="factor",
+        characterized_unit_column="impact_unit",
+        name=None,
+        return_char_matrix=False,
+        _meta=None,
+    ):
+        """Characterize stressors
+
+        Characterizes the extension with the characterization factors given in factors.
+        Factors can contain more characterization factors which depend on stressors not
+        present in the Extension - these will be automatically removed.
+
+        Note
+        ----
+        Accordance of units is not checked - you must ensure that the
+        characterization factors correspond to the units of the extension to be
+        characterized.
+
+        Parameters
+        -----------
+        factors: pd.DataFrame
+            A dataframe in long format with numerical index and columns named
+            index.names of the extension to be characterized and
+            'characterized_name_column', 'characterization_factors_column',
+            'characterized_unit_column'
+
+        characterized_name_column: str (optional)
+            Name of the column with the names of the
+            characterized account (default: "impact")
+
+        characterization_factors_column: str (optional)
+            Name of the column with the factors for the
+            characterization (default: "factor")
+
+        characterized_unit_column: str (optional)
+            Name of the column with the units of the characterized accounts
+            characterization (default: "impact_unit")
+
+        name: string (optional)
+            The new name for the extension,
+            if None (default): name of the current extension with suffix
+            '_characterized'
+
+        return_char_matrix: boolean (optional)
+            If False (default), returns just the characterized extension.
+            If True, returns a namedtuple with extension and the actually used
+            characterization matrix.
+
+        _meta: MRIOMetaData, optional
+            Metadata handler for logging, optional. Internal
+
+        Returns
+        --------
+        pymrio.Extensions or
+        namedtuple with (extension: pymrio.Extension, factors: pd.DataFrame)
+        depending on return_char_matrix. Only the factors used for the calculation
+        are returned.
+
+        """
+
+        name = name if name else self.name + "_characterized"
+
+        # making a dataframe with indexes (stressors) as values (with multiple
+        # columns if multiindex)
+        rows = self.get_rows()
+        if type(rows) == pd.core.indexes.multi.MultiIndex:
+            df_stressors = pd.DataFrame.from_records(list(rows), columns=rows.names)
+        elif type(rows) == pd.core.indexes.base.Index:
+            df_stressors = pd.DataFrame.from_records(
+                list([[r] for r in rows]), columns=rows.names
+            )
+
+        required_columns = rows.names + [
+            characterization_factors_column,
+            characterized_name_column,
+            characterized_unit_column,
+        ]
+
+        assert set(required_columns).issubset(
+            set(factors.columns)
+        ), "Not all required columns in the passed DataFrame >factors<"
+
+        impacts_stressors_missing = []
+        factors_cleaned_gathered = []
+        for charact_name in factors[characterized_name_column].drop_duplicates():
+            fac_rest = factors[factors[characterized_name_column] == charact_name]
+            # This works since an inner merge returns a df with index present in both df
+            if len(fac_rest.merge(df_stressors, how="inner")) < len(fac_rest):
+                impacts_stressors_missing.append(charact_name)
+            else:
+                factors_cleaned_gathered.append(fac_rest)
+
+        for imissi in impacts_stressors_missing:
+            logging.warn(
+                f"Impact >{imissi}< removed - calculation requires stressors "
+                f"not present in extension >{self.name}<"
+            )
+        df_char = pd.concat(factors_cleaned_gathered)
+        units = (
+            df_char.loc[:, [characterized_name_column, characterized_unit_column]]
+            .drop_duplicates()
+            .set_index(characterized_name_column)
+            .rename({characterized_unit_column: "unit"}, axis=1)
+        )
+        calc_matrix = (
+            df_char.set_index(rows.names + [characterized_name_column])
+            .loc[:, characterization_factors_column]
+            .unstack(rows.names)
+            .fillna(0)
+        )
+
+        ex = Extension(
+            name=name,
+            unit=units,
+            **{
+                acc: calc_matrix @ self.__dict__[acc]
+                for acc in set(
+                    self.get_DataFrame(data=False, with_unit=False)
+                ).difference(set(self.__coefficients__))
+            },
+        )
+
+        if _meta:
+            _meta._add_modify(
+                f"Calculated characterized accounts {name} from  {self.name}"
+            )
+
+        if return_char_matrix:
+            return collections.namedtuple("characterization", ["extension", "factors"])(
+                extension=ex, factors=df_char
+            )
+        else:
+            return ex
 
 
 class IOSystem(CoreSystem):
@@ -1568,7 +1714,7 @@ class IOSystem(CoreSystem):
         meta=None,
         name=None,
         description=None,
-        **kwargs
+        **kwargs,
     ):
         """ Init function - see docstring class """
         self.Z = Z
@@ -1724,7 +1870,7 @@ class IOSystem(CoreSystem):
         per_capita=False,
         pic_size=1000,
         format="rst",
-        **kwargs
+        **kwargs,
     ):
         """Generates a report to the given path for all extension
 
@@ -1769,7 +1915,7 @@ class IOSystem(CoreSystem):
                 per_capita=per_capita,
                 pic_size=pic_size,
                 format=format,
-                **kwargs
+                **kwargs,
             )
 
     def get_extensions(self, data=False):

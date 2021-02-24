@@ -1,5 +1,5 @@
-pymrio\.generic\_exiobase12\_parser
-===================================
+﻿pymrio.generic\_exiobase12\_parser
+==================================
 
 .. currentmodule:: pymrio
 

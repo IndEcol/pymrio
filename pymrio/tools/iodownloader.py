@@ -491,7 +491,7 @@ def download_exiobase3(
         description="EXIOBASE3 metadata file for pymrio",
         name="EXIO3",
         system=",".join(system),
-        version="TODO, get from file specs",
+        version=doi,
     )
 
     requested_urls = []

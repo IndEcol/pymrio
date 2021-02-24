@@ -1,5 +1,5 @@
-pymrio\.archive
-===============
+﻿pymrio.archive
+==============
 
 .. currentmodule:: pymrio
 

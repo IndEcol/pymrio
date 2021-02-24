@@ -1,5 +1,5 @@
-pymrio\.parse\_wiod
-===================
+﻿pymrio.parse\_wiod
+==================
 
 .. currentmodule:: pymrio
 

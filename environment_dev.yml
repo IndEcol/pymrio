@@ -26,6 +26,10 @@ dependencies:
   - jupytext
   - coveralls
   - pynvim
+  - sphinx >= 1.6.4
+  - sphinx_rtd_theme >= 0.2.4
+  - ipykernel
+  - nbsphinx
   - pip
   - pip:
     - pandasgui

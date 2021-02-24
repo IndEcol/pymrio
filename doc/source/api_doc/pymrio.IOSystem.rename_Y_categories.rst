@@ -1,5 +1,5 @@
-pymrio\.IOSystem\.rename\_Y\_categories
-=======================================
+﻿pymrio.IOSystem.rename\_Y\_categories
+=====================================
 
 .. currentmodule:: pymrio
 

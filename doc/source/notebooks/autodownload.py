@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.10.0
+#       jupytext_version: 1.10.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -56,12 +56,14 @@ print(exio_meta)
 # parameter:
 
 prev_version_storage = "/tmp/mrios/autodownload/EXIO3_7"
-exio_meta = pymrio.download_exiobase3(
+exio_meta_37 = pymrio.download_exiobase3(
     storage_folder=prev_version_storage,
     system="ixi",
     years=2004,
     doi="10.5281/zenodo.3583071",
 )
+
+print(exio_meta_37)
 
 # Currently (Feb 2021), the following versions are available. Please
 # double-check at the [EXIOBASE 3 Zenodo
@@ -190,7 +192,7 @@ print(meta_2018)
 # Eora26 requires registration prior to download and therefore an automatic download has not been implemented.
 # For further information check the download instruction at the [Eora26 example notebook.](working_with_eora26.ipynb#Getting-Eora26)
 
-# ## EXIOBASE download
+# ## EXIOBASE download (previous version 1 and 2)
 
-# EXIOBASE requires registration prior to download and therefore an automatic download has not been implemented.
+# Previous EXIOBASE version requires registration prior to download and therefore an automatic download has not been implemented.
 # For further information check the download instruction at the [EXIOBASE example notebook.](working_with_exiobase.ipynb#Getting-EXIOBASE)

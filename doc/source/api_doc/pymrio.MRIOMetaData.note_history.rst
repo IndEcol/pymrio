@@ -1,6 +1,6 @@
-pymrio\.MRIOMetaData\.note\_history
-===================================
+﻿pymrio.MRIOMetaData.note\_history
+=================================
 
 .. currentmodule:: pymrio
 
-.. autoattribute:: MRIOMetaData.note_history
+.. autoproperty:: MRIOMetaData.note_history

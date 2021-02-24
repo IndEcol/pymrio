@@ -1,5 +1,5 @@
-pymrio\.Extension\.plot\_account
-================================
+﻿pymrio.Extension.plot\_account
+==============================
 
 .. currentmodule:: pymrio
 
