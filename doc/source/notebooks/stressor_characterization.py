@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.10.2
+#       jupytext_version: 1.10.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -22,14 +22,14 @@
 # doing that, the order of the entries in the characterization-table becomes
 # unimportant.
 # This implementation also allows to use characterization tables which includes
-# characterization for stressors no present in the given satellite account. All
+# characterization for stressors not present in the given satellite account. All
 # characterizations relying on not available stressor will be automatically
 # removed.
 
 # ## Example
 
-# For this example we use the test MRIO included in pymrio and we also need
-# the Pandas library for loading the characterization table.
+# For this example we use the test MRIO included in Pymrio. We also need
+# the Pandas library for loading the characterization table and pathlib for some folder manipulation.
 
 
 from pathlib import Path
@@ -39,7 +39,7 @@ import pandas as pd
 import pymrio
 from pymrio.core.constants import PYMRIO_PATH  # noqa
 
-# To load the test MRIO we do:
+# To load the test MRIO we use:
 
 io = pymrio.load_test()
 
@@ -59,12 +59,14 @@ io.emissions.F
 # Theses index-names / columns-names need to match in order to match
 # characterization factors to the stressors.
 
-# The other columns names can be passed to the characterization method and
-# describe:
+# The other columns names can be passed to the characterization method. By default the method assumes the following column names:
 #
 # - impact: name of the characterization/impact
 # - factor: the numerical (float) multiplication value for a specific stressor to derive the impact/characterized account
 # - impact_unit: the unit of the calculated characterization/impact
+#
+# Alternative names can be passed through the parameters
+# *characterized_name_column*, *characterization_factors_column* and *characterized_unit_column*.
 #
 # Note, that units of stressor are currently not checked - units as given in
 # the satellite account to be characterized are assumed. These can be seen by:
@@ -75,11 +77,11 @@ io.emissions.unit
 # emissions', for which the calculation requires a stressor not present in the
 # satellite account. This will be automatically omitted.
 
-# To do the characterization we use
+# To calculate the characterization we use
 
 impacts = io.emissions.characterize(charact_table, name="impacts")
 
-# The parameter 'name' is optional, if omitted the name will be set to
+# The parameter *name* is optional, if omitted the name will be set to
 # extension_name + _characterized
 
 # The method call above results in a pymrio.Extension which can be inspected with the usual

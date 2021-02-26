@@ -1612,10 +1612,14 @@ class Extension(CoreSystem):
             .rename({characterized_unit_column: "unit"}, axis=1)
         )
         calc_matrix = (
-            df_char.set_index(rows.names + [characterized_name_column])
-            .loc[:, characterization_factors_column]
-            .unstack(rows.names)
-            .fillna(0)
+            (
+                df_char.set_index(rows.names + [characterized_name_column])
+                .loc[:, characterization_factors_column]
+                .unstack(rows.names)
+                .fillna(0)
+            )
+            .reindex(rows, axis=1)  # cases when not all stressors in factors
+            .fillna(value=0)
         )
 
         ex = Extension(
