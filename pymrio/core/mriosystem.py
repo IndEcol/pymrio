@@ -1560,10 +1560,12 @@ class Extension(CoreSystem):
 
         Returns
         --------
-        pymrio.Extensions or
-        namedtuple with (extension: pymrio.Extension, factors: pd.DataFrame)
-        depending on return_char_matrix. Only the factors used for the calculation
-        are returned.
+
+        pymrio.Extensions (when return_char_matrix==False, default)
+
+           or
+
+        namedtuple with .extension: pymrio.Extension .factors: pd.DataFrame (when return_char_matrix==True)
 
         """
 
