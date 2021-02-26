@@ -2,6 +2,15 @@
 Changelog
 #########
 
+***************************
+v0.4.4 (February 25, 2021) 
+***************************
+
+Bugfixes
+========
+
+* Characterization for cases when some stressors are missing from the characterization matrix
+* Spelling mistakes
 
 ***************************
 v0.4.3 (February 24, 2021) 
