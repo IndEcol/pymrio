@@ -11,6 +11,7 @@ Bugfixes
 
 * Characterization for cases when some stressors are missing from the characterization matrix
 * Spelling mistakes
+* Fixed installation description in readme and documentation
 
 ***************************
 v0.4.3 (February 24, 2021) 
