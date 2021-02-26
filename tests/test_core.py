@@ -282,6 +282,22 @@ def test_characterize_extension(fix_testmrio):
     ret = t_uncalc.emissions.characterize(factors, return_char_matrix=True)
     assert "emissions_type3" not in ret.factors.index
 
+    # testing characterization which do not cover all stressors
+    factors_short = factors[
+        (factors.stressor == "emission_type1")
+        & (factors.impact == "total air emissions")
+    ]
+    t_calc.short_impacts = t_calc.emissions.characterize(factors_short, name="shorty")
+    t_calc.calc_all()
+
+    pdt.assert_series_equal(
+        t_calc.short_impacts.S.loc["total air emissions", :],
+        t_calc.emissions.S.loc[("emission_type1", "air"), :] / 1000,
+        check_names=False,
+    )
+
+    return locals()
+
 
 def test_reset_to_flows(fix_testmrio):
     tt = fix_testmrio.testmrio
