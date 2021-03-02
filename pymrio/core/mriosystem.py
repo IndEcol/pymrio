@@ -1628,13 +1628,14 @@ class Extension(CoreSystem):
             name=name,
             unit=units,
             **{
-                acc: calc_matrix @ self.__dict__[acc]
+                acc: (calc_matrix @ self.__dict__[acc]).reindex(units.index)
                 for acc in set(
                     self.get_DataFrame(data=False, with_unit=False)
                 ).difference(set(self.__coefficients__))
             },
         )
 
+        
         if _meta:
             _meta._add_modify(
                 f"Calculated characterized accounts {name} from  {self.name}"

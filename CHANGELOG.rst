@@ -3,6 +3,16 @@ Changelog
 #########
 
 ***************************
+v0.4.5 (March 03, 2021) 
+***************************
+
+Bugfixes
+========
+
+* Index sorting consistent for all characterized impacts 
+
+
+***************************
 v0.4.4 (February 26, 2021) 
 ***************************
 

@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.10.0
+#       jupytext_version: 1.10.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -35,6 +35,7 @@
 from pathlib import Path
 
 import pandas as pd
+
 
 import pymrio
 from pymrio.core.constants import PYMRIO_PATH  # noqa
@@ -172,3 +173,4 @@ impacts.factors
 # For further information see the characterization docstring:
 
 print(io.emissions.characterize.__doc__)
+
