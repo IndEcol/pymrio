@@ -1635,7 +1635,6 @@ class Extension(CoreSystem):
             },
         )
 
-        
         if _meta:
             _meta._add_modify(
                 f"Calculated characterized accounts {name} from  {self.name}"

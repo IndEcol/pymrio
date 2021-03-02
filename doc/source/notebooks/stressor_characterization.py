@@ -36,7 +36,6 @@ from pathlib import Path
 
 import pandas as pd
 
-
 import pymrio
 from pymrio.core.constants import PYMRIO_PATH  # noqa
 
@@ -173,4 +172,3 @@ impacts.factors
 # For further information see the characterization docstring:
 
 print(io.emissions.characterize.__doc__)
-
