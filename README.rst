@@ -132,12 +132,24 @@ Everything can be saved with
     
     test_mrio.save_all('some/folder')
 
-See the documentation_ and tutorials_ for further examples.
+See the documentation_ , tutorials_ and  `Stadler 2021`_ for further examples.
 
 Tutorials
 =========
 
 The documentation_ includes information about how to use pymrio for automatic downloading_ and parsing_ of the EE MRIOs EXIOBASE_, WIOD_, OECD_ and EORA26_ as well as tutorials_ for the handling, aggregating and analysis of these databases. 
+
+Citation
+========
+
+If you use Pymrio in your research, citing the article describing the 
+(`Stadler 2021`_) is very much appreciated. 
+
+.. _`Stadler 2021`: https://openresearchsoftware.metajnl.com/articles/10.5334/jors.251/
+
+For the full bibtex key see CITATION_ file.
+
+.. _CITATION: CITATION
 
 Contributing
 =============

@@ -1,0 +1,19 @@
+@article{stadler2021_Pymrio,
+  title = {Pymrio \textendash{} {{A Python Based Multi}}-{{Regional Input}}-{{Output Analysis Toolbox}}},
+  author = {Stadler, Konstantin},
+  year = {2021},
+  month = may,
+  volume = {9},
+  pages = {8},
+  publisher = {{Ubiquity Press}},
+  issn = {2049-9647},
+  doi = {10.5334/jors.251},
+  abstract = {Pymrio is an open source tool for Environmentally Extended Multi-Regional Input-Output (EE MRIO) analysis developed in Python. It provides a high-level abstraction layer for global EE MRIO databases in order to simplify common EE MRIO data tasks. Among others, Pymrio includes parsers for several openly available EE MRIO databases (EXIOBASE v1 \textendash{} v3, WIOD, Eora26, OECD-ICIO) as well as methods for production and consumption based accounts calculation, aggregation, stressor origin estimation and visualization. The use of a consistent storage format including meta data and modification history for MRIOs allows to exchange data with other analysis tools, aiming for an increased interoperability of Industrial Ecology analysis software.},
+  copyright = {Authors who publish with this journal agree to the following terms:    Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a  Creative Commons Attribution License  that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.  Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.  Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See  The Effect of Open Access ).  All third-party images reproduced on this journal are shared under Educational Fair Use. For more information on  Educational Fair Use , please see  this useful checklist prepared by Columbia University Libraries .   All copyright  of third-party content posted here for research purposes belongs to its original owners.  Unless otherwise stated all references to characters and comic art presented on this journal are \textcopyright, \textregistered{} or \texttrademark{} of their respective owners. No challenge to any owner's rights is intended or should be inferred.},
+  journal = {Journal of Open Research Software},
+  keywords = {Consumption Based Accounting,Eora26,EXIOBASE,Footprinting,Multi Regional Input Output Analysis,OECD-ICIO,Python,Sustainability Analysis,WIOD},
+  language = {en},
+  number = {1}
+}
+
+
