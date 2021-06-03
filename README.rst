@@ -166,6 +166,23 @@ Please use the issue tracker for documenting bugs, proposing enhancements and al
 
 You can follow me on twitter_ to get the latest news about all my open-source and research projects (and occasionally some random retweets).
 
+Research notice
+~~~~~~~~~~~~~~~
+
+Please note that this repository is participating in a study into
+sustainability of open source projects. Data will be gathered about this
+repository for approximately the next 12 months, starting from June
+2021.
+
+Data collected will include number of contributors, number of PRs, time
+taken to close/merge these PRs, and issues closed.
+
+For more information, please visit `the informational
+page <https://sustainable-open-science-and-software.github.io/>`__ or
+download the `participant information
+sheet <https://sustainable-open-science-and-software.github.io/assets/PIS_sustainable_software.pdf>`__.
+
+
 .. _twitter: https://twitter.com/kst_stadler
 
 .. _downloading: http://pymrio.readthedocs.io/en/latest/notebooks/autodownload.html
