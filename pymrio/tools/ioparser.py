@@ -658,7 +658,7 @@ def parse_exiobase2(path, charact=True, popvector='exio2'):
     if popvector is 'exio2':
         logging.debug('Read population vector')
         io.population = pd.read_csv(os.path.join(PYMRIO_PATH['exio20'],
-                                                 './misc/population.txt'),
+                                                 'misc/population.txt'),
                                     index_col=0, sep='\t').astype(float)
     else:
         io.population = popvector
