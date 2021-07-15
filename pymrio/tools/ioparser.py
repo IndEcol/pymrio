@@ -811,7 +811,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
         Which year in the path should be parsed. The years can be given with
         four or two digits (eg [2012 or 12]). If the given path contains a
         specific file, the value of year will not be used (but inferred from
-        the meta data)- otherwise it must be given For the monetary data the
+        the meta data)- otherwise it must be given. For the monetary data the
         parser searches for files with 'wiot - two digit year'.
     names : string or tuple, optional
         WIOD provides three different sector/final demand categories naming
@@ -848,8 +848,10 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     path = os.path.abspath(os.path.normpath(str(path)))
 
     # wiot start and end
-    wiot_ext = ".xlsx"
-    wiot_start = "wiot"
+    wiot_ext_rel13 = ".xlsx"
+    wiot_ext_rel16 = ".xlsb"
+    wiot_start_rel13 = "wiot"
+    wiot_start_rel16 = "WIOT"
 
     # determine which wiod file to be parsed
     if not os.path.isdir(path):
@@ -858,7 +860,14 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
             wiot_file = path
         else:
             # just in case the ending was forgotten
-            wiot_file = path + wiot_ext
+            wiot_file_list = [path + ext for ext in [wiot_ext_rel13, wiot_ext_rel16]]
+            if len(wiot_file_list) > 1:
+                raise ParserError(
+                    "Multiple extensions (wiod releases) found "
+                    "- specify a specific file in paramters"
+                )
+            wiot_file = wiot_file_list[0]
+
     else:
         # 2. case: directory given-build wiot_file with the value given in year
         if not year:
@@ -867,15 +876,27 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
                 "(either specify a specific file "
                 "or a path and year)"
             )
+        # Consistent 2 and 4 digit years for 13 and 16 release.
+        # Works b/c rel16 starts in 2000
         year_two_digit = str(year)[-2:]
-        wiot_file_list = [
+        year_four_digit = "20" + year_two_digit
+        wiot_file_list_rel13 = [
             fl
             for fl in os.listdir(path)
             if (
-                fl[:6] == wiot_start + year_two_digit
-                and os.path.splitext(fl)[1] == wiot_ext
+                fl[:6] == wiot_start_rel13 + year_two_digit
+                and os.path.splitext(fl)[1] == wiot_ext_rel13
             )
         ]
+        wiot_file_list_rel16 = [
+            fl
+            for fl in os.listdir(path)
+            if (
+                fl[:6] == wiot_start_rel16 + year_four_digit
+                and os.path.splitext(fl)[1] == wiot_ext_rel16
+            )
+        ]
+        wiot_file_list = wiot_file_list_rel13 + wiot_file_list_rel16
         if len(wiot_file_list) != 1:
             raise ParserError(
                 "Multiple files for a given year or file not "
@@ -884,21 +905,29 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
 
         wiot_file = os.path.join(path, wiot_file_list[0])
 
-    wiot_file = wiot_file
-    root_path = os.path.split(wiot_file)[0]
     if not os.path.exists(wiot_file):
         raise ParserError("WIOD file not found in the specified folder.")
+
+    if os.path.splitext(wiot_file)[1] == ".xlsb":
+        wiot_rel = 2016
+    elif os.path.splitext(wiot_file)[1] == ".xlsx":
+        wiot_rel = 2013
+    else:
+        raise ParserError("Unknown WIOD extension or release")
+    
+    root_path = os.path.split(wiot_file)[0]
 
     meta_rec = MRIOMetaData(location=root_path)
 
     # wiot file structure
     wiot_meta = {
-        "col": 0,  # column of the meta information
-        "year": 0,  # rest: rows with the data
+        "col": 0,  # column of the meta information - rest: rows with the data
+        "year": 0, # only for release 2013
         "iosystem": 2,
         "unit": 3,
         "end_row": 4,
     }
+
     wiot_header = {
         # the header indexes are the same for rows after removing the first
         # two lines (wiot_empty_top_rows)
@@ -909,11 +938,18 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     }
     wiot_empty_top_rows = [0, 1]
 
-    wiot_marks = {  # special marks
+    wiod_marks_rel13 = {  # special marks
         "last_interindsec": "c35",  # last sector of the interindustry
         "tot_facinp": ["r60", "r69"],  # useless totals to remove from factinp
         "total_column": [-1],  # the total column in the whole data
     }
+    wiod_marks_rel16 = {  # special marks
+        # last sector of the interindustry, can be r56 or c56
+        "last_interindsec": "56",
+        "tot_facinp": ["r65", "r73"],  # useless totals to remove from factinp
+        "total_column": [-1],  # the total column in the whole data
+    }
+
 
     wiot_sheet = 0  # assume the first one is the one with the data.
 
@@ -923,7 +959,12 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
 
     meta_rec._add_fileio("WIOD data parsed from {}".format(wiot_file))
     # get meta data
-    wiot_year = wiot_data.iloc[wiot_meta["year"], wiot_meta["col"]][-4:]
+    if wiot_rel == 2013:
+        wiot_year = wiot_data.iloc[wiot_meta["year"], wiot_meta["col"]][-4:]
+    else:
+        # Relying on consistent filename here
+        wiot_year = os.path.splitext(wiot_file)[1][4:8]
+    # TODO CONTINUE HERE ADAPTING FOR 2016 RELEASE    
     wiot_iosystem = (
         wiot_data.iloc[wiot_meta["iosystem"], wiot_meta["col"]].rstrip(")").lstrip("(")
     )
@@ -935,7 +976,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     # remove meta data, empty rows, total column
     wiot_data.iloc[0 : wiot_meta["end_row"], wiot_meta["col"]] = np.NaN
     wiot_data.drop(wiot_empty_top_rows, axis=0, inplace=True)
-    wiot_data.drop(wiot_data.columns[wiot_marks["total_column"]], axis=1, inplace=True)
+    wiot_data.drop(wiot_data.columns[wiod_marks_rel13["total_column"]], axis=1, inplace=True)
     # at this stage row and column header should have the same size but
     # the index starts now at two - replace/reset to row numbers
     wiot_data.index = range(wiot_data.shape[0])
@@ -952,10 +993,10 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
 
     # get the end of the interindustry matrix
     _lastZcol = wiot_data[
-        wiot_data.iloc[:, wiot_header["c_code"]] == wiot_marks["last_interindsec"]
+        wiot_data.iloc[:, wiot_header["c_code"]] == wiod_marks_rel13["last_interindsec"]
     ].index[-1]
     _lastZrow = wiot_data[
-        wiot_data[wiot_header["c_code"]] == wiot_marks["last_interindsec"]
+        wiot_data[wiot_header["c_code"]] == wiod_marks_rel13["last_interindsec"]
     ].index[-1]
 
     if _lastZcol != _lastZrow:
@@ -967,7 +1008,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     # totals in the first and last row
     facinp = wiot_data.iloc[Zshape[0] + 1 :, :]
     facinp = facinp.drop(
-        facinp[facinp[wiot_header["c_code"]].isin(wiot_marks["tot_facinp"])].index,
+        facinp[facinp[wiot_header["c_code"]].isin(wiod_marks_rel13["tot_facinp"])].index,
         axis=0,
     )
 
