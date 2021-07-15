@@ -10,7 +10,7 @@ import requests
 
 from pymrio.tools.iometadata import MRIOMetaData
 
-WIOD_CONFIG = {
+WIOD_CONFIG_R2013 = {
     "url_db_view": "http://www.wiod.org/database/wiots13",
     "url_db_content": "http://www.wiod.org/",
     "mrio_regex": r"protected.*?wiot\d\d.*?xlsx",
@@ -283,7 +283,7 @@ def download_wiod2013(
     storage_folder,
     years=None,
     overwrite_existing=False,
-    satellite_urls=WIOD_CONFIG["satellite_urls"],
+    satellite_urls=WIOD_CONFIG_R2013["satellite_urls"],
 ):
     """Downloads the 2013 wiod release
 
@@ -315,8 +315,8 @@ def download_wiod2013(
 
     satellite_urls : list of str (urls), optional
         Which satellite accounts to download.  Default: satellite urls defined
-        in WIOD_CONFIG - list of all available urls Remove items from this list
-        to only download a subset of extensions
+        in WIOD_CONFIG_R2013 - list of all available urls Remove items from
+        this list to only download a subset of extensions
 
     Returns
     -------
@@ -333,9 +333,9 @@ def download_wiod2013(
     years = [str(yy).zfill(2)[-2:] for yy in years]
 
     wiod_web_content = _get_url_datafiles(
-        url_db_view=WIOD_CONFIG["url_db_view"],
-        url_db_content=WIOD_CONFIG["url_db_content"],
-        mrio_regex=WIOD_CONFIG["mrio_regex"],
+        url_db_view=WIOD_CONFIG_R2013["url_db_view"],
+        url_db_content=WIOD_CONFIG_R2013["url_db_content"],
+        mrio_regex=WIOD_CONFIG_R2013["mrio_regex"],
     )
 
     restricted_wiod_io_urls = [
