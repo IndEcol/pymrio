@@ -14,6 +14,7 @@ WIOD_CONFIG_R2013 = {
     "url_db_view": "http://www.wiod.org/database/wiots13",
     "url_db_content": "http://www.wiod.org/",
     "mrio_regex": r"protected.*?wiot\d\d.*?xlsx",
+    "year_from_filename_regex": r"(wiot)(\d\d)",
     "satellite_urls": [
         "http://www.wiod.org/protected3/data13/SEA/WIOD_SEA_July14.xlsx",
         "http://www.wiod.org/protected3/data13/EU/EU_may12.zip",
@@ -29,7 +30,8 @@ WIOD_CONFIG_R2013 = {
 WIOD_CONFIG_R2016 = {
     "url_db_view": "http://www.wiod.org/database/wiots16",
     "url_db_content": "http://www.wiod.org/",
-    "mrio_regex": r"protected.*?wiot\d\d.*?xlsb",
+    "mrio_regex": r"protected.*?WIOT\d\d.*?xlsb",
+    "year_from_filename_regex": r"(WIOT)(\d\d\d\d)",
     "satellite_urls": [
         "http://www.wiod.org/protected3/data16/SEA/WIOD_SEA_Nov16.xlsx",
     ],
@@ -289,6 +291,88 @@ def download_oecd(
     return meta
 
 
+def download_wiod2016(
+    storage_folder,
+    years=None,
+    overwrite_existing=False,
+    satellite_urls=WIOD_CONFIG_R2016["satellite_urls"],
+):
+    """Downloads the 2016 wiod release
+
+
+    Parameters
+    ----------
+    storage_folder: str, valid path
+        Location to store the download, folder will be created if
+        not existing. If the file is already present in the folder,
+        the download of the specific file will be skipped.
+
+
+    years: list of int or str, optional
+        If years is given only downloads the specific years. This
+        only applies to the IO tables because extensions are stored
+        by country and not per year.
+        The years can be given in 2 or 4 digits.
+
+    overwrite_existing: boolean, optional
+        If False, skip download of file already existing in
+        the storage folder (default). Set to True to replace
+        files.
+
+    satellite_urls : list of str (urls), optional
+        Which satellite accounts to download.  Default: satellite urls defined
+        in WIOD_CONFIG_R2016: Socio Economic Accounts - the only satellite
+        accounts availble for the 2016 release.
+
+    Returns
+    -------
+
+    Meta data of the downloaded MRIOs
+
+    """
+
+    os.makedirs(storage_folder, exist_ok=True)
+
+    if type(years) is int or type(years) is str:
+        years = [years]
+    years = years if years else range(2000, 2015)
+    years = [str(yy).zfill(2)[-2:] for yy in years]
+
+    wiod_web_content = _get_url_datafiles(
+        url_db_view=WIOD_CONFIG_R2016["url_db_view"],
+        url_db_content=WIOD_CONFIG_R2016["url_db_content"],
+        mrio_regex=WIOD_CONFIG_R2016["mrio_regex"],
+    )
+
+    restricted_wiod_io_urls = [
+        url
+        for url in wiod_web_content.data_urls
+        if re.search(
+            WIOD_CONFIG_R2016["year_from_filename_regex"], os.path.basename(url)
+        ).group(2)[-2:]
+        in years
+    ]
+
+    breakpoint()
+    meta = MRIOMetaData(
+        location=storage_folder,
+        description="WIOD metadata file for pymrio",
+        name="WIOD",
+        system="IxI",
+        version="data16",
+    )
+
+    meta = _download_urls(
+        url_list=restricted_wiod_io_urls + satellite_urls,
+        storage_folder=storage_folder,
+        overwrite_existing=overwrite_existing,
+        meta_handler=meta,
+    )
+
+    meta.save()
+    return meta
+
+
 def download_wiod2013(
     storage_folder,
     years=None,
@@ -296,12 +380,6 @@ def download_wiod2013(
     satellite_urls=WIOD_CONFIG_R2013["satellite_urls"],
 ):
     """Downloads the 2013 wiod release
-
-    Note
-    ----
-    Currently, pymrio only works with the 2013 release of the wiod tables. The
-    more recent 2016 release so far (October 2017) lacks the environmental and
-    social extensions.
 
 
     Parameters
@@ -351,7 +429,10 @@ def download_wiod2013(
     restricted_wiod_io_urls = [
         url
         for url in wiod_web_content.data_urls
-        if re.search(r"(wiot)(\d\d)", os.path.basename(url)).group(2) in years
+        if re.search(
+            WIOD_CONFIG_R2013["year_from_filename_regex"], os.path.basename(url)
+        ).group(2)
+        in years
     ]
 
     meta = MRIOMetaData(

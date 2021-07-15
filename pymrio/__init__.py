@@ -46,6 +46,7 @@ from pymrio.tools.iodownloader import (
     download_exiobase3,
     download_oecd,
     download_wiod2013,
+    download_wiod2016,
 )
 from pymrio.tools.iomath import (
     calc_A,
