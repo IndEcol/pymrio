@@ -2359,6 +2359,7 @@ class IOSystem(CoreSystem):
                 if st_redo_unit:
                     try:
                         _value = extension.unit.iloc[0].tolist()[0]
+
                         extension.unit = pd.DataFrame(
                             index=mi_reg_sec,
                             columns=extension.unit.columns,
