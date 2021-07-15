@@ -26,6 +26,16 @@ WIOD_CONFIG_R2013 = {
     ],
 }
 
+WIOD_CONFIG_R2016 = {
+    "url_db_view": "http://www.wiod.org/database/wiots16",
+    "url_db_content": "http://www.wiod.org/",
+    "mrio_regex": r"protected.*?wiot\d\d.*?xlsb",
+    "satellite_urls": [
+        "http://www.wiod.org/protected3/data16/SEA/WIOD_SEA_Nov16.xlsx",
+    ],
+}
+
+
 EORA26_CONFIG = {
     "url_db_view": "http://worldmrio.com/simplified/",
     "url_db_content": "http://worldmrio.com/",
