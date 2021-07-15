@@ -353,7 +353,6 @@ def download_wiod2016(
         in years
     ]
 
-    breakpoint()
     meta = MRIOMetaData(
         location=storage_folder,
         description="WIOD metadata file for pymrio",
