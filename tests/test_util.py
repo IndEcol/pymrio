@@ -7,6 +7,7 @@ from unittest.mock import mock_open, patch
 
 import numpy as np
 import numpy.testing as npt
+import pandas as pd
 import pytest
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
@@ -17,6 +18,7 @@ from pymrio.tools.ioutil import build_agg_vec  # noqa
 from pymrio.tools.ioutil import find_first_number  # noqa
 from pymrio.tools.ioutil import set_block  # noqa
 from pymrio.tools.ioutil import sniff_csv_format  # noqa
+from pymrio.tools.ioutil import diagonalize_blocks  # noqa
 
 
 @pytest.fixture()
@@ -144,6 +146,35 @@ def test_build_agg_vec():
     vec = build_agg_vec(["OECD", "EU"], path="test", miss="RoW")
     expected = ["OECD", "EU", "OECD", "OECD", "RoW", "RoW"]
     assert vec == expected
+
+
+def test_diagonalize_blocks():
+    """ Tests the numpy/pandas implementation of diagonalize_blocks """
+
+    inp_array = np.array(([3, 1], [4, 2], [5, 3], [6, 9], [7, 6], [8, 4]))
+    out_array = np.array(
+        (
+            [3.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, 4.0, 0.0, 0.0, 2.0, 0.0],
+            [0.0, 0.0, 5.0, 0.0, 0.0, 3.0],
+            [6.0, 0.0, 0.0, 9.0, 0.0, 0.0],
+            [0.0, 7.0, 0.0, 0.0, 6.0, 0.0],
+            [0.0, 0.0, 8.0, 0.0, 0.0, 4.0],
+        )
+    )
+    diag_array = diagonalize_blocks(inp_array, 3)
+    np.testing.assert_allclose(diag_array, out_array)
+
+    sectors = ["x", "y", "z"]
+    inp_df = pd.DataFrame(
+        data=inp_array, index=["a", "b", "c", "d", "e", "f"], columns=["A", "B"]
+    )
+    out_df = pd.DataFrame(
+        data=out_array,
+        index=inp_df.index,
+        columns=pd.MultiIndex.from_product([inp_df.columns, sectors]),
+    )
+    # TODO continue here
 
 
 def test_set_block():

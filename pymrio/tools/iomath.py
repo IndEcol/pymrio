@@ -386,11 +386,15 @@ def calc_accounts(S, L, Y, nr_sectors):
     # this results in a disaggregated y with final demand per country per
     # sector in one column
     Y_diag = ioutil.diagonalize_blocks(Y.values, blocksize=nr_sectors)
+
     x_diag = L.dot(Y_diag)
     x_tot = x_diag.values.sum(1)
     del Y_diag
 
     D_cba = pd.DataFrame(S.values.dot(x_diag), index=S.index, columns=S.columns)
+
+    D_cba = pd.DataFrame(S.values.dot(x_diag))
+
     # D_pba = S.dot(np.diagflat(x_tot))
     # faster broadcasted calculation:
     D_pba = pd.DataFrame(

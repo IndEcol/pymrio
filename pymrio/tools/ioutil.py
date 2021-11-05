@@ -237,17 +237,18 @@ def build_agg_matrix(agg_vector, pos_dict=None):
     return agg_matrix
 
 
-def diagonalize_blocks(arr, blocksize):
+def diagonalize_blocks(arr, blocks):
     """Diagonalize sections of columns of an array for the whole array
 
     Parameters
     ----------
 
-    arr : numpy array
+    arr : numpy array or pandas DataFrame
         Input array
 
-    blocksize : int
-        number of rows/colums forming one block
+    blocks : int or list
+        int - blocksize for diagonalization
+        list - len of list gives the blocksize for diagonalization, list entries are used as lowest level column headers for result dataframe (only if input 'arr' was a dataframe)
 
     Returns
     -------
@@ -257,31 +258,46 @@ def diagonalize_blocks(arr, blocksize):
     Example
     --------
 
-    arr:      output: (blocksize = 3)
+    arr:      output: (blocks = 3)
         3 1     3 0 0 1 0 0
         4 2     0 4 0 0 2 0
         5 3     0 0 5 0 0 3
         6 9     6 0 0 9 0 0
         7 6     0 7 0 0 6 0
         8 4     0 0 8 0 0 4
+
+    arr (df):  output (df): (blocks = [x, y, z])
+        (all letters are index or header)
+          A B     A A A B B B
+                  x y z x y z
+        a 3 1     3 0 0 1 0 0
+        b 4 2     0 4 0 0 2 0
+        c 5 3     0 0 5 0 0 3
+        d 6 9     6 0 0 9 0 0
+        e 7 6     0 7 0 0 6 0
+        f 8 4     0 0 8 0 0 4
+
+
     """
 
     nr_col = arr.shape[1]
     nr_row = arr.shape[0]
 
+    blocksize = blocks if type(blocks) is int else len(blocks)
+
     if np.mod(nr_row, blocksize):
         raise ValueError(
-            "Number of rows of input array must be a multiple of blocksize"
+            "Number of rows of input array must be a multiple of blocksize (len blocks or int blocks)"
         )
-
-    arr_diag = np.zeros((nr_row, blocksize * nr_col))
+    # TODO CONTINUE HERE
+    arr_diag = np.zeros((nr_row, blocks * nr_col))
 
     for col_ind, col_val in enumerate(arr.T):
-        col_start = col_ind * blocksize
-        col_end = blocksize + col_ind * blocksize
-        for _ind in range(int(nr_row / blocksize)):
-            row_start = _ind * blocksize
-            row_end = blocksize + _ind * blocksize
+        col_start = col_ind * blocks
+        col_end = blocks + col_ind * blocks
+        for _ind in range(int(nr_row / blocks)):
+            row_start = _ind * blocks
+            row_end = blocks + _ind * blocks
             arr_diag[row_start:row_end, col_start:col_end] = np.diag(
                 col_val[row_start:row_end]
             )

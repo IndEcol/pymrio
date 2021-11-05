@@ -370,8 +370,8 @@ def generic_exiobase12_parser(exio_files, system=None):
 
         _unit = pd.DataFrame(_unit)
         _unit.columns = ["unit"]
-        _new_unit = _unit.unit.str.replace("/" + mon_unit, "")
-        _new_unit[_new_unit == ""] = _unit.unit[_new_unit == ""].str.replace("/", "")
+        _new_unit = _unit.unit.str.replace("/" + mon_unit, "", regex=True)
+        _new_unit[_new_unit == ""] = _unit.unit[_new_unit == ""].str.replace("/", "", regex=True)
         _unit.unit = _new_unit
 
         ext_data[tt].reset_index(level="unit", drop=True, inplace=True)
@@ -945,10 +945,10 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     # the environmental extensions names.
     wiot_data.iloc[wiot_header["region"], :] = wiot_data.iloc[
         wiot_header["region"], :
-    ].str.replace("ROM", "ROU")
+    ].str.replace("ROM", "ROU", regex=False)
     wiot_data.iloc[:, wiot_header["region"]] = wiot_data.iloc[
         :, wiot_header["region"]
-    ].str.replace("ROM", "ROU")
+    ].str.replace("ROM", "ROU", regex=False)
 
     # get the end of the interindustry matrix
     _lastZcol = wiot_data[
@@ -1891,7 +1891,7 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
     Q_unit = pd.DataFrame(labQ["stressor"].str.extract(r"\((.*)\)", expand=False))
     Q_unit.columns = IDX_NAMES["unit"]
 
-    labQ["stressor"] = labQ["stressor"].str.replace(r"\s\((.*)\)", "")
+    labQ["stressor"] = labQ["stressor"].str.replace(r"\s\((.*)\)", "", regex=True)
     eora_data["labels_Q"] = labQ
 
     for key in eora_header_spec.keys():
