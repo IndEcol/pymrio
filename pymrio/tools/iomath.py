@@ -314,7 +314,7 @@ def calc_e(M, Y):
     return M.dot(Y)
 
 
-def recalc_M(S, D_cba, Y, nr_sectors):
+def recalc_M(S, D_cba, Y):
     """Calculate Multipliers based on footprints.
 
     Parameters
@@ -325,8 +325,6 @@ def recalc_M(S, D_cba, Y, nr_sectors):
         Final demand: aggregated across categories or just one category, one
         column per country. This will be diagonalized per country block.
         The diagonolized form must be invertable for this method to work.
-    nr_sectors : int
-        Number of sectors in the MRIO
 
     Returns
     -------
@@ -339,7 +337,7 @@ def recalc_M(S, D_cba, Y, nr_sectors):
 
     """
 
-    Y_diag = ioutil.diagonalize_blocks(Y.values, blocksize=nr_sectors)
+    Y_diag = ioutil.diagonalize_columns_to_sectors(Y)
     Y_inv = np.linalg.inv(Y_diag)
     M = D_cba.dot(Y_inv)
     if type(D_cba) is pd.DataFrame:
@@ -349,7 +347,7 @@ def recalc_M(S, D_cba, Y, nr_sectors):
     return M
 
 
-def calc_accounts(S, L, Y, nr_sectors):
+def calc_accounts(S, L, Y):
     """Calculate sector specific cba and pba based accounts, imp and exp accounts
 
     The total industry output x for the calculation
@@ -364,9 +362,6 @@ def calc_accounts(S, L, Y, nr_sectors):
     Y : pandas.DataFrame
         Final demand: aggregated across categories or just one category, one
         column per country
-    nr_sectors : int
-        Number of sectors in the MRIO
-
 
     Returns
     -------
@@ -385,28 +380,29 @@ def calc_accounts(S, L, Y, nr_sectors):
     # diagonalize each sector block per country
     # this results in a disaggregated y with final demand per country per
     # sector in one column
-    Y_diag = ioutil.diagonalize_blocks(Y.values, blocksize=nr_sectors)
 
-    x_diag = L.dot(Y_diag)
+    Y_diag = ioutil.diagonalize_columns_to_sectors(Y)
+    x_diag = L @ Y_diag
+
     x_tot = x_diag.values.sum(1)
+
     del Y_diag
 
-    D_cba = pd.DataFrame(S.values.dot(x_diag), index=S.index, columns=S.columns)
-
-    D_cba = pd.DataFrame(S.values.dot(x_diag))
+    D_cba = pd.DataFrame(S @ x_diag)
 
     # D_pba = S.dot(np.diagflat(x_tot))
     # faster broadcasted calculation:
+    # NB: D_pba columns might be different to D_cba columns if Y include "regions" which are not in the core. This happens for example for statistical discrepancy in the OECD tables. It is "theoretically" possible to calculate footprints for these "regions", but not PBA accounts.
     D_pba = pd.DataFrame(
         S.values * x_tot.reshape((1, -1)), index=S.index, columns=S.columns
     )
 
     # for the traded accounts set the domestic industry output to zero
-    dom_block = np.zeros((nr_sectors, nr_sectors))
-    x_trade = ioutil.set_block(x_diag.values, dom_block)
-    D_imp = pd.DataFrame(S.values.dot(x_trade), index=S.index, columns=S.columns)
+    x_trade = ioutil.set_dom_block(x_diag, value=0)
+    D_imp = pd.DataFrame(S @ x_trade)
 
-    x_exp = x_trade.sum(1)
+    x_exp = x_trade.sum(1).values
+
     # D_exp = S.dot(np.diagflat(x_exp))
     # faster broadcasted version:
     D_exp = pd.DataFrame(

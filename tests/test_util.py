@@ -8,6 +8,7 @@ from unittest.mock import mock_open, patch
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
+import pandas.testing as pdt
 import pytest
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
@@ -15,10 +16,11 @@ sys.path.append(os.path.join(TESTPATH, ".."))
 
 from pymrio.tools.ioutil import build_agg_matrix  # noqa
 from pymrio.tools.ioutil import build_agg_vec  # noqa
+from pymrio.tools.ioutil import diagonalize_blocks  # noqa
 from pymrio.tools.ioutil import find_first_number  # noqa
 from pymrio.tools.ioutil import set_block  # noqa
 from pymrio.tools.ioutil import sniff_csv_format  # noqa
-from pymrio.tools.ioutil import diagonalize_blocks  # noqa
+from pymrio.tools.ioutil import diagonalize_columns_to_sectors
 
 
 @pytest.fixture()
@@ -149,7 +151,18 @@ def test_build_agg_vec():
 
 
 def test_diagonalize_blocks():
-    """ Tests the numpy/pandas implementation of diagonalize_blocks """
+    """ Tests the numpy implementation of diagonalize_blocks """
+
+    # arr (df):  output (df): (blocks = [x, y, z])
+    #     (all letters are index or header)
+    #       A B     A A A B B B
+    #               x y z x y z
+    #     a 3 1     3 0 0 1 0 0
+    #     b 4 2     0 4 0 0 2 0
+    #     c 5 3     0 0 5 0 0 3
+    #     d 6 9     6 0 0 9 0 0
+    #     e 7 6     0 7 0 0 6 0
+    #     f 8 4     0 0 8 0 0 4
 
     inp_array = np.array(([3, 1], [4, 2], [5, 3], [6, 9], [7, 6], [8, 4]))
     out_array = np.array(
@@ -162,19 +175,36 @@ def test_diagonalize_blocks():
             [0.0, 0.0, 8.0, 0.0, 0.0, 4.0],
         )
     )
-    diag_array = diagonalize_blocks(inp_array, 3)
+    diag_array = diagonalize_blocks(arr=inp_array, blocksize=3)
     np.testing.assert_allclose(diag_array, out_array)
 
+
+def test_diagonalize_columns_to_sectors():
+    inp_array = np.array(([3, 1], [4, 2], [5, 3], [6, 9], [7, 6], [8, 4]))
+    out_array = np.array(
+        (
+            [3.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, 4.0, 0.0, 0.0, 2.0, 0.0],
+            [0.0, 0.0, 5.0, 0.0, 0.0, 3.0],
+            [6.0, 0.0, 0.0, 9.0, 0.0, 0.0],
+            [0.0, 7.0, 0.0, 0.0, 6.0, 0.0],
+            [0.0, 0.0, 8.0, 0.0, 0.0, 4.0],
+        )
+    )
+
+    regions = ["A", "B"]
     sectors = ["x", "y", "z"]
-    inp_df = pd.DataFrame(
-        data=inp_array, index=["a", "b", "c", "d", "e", "f"], columns=["A", "B"]
+    reg_sec_index = pd.MultiIndex.from_product(
+        [regions, sectors], names=["region", "sector"]
     )
-    out_df = pd.DataFrame(
-        data=out_array,
-        index=inp_df.index,
-        columns=pd.MultiIndex.from_product([inp_df.columns, sectors]),
-    )
-    # TODO continue here
+
+    inp_df = pd.DataFrame(data=inp_array, index=reg_sec_index, columns=regions)
+    inp_df.columns.names = ["region"]
+
+    out_df = pd.DataFrame(data=out_array, index=inp_df.index, columns=reg_sec_index)
+
+    diag_df = diagonalize_columns_to_sectors(inp_df)
+    pdt.assert_frame_equal(diag_df, out_df)
 
 
 def test_set_block():

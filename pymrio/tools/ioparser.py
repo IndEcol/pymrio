@@ -371,7 +371,9 @@ def generic_exiobase12_parser(exio_files, system=None):
         _unit = pd.DataFrame(_unit)
         _unit.columns = ["unit"]
         _new_unit = _unit.unit.str.replace("/" + mon_unit, "", regex=True)
-        _new_unit[_new_unit == ""] = _unit.unit[_new_unit == ""].str.replace("/", "", regex=True)
+        _new_unit[_new_unit == ""] = _unit.unit[_new_unit == ""].str.replace(
+            "/", "", regex=True
+        )
         _unit.unit = _new_unit
 
         ext_data[tt].reset_index(level="unit", drop=True, inplace=True)

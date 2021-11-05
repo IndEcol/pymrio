@@ -577,10 +577,10 @@ def test_calc_accounts_MRIO(td_small_MRIO):
     nD_cba, nD_pba, nD_imp, nD_exp = calc_accounts(
         td_small_MRIO.S,
         td_small_MRIO.L,
-        td_small_MRIO.Y,
-        nr_sectors=len(td_small_MRIO.Z.index.get_level_values("sector").unique()),
+        td_small_MRIO.Y.groupby(level="region", axis=1, sort=False).sum(),
     )
     # test all
+
     pdt.assert_frame_equal(
         td_small_MRIO.D_cba,
         nD_cba,

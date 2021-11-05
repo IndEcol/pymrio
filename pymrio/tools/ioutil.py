@@ -9,8 +9,10 @@ import os
 import zipfile
 from collections import namedtuple
 from pathlib import Path
+from typing import Union
 
 import numpy as np
+import pandas as pd
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH
 
@@ -237,18 +239,66 @@ def build_agg_matrix(agg_vector, pos_dict=None):
     return agg_matrix
 
 
-def diagonalize_blocks(arr, blocks):
+def diagonalize_columns_to_sectors(
+    df: pd.DataFrame, sector_index_level: Union[str, int] = "sector"
+) -> pd.DataFrame:
+    """Adds the resolution of the rows to columns by diagonalizing
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The DataFrame to diagonalize
+    sector_index_name : string, optional
+        Name or number of the index level containing sectors.
+
+    Returns
+    -------
+    pd.DataFrame, diagonalized
+
+
+    Example
+    --------
+        input       output
+         (all letters are index or header)
+            A B     A A A B B B
+                    x y z x y z
+        A x 3 1     3 0 0 1 0 0
+        A y 4 2     0 4 0 0 2 0
+        A z 5 3     0 0 5 0 0 3
+        B x 6 9     6 0 0 9 0 0
+        B y 7 6     0 7 0 0 6 0
+        B z 8 4     0 0 8 0 0 4
+
+    """
+
+    sectors = df.index.get_level_values(sector_index_level).unique()
+    sector_name = sector_index_level if type(sector_index_level) is str else "sector"
+
+    new_col_index = [
+        tuple(list(orig) + [new]) for orig in df.columns for new in sectors
+    ]
+
+    diag_df = pd.DataFrame(
+        data=diagonalize_blocks(df.values, blocksize=len(sectors)),
+        index=df.index,
+        columns=pd.MultiIndex.from_product(
+            [df.columns, sectors], names=[*df.columns.names, sector_name]
+        ),
+    )
+    return diag_df
+
+
+def diagonalize_blocks(arr: np.array, blocksize: int):
     """Diagonalize sections of columns of an array for the whole array
 
     Parameters
     ----------
 
-    arr : numpy array or pandas DataFrame
+    arr : numpy array
         Input array
 
-    blocks : int or list
-        int - blocksize for diagonalization
-        list - len of list gives the blocksize for diagonalization, list entries are used as lowest level column headers for result dataframe (only if input 'arr' was a dataframe)
+    blocksize : int
+        number of rows/colums forming one block
 
     Returns
     -------
@@ -258,51 +308,59 @@ def diagonalize_blocks(arr, blocks):
     Example
     --------
 
-    arr:      output: (blocks = 3)
+    arr:      output: (blocksize = 3)
         3 1     3 0 0 1 0 0
         4 2     0 4 0 0 2 0
         5 3     0 0 5 0 0 3
         6 9     6 0 0 9 0 0
         7 6     0 7 0 0 6 0
         8 4     0 0 8 0 0 4
-
-    arr (df):  output (df): (blocks = [x, y, z])
-        (all letters are index or header)
-          A B     A A A B B B
-                  x y z x y z
-        a 3 1     3 0 0 1 0 0
-        b 4 2     0 4 0 0 2 0
-        c 5 3     0 0 5 0 0 3
-        d 6 9     6 0 0 9 0 0
-        e 7 6     0 7 0 0 6 0
-        f 8 4     0 0 8 0 0 4
-
-
     """
 
     nr_col = arr.shape[1]
     nr_row = arr.shape[0]
 
-    blocksize = blocks if type(blocks) is int else len(blocks)
-
     if np.mod(nr_row, blocksize):
         raise ValueError(
-            "Number of rows of input array must be a multiple of blocksize (len blocks or int blocks)"
+            "Number of rows of input array must be a multiple of blocksize"
         )
-    # TODO CONTINUE HERE
-    arr_diag = np.zeros((nr_row, blocks * nr_col))
+
+    arr_diag = np.zeros((nr_row, blocksize * nr_col))
 
     for col_ind, col_val in enumerate(arr.T):
-        col_start = col_ind * blocks
-        col_end = blocks + col_ind * blocks
-        for _ind in range(int(nr_row / blocks)):
-            row_start = _ind * blocks
-            row_end = blocks + _ind * blocks
+        col_start = col_ind * blocksize
+        col_end = blocksize + col_ind * blocksize
+        for _ind in range(int(nr_row / blocksize)):
+            row_start = _ind * blocksize
+            row_end = blocksize + _ind * blocksize
             arr_diag[row_start:row_end, col_start:col_end] = np.diag(
                 col_val[row_start:row_end]
             )
 
     return arr_diag
+
+
+def set_dom_block(df: pd.DataFrame, value: float = 0) -> pd.DataFrame:
+    """Set domestic blocks to value (0 by default)
+
+    Requires that the region is the top index in the multiindex
+    hierarchy (default case in pymrio).
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+    value : float, optional
+
+    Returns
+    -------
+    pd.DataFrame
+
+    """
+    regions = df.index.get_level_values(0).unique()
+    df_res = df.copy()
+    for reg in regions:
+        df_res.loc[reg, reg] = 0
+    return df_res
 
 
 def set_block(arr, arr_block):

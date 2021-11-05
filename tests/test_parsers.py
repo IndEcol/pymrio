@@ -11,8 +11,8 @@ try:
     testpath = os.path.dirname(os.path.abspath(__file__))
 except NameError:
     testpath = os.getcwd()  # easy run in interpreter
-    if 'tests' not in testpath:
-        testpath = os.path.join(testpath, 'tests')
+    if "tests" not in testpath:
+        testpath = os.path.join(testpath, "tests")
 
 
 sys.path.append(os.path.join(testpath, ".."))
