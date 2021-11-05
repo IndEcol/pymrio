@@ -415,6 +415,10 @@ def calc_accounts(S, L, Y, nr_sectors):
 def calc_trade_flows(Z, Y):
     """ Calculate the bilateral trade flows from the Z and Y matrix
 
+    Notes
+    ----------
+    Only implemented for DataFrame right now
+    
     Parameters
     ----------
     Z : pandas.DataFrame
@@ -427,7 +431,6 @@ def calc_trade_flows(Z, Y):
     pandas.DataFrame
         bilateral trade flows as a matrix showing region and sector of origin in rows, and region of import in columns
                 
-   NOTE: ONLY IMPLEMENTED FOR DataFrame right now
 
     """
     nr_sectors = Y.index.unique(level=1).size
