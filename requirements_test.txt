@@ -10,4 +10,5 @@ isort >= 5.6.0
 black == 20.8b1
 coveralls
 pytest-black
+coverage < 5
 
