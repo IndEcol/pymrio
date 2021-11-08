@@ -16,6 +16,7 @@ sys.path.append(os.path.join(TESTPATH, ".."))
 # the function which should be tested here
 from pymrio.tools.iomath import calc_A  # noqa
 from pymrio.tools.iomath import calc_accounts  # noqa
+from pymrio.tools.iomath import calc_trade_flows  # noqa
 from pymrio.tools.iomath import calc_e  # noqa
 from pymrio.tools.iomath import calc_F  # noqa
 from pymrio.tools.iomath import calc_F_Y  # noqa
@@ -570,6 +571,20 @@ def test_calc_F_Y_MRIO(td_small_MRIO):
 
 def test_calc_M_MRIO(td_small_MRIO):
     pdt.assert_frame_equal(td_small_MRIO.M, calc_M(td_small_MRIO.S, td_small_MRIO.L))
+
+
+
+def test_calc_trade_flows_MRIO(td_small_MRIO):
+    trade_flows  = calc_trade_flows(td_small_MRIO.Z, td_small_MRIO.Y)
+
+    reg1sec2trade = (
+        td_small_MRIO.Z.loc[('reg1', 'sector2'), 'reg2'].sum() + 
+        td_small_MRIO.Y.loc[('reg1', 'sector2'), 'reg2'].sum() )
+
+    # import pdb; pdb.set_trace() # DEBUG
+
+    assert trade_flows.bilat_trade.loc[('reg1', 'sector2'), 'reg2'] == reg1sec2trade
+     
 
 
 def test_calc_accounts_MRIO(td_small_MRIO):

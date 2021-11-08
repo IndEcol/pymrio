@@ -60,6 +60,7 @@ from pymrio.tools.iomath import (
     calc_x,
     calc_x_from_L,
     calc_Z,
+    calc_trade_flows
 )
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioparser import *
