@@ -873,17 +873,15 @@ class Extension(CoreSystem):
             Row vector with population per region
         """
 
+        # TODO: This should only be used for calculating the full system.
+        # TODO There needs to be a new method for calculating the system for a different demand vector
+
         if Y_agg is None:
             try:
-                Y_agg = Y.sum(level="region", axis=1).reindex(
-                    self.get_regions(), axis=1
-                )
+                Y_agg = Y.groupby(level="region", axis=1, sort=False).sum()
 
             except (AssertionError, KeyError):
-                Y_agg = Y.sum(
-                    level=0,
-                    axis=1,
-                ).reindex(self.get_regions(), axis=1)
+                Y_agg = Y.groupby(level=0, axis=1, sort=False).sum()
 
         y_vec = Y.sum(axis=0)
 
@@ -925,13 +923,9 @@ class Extension(CoreSystem):
             # F_Y_agg = ioutil.agg_columns(
             # ext['F_Y'], self.get_Y_categories().size)
             try:
-                F_Y_agg = self.F_Y.sum(level="region", axis=1).reindex(
-                    self.get_regions(), axis=1
-                )
+                F_Y_agg = self.F_Y.groupby(level="region", axis=1, sort=False).sum()
             except (AssertionError, KeyError):
-                F_Y_agg = self.F_Y.sum(level=0, axis=1).reindex(
-                    self.get_regions(), axis=1
-                )
+                F_Y_agg = self.F_Y.groupby(level=0, axis=1, sort=False).sum()
 
         if (
             (self.D_cba is None)
@@ -944,7 +938,7 @@ class Extension(CoreSystem):
                 return
             else:
                 self.D_cba, self.D_pba, self.D_imp, self.D_exp = calc_accounts(
-                    self.S, L, Y_agg, self.get_sectors().size
+                    self.S, L, Y_agg
                 )
                 logging.debug("{} - Accounts D calculated".format(self.name))
 
@@ -957,44 +951,34 @@ class Extension(CoreSystem):
         ):
             try:
                 self.D_cba_reg = (
-                    self.D_cba.sum(level="region", axis=1).reindex(
-                        self.get_regions(), axis=1
-                    )
+                    self.D_cba.groupby(level="region", axis=1, sort=False).sum()
                     + F_Y_agg
                 )
             except (AssertionError, KeyError):
                 self.D_cba_reg = (
-                    self.D_cba.sum(level=0, axis=1).reindex(self.get_regions(), axis=1)
-                    + F_Y_agg
+                    self.D_cba.groupby(level=0, axis=1, sort=False).sum() + F_Y_agg
                 )
             try:
                 self.D_pba_reg = (
-                    self.D_pba.sum(level="region", axis=1).reindex(
-                        self.get_regions(), axis=1
-                    )
+                    self.D_pba.groupby(level="region", axis=1, sort=False).sum()
                     + F_Y_agg
                 )
             except (AssertionError, KeyError):
                 self.D_pba_reg = (
-                    self.D_pba.sum(level=0, axis=1).reindex(self.get_regions(), axis=1)
-                    + F_Y_agg
+                    self.D_pba.groupby(level=0, axis=1, sort=False).sum() + F_Y_agg
                 )
             try:
-                self.D_imp_reg = self.D_imp.sum(level="region", axis=1).reindex(
-                    self.get_regions(), axis=1
-                )
+                self.D_imp_reg = self.D_imp.groupby(
+                    level="region", axis=1, sort=False
+                ).sum()
             except (AssertionError, KeyError):
-                self.D_imp_reg = self.D_imp.sum(level=0, axis=1).reindex(
-                    self.get_regions(), axis=1
-                )
+                self.D_imp_reg = self.D_imp.groupby(level=0, axis=1, sort=False).sum()
             try:
-                self.D_exp_reg = self.D_exp.sum(level="region", axis=1).reindex(
-                    self.get_regions(), axis=1
-                )
+                self.D_exp_reg = self.D_exp.groupby(
+                    level="region", axis=1, sort=False
+                ).sum()
             except (AssertionError, KeyError):
-                self.D_exp_reg = self.D_exp.sum(level=0, axis=1).reindex(
-                    self.get_regions(), axis=1
-                )
+                self.D_exp_reg = self.D_exp.groupby(level=0, axis=1, sort=False).sum()
 
             logging.debug("{} - Accounts D for regions calculated".format(self.name))
 
@@ -1602,7 +1586,7 @@ class Extension(CoreSystem):
                 factors_cleaned_gathered.append(fac_rest)
 
         for imissi in impacts_stressors_missing:
-            logging.warn(
+            logging.warning(
                 f"Impact >{imissi}< removed - calculation requires stressors "
                 f"not present in extension >{self.name}<"
             )

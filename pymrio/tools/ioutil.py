@@ -9,8 +9,10 @@ import os
 import zipfile
 from collections import namedtuple
 from pathlib import Path
+from typing import Union
 
 import numpy as np
+import pandas as pd
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH
 
@@ -237,7 +239,56 @@ def build_agg_matrix(agg_vector, pos_dict=None):
     return agg_matrix
 
 
-def diagonalize_blocks(arr, blocksize):
+def diagonalize_columns_to_sectors(
+    df: pd.DataFrame, sector_index_level: Union[str, int] = "sector"
+) -> pd.DataFrame:
+    """Adds the resolution of the rows to columns by diagonalizing
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The DataFrame to diagonalize
+    sector_index_name : string, optional
+        Name or number of the index level containing sectors.
+
+    Returns
+    -------
+    pd.DataFrame, diagonalized
+
+
+    Example
+    --------
+        input       output
+         (all letters are index or header)
+            A B     A A A B B B
+                    x y z x y z
+        A x 3 1     3 0 0 1 0 0
+        A y 4 2     0 4 0 0 2 0
+        A z 5 3     0 0 5 0 0 3
+        B x 6 9     6 0 0 9 0 0
+        B y 7 6     0 7 0 0 6 0
+        B z 8 4     0 0 8 0 0 4
+
+    """
+
+    sectors = df.index.get_level_values(sector_index_level).unique()
+    sector_name = sector_index_level if type(sector_index_level) is str else "sector"
+
+    new_col_index = [
+        tuple(list(orig) + [new]) for orig in df.columns for new in sectors
+    ]
+
+    diag_df = pd.DataFrame(
+        data=diagonalize_blocks(df.values, blocksize=len(sectors)),
+        index=df.index,
+        columns=pd.MultiIndex.from_product(
+            [df.columns, sectors], names=[*df.columns.names, sector_name]
+        ),
+    )
+    return diag_df
+
+
+def diagonalize_blocks(arr: np.array, blocksize: int):
     """Diagonalize sections of columns of an array for the whole array
 
     Parameters
@@ -287,6 +338,29 @@ def diagonalize_blocks(arr, blocksize):
             )
 
     return arr_diag
+
+
+def set_dom_block(df: pd.DataFrame, value: float = 0) -> pd.DataFrame:
+    """Set domestic blocks to value (0 by default)
+
+    Requires that the region is the top index in the multiindex
+    hierarchy (default case in pymrio).
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+    value : float, optional
+
+    Returns
+    -------
+    pd.DataFrame
+
+    """
+    regions = df.index.get_level_values(0).unique()
+    df_res = df.copy()
+    for reg in regions:
+        df_res.loc[reg, reg] = 0
+    return df_res
 
 
 def set_block(arr, arr_block):

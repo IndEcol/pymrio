@@ -10,11 +10,11 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-TESTPATH = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(TESTPATH, ".."))
-
 import pymrio  # noqa
 from pymrio.core.constants import PYMRIO_PATH  # noqa
+
+TESTPATH = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(TESTPATH, ".."))
 
 
 @pytest.fixture()
@@ -361,3 +361,35 @@ def test_reset_to_coefficients(fix_testmrio):
     tt.reset_all_to_coefficients()
     assert tt.Z is None
     assert tt.emissions.F is None
+
+
+# def main():
+#
+#     import pymrio
+#
+#     tt = pymrio.load_test()
+#
+#     tt.rename_regions(
+#         {'reg3': 'cd',
+#         'reg4': 'ab'})
+#
+#     tt.calc_all()
+#
+#     # ee2=tt.emissions.D_cba.groupby(axis=1,level=0).agg(sum)
+#     ee2=tt.emissions.D_cba.groupby(axis=1,level=0, sort=False).agg(sum)
+#
+#     Ycnt=tt.Y.groupby(axis=1,level=0, sort=False).agg(sum)
+#     [D_cba, D_pba, D_imp, D_exp]=pymrio.calc_accounts(tt.emissions.S,tt.L,Ycnt,tt.get_sectors().size)
+#     ee1=D_cba.groupby(axis=1,level=0, sort=False).agg(sum)
+#
+#     # TODO: redo with non-alphabetic region names
+#     # FIX: sort=False for groupby in python
+#
+#     return locals()
+#
+# if __name__ == "__main__":
+#     try:
+#         locals().update(main())
+#     except Exception as e:
+#         raise
+#
