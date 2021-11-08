@@ -410,3 +410,47 @@ def calc_accounts(S, L, Y):
     )
 
     return (D_cba, D_pba, D_imp, D_exp)
+
+
+def calc_trade_flows(Z, Y):
+    """ Calculate the bilateral trade flows from the Z and Y matrix
+
+    Notes
+    ----------
+    Only implemented for DataFrame right now
+    
+    Parameters
+    ----------
+    Z : pandas.DataFrame
+        Symmetric input output table (flows)
+    Y : pandas.DataFrame
+        final demand with categories (1.order) for each country (2.order)
+
+    Returns
+    -------
+    pandas.DataFrame
+        bilateral trade flows as a matrix showing region and sector of origin in rows, and region of import in columns
+                
+
+    """
+    nr_sectors = Y.index.unique(level=1).size
+    nr_fd = Y.columns.unique(level=1).size
+    
+    # for the traded accounts set the domestic industry output to zero
+    dom_block_z = np.zeros((nr_sectors, nr_sectors))
+    Z_trade_blocks = pd.DataFrame(ioutil.set_block(Z.values, dom_block_z),
+                                  index=Z.index, columns= Z.columns)
+    Z_trade_agg = Z_trade_blocks.groupby(axis=1,level=0,sort=False).agg(sum)
+    
+    dom_block_y = np.zeros((nr_sectors, nr_fd))
+    Y_trade_blocks = pd.DataFrame(ioutil.set_block(Y.values, dom_block_y),
+                                  index=Y.index, columns= Y.columns)
+    Y_trade_agg = Y_trade_blocks.groupby(axis=1,level=0,sort=False).agg(sum)
+        
+    x_bilat = Z_trade_agg+Y_trade_agg
+    
+    gross_imports = x_bilat.groupby(axis=0,level=1,sort=False).agg(sum)
+    gross_exports = pd.DataFrame(x_bilat.sum(axis=1),columns=['gross exports'])
+    
+
+    return (x_bilat,gross_imports,gross_exports)
