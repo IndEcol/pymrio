@@ -23,6 +23,7 @@ from pymrio.tools.iomath import calc_L  # noqa
 from pymrio.tools.iomath import calc_M  # noqa
 from pymrio.tools.iomath import calc_S  # noqa
 from pymrio.tools.iomath import calc_S_Y  # noqa
+from pymrio.tools.iomath import calc_trade_flows  # noqa
 from pymrio.tools.iomath import calc_x  # noqa
 from pymrio.tools.iomath import calc_x_from_L  # noqa
 from pymrio.tools.iomath import calc_Z  # noqa
@@ -570,6 +571,26 @@ def test_calc_F_Y_MRIO(td_small_MRIO):
 
 def test_calc_M_MRIO(td_small_MRIO):
     pdt.assert_frame_equal(td_small_MRIO.M, calc_M(td_small_MRIO.S, td_small_MRIO.L))
+
+
+def test_calc_trade_flows_MRIO(td_small_MRIO):
+    trade_flows = calc_trade_flows(td_small_MRIO.Z, td_small_MRIO.Y)
+
+    reg1sec2trade = (
+        td_small_MRIO.Z.loc[("reg1", "sector2"), "reg2"].sum()
+        + td_small_MRIO.Y.loc[("reg1", "sector2"), "reg2"].sum()
+    )
+
+    total_exports_reg1 = td_small_MRIO.Z.loc["reg1", "reg2"].sum(
+        axis=1
+    ) + td_small_MRIO.Y.loc["reg1", "reg2"].sum(axis=1)
+
+    assert trade_flows.flows.loc[("reg1", "sector2"), "reg2"] == reg1sec2trade
+    pdt.assert_series_equal(
+        trade_flows.gross_totals.loc["reg1", "exports"],
+        total_exports_reg1,
+        check_names=False,
+    )
 
 
 def test_calc_accounts_MRIO(td_small_MRIO):

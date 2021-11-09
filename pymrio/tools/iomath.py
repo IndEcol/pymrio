@@ -8,7 +8,9 @@ To avoid namespace pollution everythin here starts with calc_
 
 """
 
+import typing
 import warnings
+from collections import namedtuple
 
 import numpy as np
 import pandas as pd
@@ -210,6 +212,13 @@ def calc_S(F, x):
 def calc_S_Y(F_Y, y):
     """Calculate extensions/factor inputs coefficients for the final demand
 
+    Note
+    ----
+    F_Y will be restricted to the item available in y for the calculation. This
+    allows to use a subset of Y (just some regions for example) to be used for
+    the calculations. Only works when using pandas DataFrames/Series.
+
+
     Parameters
     ----------
     F_Y : pandas.DataFrame or numpy.array
@@ -225,7 +234,11 @@ def calc_S_Y(F_Y, y):
         If DataFrame index/columns as F
 
     """
-    return calc_A(F_Y, y)
+    if type(F_Y) is pd.DataFrame and type(y) is (pd.Series or pd.DataFrame):
+        F_Y_calc = F_Y.loc[:, y.index]
+    else:
+        F_Y_calc = F_Y
+    return calc_A(F_Y_calc, y)
 
 
 def calc_F(S, x):
@@ -252,6 +265,12 @@ def calc_F(S, x):
 def calc_F_Y(S_Y, y):
     """Calc. total direct impacts from the impact coefficients of final demand
 
+    Note
+    ----
+    S_Y will be restricted to the item available in y for the calculation. This
+    allows to use a subset of Y (just some regions for example) to be used for
+    the calculations. Only works when using pandas DataFrames/Series.
+
     Parameters
     ----------
     S_Y : pandas.DataFrame or numpy.array
@@ -267,7 +286,12 @@ def calc_F_Y(S_Y, y):
         If DataFrame index/columns as S_Y
 
     """
-    return calc_Z(S_Y, y)
+    if type(S_Y) is pd.DataFrame and type(y) is (pd.Series or pd.DataFrame):
+        S_Y_calc = S_Y.loc[:, y.index]
+    else:
+        S_Y_calc = S_Y
+
+    return calc_Z(S_Y_calc, y)
 
 
 def calc_M(S, L):
@@ -361,7 +385,7 @@ def calc_accounts(S, L, Y):
         Direct impact coefficients
     Y : pandas.DataFrame
         Final demand: aggregated across categories or just one category, one
-        column per country
+        column per country. Shape: rows as L, Y with just region names
 
     Returns
     -------
@@ -381,6 +405,10 @@ def calc_accounts(S, L, Y):
     # this results in a disaggregated y with final demand per country per
     # sector in one column
 
+    if isinstance(Y.columns, pd.MultiIndex):
+        raise ValueError(
+            "Column index of Y can not be a MultiIndex - aggregate the columns"
+        )
     Y_diag = ioutil.diagonalize_columns_to_sectors(Y)
     x_diag = L @ Y_diag
 
@@ -412,46 +440,54 @@ def calc_accounts(S, L, Y):
     return (D_cba, D_pba, D_imp, D_exp)
 
 
-def calc_trade_flows(Z, Y):
+def calc_trade_flows(
+    Z: pd.DataFrame, Y: pd.DataFrame
+) -> typing.NamedTuple(
+    "bilat_trade_flows", [("flows", pd.DataFrame), ("gross_totals", pd.DataFrame)]
+):
     """Calculate the bilateral trade flows from the Z and Y matrix
+
+    This are the entries of Z and Y with the domestic blocks set to 0.
 
     Notes
     ----------
-    Only implemented for DataFrame right now
+    This only works for DataFrame representation of Z and Y following the
+    standard pymrio Z/Y structure (regions on Multiindex level 0, nr_sectors on
+    Multiindex level 1).
 
     Parameters
     ----------
     Z : pandas.DataFrame
         Symmetric input output table (flows)
     Y : pandas.DataFrame
-        final demand with categories (1.order) for each country (2.order)
+        final demand with regions (multiindex level 1) and categories (level 2)
 
     Returns
     -------
-    pandas.DataFrame
-        bilateral trade flows as a matrix showing region and sector of origin in rows, and region of import in columns
+    namedtuple (with two DataFrames)
+        A NamedTuple with two fields:
+
+            - bilat_trade_flows: df with rows: exporting country and sector,
+              columns: importing countries
+            - gross_totals: df with gross total imports and exports per sector
+              and region
 
 
     """
-    nr_sectors = Y.index.unique(level=1).size
-    nr_fd = Y.columns.unique(level=1).size
 
-    # for the traded accounts set the domestic industry output to zero
-    dom_block_z = np.zeros((nr_sectors, nr_sectors))
-    Z_trade_blocks = pd.DataFrame(
-        ioutil.set_block(Z.values, dom_block_z), index=Z.index, columns=Z.columns
-    )
+    Z_trade_blocks = ioutil.set_dom_block(Z, value=0)
+    Y_trade_blocks = ioutil.set_dom_block(Y, value=0)
+
     Z_trade_agg = Z_trade_blocks.groupby(axis=1, level=0, sort=False).agg(sum)
-
-    dom_block_y = np.zeros((nr_sectors, nr_fd))
-    Y_trade_blocks = pd.DataFrame(
-        ioutil.set_block(Y.values, dom_block_y), index=Y.index, columns=Y.columns
-    )
     Y_trade_agg = Y_trade_blocks.groupby(axis=1, level=0, sort=False).agg(sum)
 
     x_bilat = Z_trade_agg + Y_trade_agg
 
-    gross_imports = x_bilat.groupby(axis=0, level=1, sort=False).agg(sum)
-    gross_exports = pd.DataFrame(x_bilat.sum(axis=1), columns=["gross exports"])
+    gross_imports = pd.DataFrame(
+        x_bilat.groupby(axis=0, level=1, sort=False).agg(sum).stack().swaplevel(),
+        columns=["imports"],
+    )
+    gross_exports = pd.DataFrame(x_bilat.sum(axis=1), columns=["exports"])  # CORRECT
+    gross_totals = gross_imports.join(gross_exports)
 
-    return (x_bilat, gross_imports, gross_exports)
+    return namedtuple("bilat_trade_flows", "flows gross_totals")(x_bilat, gross_totals)

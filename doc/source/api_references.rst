@@ -125,6 +125,7 @@ directly on the Extensions.
    IOSystem.get_Y_categories
    IOSystem.get_index
    IOSystem.set_index
+   IOSystem.get_bilateral_trade
    Extension.get_rows
 
 
@@ -166,6 +167,7 @@ numpy array.
    calc_M
    calc_e
    calc_accounts
+   calc_trade_flows
 
 
 *********************************

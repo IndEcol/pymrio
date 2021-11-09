@@ -13,6 +13,7 @@ import logging
 import re
 import string
 import time
+import typing
 import warnings
 from pathlib import Path
 
@@ -32,6 +33,7 @@ from pymrio.tools.iomath import (
     calc_M,
     calc_S,
     calc_S_Y,
+    calc_trade_flows,
     calc_x,
     calc_x_from_L,
     calc_Z,
@@ -984,13 +986,6 @@ class Extension(CoreSystem):
 
         # calc accounts per capita if population data is available
         if population is not None:
-            if type(population) is pd.DataFrame:
-                # check for right order:
-                if population.columns.tolist() != self.D_cba_reg.columns.tolist():
-                    logging.warning(
-                        "Population regions are inconsistent with IO regions"
-                    )
-                population = population.values
 
             if (
                 (self.D_cba_cap is None)
@@ -998,15 +993,18 @@ class Extension(CoreSystem):
                 or (self.D_imp_cap is None)
                 or (self.D_exp_cap is None)
             ):
-                self.D_cba_cap = self.D_cba_reg.dot(np.diagflat(1.0 / population))
-                self.D_pba_cap = self.D_pba_reg.dot(np.diagflat(1.0 / population))
-                self.D_imp_cap = self.D_imp_reg.dot(np.diagflat(1.0 / population))
-                self.D_exp_cap = self.D_exp_reg.dot(np.diagflat(1.0 / population))
-
-                self.D_cba_cap.columns = self.D_cba_reg.columns
-                self.D_pba_cap.columns = self.D_pba_reg.columns
-                self.D_imp_cap.columns = self.D_imp_reg.columns
-                self.D_exp_cap.columns = self.D_exp_reg.columns
+                self.D_cba_cap = (
+                    self.D_cba_reg / population.iloc[0][self.D_cba_reg.columns]
+                )
+                self.D_pba_cap = (
+                    self.D_pba_reg / population.iloc[0][self.D_pba_reg.columns]
+                )
+                self.D_imp_cap = (
+                    self.D_imp_reg / population.iloc[0][self.D_imp_reg.columns]
+                )
+                self.D_exp_cap = (
+                    self.D_exp_reg / population.iloc[0][self.D_exp_reg.columns]
+                )
 
                 logging.debug("{} - Accounts D per capita calculated".format(self.name))
         return self
@@ -1679,6 +1677,8 @@ class IOSystem(CoreSystem):
     name : string, optional, DEPRECATED
         Name of the IOSystem, default is 'IO'
         Will be removed in future versions - all data in meta
+    population: pandas.DataFrame, optional
+        DataFrame with row 'Population' and columns following region names of Z
 
     **kwargs : dictonary
         Extensions are given as dictionaries and will be passed to the
@@ -1762,6 +1762,28 @@ class IOSystem(CoreSystem):
             return self.meta.name
         except AttributeError:
             return "undef"
+
+    def get_bilateral_trade(
+        self,
+    ) -> typing.NamedTuple(
+        "bilat_trade_flows", [("flows", pd.DataFrame), ("gross_totals", pd.DataFrame)]
+    ):
+        """Returns the bilateral and gross total trade flows
+
+        These are the entries of Z and Y with the domestic blocks set to 0.
+
+        Returns
+        -------
+        namedtuple (with two pandas DataFrames)
+            A namedTuple with two fields:
+
+                - bilat_trade_flows: df with rows: exporting country and
+                  sector, columns: importing countries
+                - gross_totals: df with gross total imports and exports per
+                  sector and region
+
+        """
+        return calc_trade_flows(Z=self.Z, Y=self.Y)
 
     def calc_all(self):
         """
@@ -1962,6 +1984,25 @@ class IOSystem(CoreSystem):
         self.reset_full(force=force)
         [ee.reset_full(force=force) for ee in self.get_extensions(data=True)]
         self.meta._add_modify("Reset all calculated data")
+        return self
+
+    def reset_extensions(self, force=False):
+        """Resets all extensions - preparation for recalculation with a new Y
+
+        This calls reset_full for all extension.
+        If only a specific extension should be recalulated call reset_full on the
+        extension directly.
+
+        Parameters
+        ----------
+
+        force: boolean, optional
+            If True, reset to flows although the system can not be
+            recalculated. Default: False
+
+        """
+        [ee.reset_full(force=force) for ee in self.get_extensions(data=True)]
+        self.meta._add_modify("Reset all extenions data")
         return self
 
     def reset_to_flows(self, force=False):

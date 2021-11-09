@@ -7,11 +7,11 @@
 
 # format
 isort --project pymrio --profile black .
-black .
+black . 
 
 # test
 coverage erase
-isort --profile black --check-only .
+isort --check-only --profile black .
 coverage run -m pytest --black -vv .
 coverage report 
 

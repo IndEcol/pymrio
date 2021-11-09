@@ -57,6 +57,7 @@ from pymrio.tools.iomath import (
     calc_M,
     calc_S,
     calc_S_Y,
+    calc_trade_flows,
     calc_x,
     calc_x_from_L,
     calc_Z,
