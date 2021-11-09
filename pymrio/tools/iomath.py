@@ -212,6 +212,13 @@ def calc_S(F, x):
 def calc_S_Y(F_Y, y):
     """Calculate extensions/factor inputs coefficients for the final demand
 
+    Note
+    ----
+    F_Y will be restricted to the item available in y for the calculation. This
+    allows to use a subset of Y (just some regions for example) to be used for
+    the calculations. Only works when using pandas DataFrames/Series.
+
+
     Parameters
     ----------
     F_Y : pandas.DataFrame or numpy.array
@@ -227,7 +234,11 @@ def calc_S_Y(F_Y, y):
         If DataFrame index/columns as F
 
     """
-    return calc_A(F_Y, y)
+    if type(F_Y) is pd.DataFrame and type(y) is (pd.Series or pd.DataFrame):
+        F_Y_calc = F_Y.loc[:, y.index]
+    else:
+        F_Y_calc = F_Y
+    return calc_A(F_Y_calc, y)
 
 
 def calc_F(S, x):
@@ -254,6 +265,12 @@ def calc_F(S, x):
 def calc_F_Y(S_Y, y):
     """Calc. total direct impacts from the impact coefficients of final demand
 
+    Note
+    ----
+    S_Y will be restricted to the item available in y for the calculation. This
+    allows to use a subset of Y (just some regions for example) to be used for
+    the calculations. Only works when using pandas DataFrames/Series.
+
     Parameters
     ----------
     S_Y : pandas.DataFrame or numpy.array
@@ -269,7 +286,12 @@ def calc_F_Y(S_Y, y):
         If DataFrame index/columns as S_Y
 
     """
-    return calc_Z(S_Y, y)
+    if type(S_Y) is pd.DataFrame and type(y) is (pd.Series or pd.DataFrame):
+        S_Y_calc = S_Y.loc[:, y.index]
+    else:
+        S_Y_calc = S_Y
+
+    return calc_Z(S_Y_calc, y)
 
 
 def calc_M(S, L):

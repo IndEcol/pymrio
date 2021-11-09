@@ -221,8 +221,8 @@ def test_copy_and_extensions(fix_testmrio):
 def test_get_row_data(fix_testmrio):
     stressor = ("emission_type1", "air")
     tt = fix_testmrio.testmrio.copy().calc_all()
-    td = tt.emissions.get_row_data(stressor)["D_cba_reg"]
-    md = pd.DataFrame(tt.emissions.D_cba_reg.loc[stressor])
+    td = tt.emissions.get_row_data(stressor)["D_exp_reg"]
+    md = pd.DataFrame(tt.emissions.D_exp_reg.loc[stressor])
     pdt.assert_frame_equal(td, md)
 
     for df_name in tt.emissions.get_DataFrame():
@@ -272,10 +272,10 @@ def test_characterize_extension(fix_testmrio):
         (t_calc.emissions.D_imp.loc[("emission_type1", "air"), :] / 1000).sum(),
     )
     npt.assert_allclose(
-        ex_calc.D_cba.loc["air water impact"].sum(),
+        ex_calc.D_exp.loc["air water impact"].sum(),
         (
-            (t_calc.emissions.D_cba.loc[("emission_type1", "air"), :] * 2 / 1000)
-            + (t_calc.emissions.D_cba.loc[("emission_type2", "water"), :] * 1 / 1000)
+            (t_calc.emissions.D_exp.loc[("emission_type1", "air"), :] * 2 / 1000)
+            + (t_calc.emissions.D_exp.loc[("emission_type2", "water"), :] * 1 / 1000)
         ).sum(),
     )
 
@@ -375,7 +375,7 @@ def test_reset_all_full(fix_testmrio):
     tt.reset_all_full()
     assert tt.A is None
     assert tt.emissions.S is None
-    assert tt.emissions.D_cba is None
+    assert tt.emissions.D_exp is None
     tt.Z = None
     with pytest.raises(pymrio.core.mriosystem.ResetError):
         tt.reset_all_full()
@@ -391,33 +391,42 @@ def test_reset_to_coefficients(fix_testmrio):
     assert tt.emissions.F is None
 
 
-# def main():
-#
-#     import pymrio
-#
-#     tt = pymrio.load_test()
-#
-#     tt.rename_regions(
-#         {'reg3': 'cd',
-#         'reg4': 'ab'})
-#
-#     tt.calc_all()
-#
-#     # ee2=tt.emissions.D_cba.groupby(axis=1,level=0).agg(sum)
-#     ee2=tt.emissions.D_cba.groupby(axis=1,level=0, sort=False).agg(sum)
-#
-#     Ycnt=tt.Y.groupby(axis=1,level=0, sort=False).agg(sum)
-#     [D_cba, D_pba, D_imp, D_exp]=pymrio.calc_accounts(tt.emissions.S,tt.L,Ycnt,tt.get_sectors().size)
-#     ee1=D_cba.groupby(axis=1,level=0, sort=False).agg(sum)
-#
-#     # TODO: redo with non-alphabetic region names
-#     # FIX: sort=False for groupby in python
-#
-#     return locals()
-#
-# if __name__ == "__main__":
-#     try:
-#         locals().update(main())
-#     except Exception as e:
-#         raise
-#
+def test_extension_reset_with_rename(fix_testmrio):
+    orig = fix_testmrio.testmrio
+    orig.calc_all()
+
+    new = orig.copy()
+    new.reset_extensions()
+    new.Y = new.Y.loc[:, ["reg2", "reg3"]]
+    new.calc_all()
+
+    pdt.assert_frame_equal(new.A, orig.A)
+
+    pdt.assert_frame_equal(new.emissions.D_cba["reg2"], orig.emissions.D_cba["reg2"])
+    pdt.assert_frame_equal(new.emissions.D_imp["reg2"], orig.emissions.D_imp["reg2"])
+
+    assert orig.emissions.D_exp_reg.reg1.sum() > new.emissions.D_exp_reg.reg1.sum()
+
+    orig_rename = orig.copy()
+    orig_rename.reset_extensions()
+    orig_rename.rename_regions({"reg3": "cd", "reg4": "ab"})
+
+    orig_rename.calc_all()
+    pdt.assert_frame_equal(
+        orig.emissions.D_imp["reg3"], orig_rename.emissions.D_imp["cd"]
+    )
+    new_rename = orig_rename.copy().reset_extensions()
+    new_rename.Y = new_rename.Y.loc[:, ["reg2", "cd", "ab"]]
+    new_rename.calc_all()
+    pdt.assert_frame_equal(
+        new_rename.emissions.D_imp["reg2"], orig_rename.emissions.D_imp["reg2"]
+    )
+    pdt.assert_frame_equal(
+        new_rename.emissions.D_cba["cd"], orig_rename.emissions.D_cba["cd"]
+    )
+    pdt.assert_frame_equal(
+        new_rename.emissions.D_cba["ab"], orig_rename.emissions.D_cba["ab"]
+    )
+    pdt.assert_frame_equal(
+        orig.emissions.D_cba["reg4"], new_rename.emissions.D_cba["ab"]
+    )
