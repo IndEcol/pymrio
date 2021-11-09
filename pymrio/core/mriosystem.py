@@ -10,6 +10,7 @@ import collections
 import copy
 import json
 import logging
+import typing
 import re
 import string
 import time
@@ -26,6 +27,7 @@ from pymrio.core.constants import DEFAULT_FILE_NAMES, GENERIC_NAMES, MISSING_AGG
 from pymrio.tools.iomath import (
     calc_A,
     calc_accounts,
+    calc_trade_flows,
     calc_F,
     calc_F_Y,
     calc_L,
@@ -1762,6 +1764,25 @@ class IOSystem(CoreSystem):
             return self.meta.name
         except AttributeError:
             return "undef"
+
+    def get_bilateral_trade(
+        self,
+    ) -> typing.NamedTuple(
+        "bilat_trade_flows", [("flows", pd.DataFrame), ("gross_totals", pd.DataFrame)]
+    ):
+        """Returns the bilateral and gross total trade flows
+
+        This are the entries of Z and Y with the domestic blocks set to 0.
+
+        Returns
+        -------
+        namedtuple with
+
+            - bilat_trade_flows: df with rows: exporting country and sector, columns: importing countries
+            - gross_totals: df with gross total imports and exports per sector and region
+
+        """
+        return calc_trade_flows(Z=self.Z, Y=self.Y)
 
     def calc_all(self):
         """

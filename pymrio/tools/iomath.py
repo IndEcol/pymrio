@@ -10,6 +10,7 @@ To avoid namespace pollution everythin here starts with calc_
 
 import warnings
 from collections import namedtuple
+import typing
 
 import numpy as np
 import pandas as pd
@@ -413,7 +414,11 @@ def calc_accounts(S, L, Y):
     return (D_cba, D_pba, D_imp, D_exp)
 
 
-def calc_trade_flows(Z, Y):
+def calc_trade_flows(
+    Z: pd.DataFrame, Y: pd.DataFrame
+) -> typing.NamedTuple(
+    "bilat_trade_flows", [("flows", pd.DataFrame), ("gross_totals", pd.DataFrame)]
+):
     """Calculate the bilateral trade flows from the Z and Y matrix
 
     This are the entries of Z and Y with the domestic blocks set to 0.
@@ -434,32 +439,26 @@ def calc_trade_flows(Z, Y):
     Returns
     -------
     namedtuple with
-        
-        - bilat_trade: df with rows: exporting country and sector, columns: importing countries
-        - gross_imports: df with row sectors and column regions, showing the imports to each region
-        - gross_exports: df with row sectors and column regions, showing the imports to each region
 
-
-
-    pandas.DataFrame
-        bilateral trade flows as a matrix showing region and sector of origin in rows, and region of import in columns
+        - bilat_trade_flows: df with rows: exporting country and sector, columns: importing countries
+        - gross_totals: df with gross total imports and exports per sector and region
 
 
     """
 
     Z_trade_blocks = ioutil.set_dom_block(Z, value=0)
     Y_trade_blocks = ioutil.set_dom_block(Y, value=0)
+
     Z_trade_agg = Z_trade_blocks.groupby(axis=1, level=0, sort=False).agg(sum)
     Y_trade_agg = Y_trade_blocks.groupby(axis=1, level=0, sort=False).agg(sum)
 
     x_bilat = Z_trade_agg + Y_trade_agg
 
-    gross_imports = x_bilat.groupby(axis=0, level=1, sort=False).agg(sum).stack().swaplevel()
-    gross_exports = pd.DataFrame(x_bilat.sum(axis=1), columns=["gross exports"])
+    gross_imports = pd.DataFrame(
+        x_bilat.groupby(axis=0, level=1, sort=False).agg(sum).stack().swaplevel(),
+        columns=["imports"],
+    )
+    gross_exports = pd.DataFrame(x_bilat.sum(axis=1), columns=["exports"])  # CORRECT
+    gross_totals = gross_imports.join(gross_exports)
 
-    # import pdb; pdb.set_trace() # DEBUG 
-
-
-    return namedtuple('bilat_trade_flows', 'bilat_trade gross_imports gross_exports')(
-    x_bilat, gross_imports, gross_exports)
-
+    return namedtuple("bilat_trade_flows", "flows gross_totals")(x_bilat, gross_totals)

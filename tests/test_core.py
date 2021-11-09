@@ -66,6 +66,34 @@ def test_copy(fix_testmrio):
     assert e_new.name == "new"
 
 
+def test_get_bilateral_trade(fix_testmrio):
+
+    tt = fix_testmrio.testmrio
+    bilat = tt.get_bilateral_trade()
+    flows = bilat.flows
+    totals = bilat.gross_totals
+
+    reg2mining_exports = (
+        tt.Z.loc[("reg2", "mining"), :].sum()
+        - tt.Z.loc[("reg2", "mining"), "reg2"].sum()
+        + tt.Y.loc[("reg2", "mining"), :].sum()
+        - tt.Y.loc[("reg2", "mining"), "reg2"].sum()
+    )
+
+    assert reg2mining_exports == pytest.approx(totals.exports.loc["reg2", "mining"])
+
+    for reg in tt.get_regions():
+        assert flows.loc[reg, reg].sum().sum() == 0
+
+    reg3trade_imports_from_reg2 = (
+        tt.Z.loc[("reg2", "trade"), "reg3"].sum()
+        + tt.Y.loc[("reg2", "trade"), "reg3"].sum()
+    )
+    assert reg3trade_imports_from_reg2 == pytest.approx(
+        flows.loc[("reg2", "trade"), "reg3"]
+    )
+
+
 def test_get_index(fix_testmrio):
     """Testing the different options for get_index in core.mriosystem"""
     tt = fix_testmrio.testmrio
