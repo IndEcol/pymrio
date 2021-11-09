@@ -4,5 +4,5 @@ matplotlib >= 2.0.0
 requests >= 2.18
 xlrd > 1.1.0 
 openpyxl >= 3.0.6
-docutils >= 0.14
+docutils < 0.18
 
