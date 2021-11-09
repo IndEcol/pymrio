@@ -986,13 +986,6 @@ class Extension(CoreSystem):
 
         # calc accounts per capita if population data is available
         if population is not None:
-            if type(population) is pd.DataFrame:
-                # check for right order:
-                if population.columns.tolist() != self.D_cba_reg.columns.tolist():
-                    logging.warning(
-                        "Population regions are inconsistent with IO regions"
-                    )
-                population = population.values
 
             if (
                 (self.D_cba_cap is None)
@@ -1000,15 +993,18 @@ class Extension(CoreSystem):
                 or (self.D_imp_cap is None)
                 or (self.D_exp_cap is None)
             ):
-                self.D_cba_cap = self.D_cba_reg.dot(np.diagflat(1.0 / population))
-                self.D_pba_cap = self.D_pba_reg.dot(np.diagflat(1.0 / population))
-                self.D_imp_cap = self.D_imp_reg.dot(np.diagflat(1.0 / population))
-                self.D_exp_cap = self.D_exp_reg.dot(np.diagflat(1.0 / population))
-
-                self.D_cba_cap.columns = self.D_cba_reg.columns
-                self.D_pba_cap.columns = self.D_pba_reg.columns
-                self.D_imp_cap.columns = self.D_imp_reg.columns
-                self.D_exp_cap.columns = self.D_exp_reg.columns
+                self.D_cba_cap = (
+                    self.D_cba_reg / population.iloc[0][self.D_cba_reg.columns]
+                )
+                self.D_pba_cap = (
+                    self.D_pba_reg / population.iloc[0][self.D_pba_reg.columns]
+                )
+                self.D_imp_cap = (
+                    self.D_imp_reg / population.iloc[0][self.D_imp_reg.columns]
+                )
+                self.D_exp_cap = (
+                    self.D_exp_reg / population.iloc[0][self.D_exp_reg.columns]
+                )
 
                 logging.debug("{} - Accounts D per capita calculated".format(self.name))
         return self
@@ -1681,6 +1677,8 @@ class IOSystem(CoreSystem):
     name : string, optional, DEPRECATED
         Name of the IOSystem, default is 'IO'
         Will be removed in future versions - all data in meta
+    population: pandas.DataFrame, optional
+        DataFrame with row 'Population' and columns following region names of Z
 
     **kwargs : dictonary
         Extensions are given as dictionaries and will be passed to the
@@ -1983,6 +1981,25 @@ class IOSystem(CoreSystem):
         self.reset_full(force=force)
         [ee.reset_full(force=force) for ee in self.get_extensions(data=True)]
         self.meta._add_modify("Reset all calculated data")
+        return self
+
+    def reset_extensions(self, force=False):
+        """Resets all extensions - preparation for recalculation with a new Y
+
+        This calls reset_full for all extension.
+        If only a specific extension should be recalulated call reset_full on the
+        extension directly.
+
+        Parameters
+        ----------
+
+        force: boolean, optional
+            If True, reset to flows although the system can not be
+            recalculated. Default: False
+
+        """
+        [ee.reset_full(force=force) for ee in self.get_extensions(data=True)]
+        self.meta._add_modify("Reset all extenions data")
         return self
 
     def reset_to_flows(self, force=False):
