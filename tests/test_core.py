@@ -391,6 +391,26 @@ def test_reset_to_coefficients(fix_testmrio):
     assert tt.emissions.F is None
 
 
+def test_direct_account_calc(fix_testmrio):
+    orig = fix_testmrio.testmrio
+    orig.calc_all()
+
+    with pytest.raises(ValueError):
+        (D_cba, D_pba, D_imp, D_exp) = pymrio.calc_accounts(
+            orig.emissions.S, orig.L, orig.Y
+        )
+
+    new = orig.copy().rename_regions({"reg3": "ll", "reg4": "aa"})
+
+    Y_agg = new.Y.groupby(axis=1, level="region", sort=False).agg(sum)
+
+    (D_cba, D_pba, D_imp, D_exp) = pymrio.calc_accounts(new.emissions.S, new.L, Y_agg)
+
+    pdt.assert_frame_equal(orig.emissions.D_cba["reg2"], D_cba["reg2"])
+    pdt.assert_frame_equal(orig.emissions.D_exp["reg4"], D_exp["aa"])
+    pdt.assert_frame_equal(orig.emissions.D_imp["reg3"], D_imp["ll"])
+
+
 def test_extension_reset_with_rename(fix_testmrio):
     orig = fix_testmrio.testmrio
     orig.calc_all()

@@ -385,7 +385,7 @@ def calc_accounts(S, L, Y):
         Direct impact coefficients
     Y : pandas.DataFrame
         Final demand: aggregated across categories or just one category, one
-        column per country
+        column per country. Shape: rows as L, Y with just region names
 
     Returns
     -------
@@ -405,6 +405,10 @@ def calc_accounts(S, L, Y):
     # this results in a disaggregated y with final demand per country per
     # sector in one column
 
+    if isinstance(Y.columns, pd.MultiIndex):
+        raise ValueError(
+            "Column index of Y can not be a MultiIndex - aggregate the columns"
+        )
     Y_diag = ioutil.diagonalize_columns_to_sectors(Y)
     x_diag = L @ Y_diag
 
@@ -448,22 +452,25 @@ def calc_trade_flows(
     Notes
     ----------
     This only works for DataFrame representation of Z and Y following the
-    standard pymrio Z/Y structure (regions on Multiindex level 0, nr_sectors
-        on Multiindex level 1).
+    standard pymrio Z/Y structure (regions on Multiindex level 0, nr_sectors on
+    Multiindex level 1).
 
     Parameters
     ----------
     Z : pandas.DataFrame
         Symmetric input output table (flows)
     Y : pandas.DataFrame
-        final demand with categories (1.order) for each country (2.order)
+        final demand with regions (multiindex level 1) and categories (level 2)
 
     Returns
     -------
-    namedtuple with
+    namedtuple (with two DataFrames)
+        A NamedTuple with two fields:
 
-        - bilat_trade_flows: df with rows: exporting country and sector, columns: importing countries
-        - gross_totals: df with gross total imports and exports per sector and region
+            - bilat_trade_flows: df with rows: exporting country and sector,
+              columns: importing countries
+            - gross_totals: df with gross total imports and exports per sector
+              and region
 
 
     """

@@ -1770,14 +1770,17 @@ class IOSystem(CoreSystem):
     ):
         """Returns the bilateral and gross total trade flows
 
-        This are the entries of Z and Y with the domestic blocks set to 0.
+        These are the entries of Z and Y with the domestic blocks set to 0.
 
         Returns
         -------
-        namedtuple with
+        namedtuple (with two pandas DataFrames)
+            A namedTuple with two fields:
 
-            - bilat_trade_flows: df with rows: exporting country and sector, columns: importing countries
-            - gross_totals: df with gross total imports and exports per sector and region
+                - bilat_trade_flows: df with rows: exporting country and
+                  sector, columns: importing countries
+                - gross_totals: df with gross total imports and exports per
+                  sector and region
 
         """
         return calc_trade_flows(Z=self.Z, Y=self.Y)
