@@ -8,9 +8,9 @@ To avoid namespace pollution everythin here starts with calc_
 
 """
 
+import typing
 import warnings
 from collections import namedtuple
-import typing
 
 import numpy as np
 import pandas as pd

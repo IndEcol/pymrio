@@ -16,7 +16,6 @@ sys.path.append(os.path.join(TESTPATH, ".."))
 # the function which should be tested here
 from pymrio.tools.iomath import calc_A  # noqa
 from pymrio.tools.iomath import calc_accounts  # noqa
-from pymrio.tools.iomath import calc_trade_flows  # noqa
 from pymrio.tools.iomath import calc_e  # noqa
 from pymrio.tools.iomath import calc_F  # noqa
 from pymrio.tools.iomath import calc_F_Y  # noqa
@@ -24,6 +23,7 @@ from pymrio.tools.iomath import calc_L  # noqa
 from pymrio.tools.iomath import calc_M  # noqa
 from pymrio.tools.iomath import calc_S  # noqa
 from pymrio.tools.iomath import calc_S_Y  # noqa
+from pymrio.tools.iomath import calc_trade_flows  # noqa
 from pymrio.tools.iomath import calc_x  # noqa
 from pymrio.tools.iomath import calc_x_from_L  # noqa
 from pymrio.tools.iomath import calc_Z  # noqa

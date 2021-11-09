@@ -10,10 +10,10 @@ import collections
 import copy
 import json
 import logging
-import typing
 import re
 import string
 import time
+import typing
 import warnings
 from pathlib import Path
 
@@ -27,13 +27,13 @@ from pymrio.core.constants import DEFAULT_FILE_NAMES, GENERIC_NAMES, MISSING_AGG
 from pymrio.tools.iomath import (
     calc_A,
     calc_accounts,
-    calc_trade_flows,
     calc_F,
     calc_F_Y,
     calc_L,
     calc_M,
     calc_S,
     calc_S_Y,
+    calc_trade_flows,
     calc_x,
     calc_x_from_L,
     calc_Z,
