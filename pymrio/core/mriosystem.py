@@ -29,11 +29,11 @@ from pymrio.tools.iomath import (
     calc_accounts,
     calc_F,
     calc_F_Y,
+    calc_gross_trade,
     calc_L,
     calc_M,
     calc_S,
     calc_S_Y,
-    calc_trade_flows,
     calc_x,
     calc_x_from_L,
     calc_Z,
@@ -1763,12 +1763,12 @@ class IOSystem(CoreSystem):
         except AttributeError:
             return "undef"
 
-    def get_bilateral_trade(
+    def get_gross_trade(
         self,
     ) -> typing.NamedTuple(
-        "bilat_trade_flows", [("flows", pd.DataFrame), ("gross_totals", pd.DataFrame)]
+        "gross_trade", [("bilat_flows", pd.DataFrame), ("totals", pd.DataFrame)]
     ):
-        """Returns the bilateral and gross total trade flows
+        """Returns the gross bilateral trade flows and totals
 
         These are the entries of Z and Y with the domestic blocks set to 0.
 
@@ -1777,13 +1777,13 @@ class IOSystem(CoreSystem):
         namedtuple (with two pandas DataFrames)
             A namedTuple with two fields:
 
-                - bilat_trade_flows: df with rows: exporting country and
+                - bilat_flows: df with rows: exporting country and
                   sector, columns: importing countries
-                - gross_totals: df with gross total imports and exports per
+                - totals: df with gross total imports and exports per
                   sector and region
 
         """
-        return calc_trade_flows(Z=self.Z, Y=self.Y)
+        return calc_gross_trade(Z=self.Z, Y=self.Y)
 
     def calc_all(self):
         """

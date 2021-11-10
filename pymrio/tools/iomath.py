@@ -440,20 +440,20 @@ def calc_accounts(S, L, Y):
     return (D_cba, D_pba, D_imp, D_exp)
 
 
-def calc_trade_flows(
+def calc_gross_trade(
     Z: pd.DataFrame, Y: pd.DataFrame
 ) -> typing.NamedTuple(
-    "bilat_trade_flows", [("flows", pd.DataFrame), ("gross_totals", pd.DataFrame)]
+    "gross_trade", [("bilat_flows", pd.DataFrame), ("totals", pd.DataFrame)]
 ):
-    """Calculate the bilateral trade flows from the Z and Y matrix
+    """Calculate the gross bilateral trade flows and totals
 
-    This are the entries of Z and Y with the domestic blocks set to 0.
+    These are the entries of Z and Y with the domestic blocks set to 0.
 
     Notes
     ----------
     This only works for DataFrame representation of Z and Y following the
-    standard pymrio Z/Y structure (regions on Multiindex level 0, nr_sectors on
-    Multiindex level 1).
+    standard pymrio structure (regions on Multiindex level 0 or named 'region',
+    sectors/categories on Multiindex level 1 or named 'sector').
 
     Parameters
     ----------
@@ -467,9 +467,9 @@ def calc_trade_flows(
     namedtuple (with two DataFrames)
         A NamedTuple with two fields:
 
-            - bilat_trade_flows: df with rows: exporting country and sector,
+            - bilat_flows: df with rows: exporting country and sector,
               columns: importing countries
-            - gross_totals: df with gross total imports and exports per sector
+            - totals: df with gross total imports and exports per sector
               and region
 
 
@@ -478,16 +478,26 @@ def calc_trade_flows(
     Z_trade_blocks = ioutil.set_dom_block(Z, value=0)
     Y_trade_blocks = ioutil.set_dom_block(Y, value=0)
 
-    Z_trade_agg = Z_trade_blocks.groupby(axis=1, level=0, sort=False).agg(sum)
-    Y_trade_agg = Y_trade_blocks.groupby(axis=1, level=0, sort=False).agg(sum)
+    level_spec_Z = "region" if "region" in Z.columns.names else 0
+    level_spec_Y = "region" if "region" in Y.columns.names else 0
+    Z_trade_agg = Z_trade_blocks.groupby(axis=1, level=level_spec_Z, sort=False).agg(
+        sum
+    )
+    Y_trade_agg = Y_trade_blocks.groupby(axis=1, level=level_spec_Y, sort=False).agg(
+        sum
+    )
 
     x_bilat = Z_trade_agg + Y_trade_agg
 
+    level_spec_x = "sector" if "sector" in x_bilat.index.names else 1
     gross_imports = pd.DataFrame(
-        x_bilat.groupby(axis=0, level=1, sort=False).agg(sum).stack().swaplevel(),
+        x_bilat.groupby(axis=0, level=level_spec_x, sort=False)
+        .agg(sum)
+        .stack()
+        .swaplevel(),
         columns=["imports"],
     )
     gross_exports = pd.DataFrame(x_bilat.sum(axis=1), columns=["exports"])  # CORRECT
     gross_totals = gross_imports.join(gross_exports)
 
-    return namedtuple("bilat_trade_flows", "flows gross_totals")(x_bilat, gross_totals)
+    return namedtuple("gross_trade", "bilat_flows totals")(x_bilat, gross_totals)

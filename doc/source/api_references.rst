@@ -125,7 +125,7 @@ directly on the Extensions.
    IOSystem.get_Y_categories
    IOSystem.get_index
    IOSystem.set_index
-   IOSystem.get_bilateral_trade
+   IOSystem.get_gross_trade
    Extension.get_rows
 
 

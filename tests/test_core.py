@@ -66,12 +66,12 @@ def test_copy(fix_testmrio):
     assert e_new.name == "new"
 
 
-def test_get_bilateral_trade(fix_testmrio):
+def test_get_gross_trade(fix_testmrio):
 
     tt = fix_testmrio.testmrio
-    bilat = tt.get_bilateral_trade()
-    flows = bilat.flows
-    totals = bilat.gross_totals
+    gross_trade = tt.get_gross_trade()
+    flows = gross_trade.bilat_flows
+    totals = gross_trade.totals
 
     reg2mining_exports = (
         tt.Z.loc[("reg2", "mining"), :].sum()
