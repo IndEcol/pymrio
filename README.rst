@@ -142,7 +142,7 @@ The documentation_ includes information about how to use pymrio for automatic do
 Citation
 ========
 
-If you use Pymrio in your research, citing the article describing the 
+If you use Pymrio in your research, citing the article describing the package 
 (`Stadler 2021`_) is very much appreciated. 
 
 .. _`Stadler 2021`: https://openresearchsoftware.metajnl.com/articles/10.5334/jors.251/
