@@ -49,19 +49,19 @@ def _warn_deprecation(message):  # pragma: no cover
 
 # Exceptions
 class ResetError(Exception):
-    """ Base class for errors while reseting the system"""
+    """Base class for errors while reseting the system"""
 
     pass
 
 
 class AggregationError(Exception):
-    """ Base class for errors while reseting the system"""
+    """Base class for errors while reseting the system"""
 
     pass
 
 
 class ResetWarning(UserWarning):
-    """ Base class for errors while reseting the system"""
+    """Base class for errors while reseting the system"""
 
     pass
 
@@ -87,7 +87,7 @@ class CoreSystem:
         return startstr + parastr
 
     def __eq__(self, other):
-        """ Only the dataframes are compared. """
+        """Only the dataframes are compared."""
         for key, item in self.__dict__.items():
             if type(item) is pd.DataFrame:
                 if key not in other.__dict__:
@@ -776,7 +776,7 @@ class Extension(CoreSystem):
         unit=None,
         **kwargs,
     ):
-        """ Init function - see docstring class """
+        """Init function - see docstring class"""
         self.name = name
         self.F = F
         self.F_Y = F_Y
@@ -1370,7 +1370,7 @@ class Extension(CoreSystem):
             plt.ion()
 
     def get_rows(self):
-        """ Returns the name of the rows of the extension """
+        """Returns the name of the rows of the extension"""
         possible_dataframes = [
             "F",
             "F_Y",
@@ -1706,7 +1706,7 @@ class IOSystem(CoreSystem):
         description=None,
         **kwargs,
     ):
-        """ Init function - see docstring class """
+        """Init function - see docstring class"""
         self.Z = Z
         self.Y = Y
         self.x = x
@@ -1744,7 +1744,7 @@ class IOSystem(CoreSystem):
         return super().__str__("IO System with parameters: ")
 
     def __eq__(self, other):
-        """ Only the dataframes are compared. """
+        """Only the dataframes are compared."""
         self_ext = set(self.get_extensions(data=False))
         other_ext = set(other.get_extensions(data=False))
         if len(self_ext.difference(other_ext)) < 0:

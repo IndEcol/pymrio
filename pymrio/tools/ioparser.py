@@ -25,13 +25,13 @@ from pymrio.tools.ioutil import get_repo_content, sniff_csv_format
 
 # Exceptions
 class ParserError(Exception):
-    """ Base class for errors concerning parsing of IO source files """
+    """Base class for errors concerning parsing of IO source files"""
 
     pass
 
 
 class ParserWarning(UserWarning):
-    """ Base class for warnings concerning parsing of IO source files """
+    """Base class for warnings concerning parsing of IO source files"""
 
     pass
 

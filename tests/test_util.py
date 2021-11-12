@@ -109,7 +109,7 @@ def csv_test_files_content():
 
 
 def test_find_first_number():
-    """ Some tests for finding the first number in a sequence"""
+    """Some tests for finding the first number in a sequence"""
     assert find_first_number([0, 1, 2, 3]) == 0
     assert find_first_number(["a", 1, 2, 3]) == 1
     assert find_first_number(["a", 1, "c", 3]) == 1
@@ -151,7 +151,7 @@ def test_build_agg_vec():
 
 
 def test_diagonalize_blocks():
-    """ Tests the numpy implementation of diagonalize_blocks """
+    """Tests the numpy implementation of diagonalize_blocks"""
 
     # arr (df):  output (df): (blocks = [x, y, z])
     #     (all letters are index or header)
@@ -208,7 +208,7 @@ def test_diagonalize_columns_to_sectors():
 
 
 def test_set_block():
-    """ Set block util function """
+    """Set block util function"""
     full_arr = np.random.random((10, 10))
     block_arr = np.zeros((2, 2))
 

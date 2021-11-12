@@ -497,7 +497,9 @@ def calc_gross_trade(
         .swaplevel(),
         columns=["imports"],
     )
-    gross_exports = pd.DataFrame(x_bilat.sum(axis=1), columns=["exports"])  # CORRECT
-    gross_totals = gross_imports.join(gross_exports)
+    gross_exports = pd.DataFrame(x_bilat.sum(axis=1), columns=["exports"])
+
+    # gross_exports first as the swaplevel in gross_imports rearanges sectors!
+    gross_totals = gross_exports.join(gross_imports)
 
     return namedtuple("gross_trade", "bilat_flows totals")(x_bilat, gross_totals)

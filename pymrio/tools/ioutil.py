@@ -408,7 +408,7 @@ def set_block(arr, arr_block):
 
 
 def unique_element(ll):
-    """ returns unique elements from a list preserving the original order """
+    """returns unique elements from a list preserving the original order"""
     seen = {}
     result = []
     for item in ll:
@@ -535,7 +535,7 @@ def build_agg_vec(agg_vec, **source):
 
 
 def find_first_number(ll):
-    """ Returns nr of first entry parseable to float in ll, None otherwise"""
+    """Returns nr of first entry parseable to float in ll, None otherwise"""
     for nr, entry in enumerate(ll):
         try:
             float(entry)

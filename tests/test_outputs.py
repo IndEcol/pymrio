@@ -37,7 +37,7 @@ def fix_testmrio_calc():
 
 
 def test_graphs_totals(fix_testmrio_calc):
-    """ Testing graph totals """
+    """Testing graph totals"""
     stressor = ("emission_type1", "air")
     tt = fix_testmrio_calc.testmrio
     ax = tt.emissions.plot_account(row=stressor)
@@ -60,7 +60,7 @@ def test_graphs_totals(fix_testmrio_calc):
 
 
 def test_graphs_population_sector(fix_testmrio_calc):
-    """ Testing graph per population for a specific sector """
+    """Testing graph per population for a specific sector"""
     stressor = ("emission_type2", "water")
     sector = "mining"
 
@@ -86,7 +86,7 @@ def test_graphs_population_sector(fix_testmrio_calc):
 
 
 def test_graphs_population_total(fix_testmrio_calc):
-    """ Testing total per population accounts """
+    """Testing total per population accounts"""
     stressor = ("emission_type2", "water")
 
     tt = fix_testmrio_calc.testmrio

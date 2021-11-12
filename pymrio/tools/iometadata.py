@@ -179,15 +179,15 @@ class MRIOMetaData(object):
         self._add_history(entry_type="NOTE", entry=entry)
 
     def _add_fileio(self, entry):
-        """ Add the passed string as FILEIO to the history """
+        """Add the passed string as FILEIO to the history"""
         self._add_history(entry_type="FILEIO", entry=entry)
 
     def _add_modify(self, entry):
-        """ Add the passed string as MODIFICATION to the history """
+        """Add the passed string as MODIFICATION to the history"""
         self._add_history(entry_type="MODIFICATION", entry=entry)
 
     def _add_history(self, entry_type, entry):
-        """ Generic method to add entry as entry_type to the history """
+        """Generic method to add entry as entry_type to the history"""
         meta_string = "{time} - {etype} -  {entry}".format(
             time=self._time(), etype=entry_type.upper(), entry=entry
         )
@@ -201,22 +201,22 @@ class MRIOMetaData(object):
 
     @property
     def history(self):
-        """ All recorded history """
+        """All recorded history"""
         return self._content["history"]
 
     @property
     def modification_history(self):
-        """ All modification history entries """
+        """All modification history entries"""
         return self._get_history_type("MODIFICATION")
 
     @property
     def note_history(self):
-        """ All note history entries """
+        """All note history entries"""
         return self._get_history_type("NOTE")
 
     @property
     def file_io_history(self):
-        """ All fileio history entries """
+        """All fileio history entries"""
         return self._get_history_type("FILEIO")
 
     def _get_history_type(self, history_type):

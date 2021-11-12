@@ -23,7 +23,7 @@ from pymrio.tools.ioutil import get_file_para
 
 # Exceptions
 class ReadError(Exception):
-    """ Base class for errors occuring while reading MRIO data """
+    """Base class for errors occuring while reading MRIO data"""
 
     pass
 
