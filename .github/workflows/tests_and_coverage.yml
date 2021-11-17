@@ -24,7 +24,7 @@ jobs:
         path: ~/conda_pkgs_dir
         key:
           ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
-          hashFiles('environment.yml') }}
+          hashFiles('environment_dev.yml') }}
 
     - name: Setup conda and environment
       uses: conda-incubator/setup-miniconda@v2
@@ -34,7 +34,7 @@ jobs:
           mamba-version: "*"
           channel-priority: true
           activate-environment: coco-dev
-          environment-file: environment.yml
+          environment-file: environment_dev.yml
           use-only-tar-bz2: true   # required for caching
 
     - name: List environment
