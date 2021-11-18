@@ -4,11 +4,12 @@ Changelog
 
 
 ***************************
-v0.4.6dev
+v0.4.6
 ***************************
 
 * Fixed indexing bug in calc_accounts for non-full Y 
 * Added Stadler 2021 reference
+* change github actions testing to development -> production for multiple os
 
 Breaking changes
 ================
