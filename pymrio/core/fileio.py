@@ -415,8 +415,10 @@ def archive(
 
     path_in_arc = "" if not path_in_arc else path_in_arc
 
+    # Not using os.path.join here b/c this adds the wrong
+    # separator when reading the zip in windows
     arc_file_names = {
-        str(f): os.path.join(path_in_arc, str(f.relative_to(source_root)))
+        str(f): (path_in_arc + "/" + str(f.relative_to(source_root))).replace("//", "/")
         for f in source_files
     }
 
