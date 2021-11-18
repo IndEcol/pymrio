@@ -1,10 +1,10 @@
-name: pymrio
+name: pymrio_dev
 channels: 
   - defaults
   - anaconda
   - conda-forge
-  - konstantinstadler
 dependencies: 
+  # core
   - pandas >= 1.0
   - numpy >= 1.20
   - matplotlib >= 2.0.0
@@ -12,7 +12,24 @@ dependencies:
   - xlrd > 1.1.0 
   - openpyxl >= 3.0.6
   - docutils >= 0.14
+  # testing and developing
+  - pdbpp
+  - country_converter >= 0.7.0
+  - pytest=5.4.3
+  - isort >= 5.6.0
+  - pytest-black
+  - pytest-cov
+  - nbval
+  - black >= 20.8b1
+  - ipython
+  - jupyterlab=3
+  - jupytext
+  - coveralls
+  - pynvim
+  - sphinx >= 1.6.4
+  - sphinx_rtd_theme >= 0.2.4
+  - ipykernel
+  - nbsphinx
   - pip
   - pip:
-    - pymrio
-
+    - pandasgui

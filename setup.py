@@ -21,11 +21,13 @@ setup(
     },
     # This some needs to be here and in requirments.txt (for conda)
     install_requires=[
-        "pandas >= 0.25.0",
+        "pandas >= 1.0",
+        "numpy >= 1.20",
         "matplotlib >= 2.0.0",
         "requests >= 2.18",
-        "numpy >= 1.13.4",
-        "xlrd >= 1.1.0",
+        "xlrd > 1.1.0 ",
+        "openpyxl >= 3.0.6",
+        "docutils >= 0.14",
     ],
     classifiers=[
         "Programming Language :: Python :: 3.7",
