@@ -10,6 +10,11 @@ v0.4.6dev
 * Fixed indexing bug in calc_accounts for non-full Y 
 * Added Stadler 2021 reference
 
+Breaking changes
+================
+
+* dropped support for Python 3.6
+
 ***************************
 v0.4.5 (March 03, 2021) 
 ***************************
