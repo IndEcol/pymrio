@@ -1,0 +1,13 @@
+ExioNumber	ExioName	ExioCode	ExioLabel
+201	Taxes less subsidies on products purchased: Total	w01	T_TLSA
+202	Taxes on products purchased	w01.a	T_TAXA
+203	Subsidies on products purchased	w01.b	T_SUBA
+204	Other net taxes on production	w02	V_ONTP
+205	Compensation of employees; wages, salaries, & employers' social contributions: Total	w03	V_WAGE
+206	Compensation of employees; wages, salaries, & employers' social contributions: Low-skilled	w03.a	V_WALS
+207	Compensation of employees; wages, salaries, & employers' social contributions: Medium-skilled	w03.b	V_WAMS
+208	Compensation of employees; wages, salaries, & employers' social contributions: High-skilled	w03.c	V_WAHS
+209	Operating surplus: Consumption of fixed capital	w04.a	V_COFC
+210	Operating surplus: Rents on land	w04.b	V_RENL
+211	Operating surplus: Royalties on resources	w04.c	V_ROYR
+212	Operating surplus: Remaining net operating surplus	w04.d	V_NOPS
