@@ -1,0 +1,8 @@
+TestMrioNumber	TestMrioName	Type
+1	Final consumption expenditure by households	expenditure
+2	Final consumption expenditure by non-profit organisations serving households (NPISH)	expenditure
+3	Final consumption expenditure by government	expenditure
+4	Gross fixed capital formation	capital 
+5	Changes in inventories	capital
+6	Changes in valuables	capital
+7	Export	export
