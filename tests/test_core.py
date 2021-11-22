@@ -67,7 +67,6 @@ def test_copy(fix_testmrio):
 
 
 def test_get_gross_trade(fix_testmrio):
-
     tt = fix_testmrio.testmrio
     gross_trade = tt.get_gross_trade()
     flows = gross_trade.bilat_flows
@@ -189,7 +188,7 @@ def test_rename_regions(fix_testmrio):
     assert fix_testmrio.testmrio.get_regions()[2] == new_reg_list[2]
 
 
-def test_rename_sectors(fix_testmrio):
+def test_rename_random_sectors(fix_testmrio):
     new_sec_name = "yummy"
     new_sec_list = ["s1", "s2", "s3", "s4", "s5", "s6"]
     fix_testmrio.testmrio.rename_sectors({"food": new_sec_name})
@@ -197,6 +196,12 @@ def test_rename_sectors(fix_testmrio):
     fix_testmrio.testmrio.rename_sectors(new_sec_list)
     assert fix_testmrio.testmrio.get_sectors()[0] == new_sec_list[0]
     assert fix_testmrio.testmrio.get_sectors()[4] == new_sec_list[4]
+
+
+def test_rename_sector_with_io_info(fix_testmrio):
+    fix_testmrio.testmrio.rename_sectors(pymrio.testmrio.sectornames.numbers)
+    assert fix_testmrio.testmrio.get_sectors()[0] == 1
+    pass
 
 
 def test_rename_Ycat(fix_testmrio):
@@ -450,3 +455,8 @@ def test_extension_reset_with_rename(fix_testmrio):
     pdt.assert_frame_equal(
         orig.emissions.D_cba["reg4"], new_rename.emissions.D_cba["ab"]
     )
+
+def test_class_getter():
+     with pytest.raises(ValueError):
+         _ = pymrio.ClassData('foo')
+   

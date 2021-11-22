@@ -66,3 +66,5 @@ from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioparser import *
 from pymrio.tools.ioutil import build_agg_matrix, build_agg_vec
 from pymrio.version import __version__
+
+from pymrio.core.constants import ClassData

@@ -1,0 +1,8 @@
+ExioNumber	ExioName	ExioCode	ExioLabel	Type
+164	Final consumption expenditure by households	y01	F_HOUS	Expenditure
+165	Final consumption expenditure by non-profit organisations serving households (NPISH)	y02.a	F_NPSH	Expenditure
+166	Final consumption expenditure by government	y02.b	F_GOVE	Expenditure
+167	Gross fixed capital formation	y04	I_GFCF	Capital
+168	Changes in inventories	y05.a	I_CHIN	Capital
+169	Changes in valuables	y05.b	I_CHVA	Capital
+170	Exports: Total (fob)	y06	X_TOTA	Export
