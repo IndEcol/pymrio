@@ -868,7 +868,7 @@ def load_test():
     # the population data - this is optional (None can be passed if no data is
     # available)
     popdata = pd.read_csv(
-        os.path.join(PYMRIO_PATH["test_mrio"], "./population.txt"),
+        PYMRIO_PATH["test_mrio_data"] / "population.txt",
         index_col=0,
         sep="\t",
     ).astype(float)
