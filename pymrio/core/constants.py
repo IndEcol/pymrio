@@ -36,6 +36,3 @@ MISSING_AGG_ENTRY = {
     "region": "Unspecified region",
     "sector": "Unspecified sector",
 }
-
-
-

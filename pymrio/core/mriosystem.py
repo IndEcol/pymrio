@@ -2094,8 +2094,8 @@ class IOSystem(CoreSystem):
             )
         return self
 
-    def aggregate_duplicates(self,inplace=True):
-        """ Aggregate duplicated regions and sectors
+    def aggregate_duplicates(self, inplace=True):
+        """Aggregate duplicated regions and sectors
 
         Alternative approach to aggregate MRIO by renaming sectors/regions
         in place and then adding them together. This works well if used with the included classification schemes.
@@ -2126,16 +2126,19 @@ class IOSystem(CoreSystem):
                 "do a 'calc_all' before aggregation"
             )
 
-
-        def agg_routine(df): 
-            """ Aggregation of duplicate columns and rows
-            """
+        def agg_routine(df):
+            """Aggregation of duplicate columns and rows"""
             _index_names = df.index.names
             _columns_names = df.columns.names
-            if (type(df.columns[0]) is not tuple) and df.columns[0].lower() == 'unit':
+            if (type(df.columns[0]) is not tuple) and df.columns[0].lower() == "unit":
                 df = df.groupby(df.index, axis=0, sort=False).first()
             else:
-                df = df.groupby(df.index, axis=0, sort=False).sum().groupby(df.columns, axis=1, sort=False).sum()
+                df = (
+                    df.groupby(df.index, axis=0, sort=False)
+                    .sum()
+                    .groupby(df.columns, axis=1, sort=False)
+                    .sum()
+                )
 
             if type(df.index[0]) is tuple:
                 df.index = pd.MultiIndex.from_tuples(df.index, names=_index_names)
@@ -2150,13 +2153,15 @@ class IOSystem(CoreSystem):
         # Aggregate extension
         for ext in self.get_extensions(data=True):
             for df_to_agg_name in ext.get_DataFrame(data=False, with_unit=False):
-                self.meta._add_modify(f"Aggregate extension {ext.name} - {df_to_agg_name}")
-                setattr(ext, df_to_agg_name, agg_routine(df=getattr(ext, df_to_agg_name)))
+                self.meta._add_modify(
+                    f"Aggregate extension {ext.name} - {df_to_agg_name}"
+                )
+                setattr(
+                    ext, df_to_agg_name, agg_routine(df=getattr(ext, df_to_agg_name))
+                )
 
         if not inplace:
-            return self 
-
-
+            return self
 
     def aggregate(
         self,

@@ -39,6 +39,7 @@ import sys
 
 from pymrio.core.fileio import *
 from pymrio.core.mriosystem import Extension, IOSystem, concate_extension
+from pymrio.tools.ioclass import ClassificationData, get_classification
 from pymrio.tools.iodownloader import (
     download_eora26,
     download_exiobase1,
@@ -66,5 +67,3 @@ from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioparser import *
 from pymrio.tools.ioutil import build_agg_matrix, build_agg_vec
 from pymrio.version import __version__
-
-from pymrio.tools.ioclass import ClassificationData, get_classification

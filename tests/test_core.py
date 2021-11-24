@@ -204,15 +204,20 @@ def test_rename_sector_with_io_info(fix_testmrio):
 
     classdata = pymrio.get_classification("test")
     corr_dict = classdata.get_sector_dict(orig="TestMrioName", new="TestMrioCode")
-    corr_dict2 = classdata.get_sector_dict(orig=fix_testmrio.testmrio.get_sectors(), new="TestMrioCode")
+    corr_dict2 = classdata.get_sector_dict(
+        orig=fix_testmrio.testmrio.get_sectors(), new="TestMrioCode"
+    )
 
     assert corr_dict == corr_dict2
 
     fix_testmrio.testmrio.rename_sectors(corr_dict)
 
-    assert fix_testmrio.testmrio.get_sectors()[3] == classdata.sectors.iloc[3,:].loc['TestMrioCode']
+    assert (
+        fix_testmrio.testmrio.get_sectors()[3]
+        == classdata.sectors.iloc[3, :].loc["TestMrioCode"]
+    )
 
-    
+
 def test_rename_Ycat(fix_testmrio):
     new_cat_name = "HouseCons"
     new_cat_list = ["y1", "y2", "y3", "y4", "y5", "y6", "y7"]

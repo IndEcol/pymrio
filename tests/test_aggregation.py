@@ -19,8 +19,6 @@ sys.path.append(os.path.join(TESTPATH, ".."))
 import pymrio  # noqa
 
 
-
-
 def test_aggreation_regions():
     """Testing aggregation of regions in various ways"""
     # All these representations should lead to the same results
@@ -112,10 +110,8 @@ def test_aggreation_regions():
     assert io_agg.unit.index.equals(io_agg.Z.index)
 
 
-
 def test_aggreation_sectors():
-    """ Test different possibilities to aggregate sectors
-    """
+    """Test different possibilities to aggregate sectors"""
 
     sec_agg_df = pd.DataFrame(
         data=[
@@ -127,18 +123,27 @@ def test_aggreation_sectors():
             ("trade", "marg"),
             ("transport", "marg"),
             ("other", "misc"),
-        ],    
+        ],
         columns=["original", "aggregated"],
     )
     io = pymrio.load_test()
     io_agg = io.aggregate(sector_agg=sec_agg_df, inplace=False)
 
-    test_sectors  = ['manufactoring', 'construction']
-    assert io.Z.loc['reg2', 'reg2'].loc[test_sectors, test_sectors].sum().sum() == io_agg.Z.loc['reg2', 'reg2'].loc['build', 'build']
-    assert io.Y.loc['reg2', 'reg2'].loc[test_sectors, :].sum().sum() == io_agg.Y.loc['reg2', 'reg2'].loc['build', :].sum().sum()
+    test_sectors = ["manufactoring", "construction"]
+    assert (
+        io.Z.loc["reg2", "reg2"].loc[test_sectors, test_sectors].sum().sum()
+        == io_agg.Z.loc["reg2", "reg2"].loc["build", "build"]
+    )
+    assert (
+        io.Y.loc["reg2", "reg2"].loc[test_sectors, :].sum().sum()
+        == io_agg.Y.loc["reg2", "reg2"].loc["build", :].sum().sum()
+    )
 
-    test_rename = [('reg3', 'other'), ('reg3', 'misc')]
-    assert io.Z.loc[test_rename[0], test_rename[0]] == io_agg.Z.loc[test_rename[1], test_rename[1]]
+    test_rename = [("reg3", "other"), ("reg3", "misc")]
+    assert (
+        io.Z.loc[test_rename[0], test_rename[0]]
+        == io_agg.Z.loc[test_rename[1], test_rename[1]]
+    )
 
     sec_rename_dict = sec_agg_df.set_index("original").squeeze().to_dict()
     io.rename_regions(sec_rename_dict)

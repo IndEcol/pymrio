@@ -4,10 +4,12 @@ Classification helpers for various standard MRIOs
 KST 20211123
 """
 
-import pandas as pd
 from dataclasses import dataclass, field
-from typing import Union
 from pathlib import Path
+from typing import Union
+
+import pandas as pd
+
 from pymrio.core.constants import PYMRIO_PATH
 
 
