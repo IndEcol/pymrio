@@ -10,11 +10,11 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-import pymrio  # noqa
-from pymrio.core.constants import PYMRIO_PATH  # noqa
-
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
+
+import pymrio  # noqa
+from pymrio.core.constants import PYMRIO_PATH  # noqa
 
 
 @pytest.fixture()
@@ -199,11 +199,20 @@ def test_rename_random_sectors(fix_testmrio):
 
 
 def test_rename_sector_with_io_info(fix_testmrio):
-    fix_testmrio.testmrio.rename_sectors(pymrio.testmrio.sectornames.numbers)
-    assert fix_testmrio.testmrio.get_sectors()[0] == 1
-    pass
+    with pytest.raises(ValueError):
+        _ = pymrio.get_classification("foo")
 
+    classdata = pymrio.get_classification("test")
+    corr_dict = classdata.get_sector_dict(orig="TestMrioName", new="TestMrioCode")
+    corr_dict2 = classdata.get_sector_dict(orig=fix_testmrio.testmrio.get_sectors(), new="TestMrioCode")
 
+    assert corr_dict == corr_dict2
+
+    fix_testmrio.testmrio.rename_sectors(corr_dict)
+
+    assert fix_testmrio.testmrio.get_sectors()[3] == classdata.sectors.iloc[3,:].loc['TestMrioCode']
+
+    
 def test_rename_Ycat(fix_testmrio):
     new_cat_name = "HouseCons"
     new_cat_list = ["y1", "y2", "y3", "y4", "y5", "y6", "y7"]
@@ -455,8 +464,3 @@ def test_extension_reset_with_rename(fix_testmrio):
     pdt.assert_frame_equal(
         orig.emissions.D_cba["reg4"], new_rename.emissions.D_cba["ab"]
     )
-
-def test_class_getter():
-     with pytest.raises(ValueError):
-         _ = pymrio.ClassData('foo')
-   

@@ -2094,6 +2094,70 @@ class IOSystem(CoreSystem):
             )
         return self
 
+    def aggregate_duplicates(self,inplace=True):
+        """ Aggregate duplicated regions and sectors
+
+        Alternative approach to aggregate MRIO by renaming sectors/regions
+        in place and then adding them together. This works well if used with the included classification schemes.
+
+        Parameters
+        ----------
+        inplace : boolean, optional
+            If True, aggregates the IOSystem in place (default),
+            otherwise aggregation happens on a copy of the IOSystem.
+            Regardless of the setting, the IOSystem is returned to
+            allow for chained operations.
+
+        Returns
+        -------
+        IOSystem
+            Aggregated IOSystem (if inplace is False)
+
+        """
+
+        if not inplace:
+            self = self.copy()
+
+        try:
+            self.reset_all_to_flows()
+        except ResetError:
+            raise AggregationError(
+                "System under-defined for aggregation - "
+                "do a 'calc_all' before aggregation"
+            )
+
+
+        def agg_routine(df): 
+            """ Aggregation of duplicate columns and rows
+            """
+            _index_names = df.index.names
+            _columns_names = df.columns.names
+            if (type(df.columns[0]) is not tuple) and df.columns[0].lower() == 'unit':
+                df = df.groupby(df.index, axis=0, sort=False).first()
+            else:
+                df = df.groupby(df.index, axis=0, sort=False).sum().groupby(df.columns, axis=1, sort=False).sum()
+
+            if type(df.index[0]) is tuple:
+                df.index = pd.MultiIndex.from_tuples(df.index, names=_index_names)
+            if type(df.columns[0]) is tuple:
+                df.columns = pd.MultiIndex.from_tuples(df.columns, names=_columns_names)
+            return df
+
+        for df_to_agg_name in self.get_DataFrame(data=False, with_unit=True):
+            self.meta._add_modify(f"Aggregate economic core - {df_to_agg_name}")
+            setattr(self, df_to_agg_name, agg_routine(df=getattr(self, df_to_agg_name)))
+
+        # Aggregate extension
+        for ext in self.get_extensions(data=True):
+            for df_to_agg_name in ext.get_DataFrame(data=False, with_unit=False):
+                self.meta._add_modify(f"Aggregate extension {ext.name} - {df_to_agg_name}")
+                setattr(ext, df_to_agg_name, agg_routine(df=getattr(ext, df_to_agg_name)))
+
+        if not inplace:
+            return self 
+
+
+
     def aggregate(
         self,
         region_agg=None,
@@ -2122,7 +2186,7 @@ class IOSystem(CoreSystem):
             The aggregation vector or matrix for the regions (np.ndarray or
             list). If string: aggregates to one total region and names is
             to the given string.
-            Pandas Dataframe with columns 'orignal' and 'aggregated'.
+            Pandas DataFrame with columns 'original' and 'aggregated'.
             This is the output from the country_converter.agg_conc
         sector_agg : list, arrays or string, optional
             The aggregation vector or matrix for the sectors (np.ndarray or
@@ -2155,6 +2219,9 @@ class IOSystem(CoreSystem):
         # Development note: This can not be put in the CoreSystem b/c
         # than the recalculation of the extension coefficients would not
         # work.
+
+        if len(self.unit.squeeze().unique()) > 1:
+            raise NotImplementedError("Aggregation not implemented for hybrid tables")
 
         if not inplace:
             self = self.copy()
@@ -2327,6 +2394,18 @@ class IOSystem(CoreSystem):
                 index=self.population.index,
             )
 
+        # NOTE: this fails for none consistent units (hybrid tables)
+        try:
+            _value = self.unit.iloc[0].tolist()[0]
+            self.unit = pd.DataFrame(
+                index=self.Z.index,
+                columns=self.unit.columns,
+                data=_value,
+            )
+        except AttributeError:
+            # could fail if no unit available
+            self.unit = None
+
         for extension in self.get_extensions(data=True):
             self.meta._add_modify("Aggregate extensions...")
             extension.reset_to_flows()
@@ -2382,6 +2461,7 @@ class IOSystem(CoreSystem):
                     extension.__dict__[ik_name].index = ik_df.index
 
                 if st_redo_unit:
+                    # NOTE: this fails for none consistent units
                     try:
                         _value = extension.unit.iloc[0].tolist()[0]
                         extension.unit = pd.DataFrame(
