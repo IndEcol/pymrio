@@ -13,11 +13,17 @@ import pandas as pd
 from pymrio.core.constants import PYMRIO_PATH
 
 
-def get_classification(mrio_name):
-    """Get predefined classification included in pymrio"""
+def get_classification(mrio_name=None):
+    """Get predefined classification included in pymrio
+
+    TODO: enhance documentation here
+    """
 
     if mrio_name not in PYMRIO_PATH.keys():
-        raise ValueError(f"No classification available for {mrio_name}")
+        raise ValueError(f"No classification available for {mrio_name}. Run the function without parameter to get available classifications.")
+
+    if not mrio_name:
+        return PYMRIO_PATH.keys()
 
     return ClassificationData(
         mrio_classification_folder=PYMRIO_PATH[mrio_name],
