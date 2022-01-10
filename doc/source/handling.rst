@@ -10,6 +10,7 @@ Handling MRIO data
   notebooks/working_with_eora26
   notebooks/working_with_oecd_icio
   notebooks/load_save_export
+  notebooks/adjusting
   notebooks/aggregation_examples
   notebooks/buildflowmatrix
   notebooks/stressor_characterization

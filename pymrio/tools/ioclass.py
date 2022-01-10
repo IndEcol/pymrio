@@ -6,24 +6,34 @@ KST 20211123
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 
 import pandas as pd
 
 from pymrio.core.constants import PYMRIO_PATH
 
 
-def get_classification(mrio_name=None):
-    """Get predefined classification included in pymrio
+def get_classification(mrio_name: Optional[str]=None):
+    """Get predefined classifications included in pymrio
 
-    TODO: enhance documentation here
+    Parameters
+    ----------
+
+    mrio_name: str
+        MRIO for which to get the classification.
+        Pass None (default) for a list of available classifications.
+
+    Returns:
+        pymrio.ClassificationData
     """
-
-    if mrio_name not in PYMRIO_PATH.keys():
-        raise ValueError(f"No classification available for {mrio_name}. Run the function without parameter to get available classifications.")
 
     if not mrio_name:
         return PYMRIO_PATH.keys()
+
+    elif mrio_name not in PYMRIO_PATH.keys():
+        raise ValueError(
+            f"No classification available for {mrio_name}. Run the function without parameter to get available classifications."
+        )
 
     return ClassificationData(
         mrio_classification_folder=PYMRIO_PATH[mrio_name],
@@ -36,7 +46,11 @@ def get_classification(mrio_name=None):
 
 @dataclass
 class ClassificationData(object):
-    """Returns classification data present in mrio_classification_folder"""
+    """ Classification data for MRIOs 
+
+    Typically includes .sectors and .finaldemand
+
+    """
 
     mrio_classification_folder: Union[str, Path]
 

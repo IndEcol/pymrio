@@ -17,12 +17,12 @@
 # # Using the aggregation functionality of pymrio
 
 # %% [markdown]
-# Pymrio offers various possibilities to achieve an aggreation of a existing MRIO system. 
+# Pymrio offers various possibilities to achieve an aggreation of a existing MRIO system.
 # The following section will present all of them in turn, using the test MRIO system included in pymrio.
 # The same concept can be applied to real life MRIOs.
 
 # %% [markdown]
-# Some of the examples rely in the [country converter coco](https://github.com/konstantinstadler/country_converter). The minimum version required is coco >= 0.6.3 - install the latest version with 
+# Some of the examples rely in the [country converter coco](https://github.com/konstantinstadler/country_converter). The minimum version required is coco >= 0.6.3 - install the latest version with
 # ```
 # pip install country_converter --upgrade
 # ```
@@ -43,7 +43,11 @@ io = pymrio.load_test()
 io.calc_all()
 
 # %%
-print("Sectors: {sec},\nRegions: {reg}".format(sec=io.get_sectors().tolist(), reg=io.get_regions().tolist()))
+print(
+    "Sectors: {sec},\nRegions: {reg}".format(
+        sec=io.get_sectors().tolist(), reg=io.get_regions().tolist()
+    )
+)
 
 # %% [markdown]
 # ## Aggregation using a numerical concordance matrix
@@ -53,22 +57,21 @@ print("Sectors: {sec},\nRegions: {reg}".format(sec=io.get_sectors().tolist(), re
 # To do so, we need to set up a concordance matrix in which the columns correspond to the orignal classification and the rows to the aggregated one.
 
 # %%
-sec_agg_matrix = np.array([
-    [1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 1, 1]
-    ])
+sec_agg_matrix = np.array(
+    [[1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1]]
+)
 
-reg_agg_matrix = np.array([
-    [1, 1, 1, 0, 0, 0],
-    [0, 0, 0, 1, 1, 1]
-    ])
+reg_agg_matrix = np.array([[1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1]])
 
 # %%
 io.aggregate(region_agg=reg_agg_matrix, sector_agg=sec_agg_matrix)
 
 # %%
-print("Sectors: {sec},\nRegions: {reg}".format(sec=io.get_sectors().tolist(), reg=io.get_regions().tolist()))
+print(
+    "Sectors: {sec},\nRegions: {reg}".format(
+        sec=io.get_sectors().tolist(), reg=io.get_regions().tolist()
+    )
+)
 
 # %%
 io.calc_all()
@@ -80,9 +83,15 @@ io.emissions.D_cba
 # To use custom names for the aggregated sectors or regions, pass a list of names in order of rows in the concordance matrix:
 
 # %%
-io = pymrio.load_test().calc_all().aggregate(region_agg=reg_agg_matrix, 
-                                             region_names=['World Region A', 'World Region B'], 
-                                             inplace=False)
+io = (
+    pymrio.load_test()
+    .calc_all()
+    .aggregate(
+        region_agg=reg_agg_matrix,
+        region_names=["World Region A", "World Region B"],
+        inplace=False,
+    )
+)
 
 # %%
 io.get_regions()
@@ -91,25 +100,30 @@ io.get_regions()
 # ## Aggregation using a numerical vector
 
 # %% [markdown]
-# Pymrio also accepts the aggregatio information as numerical or string vector. 
+# Pymrio also accepts the aggregatio information as numerical or string vector.
 # For these, each entry in the vector assignes the sector/region to a aggregation group.
 # Thus the two aggregation matrices from above (*sec_agg_matrix* and *reg_agg_matrix*) can also be represented as numerical or string vectors/lists:
 
 # %%
-sec_agg_vec = np.array([0,1,1,1,1,2,2,2])
-reg_agg_vec = ['R1', 'R1', 'R1', 'R2', 'R2', 'R2']
+sec_agg_vec = np.array([0, 1, 1, 1, 1, 2, 2, 2])
+reg_agg_vec = ["R1", "R1", "R1", "R2", "R2", "R2"]
 
 # %% [markdown]
 # can also be represented as aggregation vector:
 
 # %%
-io_vec_agg = pymrio.load_test().calc_all().aggregate(region_agg=reg_agg_vec, 
-                                                     sector_agg=sec_agg_vec, 
-                                                     inplace=False)
+io_vec_agg = (
+    pymrio.load_test()
+    .calc_all()
+    .aggregate(region_agg=reg_agg_vec, sector_agg=sec_agg_vec, inplace=False)
+)
 
 # %%
-print("Sectors: {sec},\nRegions: {reg}".format(sec=io_vec_agg.get_sectors().tolist(), 
-                                               reg=io_vec_agg.get_regions().tolist()))
+print(
+    "Sectors: {sec},\nRegions: {reg}".format(
+        sec=io_vec_agg.get_sectors().tolist(), reg=io_vec_agg.get_regions().tolist()
+    )
+)
 
 # %%
 io_vec_agg.emissions.D_cba_reg
@@ -125,24 +139,31 @@ io_vec_agg.emissions.D_cba_reg
 import country_converter as coco
 
 # %% [markdown]
-# ### Independent aggregation 
+# ### Independent aggregation
 
 # %%
 io = pymrio.load_test().calc_all()
 
 # %%
-reg_agg_coco = coco.agg_conc(original_countries=io.get_regions(), 
-                             aggregates={'reg1': 'World Region A',
-                                         'reg2': 'World Region A',
-                                         'reg3': 'World Region A',},
-                             missing_countries='World Region B')                               
+reg_agg_coco = coco.agg_conc(
+    original_countries=io.get_regions(),
+    aggregates={
+        "reg1": "World Region A",
+        "reg2": "World Region A",
+        "reg3": "World Region A",
+    },
+    missing_countries="World Region B",
+)
 
 # %%
 io.aggregate(region_agg=reg_agg_coco)
 
 # %%
-print("Sectors: {sec},\nRegions: {reg}".format(sec=io.get_sectors().tolist(), 
-                                               reg=io.get_regions().tolist()))
+print(
+    "Sectors: {sec},\nRegions: {reg}".format(
+        sec=io.get_sectors().tolist(), reg=io.get_regions().tolist()
+    )
+)
 
 # %% [markdown]
 # This can be passed directly to pymrio:
@@ -164,7 +185,7 @@ io.emissions.D_cba_reg
 # For the example here, we assume that a raw WIOD download is available at:
 
 # %%
-wiod_raw = '/tmp/mrios/WIOD2013'
+wiod_raw = "/tmp/mrios/WIOD2013"
 
 # %% [markdown]
 # We will parse the year 2000 and calculate the results:
@@ -177,18 +198,20 @@ wiod_orig = pymrio.parse_wiod(path=wiod_raw, year=2000).calc_all()
 
 # %%
 wiod_agg_DEU_EU_OECD = wiod_orig.aggregate(
-    region_agg = coco.agg_conc(original_countries='WIOD',
-                               aggregates=[{'DEU': 'DEU'},'EU', 'OECD'],
-                               missing_countries='Other',
-                               merge_multiple_string=None),
-    inplace=False)
+    region_agg=coco.agg_conc(
+        original_countries="WIOD",
+        aggregates=[{"DEU": "DEU"}, "EU", "OECD"],
+        missing_countries="Other",
+        merge_multiple_string=None,
+    ),
+    inplace=False,
+)
 
 # %% [markdown]
 # We can then rename the regions to make the membership clearer:
 
 # %%
-wiod_agg_DEU_EU_OECD.rename_regions({'OECD': 'OECDwoEU',
-                                     'EU': 'EUwoGermany'})
+wiod_agg_DEU_EU_OECD.rename_regions({"OECD": "OECDwoEU", "EU": "EUwoGermany"})
 
 # %% [markdown]
 # To see the result for the air emission footprints:
@@ -206,21 +229,31 @@ wiod_agg_DEU_EU_OECD.AIR.D_cba_reg
 # Both, *region_agg* and *sector_agg*, also accept a string as argument. This leads to the aggregation to one total region or sector for the full IO system.
 
 # %%
-pymrio.load_test().calc_all().aggregate(region_agg='global', sector_agg='total').emissions.D_cba
+pymrio.load_test().calc_all().aggregate(
+    region_agg="global", sector_agg="total"
+).emissions.D_cba
 
 # %% [markdown]
 # ## Pre- vs post-aggregation account calculations
 
 # %% [markdown]
-# It is generally recommended to calculate MRIO accounts with the highest detail possible and aggregated the results afterwards (post-aggregation - see for example [Steen-Olsen et al 2014](http://dx.doi.org/10.1080/09535314.2014.934325), [Stadler et al 2014](https://zenodo.org/record/1137670#.WlOSOhZG1O8) or [Koning et al 2015](https://doi.org/10.1016/j.ecolecon.2015.05.008). 
+# It is generally recommended to calculate MRIO accounts with the highest detail possible and aggregated the results afterwards (post-aggregation - see for example [Steen-Olsen et al 2014](http://dx.doi.org/10.1080/09535314.2014.934325), [Stadler et al 2014](https://zenodo.org/record/1137670#.WlOSOhZG1O8) or [Koning et al 2015](https://doi.org/10.1016/j.ecolecon.2015.05.008).
 #
 # Pre-aggregation, that means the aggregation of MRIO sectors and regions before calculation of footprint accounts, might be necessary when dealing with MRIOs on computers with limited RAM resources. However, one should be aware that the results might change.
 #
 # Pymrio can handle both cases and can be used to highlight the differences. To do so, we use the two  concordance matrices defined at the beginning (*sec_agg_matrix* and *reg_agg_matrix*) and aggregate the test system before and after the calculation of the accounts:
 
 # %%
-io_pre = pymrio.load_test().aggregate(region_agg=reg_agg_matrix, sector_agg=sec_agg_matrix).calc_all()
-io_post = pymrio.load_test().calc_all().aggregate(region_agg=reg_agg_matrix, sector_agg=sec_agg_matrix)
+io_pre = (
+    pymrio.load_test()
+    .aggregate(region_agg=reg_agg_matrix, sector_agg=sec_agg_matrix)
+    .calc_all()
+)
+io_post = (
+    pymrio.load_test()
+    .calc_all()
+    .aggregate(region_agg=reg_agg_matrix, sector_agg=sec_agg_matrix)
+)
 
 # %%
 io_pre.emissions.D_cba
