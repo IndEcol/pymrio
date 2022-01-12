@@ -344,6 +344,7 @@ def download_wiod2013(
         if re.search(r"(wiot)(\d\d)", os.path.basename(url)).group(2) in years
     ]
 
+
     meta = MRIOMetaData(
         location=storage_folder,
         description="WIOD metadata file for pymrio",

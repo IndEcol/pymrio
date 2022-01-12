@@ -17,7 +17,7 @@
 # # Using the aggregation functionality of pymrio
 
 # %% [markdown]
-# Pymrio offers various possibilities to achieve an aggreation of a existing MRIO system.
+# Pymrio offers various possibilities to achieve an aggregation of a existing MRIO system.
 # The following section will present all of them in turn, using the test MRIO system included in pymrio.
 # The same concept can be applied to real life MRIOs.
 
@@ -223,6 +223,31 @@ wiod_agg_DEU_EU_OECD.AIR.D_cba_reg
 # For further examples on the capabilities of the country converter see the [coco tutorial notebook](http://nbviewer.jupyter.org/github/konstantinstadler/country_converter/blob/master/doc/country_converter_aggregation_helper.ipynb)
 
 # %% [markdown]
+# ## Aggregation by renaming
+
+# %% [markdown]
+# One alternative method for aggregating the MRIO system is to rename specific regions and/or sectors to duplicated names. 
+# Duplicated sectors and regions can then be automatically aggregated. This makes most sense when having some categories of some kind (e.g. consumption categories) or detailed classification which can easily be broadened (e.g. A01, A02, which could be renamed all to A).
+# In the example below, we will aggregate sectors to consumption categories using some predefined categories included in pymrio. To read more TODO include link
+
+
+mrio = pymrio.load_test()
+
+class_info = pymrio.get_classification('test')
+rename_dict = class_info.get_sector_dict(orig=class_info.sectors.TestMrioName, new=class_info.sectors.Type)
+
+# %% [markdown]
+# If we take a look at the rename_dict, we see that it maps several sectors of the original MRIO to combined regions (technically a many to one mapping). 
+
+rename_dict
+
+# %% [markdown]
+# Using this dict to rename sectors leads to an index with overlapping labels.
+
+mrio.rename_sectors(rename_dict)
+
+
+# %% [markdown]
 # ## Aggregation to one total sector / region
 
 # %% [markdown]
@@ -232,6 +257,8 @@ wiod_agg_DEU_EU_OECD.AIR.D_cba_reg
 pymrio.load_test().calc_all().aggregate(
     region_agg="global", sector_agg="total"
 ).emissions.D_cba
+
+
 
 # %% [markdown]
 # ## Pre- vs post-aggregation account calculations
