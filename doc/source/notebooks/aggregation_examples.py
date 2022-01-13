@@ -245,6 +245,18 @@ rename_dict
 # Using this dict to rename sectors leads to an index with overlapping labels.
 
 mrio.rename_sectors(rename_dict)
+mrio.Z
+
+# %% [markdown]
+# Which can then be aggregated with
+
+mrio.aggregate_duplicates()
+mrio.Z
+
+# %% [markdown]
+# This method also comes handy when aggregating parts of the MRIO regions. E.g.:
+
+region_convert = {'reg1': 'Antarctica', 'reg2': 'Antarctica'}
 
 
 # %% [markdown]
