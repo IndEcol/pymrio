@@ -806,12 +806,12 @@ def load_test():
         ),
     )
 
-    meta_rec = MRIOMetaData(location=PYMRIO_PATH["test_mrio"])
+    meta_rec = MRIOMetaData(location=PYMRIO_PATH["test_mrio_data"])
 
     # read the data into a dicts as pandas.DataFrame
     data = {
         key: pd.read_csv(
-            os.path.join(PYMRIO_PATH["test_mrio"], test_system[key].file_name),
+            os.path.join(PYMRIO_PATH["test_mrio_data"], test_system[key].file_name),
             index_col=list(range(test_system[key].col_header)),
             header=list(range(test_system[key].row_header)),
             sep="\t",
@@ -819,7 +819,7 @@ def load_test():
         for key in test_system
     }
 
-    meta_rec._add_fileio("Load test_mrio from {}".format(PYMRIO_PATH["test_mrio"]))
+    meta_rec._add_fileio("Load test_mrio from {}".format(PYMRIO_PATH["test_mrio_data"]))
 
     # distribute the data into dics which can be passed to
     # the IOSystem. To do so, some preps are necessary:
@@ -868,7 +868,7 @@ def load_test():
     # the population data - this is optional (None can be passed if no data is
     # available)
     popdata = pd.read_csv(
-        os.path.join(PYMRIO_PATH["test_mrio"], "./population.txt"),
+        PYMRIO_PATH["test_mrio_data"] / "population.txt",
         index_col=0,
         sep="\t",
     ).astype(float)

@@ -1,0 +1,201 @@
+ExioNumber	ExioName	ExioCode	ExioLabel	ConsumptionCategories	Type
+1	Paddy rice	p01.a	C_PARI	Food	Commodity
+2	Wheat	p01.b	C_WHEA	Food	Commodity
+3	Cereal grains nec	p01.c	C_OCER	Food	Commodity
+4	Vegetables, fruit, nuts	p01.d	C_FVEG	Food	Commodity
+5	Oil seeds	p01.e	C_OILS	Food	Commodity
+6	Sugar cane, sugar beet	p01.f	C_SUGB	Food	Commodity
+7	Plant-based fibers	p01.g	C_FIBR	Food	Commodity
+8	Crops nec	p01.h	C_OTCR	Food	Commodity
+9	Cattle	p01.i	C_CATL	Food	Commodity
+10	Pigs	p01.j	C_PIGS	Food	Commodity
+11	Poultry	p01.k	C_PLTR	Food	Commodity
+12	Meat animals nec	p01.l	C_OMEA	Food	Commodity
+13	Animal products nec	p01.m	C_OANP	Food	Commodity
+14	Raw milk	p01.n	C_MILK	Food	Commodity
+15	Wool, silk-worm cocoons	p01.o	C_WOOL	Clothing	Commodity
+16	Manure (conventional treatment)	p01.w.1	C_MANC	Food	Waste
+17	Manure (biogas treatment)	p01.w.2	C_MANB	Food	Waste
+18	Products of forestry, logging and related services (02)	p02	C_FORE	Shelter	Commodity
+19	Fish and other fishing products; services incidental of fishing (05)	p05	C_FISH	Food	Commodity
+20	Anthracite	p10.a	C_ANTH	Shelter	Commodity
+21	Coking Coal	p10.b	C_COKC	Shelter	Commodity
+22	Other Bituminous Coal	p10.c	C_OTBC	Shelter	Commodity
+23	Sub-Bituminous Coal	p10.d	C_SUBC	Shelter	Commodity
+24	Patent Fuel	p10.e	C_PATF	Shelter	Commodity
+25	Lignite/Brown Coal	p10.f	C_LIBC	Shelter	Commodity
+26	BKB/Peat Briquettes	p10.g	C_BKBP	Shelter	Commodity
+27	Peat	p10.h	C_PEAT	Shelter	Commodity
+28	Crude petroleum and services related to crude oil extraction, excluding surveying	p11.a	C_COIL	Shelter	Commodity
+29	Natural gas and services related to natural gas extraction, excluding surveying	p11.b	C_GASE	Shelter	Commodity
+30	Natural Gas Liquids	p11.b.1	C_GASL	Shelter	Commodity
+31	Other Hydrocarbons	p11.c	C_OGPL	Shelter	Commodity
+32	Uranium and thorium ores (12)	p12	C_ORAN	Shelter	Commodity
+33	Iron ores	p13.1	C_IRON	Construction	Commodity
+34	Copper ores and concentrates	p13.20.11	C_COPO	Construction	Commodity
+35	Nickel ores and concentrates	p13.20.12	C_NIKO	Construction	Commodity
+36	Aluminium ores and concentrates	p13.20.13	C_ALUO	Construction	Commodity
+37	Precious metal ores and concentrates	p13.20.14	C_PREO	Construction	Commodity
+38	Lead, zinc and tin ores and concentrates	p13.20.15	C_LZTO	Construction	Commodity
+39	Other non-ferrous metal ores and concentrates	p13.20.16	C_ONFO	Construction	Commodity
+40	Stone	p14.1	C_STON	Construction	Commodity
+41	Sand and clay	p14.2	C_SDCL	Construction	Commodity
+42	Chemical and fertilizer minerals, salt and other mining and quarrying products n.e.c.	p14.3	C_CHMF	Food	Commodity
+43	Products of meat cattle	p15.a	C_PCAT	Food	Commodity
+44	Products of meat pigs	p15.b	C_PPIG	Food	Commodity
+45	Products of meat poultry	p15.c	C_PPLT	Food	Commodity
+46	Meat products nec	p15.d	C_POME	Food	Commodity
+47	products of Vegetable oils and fats	p15.e	C_VOIL	Food	Commodity
+48	Dairy products	p15.f	C_DAIR	Food	Commodity
+49	Processed rice	p15.g	C_RICE	Food	Commodity
+50	Sugar	p15.h	C_SUGR	Food	Commodity
+51	Food products nec	p15.i	C_OFOD	Food	Commodity
+52	Beverages	p15.j	C_BEVR	Food	Commodity
+53	Fish products	p15.k	C_FSHP	Food	Commodity
+54	Tobacco products (16)	p16	C_TOBC	Food	Commodity
+55	Textiles (17)	p17	C_TEXT	Clothing	Commodity
+56	Wearing apparel; furs (18)	p18	C_GARM	Clothing	Commodity
+57	Leather and leather products (19)	p19	C_LETH	Clothing	Commodity
+58	Wood and products of wood and cork (except furniture); articles of straw and plaiting materials (20)	p20	C_WOOD	Shelter	Commodity
+59	Wood material for treatment, Re-processing of secondary wood material into new wood material	p20.w	C_WOOW	Shelter	Waste
+60	Pulp	p21.1	C_PULP	Manufactured_products	Commodity
+61	Secondary paper for treatment, Re-processing of secondary paper into new pulp	p21.w.1	C_PAPR	Manufactured_products	Waste
+62	Paper and paper products	p21.2	C_PAPE	Manufactured_products	Commodity
+63	Printed matter and recorded media (22)	p22	C_MDIA	Manufactured_products	Commodity
+64	Coke Oven Coke	p23.1.a	C_COKE	Shelter	Commodity
+65	Gas Coke	p23.1.b	C_GCOK	Shelter	Commodity
+66	Coal Tar	p23.1.c	C_COTA	Shelter	Commodity
+67	Motor Gasoline	p23.20.a	C_MGSL	Mobility	Commodity
+68	Aviation Gasoline	p23.20.b	C_AGSL	Mobility	Commodity
+69	Gasoline Type Jet Fuel	p23.20.c	C_GJET	Mobility	Commodity
+70	Kerosene Type Jet Fuel	p23.20.d	C_KJET	Mobility	Commodity
+71	Kerosene	p23.20.e	C_KERO	Mobility	Commodity
+72	Gas/Diesel Oil	p23.20.f	C_DOIL	Mobility	Commodity
+73	Heavy Fuel Oil	p23.20.g	C_FOIL	Mobility	Commodity
+74	Refinery Gas	p23.20.h	C_RGAS	Shelter	Commodity
+75	Liquefied Petroleum Gases (LPG)	p23.20.i	C_LPGA	Shelter	Commodity
+76	Refinery Feedstocks	p23.20.j	C_REFF	Shelter	Commodity
+77	Ethane	p23.20.k	C_ETHA	Shelter	Commodity
+78	Naphtha	p23.20.l	C_NAPT	Shelter	Commodity
+79	White Spirit & SBP	p23.20.m	C_WHSP	Shelter	Commodity
+80	Lubricants	p23.20.n	C_LUBR	Shelter	Commodity
+81	Bitumen	p23.20.o	C_BITU	Shelter	Commodity
+82	Paraffin Waxes	p23.20.p	C_PARW	Shelter	Commodity
+83	Petroleum Coke	p23.20.q	C_PETC	Shelter	Commodity
+84	Non-specified Petroleum Products	p23.20.r	C_NSPP	Shelter	Commodity
+85	Nuclear fuel	p23.3	C_NUCF	Shelter	Commodity
+86	Plastics, basic	p24.a	C_PLAS	Manufactured_products	Commodity
+87	Secondary plastic for treatment, Re-processing of secondary plastic into new plastic	p24.a.w	C_PLAW	Manufactured_products	Waste
+88	N-fertiliser	p24.b	C_NFER	Food	Commodity
+89	P- and other fertiliser	p24.c	C_PFER	Food	Commodity
+90	Chemicals nec	p24.d	C_CHEM	Manufactured_products	Commodity
+91	Charcoal	p24.e	C_CHAR	Shelter	Commodity
+92	Additives/Blending Components	p24.f	C_ADDC	Mobility	Commodity
+93	Biogasoline	p24.g	C_BIOG	Mobility	Commodity
+94	Biodiesels	p24.h	C_BIOD	Mobility	Commodity
+95	Other Liquid Biofuels	p24.i	C_OBIO	Mobility	Commodity
+96	Rubber and plastic products (25)	p25	C_RUBP	Manufactured_products	Commodity
+97	Glass and glass products	p26.a	C_GLAS	Construction	Commodity
+98	Secondary glass for treatment, Re-processing of secondary glass into new glass	p26.a.w	C_GLAW	Construction	Waste
+99	Ceramic goods	p26.b	C_CRMC	Construction	Commodity
+100	Bricks, tiles and construction products, in baked clay	p26.c	C_BRIK	Construction	Commodity
+101	Cement, lime and plaster	p26.d	C_CMNT	Construction	Commodity
+102	Ash for treatment, Re-processing of ash into clinker	p26.d.w	C_ASHW	Construction	Waste
+103	Other non-metallic mineral products	p26.e	C_ONMM	Construction	Commodity
+104	Basic iron and steel and of ferro-alloys and first products thereof	p27.a	C_STEL	Manufactured_products	Commodity
+105	Secondary steel for treatment, Re-processing of secondary steel into new steel	p27.a.w	C_STEW	Manufactured_products	Waste
+106	Precious metals	p27.41	C_PREM	Manufactured_products	Commodity
+107	Secondary preciuos metals for treatment, Re-processing of secondary preciuos metals into new preciuos metals	p27.41.w	C_PREW	Manufactured_products	Waste
+108	Aluminium and aluminium products	p27.42	C_ALUM	Manufactured_products	Commodity
+109	Secondary aluminium for treatment, Re-processing of secondary aluminium into new aluminium	p27.42.w	C_ALUW	Manufactured_products	Waste
+110	Lead, zinc and tin and products thereof	p27.43	C_LZTP	Manufactured_products	Commodity
+111	Secondary lead for treatment, Re-processing of secondary lead into new lead	p27.43.w	C_LZTW	Manufactured_products	Waste
+112	Copper products	p27.44	C_COPP	Manufactured_products	Commodity
+113	Secondary copper for treatment, Re-processing of secondary copper into new copper	p27.44.w	C_COPW	Manufactured_products	Waste
+114	Other non-ferrous metal products	p27.45	C_ONFM	Manufactured_products	Commodity
+115	Secondary other non-ferrous metals for treatment, Re-processing of secondary other non-ferrous metals into new other non-ferrous metals	p27.45.w	C_ONFW	Manufactured_products	Waste
+116	Foundry work services	p27.5	C_METC	Manufactured_products	Commodity
+117	Fabricated metal products, except machinery and equipment (28)	p28	C_FABM	Manufactured_products	Commodity
+118	Machinery and equipment n.e.c. (29)	p29	C_MACH	Manufactured_products	Commodity
+119	Office machinery and computers (30)	p30	C_OFMA	Manufactured_products	Commodity
+120	Electrical machinery and apparatus n.e.c. (31)	p31	C_ELMA	Manufactured_products	Commodity
+121	Radio, television and communication equipment and apparatus (32)	p32	C_RATV	Manufactured_products	Commodity
+122	Medical, precision and optical instruments, watches and clocks (33)	p33	C_MEIN	Manufactured_products	Commodity
+123	Motor vehicles, trailers and semi-trailers (34)	p34	C_MOTO	Manufactured_products	Commodity
+124	Other transport equipment (35)	p35	C_OTRE	Manufactured_products	Commodity
+125	Furniture; other manufactured goods n.e.c. (36)	p36	C_FURN	Manufactured_products	Commodity
+126	Secondary raw materials	p37	C_RYMS	Manufactured_products	Commodity
+127	Bottles for treatment, Recycling of bottles by direct reuse	p37.w.1	C_BOTW	Manufactured_products	Waste
+128	Electricity by coal	p40.11.a	C_POWC	Shelter	Commodity
+129	Electricity by gas	p40.11.b	C_POWG	Shelter	Commodity
+130	Electricity by nuclear	p40.11.c	C_POWN	Shelter	Commodity
+131	Electricity by hydro	p40.11.d	C_POWH	Shelter	Commodity
+132	Electricity by wind	p40.11.e	C_POWW	Shelter	Commodity
+133	Electricity by petroleum and other oil derivatives	p40.11.f	C_POWP	Shelter	Commodity
+134	Electricity by biomass and waste	p40.11.g	C_POWB	Shelter	Commodity
+135	Electricity by solar photovoltaic	p40.11.h	C_POWS	Shelter	Commodity
+136	Electricity by solar thermal	p40.11.i	C_POWE	Shelter	Commodity
+137	Electricity by tide, wave, ocean	p40.11.j	C_POWO	Shelter	Commodity
+138	Electricity by Geothermal	p40.11.k	C_POWM	Shelter	Commodity
+139	Electricity nec	p40.11.l	C_POWZ	Shelter	Commodity
+140	Transmission services of electricity	p40.12	C_POWT	Shelter	Commodity
+141	Distribution and trade services of electricity	p40.13	C_POWD	Shelter	Commodity
+142	Coke oven gas	p40.2.a	C_COOG	Shelter	Commodity
+143	Blast Furnace Gas	p40.2.b	C_MBFG	Shelter	Commodity
+144	Oxygen Steel Furnace Gas	p40.2.c	C_MOSG	Shelter	Commodity
+145	Gas Works Gas	p40.2.d	C_MGWG	Shelter	Commodity
+146	Biogas	p40.2.e	C_MBIO	Shelter	Commodity
+147	Distribution services of gaseous fuels through mains	p40.2.1	C_GASD	Shelter	TradeMargin
+148	Steam and hot water supply services	p40.3	C_HWAT	Shelter	Commodity
+149	Collected and purified water, distribution services of water (41)	p41	C_WATR	Shelter	Commodity
+150	Construction work (45)	p45	C_CONS	Construction	Commodity
+151	Secondary construction material for treatment, Re-processing of secondary construction material into aggregates	p45.w	C_CONW	Construction	TransportMargin
+152	Sale, maintenance, repair of motor vehicles, motor vehicles parts, motorcycles, motor cycles parts and accessoiries	p50.a	C_TDMO	Trade	TradeMargin
+153	Retail trade services of motor fuel	p50.b	C_TDFU	Trade	TradeMargin
+154	Wholesale trade and commission trade services, except of motor vehicles and motorcycles (51)	p51	C_TDWH	Trade	TradeMargin
+155	Retail  trade services, except of motor vehicles and motorcycles; repair services of personal and household goods (52)	p52	C_TDRT	Trade	TradeMargin
+156	Hotel and restaurant services (55)	p55	C_HORE	Services	Commodity
+157	Railway transportation services	p60.1	C_TRAI	Mobility	TransportMargin
+158	Other land transportation services	p60.2	C_TLND	Mobility	TransportMargin
+159	Transportation services via pipelines	p60.3	C_TPIP	Mobility	TransportMargin
+160	Sea and coastal water transportation services	p61.1	C_TWAS	Mobility	TransportMargin
+161	Inland water transportation services	p61.2	C_TWAI	Mobility	TransportMargin
+162	Air transport services (62)	p62	C_TAIR	Mobility	TransportMargin
+163	Supporting and auxiliary transport services; travel agency services (63)	p63	C_TAUX	Services	TransportMargin
+164	Post and telecommunication services (64)	p64	C_PTEL	Services	Commodity
+165	Financial intermediation services, except insurance and pension funding services (65)	p65	C_FINT	Services	Commodity
+166	Insurance and pension funding services, except compulsory social security services (66)	p66	C_FINS	Services	Commodity
+167	Services auxiliary to financial intermediation (67)	p67	C_FAUX	Services	Commodity
+168	Real estate services (70)	p70	C_REAL	Services	Commodity
+169	Renting services of machinery and equipment without operator and of personal and household goods (71)	p71	C_MARE	Services	Commodity
+170	Computer and related services (72)	p72	C_COMP	Services	Commodity
+171	Research and development services (73)	p73	C_RESD	Services	Commodity
+172	Other business services (74)	p74	C_OBUS	Services	Commodity
+173	Public administration and defence services; compulsory social security services (75)	p75	C_PADF	Services	Commodity
+174	Education services (80)	p80	C_EDUC	Services	Commodity
+175	Health and social work services (85)	p85	C_HEAL	Services	Commodity
+176	Food waste for treatment: incineration	p90.1.a	C_INCF	Shelter	Commodity
+177	Paper waste for treatment: incineration	p90.1.b	C_INCP	Shelter	Commodity
+178	Plastic waste for treatment: incineration	p90.1.c	C_INCL	Shelter	Commodity
+179	Intert/metal waste for treatment: incineration	p90.1.d	C_INCM	Shelter	Commodity
+180	Textiles waste for treatment: incineration	p90.1.e	C_INCT	Shelter	Commodity
+181	Wood waste for treatment: incineration	p90.1.f	C_INCW	Shelter	Commodity
+182	Oil/hazardous waste for treatment: incineration	p90.1.g	C_INCO	Shelter	Commodity
+183	Food waste for treatment: biogasification and land application	p90.2.a	C_BIOF	Shelter	Commodity
+184	Paper waste for treatment: biogasification and land application	p90.2.b	C_BIOP	Shelter	Commodity
+185	Sewage sludge for treatment: biogasification and land application	p90.2.c	C_BIOS	Shelter	Commodity
+186	Food waste for treatment: composting and land application	p90.3.a	C_COMF	Shelter	Commodity
+187	Paper and wood waste for treatment: composting and land application	p90.3.b	C_COMW	Shelter	Commodity
+188	Food waste for treatment: waste water treatment	p90.4.a	C_WASF	Shelter	Commodity
+189	Other waste for treatment: waste water treatment	p90.4.b	C_WASO	Shelter	Commodity
+190	Food waste for treatment: landfill	p90.5.a	C_LANF	Shelter	Commodity
+191	Paper for treatment: landfill	p90.5.b	C_LANP	Shelter	Commodity
+192	Plastic waste for treatment: landfill	p90.5.c	C_LANL	Shelter	Commodity
+193	Inert/metal/hazardous waste for treatment: landfill	p90.5.d	C_LANI	Shelter	Commodity
+194	Textiles waste for treatment: landfill	p90.5.e	C_LANT	Shelter	Commodity
+195	Wood waste for treatment: landfill	p90.5.f	C_LANW	Shelter	Commodity
+196	Membership organisation services n.e.c. (91)	p91	C_ORGA	Services	Commodity
+197	Recreational, cultural and sporting services (92)	p92	C_RECR	Services	Commodity
+198	Other services (93)	p93	C_OSER	Services	Commodity
+199	Private households with employed persons (95)	p95	C_PRHH	Shelter	Commodity
+200	Extra-territorial organizations and bodies	p99	C_EXTO	Services	Commodity

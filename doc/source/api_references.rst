@@ -167,7 +167,6 @@ numpy array.
    calc_M
    calc_e
    calc_accounts
-   calc_trade_flows
 
 
 *********************************
@@ -231,8 +230,8 @@ Changing extensions
    concate_extension
    parse_exio12_ext
 
-Renaming
-========
+Adjusting and Renaming
+=======================
 
 .. autosummary::
    :toctree: api_doc/
@@ -240,6 +239,15 @@ Renaming
    IOSystem.rename_regions
    IOSystem.rename_sectors
    IOSystem.rename_Y_categories
+
+Getting predefined Classifications of MRIOs
+=============================================
+
+.. autosummary::
+   :toctree: api_doc/
+
+   get_classification
+   ClassificationData
 
 ******
 Report

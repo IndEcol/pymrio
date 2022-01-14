@@ -10,11 +10,11 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-import pymrio  # noqa
-from pymrio.core.constants import PYMRIO_PATH  # noqa
-
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
+
+import pymrio  # noqa
+from pymrio.core.constants import PYMRIO_PATH  # noqa
 
 
 @pytest.fixture()
@@ -67,7 +67,6 @@ def test_copy(fix_testmrio):
 
 
 def test_get_gross_trade(fix_testmrio):
-
     tt = fix_testmrio.testmrio
     gross_trade = tt.get_gross_trade()
     flows = gross_trade.bilat_flows
@@ -189,7 +188,7 @@ def test_rename_regions(fix_testmrio):
     assert fix_testmrio.testmrio.get_regions()[2] == new_reg_list[2]
 
 
-def test_rename_sectors(fix_testmrio):
+def test_rename_random_sectors(fix_testmrio):
     new_sec_name = "yummy"
     new_sec_list = ["s1", "s2", "s3", "s4", "s5", "s6"]
     fix_testmrio.testmrio.rename_sectors({"food": new_sec_name})
@@ -197,6 +196,26 @@ def test_rename_sectors(fix_testmrio):
     fix_testmrio.testmrio.rename_sectors(new_sec_list)
     assert fix_testmrio.testmrio.get_sectors()[0] == new_sec_list[0]
     assert fix_testmrio.testmrio.get_sectors()[4] == new_sec_list[4]
+
+
+def test_rename_sector_with_io_info(fix_testmrio):
+    with pytest.raises(ValueError):
+        _ = pymrio.get_classification("foo")
+
+    classdata = pymrio.get_classification("test")
+    corr_dict = classdata.get_sector_dict(orig="TestMrioName", new="TestMrioCode")
+    corr_dict2 = classdata.get_sector_dict(
+        orig=fix_testmrio.testmrio.get_sectors(), new="TestMrioCode"
+    )
+
+    assert corr_dict == corr_dict2
+
+    fix_testmrio.testmrio.rename_sectors(corr_dict)
+
+    assert (
+        fix_testmrio.testmrio.get_sectors()[3]
+        == classdata.sectors.iloc[3, :].loc["TestMrioCode"]
+    )
 
 
 def test_rename_Ycat(fix_testmrio):

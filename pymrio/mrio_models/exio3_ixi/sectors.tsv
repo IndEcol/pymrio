@@ -1,0 +1,164 @@
+ExioNumber	ExioName	ExioCode	ExioLabel	ISICCode	ISICName	ConsumptionCategories
+1	Cultivation of paddy rice	i01.a	A_PARI	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+2	Cultivation of wheat	i01.b	A_WHEA	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+3	Cultivation of cereal grains nec	i01.c	A_OCER	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+4	Cultivation of vegetables, fruit, nuts	i01.d	A_FVEG	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+5	Cultivation of oil seeds	i01.e	A_OILS	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+6	Cultivation of sugar cane, sugar beet	i01.f	A_SUGB	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+7	Cultivation of plant-based fibers	i01.g	A_FIBR	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+8	Cultivation of crops nec	i01.h	A_OTCR	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+9	Cattle farming	i01.i	A_CATL	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+10	Pigs farming	i01.j	A_PIGS	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+11	Poultry farming	i01.k	A_PLTR	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+12	Meat animals nec	i01.l	A_OMEA	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+13	Animal products nec	i01.m	A_OANP	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+14	Raw milk	i01.n	A_MILK	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+15	Wool, silk-worm cocoons	i01.o	A_WOOL	ISIC_A	Agriculture, hunting and related service activities (01)	Clothing
+16	Manure treatment (conventional), storage and land application	i01.w.1	A_MANC	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+17	Manure treatment (biogas), storage and land application	i01.w.2	A_MANB	ISIC_A	Agriculture, hunting and related service activities (01)	Food
+18	Forestry, logging and related service activities (02)	i02	A_FORE	ISIC_A	Forestry, logging and related service activities (02)	Shelter
+19	Fishing, operating of fish hatcheries and fish farms; service activities incidental to fishing (05)	i05	A_FISH	ISIC_B	Fishing (B)	Food
+20	Mining of coal and lignite; extraction of peat (10)	i10	A_COAL	ISIC_C	Mining and quarrying (C)	Shelter
+21	Extraction of crude petroleum and services related to crude oil extraction, excluding surveying	i11.a	A_COIL	ISIC_C	Mining and quarrying (C)	Shelter
+22	Extraction of natural gas and services related to natural gas extraction, excluding surveying	i11.b	A_GASE	ISIC_C	Mining and quarrying (C)	Shelter
+23	Extraction, liquefaction, and regasification of other petroleum and gaseous materials	i11.c	A_OGPL	ISIC_C	Mining and quarrying (C)	Shelter
+24	Mining of uranium and thorium ores (12)	i12	A_ORAN	ISIC_C	Mining and quarrying (C)	Shelter
+25	Mining of iron ores	i13.1	A_IRON	ISIC_C	Mining and quarrying (C)	Shelter
+26	Mining of copper ores and concentrates	i13.20.11	A_COPO	ISIC_C	Mining and quarrying (C)	Construction
+27	Mining of nickel ores and concentrates	i13.20.12	A_NIKO	ISIC_C	Mining and quarrying (C)	Construction
+28	Mining of aluminium ores and concentrates	i13.20.13	A_ALUO	ISIC_C	Mining and quarrying (C)	Construction
+29	Mining of precious metal ores and concentrates	i13.20.14	A_PREO	ISIC_C	Mining and quarrying (C)	Construction
+30	Mining of lead, zinc and tin ores and concentrates	i13.20.15	A_LZTO	ISIC_C	Mining and quarrying (C)	Construction
+31	Mining of other non-ferrous metal ores and concentrates	i13.20.16	A_ONFO	ISIC_C	Mining and quarrying (C)	Construction
+32	Quarrying of stone	i14.1	A_STON	ISIC_C	Mining and quarrying (C)	Construction
+33	Quarrying of sand and clay	i14.2	A_SDCL	ISIC_C	Mining and quarrying (C)	Construction
+34	Mining of chemical and fertilizer minerals, production of salt, other mining and quarrying n.e.c.	i14.3	A_CHMF	ISIC_C	Mining and quarrying (C)	Food
+35	Processing of meat cattle	i15.a	A_PCAT	ISIC_D	Manufacturing (D)	Food
+36	Processing of meat pigs	i15.b	A_PPIG	ISIC_D	Manufacturing (D)	Food
+37	Processing of meat poultry	i15.c	A_PPLT	ISIC_D	Manufacturing (D)	Food
+38	Production of meat products nec	i15.d	A_POME	ISIC_D	Manufacturing (D)	Food
+39	Processing vegetable oils and fats	i15.e	A_VOIL	ISIC_D	Manufacturing (D)	Food
+40	Processing of dairy products	i15.f	A_DAIR	ISIC_D	Manufacturing (D)	Food
+41	Processed rice	i15.g	A_RICE	ISIC_D	Manufacturing (D)	Food
+42	Sugar refining	i15.h	A_SUGR	ISIC_D	Manufacturing (D)	Food
+43	Processing of Food products nec	i15.i	A_OFOD	ISIC_D	Manufacturing (D)	Food
+44	Manufacture of beverages	i15.j	A_BEVR	ISIC_D	Manufacturing (D)	Food
+45	Manufacture of fish products	i15.k	A_FSHP	ISIC_D	Manufacturing (D)	Food
+46	Manufacture of tobacco products (16)	i16	A_TOBC	ISIC_D	Manufacturing (D)	Food
+47	Manufacture of textiles (17)	i17	A_TEXT	ISIC_D	Manufacturing (D)	Clothing
+48	Manufacture of wearing apparel; dressing and dyeing of fur (18)	i18	A_GARM	ISIC_D	Manufacturing (D)	Clothing
+49	Tanning and dressing of leather; manufacture of luggage, handbags, saddlery, harness and footwear (19)	i19	A_LETH	ISIC_D	Manufacturing (D)	Clothing
+50	Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (20)	i20	A_WOOD	ISIC_D	Manufacturing (D)	Shelter
+51	Re-processing of secondary wood material into new wood material	i20.w	A_WOOW	ISIC_D	Manufacturing (D)	Shelter
+52	Pulp	i21.1	A_PULP	ISIC_D	Manufacturing (D)	Manufactured_products
+53	Re-processing of secondary paper into new pulp	i21.w.1	A_PAPR	ISIC_D	Manufacturing (D)	Manufactured_products
+54	Paper	i21.2	A_PAPE	ISIC_D	Manufacturing (D)	Manufactured_products
+55	Publishing, printing and reproduction of recorded media (22)	i22	A_MDIA	ISIC_D	Manufacturing (D)	Services
+56	Manufacture of coke oven products	i23.1	A_COKE	ISIC_D	Manufacturing (D)	Shelter
+57	Petroleum Refinery	i23.2	A_REFN	ISIC_D	Manufacturing (D)	Mobility
+58	Processing of nuclear fuel	i23.3	A_NUCF	ISIC_D	Manufacturing (D)	Shelter
+59	Plastics, basic	i24.a	A_PLAS	ISIC_D	Manufacturing (D)	Manufactured_products
+60	Re-processing of secondary plastic into new plastic	i24.a.w	A_PLAW	ISIC_D	Manufacturing (D)	Manufactured_products
+61	N-fertiliser	i24.b	A_NFER	ISIC_D	Manufacturing (D)	Food
+62	P- and other fertiliser	i24.c	A_PFER	ISIC_D	Manufacturing (D)	Food
+63	Chemicals nec	i24.d	A_CHEM	ISIC_D	Manufacturing (D)	Manufactured_products
+64	Manufacture of rubber and plastic products (25)	i25	A_RUBP	ISIC_D	Manufacturing (D)	Manufactured_products
+65	Manufacture of glass and glass products	i26.a	A_GLAS	ISIC_D	Manufacturing (D)	Construction
+66	Re-processing of secondary glass into new glass	i26.a.w	A_GLAW	ISIC_D	Manufacturing (D)	Construction
+67	Manufacture of ceramic goods	i26.b	A_CRMC	ISIC_D	Manufacturing (D)	Construction
+68	Manufacture of bricks, tiles and construction products, in baked clay	i26.c	A_BRIK	ISIC_D	Manufacturing (D)	Construction
+69	Manufacture of cement, lime and plaster	i26.d	A_CMNT	ISIC_D	Manufacturing (D)	Construction
+70	Re-processing of ash into clinker	i26.d.w	A_ASHW	ISIC_D	Manufacturing (D)	Construction
+71	Manufacture of other non-metallic mineral products n.e.c.	i26.e	A_ONMM	ISIC_D	Manufacturing (D)	Construction
+72	Manufacture of basic iron and steel and of ferro-alloys and first products thereof	i27.a	A_STEL	ISIC_D	Manufacturing (D)	Manufactured_products
+73	Re-processing of secondary steel into new steel	i27.a.w	A_STEW	ISIC_D	Manufacturing (D)	Manufactured_products
+74	Precious metals production	i27.41	A_PREM	ISIC_D	Manufacturing (D)	Manufactured_products
+75	Re-processing of secondary preciuos metals into new preciuos metals	i27.41.w	A_PREW	ISIC_D	Manufacturing (D)	Manufactured_products
+76	Aluminium production	i27.42	A_ALUM	ISIC_D	Manufacturing (D)	Manufactured_products
+77	Re-processing of secondary aluminium into new aluminium	i27.42.w	A_ALUW	ISIC_D	Manufacturing (D)	Manufactured_products
+78	Lead, zinc and tin production	i27.43	A_LZTP	ISIC_D	Manufacturing (D)	Manufactured_products
+79	Re-processing of secondary lead into new lead, zinc and tin	i27.43.w	A_LZTW	ISIC_D	Manufacturing (D)	Manufactured_products
+80	Copper production	i27.44	A_COPP	ISIC_D	Manufacturing (D)	Manufactured_products
+81	Re-processing of secondary copper into new copper	i27.44.w	A_COPW	ISIC_D	Manufacturing (D)	Manufactured_products
+82	Other non-ferrous metal production	i27.45	A_ONFM	ISIC_D	Manufacturing (D)	Manufactured_products
+83	Re-processing of secondary other non-ferrous metals into new other non-ferrous metals	i27.45.w	A_ONFW	ISIC_D	Manufacturing (D)	Manufactured_products
+84	Casting of metals	i27.5	A_METC	ISIC_D	Manufacturing (D)	Manufactured_products
+85	Manufacture of fabricated metal products, except machinery and equipment (28)	i28	A_FABM	ISIC_D	Manufacturing (D)	Manufactured_products
+86	Manufacture of machinery and equipment n.e.c. (29)	i29	A_MACH	ISIC_D	Manufacturing (D)	Manufactured_products
+87	Manufacture of office machinery and computers (30)	i30	A_OFMA	ISIC_D	Manufacturing (D)	Manufactured_products
+88	Manufacture of electrical machinery and apparatus n.e.c. (31)	i31	A_ELMA	ISIC_D	Manufacturing (D)	Manufactured_products
+89	Manufacture of radio, television and communication equipment and apparatus (32)	i32	A_RATV	ISIC_D	Manufacturing (D)	Manufactured_products
+90	Manufacture of medical, precision and optical instruments, watches and clocks (33)	i33	A_MEIN	ISIC_D	Manufacturing (D)	Manufactured_products
+91	Manufacture of motor vehicles, trailers and semi-trailers (34)	i34	A_MOTO	ISIC_D	Manufacturing (D)	Manufactured_products
+92	Manufacture of other transport equipment (35)	i35	A_OTRE	ISIC_D	Manufacturing (D)	Manufactured_products
+93	Manufacture of furniture; manufacturing n.e.c. (36)	i36	A_FURN	ISIC_D	Manufacturing (D)	Manufactured_products
+94	Recycling of waste and scrap	i37	A_RYMS	ISIC_D	Manufacturing (D)	Manufactured_products
+95	Recycling of bottles by direct reuse	i37.w.1	A_BOTW	ISIC_D	Manufacturing (D)	Manufactured_products
+96	Production of electricity by coal	i40.11.a	A_POWC	ISIC_E	Electricity, gas and water supply (E)	Shelter
+97	Production of electricity by gas	i40.11.b	A_POWG	ISIC_E	Electricity, gas and water supply (E)	Shelter
+98	Production of electricity by nuclear	i40.11.c	A_POWN	ISIC_E	Electricity, gas and water supply (E)	Shelter
+99	Production of electricity by hydro	i40.11.d	A_POWH	ISIC_E	Electricity, gas and water supply (E)	Shelter
+100	Production of electricity by wind	i40.11.e	A_POWW	ISIC_E	Electricity, gas and water supply (E)	Shelter
+101	Production of electricity by petroleum and other oil derivatives	i40.11.f	A_POWP	ISIC_E	Electricity, gas and water supply (E)	Shelter
+102	Production of electricity by biomass and waste	i40.11.g	A_POWB	ISIC_E	Electricity, gas and water supply (E)	Shelter
+103	Production of electricity by solar photovoltaic	i40.11.h	A_POWS	ISIC_E	Electricity, gas and water supply (E)	Shelter
+104	Production of electricity by solar thermal	i40.11.i	A_POWE	ISIC_E	Electricity, gas and water supply (E)	Shelter
+105	Production of electricity by tide, wave, ocean	i40.11.j	A_POWO	ISIC_E	Electricity, gas and water supply (E)	Shelter
+106	Production of electricity by Geothermal	i40.11.k	A_POWM	ISIC_E	Electricity, gas and water supply (E)	Shelter
+107	Production of electricity nec	i40.11.l	A_POWZ	ISIC_E	Electricity, gas and water supply (E)	Shelter
+108	Transmission of electricity	i40.12	A_POWT	ISIC_E	Electricity, gas and water supply (E)	Shelter
+109	Distribution and trade of electricity	i40.13	A_POWD	ISIC_E	Electricity, gas and water supply (E)	Shelter
+110	Manufacture of gas; distribution of gaseous fuels through mains	i40.2	A_GASD	ISIC_E	Electricity, gas and water supply (E)	Shelter
+111	Steam and hot water supply	i40.3	A_HWAT	ISIC_E	Electricity, gas and water supply (E)	Shelter
+112	Collection, purification and distribution of water (41)	i41	A_WATR	ISIC_E	Electricity, gas and water supply (E)	Shelter
+113	Construction (45)	i45	A_CONS	ISIC_F	Construction (F)	Construction
+114	Re-processing of secondary construction material into aggregates	i45.w	A_CONW	ISIC_F	Construction (F)	Construction
+115	Sale, maintenance, repair of motor vehicles, motor vehicles parts, motorcycles, motor cycles parts and accessoiries	i50.a	A_TDMO	ISIC_G_H	Wholesale retail trade, repair of motor vehicles, motorcycles, etc.; hotels and restaurants (G+H)	Trade
+116	Retail sale of automotive fuel	i50.b	A_TDFU	ISIC_G_H	Wholesale retail trade, repair of motor vehicles, motorcycles, etc.; hotels and restaurants (G+H)	Trade
+117	Wholesale trade and commission trade, except of motor vehicles and motorcycles (51)	i51	A_TDWH	ISIC_G_H	Wholesale retail trade, repair of motor vehicles, motorcycles, etc.; hotels and restaurants (G+H)	Trade
+118	Retail trade, except of motor vehicles and motorcycles; repair of personal and household goods (52)	i52	A_TDRT	ISIC_G_H	Wholesale retail trade, repair of motor vehicles, motorcycles, etc.; hotels and restaurants (G+H)	Trade
+119	Hotels and restaurants (55)	i55	A_HORE	ISIC_G_H	Wholesale retail trade, repair of motor vehicles, motorcycles, etc.; hotels and restaurants (G+H)	Services
+120	Transport via railways	i60.1	A_TRAI	ISIC_I	Transport, storage and communications (I)	Mobility
+121	Other land transport	i60.2	A_TLND	ISIC_I	Transport, storage and communications (I)	Mobility
+122	Transport via pipelines	i60.3	A_TPIP	ISIC_I	Transport, storage and communications (I)	Mobility
+123	Sea and coastal water transport	i61.1	A_TWAS	ISIC_I	Transport, storage and communications (I)	Mobility
+124	Inland water transport	i61.2	A_TWAI	ISIC_I	Transport, storage and communications (I)	Mobility
+125	Air transport (62)	i62	A_TAIR	ISIC_I	Transport, storage and communications (I)	Mobility
+126	Supporting and auxiliary transport activities; activities of travel agencies (63)	i63	A_TAUX	ISIC_I	Transport, storage and communications (I)	Mobility
+127	Post and telecommunications (64)	i64	A_PTEL	ISIC_I	Transport, storage and communications (I)	Mobility
+128	Financial intermediation, except insurance and pension funding (65)	i65	A_FINT	ISIC_J_K	Financial intermediation; real estate, renting and business activities (J+K)	Services
+129	Insurance and pension funding, except compulsory social security (66)	i66	A_FINS	ISIC_J_K	Financial intermediation; real estate, renting and business activities (J+K)	Services
+130	Activities auxiliary to financial intermediation (67)	i67	A_FAUX	ISIC_J_K	Financial intermediation; real estate, renting and business activities (J+K)	Services
+131	Real estate activities (70)	i70	A_REAL	ISIC_J_K	Financial intermediation; real estate, renting and business activities (J+K)	Services
+132	Renting of machinery and equipment without operator and of personal and household goods (71)	i71	A_MARE	ISIC_J_K	Financial intermediation; real estate, renting and business activities (J+K)	Services
+133	Computer and related activities (72)	i72	A_COMP	ISIC_J_K	Financial intermediation; real estate, renting and business activities (J+K)	Services
+134	Research and development (73)	i73	A_RESD	ISIC_J_K	Financial intermediation; real estate, renting and business activities (J+K)	Services
+135	Other business activities (74)	i74	A_OBUS	ISIC_J_K	Financial intermediation; real estate, renting and business activities (J+K)	Services
+136	Public administration and defence; compulsory social security (75)	i75	A_PADF	ISIC_L	Public administration and defense; compulsory social security (L)	Services
+137	Education (80)	i80	A_EDUC	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Services
+138	Health and social work (85)	i85	A_HEAL	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Services
+139	Incineration of waste: Food	i90.1.a	A_INCF	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+140	Incineration of waste: Paper	i90.1.b	A_INCP	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+141	Incineration of waste: Plastic	i90.1.c	A_INCL	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+142	Incineration of waste: Metals and Inert materials	i90.1.d	A_INCM	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+143	Incineration of waste: Textiles	i90.1.e	A_INCT	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+144	Incineration of waste: Wood	i90.1.f	A_INCW	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+145	Incineration of waste: Oil/Hazardous waste	i90.1.g	A_INCO	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+146	Biogasification of food waste, incl. land application	i90.2.a	A_BIOF	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+147	Biogasification of paper, incl. land application	i90.2.b	A_BIOP	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+148	Biogasification of sewage slugde, incl. land application	i90.2.c	A_BIOS	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+149	Composting of food waste, incl. land application	i90.3.a	A_COMF	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+150	Composting of paper and wood, incl. land application	i90.3.b	A_COMW	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+151	Waste water treatment, food	i90.4.a	A_WASF	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+152	Waste water treatment, other	i90.4.b	A_WASO	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+153	Landfill of waste: Food	i90.5.a	A_LANF	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+154	Landfill of waste: Paper	i90.5.b	A_LANP	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+155	Landfill of waste: Plastic	i90.5.c	A_LANL	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+156	Landfill of waste: Inert/metal/hazardous	i90.5.d	A_LANI	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+157	Landfill of waste: Textiles	i90.5.e	A_LANT	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+158	Landfill of waste: Wood	i90.5.f	A_LANW	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Shelter
+159	Activities of membership organisation n.e.c. (91)	i91	A_ORGA	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Services
+160	Recreational, cultural and sporting activities (92)	i92	A_RECR	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Services
+161	Other service activities (93)	i93	A_OSER	ISIC_M_N_O	Education; health and social work; other community, social and personal services (M+N+O)	Services
+162	Private households with employed persons (95)	i95	A_PRHH	ISIC_P	Private households with employed persons (P)	Shelter
+163	Extra-territorial organizations and bodies	i99	A_EXTO	ISIC_L	Public administration and defense; compulsory social security (L)	Services

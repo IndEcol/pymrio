@@ -2,6 +2,19 @@
 Changelog
 #########
 
+***************************
+v0.4.7dev
+***************************
+
+* Added inbuild classification for 
+  - Test MRIO
+  - EXIOBASE 2 
+  - EXIOBASE 3
+
+* Method for renaming sectors/regions based on the built in classification
+* Method for aggregating duplicated indexes
+
+
 
 ***************************
 v0.4.6

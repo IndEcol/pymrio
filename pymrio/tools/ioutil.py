@@ -488,6 +488,7 @@ def build_agg_vec(agg_vec, **source):
     """
 
     # build a dict with aggregation vectors in source and folder
+    # TODO: the logic here should be moved to constants
     if type(agg_vec) is str:
         agg_vec = [agg_vec]
     agg_dict = dict()
