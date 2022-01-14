@@ -6,14 +6,14 @@ KST 20211123
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Union, Optional
+from typing import Optional, Union
 
 import pandas as pd
 
 from pymrio.core.constants import PYMRIO_PATH
 
 
-def get_classification(mrio_name: Optional[str]=None):
+def get_classification(mrio_name: Optional[str] = None):
     """Get predefined classifications included in pymrio
 
     Parameters
@@ -46,7 +46,7 @@ def get_classification(mrio_name: Optional[str]=None):
 
 @dataclass
 class ClassificationData(object):
-    """ Classification data for MRIOs 
+    """Classification data for MRIOs
 
     Typically includes .sectors and .finaldemand
 

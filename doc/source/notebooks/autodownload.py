@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.10.2
+#       jupytext_version: 1.11.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -78,6 +78,9 @@ print(exio_meta_37)
 # ## WIOD download
 
 
+# **DUE TO A RESTRUCTERING OF THE WIOD WEBPAGE THIS IS CURRENTLY BROKEN.**
+#
+#
 # WIOD is licensed under the [Creative Commons Attribution 4.0 International-license](http://creativecommons.org/licenses/by/4.0/). Thus you can remix, tweak, and build upon WIOD, even commercially, as long as you give credit to WIOD. The WIOD web-page suggest to cite [Timmer et al. 2015](http://doi.wiley.com/10.1111/roie.12178) when you use the database. You can find more information on the [WIOD webpage](http://www.wiod.org).
 
 # The download function for WIOD currently processes the [2013 release version of WIOD](http://www.wiod.org/database/wiots13).

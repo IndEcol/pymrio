@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.0
+#       jupytext_version: 1.11.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -36,6 +36,7 @@
 
 # %%
 import numpy as np
+
 import pymrio
 
 # %%
@@ -226,37 +227,54 @@ wiod_agg_DEU_EU_OECD.AIR.D_cba_reg
 # ## Aggregation by renaming
 
 # %% [markdown]
-# One alternative method for aggregating the MRIO system is to rename specific regions and/or sectors to duplicated names. 
+# One alternative method for aggregating the MRIO system is to rename specific regions and/or sectors to duplicated names.
 # Duplicated sectors and regions can then be automatically aggregated. This makes most sense when having some categories of some kind (e.g. consumption categories) or detailed classification which can easily be broadened (e.g. A01, A02, which could be renamed all to A).
-# In the example below, we will aggregate sectors to consumption categories using some predefined categories included in pymrio. To read more TODO include link
+# In the example below, we will aggregate sectors to consumption categories using some predefined categories included in pymrio. Check the [Adjusting, Renaming and Restructuring notebook for more details.](adjusting.ipynb)
 
-
+# %%
 mrio = pymrio.load_test()
 
-class_info = pymrio.get_classification('test')
-rename_dict = class_info.get_sector_dict(orig=class_info.sectors.TestMrioName, new=class_info.sectors.Type)
+# %%
+class_info = pymrio.get_classification("test")
+rename_dict = class_info.get_sector_dict(
+    orig=class_info.sectors.TestMrioName, new=class_info.sectors.Type
+)
 
 # %% [markdown]
-# If we take a look at the rename_dict, we see that it maps several sectors of the original MRIO to combined regions (technically a many to one mapping). 
+# If we take a look at the rename_dict, we see that it maps several sectors of the original MRIO to combined regions (technically a many to one mapping).
 
+# %%
 rename_dict
 
 # %% [markdown]
 # Using this dict to rename sectors leads to an index with overlapping labels.
 
+# %%
 mrio.rename_sectors(rename_dict)
 mrio.Z
 
 # %% [markdown]
 # Which can then be aggregated with
 
+# %%
 mrio.aggregate_duplicates()
 mrio.Z
 
 # %% [markdown]
 # This method also comes handy when aggregating parts of the MRIO regions. E.g.:
 
-region_convert = {'reg1': 'Antarctica', 'reg2': 'Antarctica'}
+# %%
+region_convert = {"reg1": "Antarctica", "reg2": "Antarctica"}
+mrio.rename_regions(region_convert).aggregate_duplicates()
+mrio.Z
+
+# %% [markdown]
+# Which lets us calculate the footprint of the consumption category 'eat' in 'Antarctica':
+
+
+# %%
+mrio.calc_all()
+mrio.emissions.D_cba.loc[:, ("Antarctica", "eat")]
 
 
 # %% [markdown]
@@ -269,7 +287,6 @@ region_convert = {'reg1': 'Antarctica', 'reg2': 'Antarctica'}
 pymrio.load_test().calc_all().aggregate(
     region_agg="global", sector_agg="total"
 ).emissions.D_cba
-
 
 
 # %% [markdown]
