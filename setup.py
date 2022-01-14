@@ -17,7 +17,7 @@ setup(
     include_package_data=True,
     python_requires=">=3.7.0",
     package_data={
-        "": ["*.txt", "*.dat", "*.doc", "*.rst", "*.json"],
+        "": ["*.txt", "*.dat", "*.doc", "*.rst", "*.json", "*.tsv"],
     },
     # This some needs to be here and in requirments.txt (for conda)
     install_requires=[
