@@ -1529,7 +1529,7 @@ def parse_oecd(path, year=None):
 
     path = os.path.abspath(os.path.normpath(str(path)))
 
-    oecd_file_starts = ["ICIO2016_", "ICIO2018_"]
+    oecd_file_starts = ["ICIO2016_", "ICIO2018_", "ICIO2021_"]
 
     # determine which oecd file to be parsed
     if not os.path.isdir(path):
@@ -1605,7 +1605,7 @@ def parse_oecd(path, year=None):
     # Important - these must not match any country or industry name
     factor_input = oecd_raw.filter(regex="VALU|TAX", axis=0)
     final_demand = oecd_raw.filter(
-        regex="HFCE|NPISH|NPS|GGFC|GFCF|INVNT|INV|DIRP|FD|P33|DISC", axis=1
+        regex="HFCE|NPISH|NPS|GGFC|GFCF|INVNT|INV|DIRP|DPABR|FD|P33|DISC", axis=1
     )
 
     Z = oecd_raw.loc[
@@ -1700,8 +1700,6 @@ def parse_oecd(path, year=None):
             "F_Y": F_Y_factor_input,
         },
     )
-
-    # TODO: aggregation of China and Mexico
 
     return oecd
 
