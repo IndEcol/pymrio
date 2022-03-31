@@ -2433,14 +2433,10 @@ class IOSystem(CoreSystem):
                     extension.__dict__[ik_name].columns = mi_reg_sec
                     extension.__dict__[ik_name].index = mi_reg_sec
                     st_redo_unit = True
-                elif (
-                    ik_df.index.names
-                    == [
-                        "region",
-                        "sector",
-                    ]
-                    and ik_df.columns.names == ["region", "category"]
-                ):
+                elif ik_df.index.names == [
+                    "region",
+                    "sector",
+                ] and ik_df.columns.names == ["region", "category"]:
 
                     # Full disaggregated finald demand satellite account.
                     # Thats not implemented yet - but aggregation is in place
