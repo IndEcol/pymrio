@@ -80,12 +80,12 @@ OECD_CONFIG = {
             "2015": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=9f579ef3-4685-45e4-a0ba-d1acbd9755a6",  # NOQA
         },
         "v2021": {
-            "1995-1999":"https://stats.oecd.org/wbos/fileview2.aspx?IDFile=91d8e84b-7406-46b9-af5f-ec096242755c",
-            "2000-2004":"https://stats.oecd.org/wbos/fileview2.aspx?IDFile=8adf89dd-18b4-40fe-bc7f-c822052eb961",
-            "2005-2009":"https://stats.oecd.org/wbos/fileview2.aspx?IDFile=fe218690-0a3b-44aa-a82c-b3e3da6d24db",
-            "2010-2014":"https://stats.oecd.org/wbos/fileview2.aspx?IDFile=2c2f499f-5703-4034-9457-2f7518e8f2fc",
-            "2015-2018":"https://stats.oecd.org/wbos/fileview2.aspx?IDFile=59a3d7f2-3f23-40d5-95ca-48da84c0f861"
-        }
+            "1995-1999": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=91d8e84b-7406-46b9-af5f-ec096242755c",
+            "2000-2004": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=8adf89dd-18b4-40fe-bc7f-c822052eb961",
+            "2005-2009": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=fe218690-0a3b-44aa-a82c-b3e3da6d24db",
+            "2010-2014": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=2c2f499f-5703-4034-9457-2f7518e8f2fc",
+            "2015-2018": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=59a3d7f2-3f23-40d5-95ca-48da84c0f861",
+        },
     },
 }
 
@@ -234,7 +234,7 @@ def download_oecd(
         version = "v2018"
     elif ("3" in version) or ("6" in version):
         version = "v2016"
-    elif ("21" in version):
+    elif "21" in version:
         version = "v2021"
     else:
         raise ValueError("Version not understood")
@@ -280,14 +280,14 @@ def download_oecd(
 
         filename = "ICIO" + version.lstrip("v") + "_" + yy + ".zip"
         storage_file = os.path.join(storage_folder, filename)
-        
+
         req = requests.get(OECD_CONFIG["datafiles"][version][yy], stream=True)
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
 
-        if version=="v2021":
-            with zipfile.ZipFile(storage_file, 'r') as zip_ref:
+        if version == "v2021":
+            with zipfile.ZipFile(storage_file, "r") as zip_ref:
                 zip_ref.extractall(storage_folder)
             os.remove(storage_file)
 
