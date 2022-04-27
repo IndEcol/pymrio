@@ -3,7 +3,7 @@ Changelog
 #########
 
 ***************************
-v0.4.7dev
+v0.4.8dev
 ***************************
 
 * Added inbuild classification for 
@@ -14,7 +14,11 @@ v0.4.7dev
 * Method for renaming sectors/regions based on the built in classification
 * Method for aggregating duplicated indexes
 
+***************************
+v0.4.7
+***************************
 
+* Fixed OECD downloader and parser (by @jaimeoliver1)
 
 ***************************
 v0.4.6
