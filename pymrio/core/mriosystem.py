@@ -118,6 +118,9 @@ class BaseSystem:
         # Attriubtes to keep must be defined in the init: __basic__
         strwarn = None
         for df in self.__basic__:
+            if df == "F_Y":
+                # F_Y is optional and can be None
+                continue
             if (getattr(self, df)) is None:
                 if force:
                     strwarn = (
@@ -170,6 +173,9 @@ class BaseSystem:
         # defined in self.__non_agg_attributes__
         strwarn = None
         for df in self.__basic__:
+            if df == "F_Y":
+                # F_Y is optional and can be None
+                continue
             if (getattr(self, df)) is None:
                 if force:
                     strwarn = (
@@ -794,9 +800,9 @@ class Extension(BaseSystem):
 
         # Internal attributes
 
-        # minimal necessary to calc the rest excluding F_Y since this might be
-        # not necessarily present
-        self.__basic__ = ["F"]
+        # minimal necessary to calc the rest 
+        # F_Y is optional, but this is checked in the reset routines
+        self.__basic__ = ["F", "F_Y"]
         self.__D_accounts__ = [
             "D_cba",
             "D_pba",
