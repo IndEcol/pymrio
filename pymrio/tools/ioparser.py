@@ -641,25 +641,31 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
                 "unit": _unit[Qname],
             }
 
-        impact["S"] = (
-            _impact["Q_factorinputs"]["S"]
-            .append(_impact["Q_emission"]["S"])
-            .append(_impact["Q_materials"]["S"])
-            .append(_impact["Q_resources"]["S"])
+        impact["S"] = pd.concat(
+            [
+                _impact["Q_factorinputs"]["S"],
+                _impact["Q_emission"]["S"],
+                _impact["Q_materials"]["S"],
+                _impact["Q_resources"]["S"],
+            ]
         )
-        impact["F_Y"] = (
-            _impact["Q_factorinputs"]["F_Y"]
-            .append(_impact["Q_emission"]["F_Y"])
-            .append(_impact["Q_materials"]["F_Y"])
-            .append(_impact["Q_resources"]["F_Y"])
+        impact["F_Y"] = pd.concat(
+            [
+                _impact["Q_factorinputs"]["F_Y"],
+                _impact["Q_emission"]["F_Y"],
+                _impact["Q_materials"]["F_Y"],
+                _impact["Q_resources"]["F_Y"],
+            ]
         )
         impact["S"].columns = io.emissions.S.columns
         impact["F_Y"].columns = io.emissions.F_Y.columns
-        impact["unit"] = (
-            _impact["Q_factorinputs"]["unit"]
-            .append(_impact["Q_emission"]["unit"])
-            .append(_impact["Q_materials"]["unit"])
-            .append(_impact["Q_resources"]["unit"])
+        impact["uunit"] = pd.concat(
+            [
+                _impact["Q_factorinputs"]["unit"],
+                _impact["Q_emission"]["unit"],
+                _impact["Q_materials"]["unit"],
+                _impact["Q_resources"]["unit"],
+            ]
         )
         impact["name"] = "impact"
         io.impact = Extension(**impact)
@@ -1159,7 +1165,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
             _F_Y.columns = pd.MultiIndex.from_product(
                 [_F_Y.columns, [_ss_F_Y_pressure_column]]
             )
-            _F_Y = _F_Y_template.append(_F_Y)
+            _F_Y = pd.concat([_F_Y_template, _F_Y])
             _F_Y.fillna(0, inplace=True)
             _F_Y.index.names = _dl_ex["F"].index.names
             _F_Y.columns.names = _F_Y_template.columns.names
@@ -1662,23 +1668,23 @@ def parse_oecd(path, year=None):
 
         # aggregate rows
         Z.loc[co_name, :] = (
-            Z.loc[co_name, :] + Z.loc[agg_list, :].sum(level="sector", axis=0)
+            Z.loc[co_name, :] + Z.loc[agg_list, :].groupby(level="sector", axis=0).sum()
         ).values
         Z = Z.drop(agg_list, axis=0)
         Y.loc[co_name, :] = (
-            Y.loc[co_name, :] + Y.loc[agg_list, :].sum(level="sector", axis=0)
+            Y.loc[co_name, :] + Y.loc[agg_list, :].groupby(level="sector", axis=0).sum()
         ).values
         Y = Y.drop(agg_list, axis=0)
 
         # aggregate columns
         Z.loc[:, co_name] = (
-            Z.loc[:, co_name] + Z.loc[:, agg_list].sum(level="sector", axis=1)
+            Z.loc[:, co_name] + Z.loc[:, agg_list].groupby(level="sector", axis=1).sum()
         ).values
         Z = Z.drop(agg_list, axis=1)
 
         F_factor_input.loc[:, co_name] = (
             F_factor_input.loc[:, co_name]
-            + F_factor_input.loc[:, agg_list].sum(level="sector", axis=1)
+            + F_factor_input.loc[:, agg_list].groupby(level="sector", axis=1).sum()
         ).values
         F_factor_input = F_factor_input.drop(agg_list, axis=1)
 

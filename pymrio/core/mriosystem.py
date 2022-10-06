@@ -800,7 +800,7 @@ class Extension(BaseSystem):
 
         # Internal attributes
 
-        # minimal necessary to calc the rest 
+        # minimal necessary to calc the rest
         # F_Y is optional, but this is checked in the reset routines
         self.__basic__ = ["F", "F_Y"]
         self.__D_accounts__ = [

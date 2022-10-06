@@ -96,7 +96,7 @@ class ClassificationData(object):
             dict
         """
         if type(orig) is not str:
-            for cname, cvalue in self.sectors.iteritems():
+            for cname, cvalue in self.sectors.items():
                 if cvalue.isin(orig).all():
                     orig = cname
                     break

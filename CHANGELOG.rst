@@ -18,6 +18,7 @@ Bugfixes
 ========
 
 * F_Y was removed in reset_full - fixed
+* updated deprecated pandas methods - fix #93
 
 ***************************
 v0.4.7
