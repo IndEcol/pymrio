@@ -14,6 +14,11 @@ v0.4.8dev
 * Method for renaming sectors/regions based on the built in classification
 * Method for aggregating duplicated indexes
 
+Bugfixes
+========
+
+* F_Y was removed in reset_full - fixed
+
 ***************************
 v0.4.7
 ***************************
