@@ -3,7 +3,7 @@ Changelog
 #########
 
 ***************************
-v0.4.8dev
+v0.4.8
 ***************************
 
 * Added inbuild classification for 
