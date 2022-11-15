@@ -5,6 +5,7 @@ channels:
   - defaults
 dependencies: 
   # core
+  - python=3.9.*
   - pandas >= 1.5
   - requests >= 2.18
   - xlrd > 1.1.0 
@@ -19,7 +20,7 @@ dependencies:
   - nbval
   - black >= 22.8
   - ipython
-  - jupyterlab=3
+  - jupyterlab=3.*
   - jupytext
   - coveralls
   - pynvim
