@@ -343,8 +343,6 @@ def test_characterize_extension(fix_testmrio):
         check_names=False,
     )
 
-    return locals()
-
 
 def test_reset_to_flows(fix_testmrio):
     tt = fix_testmrio.testmrio
