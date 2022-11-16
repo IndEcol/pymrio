@@ -32,7 +32,7 @@ jobs:
           pip install . -U
           python setup.py sdist
       - name: Upload
-        uses: pypa/gh-action-pypi-publish@release_candidates
+        uses: pypa/gh-action-pypi-publish@master
         with:
           user: __token__
           password: ${{ secrets.PYMRIO_TEST_PYPI_PW }}
