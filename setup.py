@@ -9,7 +9,7 @@ setup(
         "calculations and generating reports"
     ),
     long_description=open("README.rst").read(),
-    url="https://github.com/konstantinstadler/pymrio",
+    url="https://github.com/IndEcol/pymrio",
     author="Konstantin Stadler",
     author_email="konstantin.stadler@ntnu.no",
     version=__version__,  # noqa

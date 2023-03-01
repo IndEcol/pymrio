@@ -2,6 +2,17 @@
 Changelog
 #########
 
+
+***************************
+v0.5.0 dev
+***************************
+
+Development
+===========
+
+Move the repository to the public IndEcol organization on GitHub: https://github.com/IndEcol/pymrio
+
+
 ***************************
 v0.4.8
 ***************************
