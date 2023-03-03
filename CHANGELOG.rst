@@ -2,6 +2,24 @@
 Changelog
 #########
 
+
+***************************
+v0.5.0 dev
+***************************
+
+Development
+===========
+
+Move the repository to the public IndEcol organization on GitHub: https://github.com/IndEcol/pymrio
+
+Breaking changes
+================
+
+* dropped support for Python 3.7 and added 3.10 and 3.11
+* License changed to LESSER GNU GENERAL PUBLIC LICENSE v3 (LGPLv3)
+
+
+
 ***************************
 v0.4.8
 ***************************
