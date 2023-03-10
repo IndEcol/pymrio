@@ -30,7 +30,10 @@ GENERIC_NAMES = {
     "ext": "Extension",
 }
 
-DEFAULT_FILE_NAMES = {"filepara": "file_parameters.json", "metadata": "metadata.json"}
+DEFAULT_FILE_NAMES = {"filepara": "file_parameters.json", 
+                      "metadata": "metadata.json",
+                      "download_log:": "download_log.json"
+                    }
 
 MISSING_AGG_ENTRY = {
     "region": "Unspecified region",

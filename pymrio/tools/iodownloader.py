@@ -11,6 +11,8 @@ import requests
 
 from pymrio.tools.iometadata import MRIOMetaData
 
+# TODO: download log should contain some user information, computername, date
+
 WIOD_CONFIG = {
     "url_db_view": "http://www.wiod.org/database/wiots13",
     "url_db_content": "http://www.wiod.org/",
@@ -251,7 +253,7 @@ def download_oecd(
             years = range(1995, 2012)
     years = [str(yy) for yy in years]
 
-    meta = MRIOMetaData(
+    meta = MRIOMetaData._make_download_log(
         location=storage_folder,
         description="OECD-ICIO download",
         name="OECD-ICIO",
@@ -367,7 +369,7 @@ def download_wiod2013(
         if re.search(r"(wiot)(\d\d)", os.path.basename(url)).group(2) in years
     ]
 
-    meta = MRIOMetaData(
+    meta = MRIOMetaData._make_download_log(
         location=storage_folder,
         description="WIOD metadata file for pymrio",
         name="WIOD",
@@ -509,7 +511,7 @@ def download_exiobase3(
     if type(system) is str:
         system = [system]
 
-    meta = MRIOMetaData(
+    meta = MRIOMetaData._make_download_log(
         location=storage_folder,
         description="EXIOBASE3 metadata file for pymrio",
         name="EXIO3",

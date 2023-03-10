@@ -171,6 +171,98 @@ class MRIOMetaData(object):
             )
         )
 
+# class MRIOMetaData(object):
+#     def __init__(
+#         self,
+#         location=None,
+#         description=None,
+#         name=None,
+#         system=None,
+#         version=None,
+#         path_in_arc="",
+#         logger_function=logging.info,
+#     ):
+
+
+    def _make_download_log(
+        self,
+        location,
+        name,
+        description=None,
+        system=None,
+        version=None,
+        logger_function=logging.info,
+        ):
+        """ Factory method for making a download log file
+
+        Parameters
+        -----------
+
+        location: str, valid path
+            Path or filename for the history log file.
+            This can be the full file path or just the
+            storage folder.  In the latter case, the filename defined in
+            DEFAULT_FILE_NAMES['download_log'] (currently 'download_log.json') is
+            assumed. 
+
+        name: str
+            Name of the mrio (e.g. wiod, exiobase)
+            Will be set the first time the metadata file gets established;
+            subsequent changes are recorded in 'history'.
+
+        description: str, optional
+            Description of the metadata file purpose and mrio,
+            default set to 'Metadata file for pymrio'.
+            Will be set the first time the metadata file gets established;
+            subsequent changes are recorded in 'history'.
+
+        system: str, optional
+            For example 'industry by industry', 'ixi', ...
+            Will be set the first time the metadata file gets established;
+            subsequent changes are recorded in 'history'.
+
+        version: str, int, float, optional
+            Version number
+            Will be set the first time the metadata file gets established;
+            subsequent changes are recorded in 'history'.
+
+        logger_function: func, optional
+            Function accepting strings.
+            The info string written to the metadata is also
+            passed to this function. By default, the funtion
+            is set to logging.info. Set to None for no output.
+
+        Returns
+        --------
+        MRIOMetaData object 
+            setup as a download log
+
+        """
+
+        location = Path(location)
+
+        if location.exists():
+            if location.is_file():
+                full_location = location
+            elif location.is_dir():
+                full_location = location / DEFAULT_FILE_NAMES["download_log"]
+            else:
+                raise ValueError('Location must be a valid file or directory')
+        else:
+            if location.suffix == '':
+                full_location = location / DEFAULT_FILE_NAMES["download_log"]
+            else:
+                full_location = location
+
+        return MRIOMetaData(
+            location=full_location,
+            description=description,
+            name=name,
+            system=system,
+            version=version,
+            logger_function=logger_function,
+        )
+
     def note(self, entry):
         """Add the passed string as note to the history
 
