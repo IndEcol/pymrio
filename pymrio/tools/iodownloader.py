@@ -5,6 +5,8 @@ import itertools
 import os
 import re
 import zipfile
+import ssl
+import urllib3
 from collections import namedtuple
 
 import requests
@@ -91,6 +93,27 @@ OECD_CONFIG = {
     },
 }
 
+class CustomHttpAdapter (requests.adapters.HTTPAdapter):
+    """
+    https://stackoverflow.com/questions/71603314/ssl-error-unsafe-legacy-renegotiation-disabled
+    """
+    # "Transport adapter" that allows us to use custom ssl_context.
+
+    def __init__(self, ssl_context=None, **kwargs):
+        self.ssl_context = ssl_context
+        super().__init__(**kwargs)
+
+    def init_poolmanager(self, connections, maxsize, block=False):
+        self.poolmanager = urllib3.poolmanager.PoolManager(
+            num_pools=connections, maxsize=maxsize,
+            block=block, ssl_context=self.ssl_context)
+
+def get_legacy_session():
+    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+    session = requests.session()
+    session.mount('https://', CustomHttpAdapter(ctx))
+    return session
 
 def _get_url_datafiles(
     url_db_view,
@@ -261,7 +284,19 @@ def download_oecd(
         version=version,
     )
 
-    oecd_webcontent = requests.get(OECD_CONFIG["url_db_view"]).text
+    print("HERE4")
+    def ssl_fix(req_func, *args, **kwargs):
+        try:
+            r = req_func(*args, **kwargs)
+        except:
+            r = get_legacy_session().get(*args, **kwargs)
+        return r
+
+
+    cont_resp = ssl_fix(requests.get,OECD_CONFIG["url_db_view"])
+    oecd_webcontent = cont_resp.text
+
+
     for yy in years:
         if yy not in OECD_CONFIG["datafiles"][version].keys():
             raise ValueError("Datafile for {} not specified or available.".format(yy))
@@ -283,7 +318,9 @@ def download_oecd(
         filename = "ICIO" + version.lstrip("v") + "_" + yy + ".zip"
         storage_file = os.path.join(storage_folder, filename)
 
-        req = requests.get(OECD_CONFIG["datafiles"][version][yy], stream=True)
+        # req = requests.get(OECD_CONFIG["datafiles"][version][yy], stream=True)
+        req = ssl_fix(requests.get, OECD_CONFIG["datafiles"][version][yy], stream=True)
+
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
