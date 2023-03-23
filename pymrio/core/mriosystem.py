@@ -992,7 +992,6 @@ class Extension(BaseSystem):
 
         # calc accounts per capita if population data is available
         if population is not None:
-
             if (
                 (self.D_cba_cap is None)
                 or (self.D_pba_cap is None)
@@ -2425,7 +2424,6 @@ class IOSystem(BaseSystem):
                 extension.get_DataFrame(data=False, with_unit=False),
                 extension.get_DataFrame(data=True, with_unit=False),
             ):
-
                 # Without unit - this is reset aftwards if necessary
                 if ik_df.index.names == ["region", "sector"] == ik_df.columns.names:
                     # Full disaggregated extensions - aggregate both axis
@@ -2443,7 +2441,6 @@ class IOSystem(BaseSystem):
                     "region",
                     "sector",
                 ] and ik_df.columns.names == ["region", "category"]:
-
                     # Full disaggregated finald demand satellite account.
                     # Thats not implemented yet - but aggregation is in place
                     extension.__dict__[ik_name] = pd.DataFrame(

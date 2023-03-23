@@ -31,7 +31,6 @@ def fix_testmrio_calc():
 
 
 def test_parse_exio1(fix_testmrio_calc):
-
     exio1_mockpath = os.path.join(testpath, "mock_mrios", "exio1_mock")
 
     test_mrio = fix_testmrio_calc.testmrio
@@ -178,7 +177,6 @@ def test_parse_wiod():
 
 
 def test_oecd_2016():
-
     oecd_mockpath = os.path.join(testpath, "mock_mrios", "oecd_mock")
     oecd_IO_file = os.path.join(oecd_mockpath, "ICIO2016_2003.csv")
 

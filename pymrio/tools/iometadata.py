@@ -2,14 +2,17 @@
 """
 
 import datetime
+import getpass
 import json
 import logging
 import os
+import platform
 import zipfile
 from collections import OrderedDict
 from pathlib import Path
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES
+from pymrio.version import __version__ as pymrio_version
 
 
 class MRIOMetaData(object):
@@ -23,7 +26,6 @@ class MRIOMetaData(object):
         path_in_arc="",
         logger_function=logging.info,
     ):
-
         """Organzises the MRIO meta data
 
         The meta data is stored in a json file.
@@ -171,6 +173,108 @@ class MRIOMetaData(object):
             )
         )
 
+    def _make_download_log(
+        location,
+        name,
+        description=None,
+        system=None,
+        version=None,
+        logger_function=logging.info,
+    ):
+        """Factory method for making a download log file
+
+        This makes an instance of the metahander suitable for storing download information.
+        During estabishment it also records system information (username, hostname, pymrio version, etc.)
+        as defined in _get_system_meta.
+
+        Parameters
+        -----------
+
+        location: str, valid path
+            Path or filename for the history log file.
+            This can be the full file path or just the
+            storage folder.  In the latter case, the filename defined in
+            DEFAULT_FILE_NAMES['download_log'] (currently 'download_log.json') is
+            assumed.
+
+        name: str
+            Name of the mrio (e.g. wiod, exiobase)
+            Will be set the first time the metadata file gets established;
+            subsequent changes are recorded in 'history'.
+
+        description: str, optional
+            Description of the metadata file purpose and mrio,
+            default set to 'Metadata file for pymrio'.
+            Will be set the first time the metadata file gets established;
+            subsequent changes are recorded in 'history'.
+
+        system: str, optional
+            For example 'industry by industry', 'ixi', ...
+            Will be set the first time the metadata file gets established;
+            subsequent changes are recorded in 'history'.
+
+        version: str, int, float, optional
+            Version number
+            Will be set the first time the metadata file gets established;
+            subsequent changes are recorded in 'history'.
+
+        logger_function: func, optional
+            Function accepting strings.
+            The info string written to the metadata is also
+            passed to this function. By default, the funtion
+            is set to logging.info. Set to None for no output.
+
+        Returns
+        --------
+        MRIOMetaData object
+            setup as a download log
+
+        """
+
+        location = Path(location)
+
+        if location.exists():
+            if location.is_file():
+                full_location = location
+            elif location.is_dir():
+                full_location = location / DEFAULT_FILE_NAMES["download_log"]
+            else:
+                raise ValueError("Location must be a valid file or directory")
+        else:
+            if location.suffix == "":
+                full_location = location / DEFAULT_FILE_NAMES["download_log"]
+            else:
+                full_location = location
+
+        mmd = MRIOMetaData(
+            location=full_location,
+            description=description,
+            name=name,
+            system=system,
+            version=version,
+            logger_function=logger_function,
+        )
+
+        for typ, val in mmd._get_system_meta().items():
+            mmd.note(f"{typ}: {val}")
+
+        mmd.note("Download log created")
+
+        return mmd
+
+    def _read_content(self):
+        """Read the metadata file and store the content in self._content"""
+        if self._metadata_file:
+            if self._path_in_arc:
+                with zipfile.ZipFile(file=str(self._metadata_file)) as zf:
+                    with zf.open(self._path_in_arc) as f:
+                        self._content = json.load(f, object_pairs_hook=OrderedDict)
+            else:
+                with open(str(self._metadata_file), "r") as f:
+                    self._content = json.load(f, object_pairs_hook=OrderedDict)
+
+        return mmd
+
     def note(self, entry):
         """Add the passed string as note to the history
 
@@ -274,6 +378,40 @@ class MRIOMetaData(object):
                     para=para, old=old_value, new=new_value
                 ),
             )
+
+    def _get_system_meta(self):
+        """Returns a dictionary with user meta data
+
+        with username, computername, os, os version, and python version
+        """
+
+        try:
+            username = getpass.getuser()
+        except:
+            username = "unknown"
+
+        try:
+            hostname = platform.node()
+        except:
+            hostname = "unknown"
+
+        try:
+            os = platform.system()
+        except:
+            os = "unknown"
+
+        try:
+            pyver = platform.python_version()
+        except:
+            pyver = "unknown"
+
+        return {
+            "username": username,
+            "hostname": hostname,
+            "os": os,
+            "pymrio_version": pymrio_version,
+            "python_version": pyver,
+        }
 
     def _time(self):
         return "{:%Y%m%d %H:%M:%S}".format(datetime.datetime.now())

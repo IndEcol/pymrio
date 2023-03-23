@@ -122,7 +122,6 @@ def td_small_MRIO():
     """
 
     class IO_Data:
-
         _sectors = ["sector1", "sector2", "sector3"]
         _regions = ["reg1", "reg2"]
         _Z_multiindex = pd.MultiIndex.from_product(
