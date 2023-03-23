@@ -32,7 +32,7 @@ GENERIC_NAMES = {
 
 DEFAULT_FILE_NAMES = {"filepara": "file_parameters.json", 
                       "metadata": "metadata.json",
-                      "download_log:": "download_log.json"
+                      "download_log": "download_log.json"
                     }
 
 MISSING_AGG_ENTRY = {

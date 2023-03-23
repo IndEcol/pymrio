@@ -6,10 +6,14 @@ import json
 import logging
 import os
 import zipfile
+import platform
+import getpass
 from collections import OrderedDict
 from pathlib import Path
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES
+from pymrio.version import __version__ as pymrio_version
+
 
 
 class MRIOMetaData(object):
@@ -171,21 +175,8 @@ class MRIOMetaData(object):
             )
         )
 
-# class MRIOMetaData(object):
-#     def __init__(
-#         self,
-#         location=None,
-#         description=None,
-#         name=None,
-#         system=None,
-#         version=None,
-#         path_in_arc="",
-#         logger_function=logging.info,
-#     ):
-
 
     def _make_download_log(
-        self,
         location,
         name,
         description=None,
@@ -194,6 +185,10 @@ class MRIOMetaData(object):
         logger_function=logging.info,
         ):
         """ Factory method for making a download log file
+
+        This makes an instance of the metahander suitable for storing download information.
+        During estabishment it also records system information (username, hostname, pymrio version, etc.)
+        as defined in _get_system_meta.
 
         Parameters
         -----------
@@ -254,7 +249,7 @@ class MRIOMetaData(object):
             else:
                 full_location = location
 
-        return MRIOMetaData(
+        mmd = MRIOMetaData(
             location=full_location,
             description=description,
             name=name,
@@ -262,6 +257,28 @@ class MRIOMetaData(object):
             version=version,
             logger_function=logger_function,
         )
+
+        for typ, val in mmd._get_system_meta().items():
+            mmd.note(f"{typ}: {val}")
+
+        mmd.note("Download log created")
+
+        return mmd
+
+    def _read_content(self):
+        """ Read the metadata file and store the content in self._content
+
+        """
+        if self._metadata_file:
+            if self._path_in_arc:
+                with zipfile.ZipFile(file=str(self._metadata_file)) as zf:
+                    with zf.open(self._path_in_arc) as f:
+                        self._content = json.load(f, object_pairs_hook=OrderedDict)
+            else:
+                with open(str(self._metadata_file), "r") as f:
+                    self._content = json.load(f, object_pairs_hook=OrderedDict)
+
+        return mmd
 
     def note(self, entry):
         """Add the passed string as note to the history
@@ -367,6 +384,41 @@ class MRIOMetaData(object):
                 ),
             )
 
+    def _get_system_meta(self):
+        """Returns a dictionary with user meta data
+
+        with username, computername, os, os version, and python version
+        """
+
+        try: 
+            username = getpass.getuser()
+        except: 
+            username = "unknown"
+
+        try: 
+            hostname = platform.node()
+        except: 
+            hostname = "unknown"
+
+        try: 
+            os = platform.system()
+        except: 
+            os = "unknown"
+
+        try: 
+            pyver = platform.python_version()
+        except: 
+            pyver = "unknown"
+
+        return {
+            "username": username,
+            "hostname": hostname,
+            "os": os,
+            "pymrio_version": pymrio_version,
+            "python_version": pyver,
+        }
+
+
     def _time(self):
         return "{:%Y%m%d %H:%M:%S}".format(datetime.datetime.now())
 
@@ -430,3 +482,7 @@ class MRIOMetaData(object):
             self.note(entry=note)
 
         print(self.__str__())
+
+
+
+

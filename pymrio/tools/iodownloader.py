@@ -13,7 +13,6 @@ import requests
 
 from pymrio.tools.iometadata import MRIOMetaData
 
-# TODO: download log should contain some user information, computername, date
 
 WIOD_CONFIG = {
     "url_db_view": "http://www.wiod.org/database/wiots13",
@@ -93,28 +92,6 @@ OECD_CONFIG = {
     },
 }
 
-class CustomHttpAdapter (requests.adapters.HTTPAdapter):
-    """
-    https://stackoverflow.com/questions/71603314/ssl-error-unsafe-legacy-renegotiation-disabled
-    """
-    # "Transport adapter" that allows us to use custom ssl_context.
-
-    def __init__(self, ssl_context=None, **kwargs):
-        self.ssl_context = ssl_context
-        super().__init__(**kwargs)
-
-    def init_poolmanager(self, connections, maxsize, block=False):
-        self.poolmanager = urllib3.poolmanager.PoolManager(
-            num_pools=connections, maxsize=maxsize,
-            block=block, ssl_context=self.ssl_context)
-
-def get_legacy_session():
-    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
-    session = requests.session()
-    session.mount('https://', CustomHttpAdapter(ctx))
-    return session
-
 def _get_url_datafiles(
     url_db_view,
     url_db_content,
@@ -160,7 +137,7 @@ def _get_url_datafiles(
 
 
 def _download_urls(
-    url_list, storage_folder, overwrite_existing, meta_handler, access_cookie=None
+    url_list, storage_folder, overwrite_existing, downlog_handler, access_cookie=None
 ):
     """Save url from url_list to storage_folder
 
@@ -179,7 +156,8 @@ def _download_urls(
         the storage folder (default). Set to True to replace
         files.
 
-    meta_handler: instance of MRIOMetaData
+    downlog_handler: instance of MRIOMetaData
+        Instance of MRIOMetaData to store the download log
 
     access_cookie: cookie, optional
         Cookie to be passed to the requests.post function fetching the data
@@ -188,7 +166,7 @@ def _download_urls(
     Returns
     -------
 
-    The meta_handler is passed back
+    The downlog_handler is passed back
 
     """
     for url in url_list:
@@ -205,10 +183,10 @@ def _download_urls(
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
 
-        meta_handler._add_fileio("Downloaded {} to {}".format(url, filename))
-        meta_handler.save()
+        downlog_handler._add_fileio("Downloaded {} to {}".format(url, filename))
+        downlog_handler.save()
 
-    return meta_handler
+    return downlog_handler
 
 
 def download_oecd(
@@ -276,7 +254,7 @@ def download_oecd(
             years = range(1995, 2012)
     years = [str(yy) for yy in years]
 
-    meta = MRIOMetaData._make_download_log(
+    downlog = MRIOMetaData._make_download_log(
         location=storage_folder,
         description="OECD-ICIO download",
         name="OECD-ICIO",
@@ -330,15 +308,15 @@ def download_oecd(
                 zip_ref.extractall(storage_folder)
             os.remove(storage_file)
 
-        meta._add_fileio(
+        downlog._add_fileio(
             "Downloaded {} to {}".format(
                 OECD_CONFIG["datafiles"][version][yy], filename
             )
         )
 
-    meta.save()
+    downlog.save()
 
-    return meta
+    return downlog
 
 
 def download_wiod2013(
@@ -406,7 +384,7 @@ def download_wiod2013(
         if re.search(r"(wiot)(\d\d)", os.path.basename(url)).group(2) in years
     ]
 
-    meta = MRIOMetaData._make_download_log(
+    downlog = MRIOMetaData._make_download_log(
         location=storage_folder,
         description="WIOD metadata file for pymrio",
         name="WIOD",
@@ -414,15 +392,15 @@ def download_wiod2013(
         version="data13",
     )
 
-    meta = _download_urls(
+    downlog = _download_urls(
         url_list=restricted_wiod_io_urls + satellite_urls,
         storage_folder=storage_folder,
         overwrite_existing=overwrite_existing,
-        meta_handler=meta,
+        downlog_handler=downlog,
     )
 
-    meta.save()
-    return meta
+    downlog.save()
+    return downlog
 
 
 def download_eora26():
@@ -548,9 +526,9 @@ def download_exiobase3(
     if type(system) is str:
         system = [system]
 
-    meta = MRIOMetaData._make_download_log(
+    downlog = MRIOMetaData._make_download_log(
         location=storage_folder,
-        description="EXIOBASE3 metadata file for pymrio",
+        description="Download log of EXIOBASE3",
         name="EXIO3",
         system=",".join(system),
         version=doi,
@@ -566,7 +544,7 @@ def download_exiobase3(
         )
 
         if not filename:
-            meta._add_fileio(
+            downlog._add_fileio(
                 "Could not find EXIOBASE 3 source file with >{}< and >{}<".format(
                     file_specs[0], file_specs[1]
                 )
@@ -576,12 +554,13 @@ def download_exiobase3(
             u for u in exio_web_content.data_urls for f in filename if f in u
         ]
 
-    meta = _download_urls(
+    downlog = _download_urls(
         url_list=requested_urls,
         storage_folder=storage_folder,
         overwrite_existing=overwrite_existing,
-        meta_handler=meta,
+        downlog_handler=downlog,
     )
 
-    meta.save()
-    return meta
+    downlog.save()
+    return downlog
+
