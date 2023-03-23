@@ -4,15 +4,14 @@
 import itertools
 import os
 import re
-import zipfile
 import ssl
-import urllib3
+import zipfile
 from collections import namedtuple
 
 import requests
+import urllib3
 
 from pymrio.tools.iometadata import MRIOMetaData
-
 
 WIOD_CONFIG = {
     "url_db_view": "http://www.wiod.org/database/wiots13",
@@ -91,6 +90,7 @@ OECD_CONFIG = {
         },
     },
 }
+
 
 def _get_url_datafiles(
     url_db_view,
@@ -263,6 +263,7 @@ def download_oecd(
     )
 
     print("HERE4")
+
     def ssl_fix(req_func, *args, **kwargs):
         try:
             r = req_func(*args, **kwargs)
@@ -270,10 +271,8 @@ def download_oecd(
             r = get_legacy_session().get(*args, **kwargs)
         return r
 
-
-    cont_resp = ssl_fix(requests.get,OECD_CONFIG["url_db_view"])
+    cont_resp = ssl_fix(requests.get, OECD_CONFIG["url_db_view"])
     oecd_webcontent = cont_resp.text
-
 
     for yy in years:
         if yy not in OECD_CONFIG["datafiles"][version].keys():
@@ -563,4 +562,3 @@ def download_exiobase3(
 
     downlog.save()
     return downlog
-

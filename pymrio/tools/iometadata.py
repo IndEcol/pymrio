@@ -2,18 +2,17 @@
 """
 
 import datetime
+import getpass
 import json
 import logging
 import os
-import zipfile
 import platform
-import getpass
+import zipfile
 from collections import OrderedDict
 from pathlib import Path
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES
 from pymrio.version import __version__ as pymrio_version
-
 
 
 class MRIOMetaData(object):
@@ -27,7 +26,6 @@ class MRIOMetaData(object):
         path_in_arc="",
         logger_function=logging.info,
     ):
-
         """Organzises the MRIO meta data
 
         The meta data is stored in a json file.
@@ -175,7 +173,6 @@ class MRIOMetaData(object):
             )
         )
 
-
     def _make_download_log(
         location,
         name,
@@ -183,8 +180,8 @@ class MRIOMetaData(object):
         system=None,
         version=None,
         logger_function=logging.info,
-        ):
-        """ Factory method for making a download log file
+    ):
+        """Factory method for making a download log file
 
         This makes an instance of the metahander suitable for storing download information.
         During estabishment it also records system information (username, hostname, pymrio version, etc.)
@@ -198,7 +195,7 @@ class MRIOMetaData(object):
             This can be the full file path or just the
             storage folder.  In the latter case, the filename defined in
             DEFAULT_FILE_NAMES['download_log'] (currently 'download_log.json') is
-            assumed. 
+            assumed.
 
         name: str
             Name of the mrio (e.g. wiod, exiobase)
@@ -229,7 +226,7 @@ class MRIOMetaData(object):
 
         Returns
         --------
-        MRIOMetaData object 
+        MRIOMetaData object
             setup as a download log
 
         """
@@ -242,9 +239,9 @@ class MRIOMetaData(object):
             elif location.is_dir():
                 full_location = location / DEFAULT_FILE_NAMES["download_log"]
             else:
-                raise ValueError('Location must be a valid file or directory')
+                raise ValueError("Location must be a valid file or directory")
         else:
-            if location.suffix == '':
+            if location.suffix == "":
                 full_location = location / DEFAULT_FILE_NAMES["download_log"]
             else:
                 full_location = location
@@ -266,9 +263,7 @@ class MRIOMetaData(object):
         return mmd
 
     def _read_content(self):
-        """ Read the metadata file and store the content in self._content
-
-        """
+        """Read the metadata file and store the content in self._content"""
         if self._metadata_file:
             if self._path_in_arc:
                 with zipfile.ZipFile(file=str(self._metadata_file)) as zf:
@@ -390,24 +385,24 @@ class MRIOMetaData(object):
         with username, computername, os, os version, and python version
         """
 
-        try: 
+        try:
             username = getpass.getuser()
-        except: 
+        except:
             username = "unknown"
 
-        try: 
+        try:
             hostname = platform.node()
-        except: 
+        except:
             hostname = "unknown"
 
-        try: 
+        try:
             os = platform.system()
-        except: 
+        except:
             os = "unknown"
 
-        try: 
+        try:
             pyver = platform.python_version()
-        except: 
+        except:
             pyver = "unknown"
 
         return {
@@ -417,7 +412,6 @@ class MRIOMetaData(object):
             "pymrio_version": pymrio_version,
             "python_version": pyver,
         }
-
 
     def _time(self):
         return "{:%Y%m%d %H:%M:%S}".format(datetime.datetime.now())
@@ -482,7 +476,3 @@ class MRIOMetaData(object):
             self.note(entry=note)
 
         print(self.__str__())
-
-
-
-
