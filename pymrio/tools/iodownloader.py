@@ -12,6 +12,7 @@ import requests
 import urllib3
 
 from pymrio.tools.iometadata import MRIOMetaData
+from pymrio.tools.ioutil import ssl_fix
 
 WIOD_CONFIG = {
     "url_db_view": "http://www.wiod.org/database/wiots13",
@@ -244,6 +245,7 @@ def download_oecd(
 
     if type(years) is int or type(years) is str:
         years = [years]
+        
     if not years:
         if version == "v2018":
             years = range(2005, 2016)
@@ -252,6 +254,7 @@ def download_oecd(
 
         else:
             years = range(1995, 2012)
+
     years = [str(yy) for yy in years]
 
     downlog = MRIOMetaData._make_download_log(
@@ -262,41 +265,23 @@ def download_oecd(
         version=version,
     )
 
-    print("HERE4")
-
-    def ssl_fix(req_func, *args, **kwargs):
-        try:
-            r = req_func(*args, **kwargs)
-        except:
-            r = get_legacy_session().get(*args, **kwargs)
-        return r
-
-    cont_resp = ssl_fix(requests.get, OECD_CONFIG["url_db_view"])
-    oecd_webcontent = cont_resp.text
-
     for yy in years:
         if yy not in OECD_CONFIG["datafiles"][version].keys():
             raise ValueError("Datafile for {} not specified or available.".format(yy))
-        if version == "v2016":
-            url_to_check = os.path.basename(OECD_CONFIG["datafiles"][version][yy])
-        elif version == "v2021":
-            url_to_check = os.path.basename(OECD_CONFIG["datafiles"][version][yy])
-        else:
-            url_to_check = OECD_CONFIG["datafiles"][version][yy]
-
-        if url_to_check not in oecd_webcontent:
-            raise ValueError(
-                "Specified datafile for {} () not found in the current"
-                "OECD ICIO webpage.\n"
-                "Perhaps filenames have been changed - update OECD_CONFIG "
-                "to the new filenames".format(yy, url_to_check)
-            )
 
         filename = "ICIO" + version.lstrip("v") + "_" + yy + ".zip"
-        storage_file = os.path.join(storage_folder, filename)
+        
+        if not overwrite_existing:
+            if version == "v2021":
+                filenames = [f"ICIO{version.lstrip('v')}_{str(yr)}.csv" for yr in range(int(yy[:4]),int(yy[-4:])+1)]
+                if set(filenames).issubset(os.listdir(storage_folder)):
+                    continue
+            elif filename in os.listdir(storage_folder):
+                continue
 
-        # req = requests.get(OECD_CONFIG["datafiles"][version][yy], stream=True)
-        req = ssl_fix(requests.get, OECD_CONFIG["datafiles"][version][yy], stream=True)
+
+        req = ssl_fix(OECD_CONFIG["datafiles"][version][yy], stream=True) 
+        storage_file = os.path.join(storage_folder, filename)
 
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
