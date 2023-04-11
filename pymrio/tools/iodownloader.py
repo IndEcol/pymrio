@@ -10,6 +10,7 @@ from collections import namedtuple
 
 import requests
 import urllib3
+import getpass
 
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import ssl_fix
@@ -172,6 +173,8 @@ def _download_urls(
     """
     for url in url_list:
         filename = os.path.basename(url)
+        if downlog_handler.name == "Eora":
+            filename = filename.split(".zip")[0]+".zip"
         if not overwrite_existing and filename in os.listdir(storage_folder):
             continue
         storage_file = os.path.join(storage_folder, filename)
@@ -387,14 +390,126 @@ def download_wiod2013(
     return downlog
 
 
-def download_eora26():
-    """Downloading eora26 not implemented (registration required)"""
-    raise NotImplementedError(
-        "Eora26 3 requires registration prior to download. "
-        "Please register at http://www.worldmrio.com and download the "
-        "Eora26 files from the subdomain /simplified"
-    )
-    return None
+def download_eora26(storage_folder, years=None, prices=['bp'],
+                    overwrite_existing=False):
+    """Downloading eora26 not implemented (registration required)
+        
+        Parameters
+        ----------
+        storage_folder: str, valid path
+            Location to store the download, folder will be created if
+            not existing. If the file is already present in the folder,
+            the download of the specific file will be skipped.
+        years: list of int or str, optional
+            If years is given only downloads the specific years. This
+            only applies to the IO tables because extensions are stored
+            by country and not per year.
+            The years can be given in 2 or 4 digits.
+        prices: list of str
+            If bp (default), download basic price tables.
+            If pp, download purchaser prices. ['bp', 'pp'] possible.
+        overwrite_existing: boolean, optional
+            If False, skip download of file already existing in
+            the storage folder (default). Set to True to replace
+            files.
+    """
+    # raise NotImplementedError(
+    #     "Eora26 3 requires registration prior to download. "
+    #     "Please register at http://www.worldmrio.com and download the "
+    #     "Eora26 files from the subdomain /simplified"
+    # )
+    try:
+        os.makedirs(storage_folder)
+    except FileExistsError:
+        pass
+
+    print("The Eora MRIO is free for academic (university or grant-funded) "
+          "work at degree-granting institutions. "
+          "All other uses require a data license before the "
+          "results are shared.\n\n "
+          "When using Eora, the Eora authors ask you cite "
+          "these publications: \n\n "
+          "Lenzen, M., Kanemoto, K., Moran, D., Geschke, A. "
+          "Mapping the Structure of the World Economy (2012). "
+          "Env. Sci. Tech. 46(15) pp 8374-8381. DOI:10.1021/es300171x \n\n "
+          "Lenzen, M., Moran, D., Kanemoto, K., Geschke, A. (2013) "
+          "Building Eora: A Global Multi-regional Input-Output Database "
+          "at High Country and Sector Resolution, Economic Systems Research, "
+          " 25:1, 20-49, DOI:10.1080/09535314.2013.769 938\n\n ")
+
+    agree = input("Do you agree with these conditions [y/n]: ")
+    
+
+    if agree.lower() != 'y':
+        raise ValueError("Download of Eora not possible")
+    
+    false_cred = True
+
+    while false_cred:
+        email = input("Enter your Eora account email: ")
+        password = getpass.getpass(prompt="Enter your Eora account password: ")
+
+        r = requests.post("https://worldmrio.com/Register2?submit=login", 
+                          data={"email": email, "pass": password, "targetURL":"null", "submit": "login"})
+
+        if "no account found" in r.text:
+            print("""Eora account with this email was not found\n
+            Please try again or register a new user at the following website:\n
+            https://worldmrio.com/login.jsp""")
+
+        elif "Sorry, wrong password provided" in r.text:
+            print("""The password for this email account is incorrect\n
+            Please try again""")
+
+        else:
+            false_cred = False
+
+
+    if type(years) is int or type(years) is str:
+        years = [years]
+    years = years if years else range(1995, 2012)
+    years = [str(yy).zfill(4) for yy in years]
+
+    if type(prices) is str:
+        prices = [prices]
+
+    # eora_cookie_str = requests.post(
+    #     EORA26_CONFIG['url_db_content'],
+    #     data={'licenseagree': 'true'}
+    #     ).headers['Set-Cookie']
+
+    # _cookie_content = eora_cookie_str.split(';')[0].split('=')
+    # eora_access_cookie = {_cookie_content[0]: _cookie_content[1]}
+
+    # eora26_web_content = _get_url_datafiles(
+    #         url_db_view=EORA26_CONFIG['url_db_view'],
+    #         url_db_content=EORA26_CONFIG['url_db_content'],
+    #         mrio_regex='Computations.*?Eora26_\d\d\d\d_.*?.zip',
+    #         access_cookie=eora_access_cookie)
+
+    # version_number = re.findall(">v\d+\.\d+<",
+    #                             eora26_web_content.raw_text)[-1][1:-1]
+
+    restricted_eora_urls = [f"https://worldmrio.com/ComputationsM/Phase199/Loop082/simplified/Eora26_{yr}_bp.zip?email={email}&pass={password}" 
+                            for yr in years]
+
+    meta = MRIOMetaData(location=storage_folder,
+                        description='Eora metadata file for pymrio',
+                        name='Eora',
+                        system='ixi',
+                        version="199")
+
+    meta = _download_urls(url_list=restricted_eora_urls,
+                          storage_folder=storage_folder,
+                          overwrite_existing=overwrite_existing,
+                          downlog_handler=meta)
+
+    # phase=re.findall('v\d+\.', version_number)[0][1:-1]
+    # loop=re.findall('\.\d+', version_number)[0][1:]
+    # if len(loop) == 2: loop = '0' + loop
+    meta.save()
+
+    return meta
 
     # Development note:
     # Eora 26 autodownload was implemented before but was
