@@ -413,11 +413,7 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
             the storage folder (default). Set to True to replace
             files.
     """
-    # raise NotImplementedError(
-    #     "Eora26 3 requires registration prior to download. "
-    #     "Please register at http://www.worldmrio.com and download the "
-    #     "Eora26 files from the subdomain /simplified"
-    # )
+
     try:
         os.makedirs(storage_folder)
     except FileExistsError:
@@ -473,22 +469,6 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
     if type(prices) is str:
         prices = [prices]
 
-    # eora_cookie_str = requests.post(
-    #     EORA26_CONFIG['url_db_content'],
-    #     data={'licenseagree': 'true'}
-    #     ).headers['Set-Cookie']
-
-    # _cookie_content = eora_cookie_str.split(';')[0].split('=')
-    # eora_access_cookie = {_cookie_content[0]: _cookie_content[1]}
-
-    # eora26_web_content = _get_url_datafiles(
-    #         url_db_view=EORA26_CONFIG['url_db_view'],
-    #         url_db_content=EORA26_CONFIG['url_db_content'],
-    #         mrio_regex='Computations.*?Eora26_\d\d\d\d_.*?.zip',
-    #         access_cookie=eora_access_cookie)
-
-    # version_number = re.findall(">v\d+\.\d+<",
-    #                             eora26_web_content.raw_text)[-1][1:-1]
 
     restricted_eora_urls = [f"https://worldmrio.com/ComputationsM/Phase199/Loop082/simplified/Eora26_{yr}_bp.zip?email={email}&pass={password}" 
                             for yr in years]
@@ -504,20 +484,10 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
                           overwrite_existing=overwrite_existing,
                           downlog_handler=meta)
 
-    # phase=re.findall('v\d+\.', version_number)[0][1:-1]
-    # loop=re.findall('\.\d+', version_number)[0][1:]
-    # if len(loop) == 2: loop = '0' + loop
     meta.save()
 
     return meta
 
-    # Development note:
-    # Eora 26 autodownload was implemented before but was
-    # removed since worldmrio does require
-    # a registration now (by summer 2018).
-    # The previous implementation can be found
-    # in the github history (e.g. at 2e61424 2018-10-09
-    # or before)
 
 
 def download_exiobase1():
@@ -547,7 +517,6 @@ def download_exiobase2():
     return None
 
 
-# def download_exiobase3():
 
 
 def download_exiobase3(
