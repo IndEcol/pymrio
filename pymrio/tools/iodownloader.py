@@ -390,9 +390,11 @@ def download_wiod2013(
     return downlog
 
 
-def download_eora26(storage_folder, years=None, prices=['bp'],
+def download_eora26(storage_folder, email, password,  years=None, prices=['bp'],
                     overwrite_existing=False):
-    """Downloading eora26 not implemented (registration required)
+    """Downloading eora26 mrios (registration required),
+        To use this function you have to have an Eora account,
+        New account registration can be done through https://worldmrio.com/login.jsp
         
         Parameters
         ----------
@@ -400,6 +402,10 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
             Location to store the download, folder will be created if
             not existing. If the file is already present in the folder,
             the download of the specific file will be skipped.
+        email: str,
+            Eora account email
+        password: str,
+            Eora account password
         years: list of int or str, optional
             If years is given only downloads the specific years. This
             only applies to the IO tables because extensions are stored
@@ -419,31 +425,11 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
     except FileExistsError:
         pass
 
-    print("The Eora MRIO is free for academic (university or grant-funded) "
-          "work at degree-granting institutions. "
-          "All other uses require a data license before the "
-          "results are shared.\n\n "
-          "When using Eora, the Eora authors ask you cite "
-          "these publications: \n\n "
-          "Lenzen, M., Kanemoto, K., Moran, D., Geschke, A. "
-          "Mapping the Structure of the World Economy (2012). "
-          "Env. Sci. Tech. 46(15) pp 8374-8381. DOI:10.1021/es300171x \n\n "
-          "Lenzen, M., Moran, D., Kanemoto, K., Geschke, A. (2013) "
-          "Building Eora: A Global Multi-regional Input-Output Database "
-          "at High Country and Sector Resolution, Economic Systems Research, "
-          " 25:1, 20-49, DOI:10.1080/09535314.2013.769 938\n\n ")
-
-    agree = input("Do you agree with these conditions [y/n]: ")
     
-
-    if agree.lower() != 'y':
-        raise ValueError("Download of Eora not possible")
     
     false_cred = True
 
     while false_cred:
-        email = input("Enter your Eora account email: ")
-        password = getpass.getpass(prompt="Enter your Eora account password: ")
 
         r = requests.post("https://worldmrio.com/Register2?submit=login", 
                           data={"email": email, "pass": password, "targetURL":"null", "submit": "login"})
@@ -453,9 +439,14 @@ def download_eora26(storage_folder, years=None, prices=['bp'],
             Please try again or register a new user at the following website:\n
             https://worldmrio.com/login.jsp""")
 
+            email = input("Enter your Eora account email: ")
+            password = getpass.getpass(prompt="Enter your Eora account password: ")
+
         elif "Sorry, wrong password provided" in r.text:
             print("""The password for this email account is incorrect\n
             Please try again""")
+
+            password = getpass.getpass(prompt="Enter your Eora account password: ")
 
         else:
             false_cred = False
