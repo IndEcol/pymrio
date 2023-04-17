@@ -468,7 +468,7 @@ def download_eora26(storage_folder, email, password,  years=None, prices=['bp'],
                         description='Eora metadata file for pymrio',
                         name='Eora',
                         system='ixi',
-                        version="199")
+                        version="v199.82")
 
     meta = _download_urls(url_list=restricted_eora_urls,
                           storage_folder=storage_folder,
