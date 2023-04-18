@@ -574,7 +574,7 @@ def download_exiobase3(
     return downlog
 
 
-def download_gloria(urls=GLORIA_CONFIG["datafiles"], down_path="./",  year=None, version = 57, overwrite_existing=False):
+def download_gloria(storage_folder, urls=GLORIA_CONFIG["datafiles"], year=None, version = 57, overwrite_existing=False):
 
     """
     Download Gloria databases files
@@ -587,7 +587,7 @@ def download_gloria(urls=GLORIA_CONFIG["datafiles"], down_path="./",  year=None,
         for different versions, this is already fed to the function,
         imported from urls.json file
     
-    down_path: str, option
+    storage_folder: str, option
         The path where to download the file(s), if not specified 
         it/they will be downloaded to the current working directory
 
@@ -614,7 +614,7 @@ def download_gloria(urls=GLORIA_CONFIG["datafiles"], down_path="./",  year=None,
         raise Exception("Specified version is invalid")
     
     downlog = MRIOMetaData._make_download_log(
-        location=down_path,
+        location=storage_folder,
         description="Download log of Gloria",
         name="GLORIA",
         system="IxI",
@@ -635,7 +635,7 @@ def download_gloria(urls=GLORIA_CONFIG["datafiles"], down_path="./",  year=None,
     
     downlog = _download_urls(
         url_list=files_to_download,
-        storage_folder=down_path,
+        storage_folder=storage_folder,
         overwrite_existing=overwrite_existing,
         downlog_handler=downlog,
     )
