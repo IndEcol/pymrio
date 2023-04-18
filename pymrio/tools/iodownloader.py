@@ -174,7 +174,7 @@ def _download_urls(
     for url in url_list:
         filename = os.path.basename(url)
         if downlog_handler.name == "Eora":
-            filename = filename.split(".zip")[0]+".zip"
+            filename = filename.split(".zip")[0] + ".zip"
         if not overwrite_existing and filename in os.listdir(storage_folder):
             continue
         storage_file = os.path.join(storage_folder, filename)
@@ -248,7 +248,7 @@ def download_oecd(
 
     if type(years) is int or type(years) is str:
         years = [years]
-        
+
     if not years:
         if version == "v2018":
             years = range(2005, 2016)
@@ -273,17 +273,19 @@ def download_oecd(
             raise ValueError("Datafile for {} not specified or available.".format(yy))
 
         filename = "ICIO" + version.lstrip("v") + "_" + yy + ".zip"
-        
+
         if not overwrite_existing:
             if version == "v2021":
-                filenames = [f"ICIO{version.lstrip('v')}_{str(yr)}.csv" for yr in range(int(yy[:4]),int(yy[-4:])+1)]
+                filenames = [
+                    f"ICIO{version.lstrip('v')}_{str(yr)}.csv"
+                    for yr in range(int(yy[:4]), int(yy[-4:]) + 1)
+                ]
                 if set(filenames).issubset(os.listdir(storage_folder)):
                     continue
             elif filename in os.listdir(storage_folder):
                 continue
 
-
-        req = ssl_fix(OECD_CONFIG["datafiles"][version][yy], stream=True) 
+        req = ssl_fix(OECD_CONFIG["datafiles"][version][yy], stream=True)
         storage_file = os.path.join(storage_folder, filename)
 
         with open(storage_file, "wb") as lf:
@@ -390,34 +392,35 @@ def download_wiod2013(
     return downlog
 
 
-def download_eora26(storage_folder, email, password,  years=None, prices=['bp'],
-                    overwrite_existing=False):
+def download_eora26(
+    storage_folder, email, password, years=None, prices=["bp"], overwrite_existing=False
+):
     """Downloading eora26 mrios (registration required),
-        To use this function you have to have an Eora account,
-        New account registration can be done through https://worldmrio.com/login.jsp
-        
-        Parameters
-        ----------
-        storage_folder: str, valid path
-            Location to store the download, folder will be created if
-            not existing. If the file is already present in the folder,
-            the download of the specific file will be skipped.
-        email: str,
-            Eora account email
-        password: str,
-            Eora account password
-        years: list of int or str, optional
-            If years is given only downloads the specific years. This
-            only applies to the IO tables because extensions are stored
-            by country and not per year.
-            The years can be given in 2 or 4 digits.
-        prices: list of str
-            If bp (default), download basic price tables.
-            If pp, download purchaser prices. ['bp', 'pp'] possible.
-        overwrite_existing: boolean, optional
-            If False, skip download of file already existing in
-            the storage folder (default). Set to True to replace
-            files.
+    To use this function you have to have an Eora account,
+    New account registration can be done through https://worldmrio.com/login.jsp
+
+    Parameters
+    ----------
+    storage_folder: str, valid path
+        Location to store the download, folder will be created if
+        not existing. If the file is already present in the folder,
+        the download of the specific file will be skipped.
+    email: str,
+        Eora account email
+    password: str,
+        Eora account password
+    years: list of int or str, optional
+        If years is given only downloads the specific years. This
+        only applies to the IO tables because extensions are stored
+        by country and not per year.
+        The years can be given in 2 or 4 digits.
+    prices: list of str
+        If bp (default), download basic price tables.
+        If pp, download purchaser prices. ['bp', 'pp'] possible.
+    overwrite_existing: boolean, optional
+        If False, skip download of file already existing in
+        the storage folder (default). Set to True to replace
+        files.
     """
 
     try:
@@ -425,32 +428,39 @@ def download_eora26(storage_folder, email, password,  years=None, prices=['bp'],
     except FileExistsError:
         pass
 
-    
-    
     false_cred = True
 
     while false_cred:
-
-        r = requests.post("https://worldmrio.com/Register2?submit=login", 
-                          data={"email": email, "pass": password, "targetURL":"null", "submit": "login"})
+        r = requests.post(
+            "https://worldmrio.com/Register2?submit=login",
+            data={
+                "email": email,
+                "pass": password,
+                "targetURL": "null",
+                "submit": "login",
+            },
+        )
 
         if "no account found" in r.text:
-            print("""Eora account with this email was not found\n
+            print(
+                """Eora account with this email was not found\n
             Please try again or register a new user at the following website:\n
-            https://worldmrio.com/login.jsp""")
+            https://worldmrio.com/login.jsp"""
+            )
 
             email = input("Enter your Eora account email: ")
             password = getpass.getpass(prompt="Enter your Eora account password: ")
 
         elif "Sorry, wrong password provided" in r.text:
-            print("""The password for this email account is incorrect\n
-            Please try again""")
+            print(
+                """The password for this email account is incorrect\n
+            Please try again"""
+            )
 
             password = getpass.getpass(prompt="Enter your Eora account password: ")
 
         else:
             false_cred = False
-
 
     if type(years) is int or type(years) is str:
         years = [years]
@@ -460,25 +470,29 @@ def download_eora26(storage_folder, email, password,  years=None, prices=['bp'],
     if type(prices) is str:
         prices = [prices]
 
+    restricted_eora_urls = [
+        f"https://worldmrio.com/ComputationsM/Phase199/Loop082/simplified/Eora26_{yr}_bp.zip?email={email}&pass={password}"
+        for yr in years
+    ]
 
-    restricted_eora_urls = [f"https://worldmrio.com/ComputationsM/Phase199/Loop082/simplified/Eora26_{yr}_bp.zip?email={email}&pass={password}" 
-                            for yr in years]
+    downlog = MRIOMetaData._make_download_log(
+        location=storage_folder,
+        description="Download log for Eora",
+        name="Eora",
+        system="ixi",
+        version="v199.82",
+    )
 
-    downlog = MRIOMetaData._make_download_log(location=storage_folder,
-                        description='Download log for Eora',
-                        name='Eora',
-                        system='ixi',
-                        version="v199.82")
-
-    downlog = _download_urls(url_list=restricted_eora_urls,
-                          storage_folder=storage_folder,
-                          overwrite_existing=overwrite_existing,
-                          downlog_handler=downlog)
+    downlog = _download_urls(
+        url_list=restricted_eora_urls,
+        storage_folder=storage_folder,
+        overwrite_existing=overwrite_existing,
+        downlog_handler=downlog,
+    )
 
     downlog.save()
 
     return downlog
-
 
 
 def download_exiobase1():
@@ -506,8 +520,6 @@ def download_exiobase2():
         "manually (tab Data Download - EXIOBASE 2)."
     )
     return None
-
-
 
 
 def download_exiobase3(
