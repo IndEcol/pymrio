@@ -6,6 +6,7 @@ KST 20140502
 import json
 import logging
 import os
+import re
 import zipfile
 from collections import namedtuple
 from pathlib import Path
@@ -13,7 +14,6 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-import re
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH
 
@@ -642,10 +642,10 @@ def sniff_csv_format(
 def filename_from_url(url):
     """
     Extract a file name from the download link for that file
-    
+
     Parameters
     ----------
-    
+
     url: str,
         The download link of the file
 

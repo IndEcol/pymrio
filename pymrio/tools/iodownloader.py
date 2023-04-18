@@ -2,6 +2,7 @@
 """
 
 import itertools
+import json
 import os
 import re
 import ssl
@@ -10,11 +11,10 @@ from collections import namedtuple
 
 import requests
 import urllib3
-import json
 
+from pymrio.core.constants import __ROOT
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import filename_from_url
-from pymrio.core.constants import __ROOT
 
 WIOD_CONFIG = {
     "url_db_view": "http://www.wiod.org/database/wiots13",
@@ -94,11 +94,9 @@ OECD_CONFIG = {
     },
 }
 
-GLORIA_CONFIG = {
-    "datafiles": {}
-}
+GLORIA_CONFIG = {"datafiles": {}}
 
-with open(os.path.join(os.path.abspath(__ROOT), "../tools/gloria_urls.json"), 'r') as f:
+with open(os.path.join(os.path.abspath(__ROOT), "../tools/gloria_urls.json"), "r") as f:
     GLORIA_CONFIG["datafiles"] = json.load(f)
 
 
@@ -574,27 +572,32 @@ def download_exiobase3(
     return downlog
 
 
-def download_gloria(storage_folder, urls=GLORIA_CONFIG["datafiles"], year=None, version = 57, overwrite_existing=False):
-
+def download_gloria(
+    storage_folder,
+    urls=GLORIA_CONFIG["datafiles"],
+    year=None,
+    version=57,
+    overwrite_existing=False,
+):
     """
     Download Gloria databases files
-    
+
     Parameters
     ----------
-    
+
     urls: dict, optional
-        Dictionary containing the links of gloria databases 
+        Dictionary containing the links of gloria databases
         for different versions, this is already fed to the function,
         imported from urls.json file
-    
+
     storage_folder: str, option
-        The path where to download the file(s), if not specified 
+        The path where to download the file(s), if not specified
         it/they will be downloaded to the current working directory
 
     year: int, str or list, optional
         The year(s) of the wanted database, if not specified
         the databases of all available years will be downloaded
-          
+
     version: int or str, option
         The wanted version of Gloria database, if not specified
         the database of the latest version will be downloaded
@@ -612,15 +615,14 @@ def download_gloria(storage_folder, urls=GLORIA_CONFIG["datafiles"], year=None, 
 
     if f"0{int(version)}" not in urls.keys():
         raise Exception("Specified version is invalid")
-    
+
     downlog = MRIOMetaData._make_download_log(
         location=storage_folder,
         description="Download log of Gloria",
         name="GLORIA",
         system="IxI",
-        version= version,
+        version=version,
     )
-
 
     files_to_download = []
     if type(year) is int or type(year) is str:
@@ -628,11 +630,16 @@ def download_gloria(storage_folder, urls=GLORIA_CONFIG["datafiles"], year=None, 
 
     if year:
         for yr in year:
-            files_to_download.extend([file for file in urls[f"0{int(version)}"] if str(yr) in filename_from_url(file)])
+            files_to_download.extend(
+                [
+                    file
+                    for file in urls[f"0{int(version)}"]
+                    if str(yr) in filename_from_url(file)
+                ]
+            )
     else:
         files_to_download = urls[f"0{int(version)}"]
 
-    
     downlog = _download_urls(
         url_list=files_to_download,
         storage_folder=storage_folder,
