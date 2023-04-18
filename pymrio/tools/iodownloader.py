@@ -464,20 +464,20 @@ def download_eora26(storage_folder, email, password,  years=None, prices=['bp'],
     restricted_eora_urls = [f"https://worldmrio.com/ComputationsM/Phase199/Loop082/simplified/Eora26_{yr}_bp.zip?email={email}&pass={password}" 
                             for yr in years]
 
-    meta = MRIOMetaData(location=storage_folder,
-                        description='Eora metadata file for pymrio',
+    downlog = MRIOMetaData._make_download_log(location=storage_folder,
+                        description='Download log for Eora',
                         name='Eora',
                         system='ixi',
                         version="v199.82")
 
-    meta = _download_urls(url_list=restricted_eora_urls,
+    downlog = _download_urls(url_list=restricted_eora_urls,
                           storage_folder=storage_folder,
                           overwrite_existing=overwrite_existing,
-                          downlog_handler=meta)
+                          downlog_handler=downlog)
 
-    meta.save()
+    downlog.save()
 
-    return meta
+    return downlog
 
 
 
