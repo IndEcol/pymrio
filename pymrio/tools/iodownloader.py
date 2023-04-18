@@ -10,8 +10,11 @@ from collections import namedtuple
 
 import requests
 import urllib3
+import json
 
 from pymrio.tools.iometadata import MRIOMetaData
+from pymrio.tools.ioutil import filename_from_url
+from pymrio.core.constants import __ROOT
 
 WIOD_CONFIG = {
     "url_db_view": "http://www.wiod.org/database/wiots13",
@@ -90,6 +93,13 @@ OECD_CONFIG = {
         },
     },
 }
+
+GLORIA_CONFIG = {
+    "datafiles": {}
+}
+
+with open(os.path.join(os.path.abspath(__ROOT), "../tools/gloria_urls.json"), 'r') as f:
+    GLORIA_CONFIG["datafiles"] = json.load(f)
 
 
 def _get_url_datafiles(
@@ -170,7 +180,7 @@ def _download_urls(
 
     """
     for url in url_list:
-        filename = os.path.basename(url)
+        filename = filename_from_url(url)
         if not overwrite_existing and filename in os.listdir(storage_folder):
             continue
         storage_file = os.path.join(storage_folder, filename)
@@ -556,6 +566,76 @@ def download_exiobase3(
     downlog = _download_urls(
         url_list=requested_urls,
         storage_folder=storage_folder,
+        overwrite_existing=overwrite_existing,
+        downlog_handler=downlog,
+    )
+
+    downlog.save()
+    return downlog
+
+
+def download_gloria(urls=GLORIA_CONFIG["datafiles"], down_path="./",  year=None, version = 57, overwrite_existing=False):
+
+    """
+    Download Gloria databases files
+    
+    Parameters
+    ----------
+    
+    urls: dict, optional
+        Dictionary containing the links of gloria databases 
+        for different versions, this is already fed to the function,
+        imported from urls.json file
+    
+    down_path: str, option
+        The path where to download the file(s), if not specified 
+        it/they will be downloaded to the current working directory
+
+    year: int, str or list, optional
+        The year(s) of the wanted database, if not specified
+        the databases of all available years will be downloaded
+          
+    version: int or str, option
+        The wanted version of Gloria database, if not specified
+        the database of the latest version will be downloaded
+
+    overwrite_existing: boolean, optional
+        If False, skip download of file already existing in
+        the storage folder (default). Set to True to replace
+        files.
+
+    Returns
+    -------
+
+    No returns
+    """
+
+    if f"0{int(version)}" not in urls.keys():
+        raise Exception("Specified version is invalid")
+    
+    downlog = MRIOMetaData._make_download_log(
+        location=down_path,
+        description="Download log of Gloria",
+        name="GLORIA",
+        system="IxI",
+        version= version,
+    )
+
+
+    files_to_download = []
+    if type(year) is int or type(year) is str:
+        year = [year]
+
+    if year:
+        for yr in year:
+            files_to_download.extend([file for file in urls[f"0{int(version)}"] if str(yr) in filename_from_url(file)])
+    else:
+        files_to_download = urls[f"0{int(version)}"]
+
+    
+    downlog = _download_urls(
+        url_list=files_to_download,
+        storage_folder=down_path,
         overwrite_existing=overwrite_existing,
         downlog_handler=downlog,
     )

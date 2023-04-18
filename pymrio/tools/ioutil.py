@@ -13,6 +13,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+import re
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH
 
@@ -636,3 +637,23 @@ def sniff_csv_format(
                     break
 
     return dict(sep=sep, nr_header_row=nr_header_row, nr_index_col=nr_index_col)
+
+
+def filename_from_url(url):
+    """
+    Extract a file name from the download link for that file
+    
+    Parameters
+    ----------
+    
+    url: str,
+        The download link of the file
+
+    Returns
+    -------
+    str,
+        The extracted file name
+
+    """
+    name = re.search("[^/\\&\?]+\.\w{3,4}(?=([\?&].*$|$))", url)
+    return name.group()
