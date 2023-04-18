@@ -6,6 +6,7 @@ KST 20140502
 import json
 import logging
 import os
+import ssl
 import zipfile
 from collections import namedtuple
 from pathlib import Path
@@ -13,10 +14,10 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+import requests
+import urllib3
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH
-
-import requests, urllib3, ssl
 
 
 def is_vector(inp):

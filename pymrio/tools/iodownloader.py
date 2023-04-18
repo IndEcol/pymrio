@@ -1,6 +1,7 @@
 """ Utility functions for automatic downloading of public MRIO databases
 """
 
+import getpass
 import itertools
 import os
 import re
@@ -10,7 +11,6 @@ from collections import namedtuple
 
 import requests
 import urllib3
-import getpass
 
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import ssl_fix
