@@ -246,6 +246,7 @@ def test_filename_from_url():
         "Democrat.odp": "https://www.arnold-mann.net/Democrat.odp?refvlmw",
         "heavy.numbers": "http://www.maldonado-mccullough.net/heavy.numbers&dbfgbds",
         "prove.js": "frazier.com/prove.js&vsdfvwevr",
+        "conference.pdf": "http://www.dennis.com/conference.pdf&34gegrt4",
     }
 
     for filename in test_urls.keys():
