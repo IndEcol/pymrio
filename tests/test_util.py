@@ -10,6 +10,8 @@ import numpy.testing as npt
 import pandas as pd
 import pandas.testing as pdt
 import pytest
+from faker import Faker
+import string
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
@@ -21,6 +23,7 @@ from pymrio.tools.ioutil import find_first_number  # noqa
 from pymrio.tools.ioutil import set_block  # noqa
 from pymrio.tools.ioutil import sniff_csv_format  # noqa
 from pymrio.tools.ioutil import diagonalize_columns_to_sectors
+from pymrio.tools.ioutil import filename_from_url
 
 
 @pytest.fixture()
@@ -225,3 +228,17 @@ def test_set_block():
         full_arr = np.random.random((10, 12))
         block_arr = np.zeros((2, 2))
         mod_arr = set_block(full_arr, block_arr)
+
+
+def test_filename_from_url():
+    letters = np.array(list(string.printable))
+    fake = Faker()
+    for _ in range(100):
+        filename = fake.file_name()
+        url = fake.url() + filename
+        if np.random.rand() > 0.5:
+            url += np.random.choice(np.array(["?", "&"])) + "".join(
+                np.random.choice(letters, size=np.random.randint(1))
+            )
+
+    assert filename_from_url(url) == filename
