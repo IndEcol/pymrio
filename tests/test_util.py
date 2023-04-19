@@ -1,6 +1,7 @@
 """ test cases for all util functions """
 
 import os
+import string
 import sys
 from collections import namedtuple
 from unittest.mock import mock_open, patch
@@ -11,7 +12,6 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 from faker import Faker
-import string
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
@@ -22,8 +22,7 @@ from pymrio.tools.ioutil import diagonalize_blocks  # noqa
 from pymrio.tools.ioutil import find_first_number  # noqa
 from pymrio.tools.ioutil import set_block  # noqa
 from pymrio.tools.ioutil import sniff_csv_format  # noqa
-from pymrio.tools.ioutil import diagonalize_columns_to_sectors
-from pymrio.tools.ioutil import filename_from_url
+from pymrio.tools.ioutil import diagonalize_columns_to_sectors, filename_from_url
 
 
 @pytest.fixture()
