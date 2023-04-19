@@ -241,3 +241,12 @@ def test_filename_from_url():
             )
 
     assert filename_from_url(url) == filename
+
+    test_urls = {
+        "Democrat.odp": "https://www.arnold-mann.net/Democrat.odp?refvlmw",
+        "heavy.numbers": "http://www.maldonado-mccullough.net/heavy.numbers&dbfgbds",
+        "prove.js": "frazier.com/prove.js&vsdfvwevr",
+    }
+
+    for filename in test_urls.keys():
+        assert filename_from_url(test_urls[filename]) == filename
