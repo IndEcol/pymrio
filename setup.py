@@ -29,6 +29,7 @@ setup(
         "openpyxl >= 3.0.6, < 3.1.1",
         # openpyxl 3.1.1 has a bug that breaks the tests, issue is close, should be fine next release
         "docutils >= 0.14",
+        "faker >= 18.4.0",
     ],
     classifiers=[
         "Programming Language :: Python :: 3.8",
