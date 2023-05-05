@@ -775,7 +775,7 @@ def parse_exiobase3(path):
     return io
 
 
-def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
+def parse_wiod(path, version, year=None, names=("isic", "c_codes"), popvector=None):
     """Parse the wiod source files for the IOSystem
 
     WIOD provides the MRIO tables in excel - format (xlsx) at
@@ -856,7 +856,14 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     path = os.path.abspath(os.path.normpath(str(path)))
 
     # wiot start and end
-    wiot_ext = ".xlsx"
+    if version == 2013:
+        wiot_ext = ".xlsx"
+        year_correct_digit = str(year)[-2:]
+        end_character = 6
+    elif version == 2016:
+        wiot_ext = ".xlsb"
+        year_correct_digit = str(year)
+        end_character = 8
     wiot_start = "wiot"
 
     # determine which wiod file to be parsed
@@ -875,12 +882,12 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
                 "(either specify a specific file "
                 "or a path and year)"
             )
-        year_two_digit = str(year)[-2:]
+        #year_two_digit = str(year)[-2:]
         wiot_file_list = [
             fl
             for fl in os.listdir(path)
             if (
-                fl[:6] == wiot_start + year_two_digit
+                fl[:end_character].upper()  == wiot_start.upper() + year_correct_digit
                 and os.path.splitext(fl)[1] == wiot_ext
             )
         ]
@@ -893,6 +900,11 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
         wiot_file = os.path.join(path, wiot_file_list[0])
 
     wiot_file = wiot_file
+    if year == None:
+        if version == 2016:
+            year = wiot_file[-19:-15]
+        elif year == 2013:
+            year = wiot_file[-17:-15]
     root_path = os.path.split(wiot_file)[0]
     if not os.path.exists(wiot_file):
         raise ParserError("WIOD file not found in the specified folder.")
@@ -916,12 +928,19 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
         "c_code": 3,
     }
     wiot_empty_top_rows = [0, 1]
-
-    wiot_marks = {  # special marks
-        "last_interindsec": "c35",  # last sector of the interindustry
-        "tot_facinp": ["r60", "r69"],  # useless totals to remove from factinp
-        "total_column": [-1],  # the total column in the whole data
-    }
+    
+    if version == 2016:
+        wiot_marks = {  # special marks
+            "last_interindsec": "r56",  # last sector of the interindustry
+            "tot_facinp": ["r65", "r73"],  # useless totals to remove from factinp
+            "total_column": [-1],  # the total column in the whole data
+        }
+    elif version == 2013:
+        wiot_marks = {  # special marks
+            "last_interindsec": "c35",  # last sector of the interindustry
+            "tot_facinp": ["r60", "r69"],  # useless totals to remove from factinp
+            "total_column": [-1],  # the total column in the whole data
+        }
 
     wiot_sheet = 0  # assume the first one is the one with the data.
 
@@ -931,11 +950,12 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
 
     meta_rec._add_fileio("WIOD data parsed from {}".format(wiot_file))
     # get meta data
-    wiot_year = wiot_data.iloc[wiot_meta["year"], wiot_meta["col"]][-4:]
+    wiot_year = year
     wiot_iosystem = (
         wiot_data.iloc[wiot_meta["iosystem"], wiot_meta["col"]].rstrip(")").lstrip("(")
     )
     meta_rec.change_meta("system", wiot_iosystem)
+    meta_rec.change_meta("version", version)
     _wiot_unit = (
         wiot_data.iloc[wiot_meta["unit"], wiot_meta["col"]].rstrip(")").lstrip("(")
     )
@@ -1067,7 +1087,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
 
     # SEA extension
     _F_sea_data, _F_sea_unit = __get_WIOD_SEA_extension(
-        root_path=root_path, year=wiot_year
+        root_path=root_path, year=wiot_year, version = version
     )
     if _F_sea_data is not None:
         # None if no SEA file present
@@ -1223,6 +1243,15 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
         ext.F_Y.rename(columns=dd_fd_rename, inplace=True)
 
     return wiod
+
+
+
+
+
+
+
+
+
 
 
 def __get_WIOD_env_extension(root_path, year, ll_co, para):
@@ -1387,7 +1416,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     return {"F": df_F, "F_Y": df_F_Y, "unit": df_unit}
 
 
-def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
+def __get_WIOD_SEA_extension(root_path, year, version, data_sheet="DATA"):
     """Utility function to get the extension data from the SEA file in WIOD
 
     This function is based on the structure in the WIOD_SEA_July14 file.
@@ -1410,7 +1439,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
     SEA data as extension for the WIOD MRIO
     """
     sea_ext = ".xlsx"
-    sea_start = "WIOD_SEA"
+    sea_start = "Socio_Ec"
 
     _SEA_folder = os.path.join(root_path, "SEA")
     if not os.path.exists(_SEA_folder):
@@ -1432,11 +1461,16 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
 
         # fix years
         ic_sea = df_sea.columns.tolist()
-        ic_sea = [yystr.lstrip("_") for yystr in ic_sea]
+        if type(ic_sea[0]) == str:
+            ic_sea = [yystr.lstrip("_") for yystr in ic_sea]
+        elif type(ic_sea[0]) == int:
+            ic_sea = [str(yyy) for yyy in ic_sea]
         df_sea.columns = ic_sea
 
         try:
             ds_sea = df_sea[str(year)]
+            idx = ds_sea.index
+            idx.set_names([name.lower() for name in list(ds_sea.index.names)])
         except KeyError:
             warnings.warn(
                 "SEA extension does not include data for the "
@@ -1446,37 +1480,47 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
             return None, None
 
         # get useful data (employment)
-        mt_sea = ["EMP", "EMPE", "H_EMP", "H_EMPE"]
+        if version == 2013:
+            mt_sea = ["EMP", "EMPE", "H_EMP", "H_EMPE"]
+            data_unit=[  # this data must be in the same order as mt_sea
+                "thousand persons",
+                "thousand persons",
+                "mill hours",
+                "mill hours",
+            ]
+        elif version == 2016:
+            mt_sea = ["EMP", "EMPE", "H_EMPE"]
+            data_unit=[  # this data must be in the same order as mt_sea
+                "thousand persons",
+                "thousand persons",
+                "mill hours",
+            ]
         ds_use_sea = pd.concat(
-            [ds_sea.xs(key=vari, level="Variable", drop_level=False) for vari in mt_sea]
+            [ds_sea.xs(key=vari, level="variable", drop_level=False) for vari in mt_sea]
         )
-        ds_use_sea.drop(labels="TOT", level="Code", inplace=True)
-        ds_use_sea.reset_index("Description", drop=True, inplace=True)
+        if version == 2013:
+            ds_use_sea.drop(labels="TOT", level="code", inplace=True)
+            ds_use_sea.reset_index("Description", drop=True, inplace=True)
 
         # RoW not included in SEA but needed to get it consistent for
         # all countries. Just add a dummy with 0 for all accounts.
-        if "RoW" not in ds_use_sea.index.get_level_values("Country"):
-            ds_RoW = ds_use_sea.xs("USA", level="Country", drop_level=False)
+        if "RoW" not in ds_use_sea.index.get_level_values("country"):
+            ds_RoW = ds_use_sea.xs("USA", level="country", drop_level=False)
             ds_RoW.loc[:] = 0
             df_RoW = ds_RoW.reset_index()
-            df_RoW["Country"] = "RoW"
+            df_RoW["country"] = "RoW"
             ds_use_sea = pd.concat([ds_use_sea.reset_index(), df_RoW]).set_index(
-                ["Country", "Code", "Variable"]
+                ["country", "code", "variable"]
             )
 
         ds_use_sea.fillna(value=0, inplace=True)
-        df_use_sea = ds_use_sea.unstack(level=["Country", "Code"])[str(year)]
+        df_use_sea = ds_use_sea.unstack(level=["country", "code"])[str(year)]
         df_use_sea.index.names = IDX_NAMES["VA_row_single"]
         df_use_sea.columns.names = IDX_NAMES["F_col"]
         df_use_sea = df_use_sea.astype("float")
 
         df_unit = pd.DataFrame(
-            data=[  # this data must be in the same order as mt_sea
-                "thousand persons",
-                "thousand persons",
-                "mill hours",
-                "mill hours",
-            ],
+            data=data_unit,
             columns=["unit"],
             index=df_use_sea.index,
         )
