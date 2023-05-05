@@ -82,11 +82,11 @@ OECD_CONFIG = {
             "2015": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=9f579ef3-4685-45e4-a0ba-d1acbd9755a6",  # NOQA
         },
         "v2021": {
-            "1995-1999": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=91d8e84b-7406-46b9-af5f-ec096242755c",
-            "2000-2004": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=8adf89dd-18b4-40fe-bc7f-c822052eb961",
-            "2005-2009": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=fe218690-0a3b-44aa-a82c-b3e3da6d24db",
-            "2010-2014": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=2c2f499f-5703-4034-9457-2f7518e8f2fc",
-            "2015-2018": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=59a3d7f2-3f23-40d5-95ca-48da84c0f861",
+            "1995-1999": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=91d8e84b-7406-46b9-af5f-ec096242755c", 
+            "2000-2004": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=8adf89dd-18b4-40fe-bc7f-c822052eb961",
+            "2005-2009": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=fe218690-0a3b-44aa-a82c-b3e3da6d24db",
+            "2010-2014": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=2c2f499f-5703-4034-9457-2f7518e8f2fc",
+            "2015-2018": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=59a3d7f2-3f23-40d5-95ca-48da84c0f861",
         },
     },
 }
