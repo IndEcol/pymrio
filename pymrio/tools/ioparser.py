@@ -2012,3 +2012,79 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
     )
 
     return eora
+
+
+def parse_gloria(path):
+    """Parses the Gloria database
+
+    This parser works with either the compressed zip
+    archive as downloaded or the extracted system.
+
+    Note
+    ----
+    At the moment only Z is extracted
+
+    Parameters
+    ----------
+
+    path : string or pathlib.Path
+        Path to the folder with the EXIOBASE files
+        or the compressed archive.
+
+    Returns
+    -------
+    IOSystem
+        A IOSystem with the parsed gloria data
+
+    """
+    path = Path(path)
+    Z_matrix = None
+    metadata = __read_gloria_metadata()
+    if zipfile.is_zipfile(path):
+        with zipfile.ZipFile(path) as archive:
+            filename_split = archive.namelist()[0].split('_')
+            Z_file_name = \
+                f'{filename_split[0]}_120secMother_AllCountries_002_T-Results_{filename_split[-3]}_{filename_split[-2]}_Markup001(full).csv'
+            with archive.open(Z_file_name) as z_file:
+                Z_matrix = __read_gloria_csv_file(z_file, index=metadata['index'], usecols=metadata['usecols'], chunksize=metadata['chunksize'])
+        
+    
+    #filename_split = myzip.namelist()[0].split('_')
+    #Z_file_name = \
+    #    f'{filename_split[0]}_120secMother_AllCountries_002_T-Results_{filename_split[-3]}_{filename_split[-2]}_Markup001(full).csv'
+    
+    return IOSystem(Z=Z_matrix)
+
+
+def __read_gloria_csv_file(file, index, usecols, chunksize):
+    chunk_list = []
+    with pd.read_csv(file, usecols=usecols, chunksize=chunksize) as reader:
+        for i, chunk in enumerate(reader):
+            if i%2==1:
+                chunk_list.append(chunk)
+
+    df = pd.concat(chunk_list)
+    df.columns = index
+    df.index = index
+    return df.astype(pd.SparseDtype("float", 0.0))
+
+
+def __read_gloria_metadata():
+    #reading regions and sectors from excel and into dataframes
+    metadata = pd.read_excel('README.xlsx',sheet_name=['Regions','Sectors'])
+    regions_df = metadata.get('Regions')
+    sectors_df = metadata.get('Sectors')
+
+    # storing the number of items in each list
+    num_regions = len(regions_df.index)
+    num_sectors = len(sectors_df.index)
+
+    # create a list of column indexes to read from csv file
+    columns_to_use = [s+r for r in range(0,num_regions*2*num_sectors, 2*num_sectors) for s in range(num_sectors)]
+
+    # create a multiIndex for each region and sector
+    regions_row=[regions_df['Region_acronyms'][reg] for reg in range(num_regions) for _ in range(num_sectors)]
+    sectors_row=[sectors_df['Sector_names'][sec] for _ in range(num_regions) for sec in range(num_sectors)]
+    index = pd.MultiIndex.from_tuples(list(zip(regions_row,sectors_row)), names=["region", "sector"])
+    
+    return {'usecols': columns_to_use, 'index': index, 'chunksize': num_sectors}
