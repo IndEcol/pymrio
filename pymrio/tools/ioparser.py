@@ -2042,18 +2042,18 @@ def parse_gloria(path):
     metadata = __read_gloria_metadata()
     if zipfile.is_zipfile(path):
         with zipfile.ZipFile(path) as archive:
-            filename_split = archive.namelist()[0].split('_')
-            Z_file_name = \
-                f'{filename_split[0]}_120secMother_AllCountries_002_T-Results_{filename_split[-3]}_{filename_split[-2]}_Markup001(full).csv'
+            Z_file_name = __get_correct_csv_file(archive.namelist()[0])
             with archive.open(Z_file_name) as z_file:
                 Z_matrix = __read_gloria_csv_file(z_file, index=metadata['index'], usecols=metadata['usecols'], chunksize=metadata['chunksize'])
-        
-    
-    #filename_split = myzip.namelist()[0].split('_')
-    #Z_file_name = \
-    #    f'{filename_split[0]}_120secMother_AllCountries_002_T-Results_{filename_split[-3]}_{filename_split[-2]}_Markup001(full).csv'
-    
+    else:
+        Z_file_name = __get_correct_csv_file(str(list(path.glob('*.csv'))[0]))
+        Z_matrix = __read_gloria_csv_file(Z_file_name, index=metadata['index'], usecols=metadata['usecols'], chunksize=metadata['chunksize'])
     return IOSystem(Z=Z_matrix)
+
+
+def __get_correct_csv_file(example_filename):
+    f_split = example_filename.split('_')
+    return f'{f_split[0]}_120secMother_AllCountries_002_T-Results_{f_split[-3]}_{f_split[-2]}_Markup001(full).csv'
 
 
 def __read_gloria_csv_file(file, index, usecols, chunksize):
