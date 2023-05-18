@@ -859,16 +859,6 @@ def parse_figaro(path, year=None):
 
     figaro_file_name = os.path.split(figaro_file)[1]
 
-    # try:
-    #     years = re.findall(r"\d\d\d\d", oecd_file_name)
-    #     oecd_version = "v" + years[0]
-    #     oecd_year = years[1]
-    #     meta_desc = "OECD ICIO for {}".format(oecd_year)
-
-    # except IndexError:
-    #     oecd_version = "n/a"
-    #     oecd_year = "n/a"
-    #     meta_desc = "OECD ICIO - year undefined"
     if year is None:
         year = int(figaro_file_name[-8:-4])
 
@@ -885,6 +875,7 @@ def parse_figaro(path, year=None):
 
     figaro_raw = pd.read_csv(figaro_file, sep=",", index_col=0).fillna(0)
     meta_rec._add_fileio("FIGARO data parsed from {}".format(figaro_file))
+    
     #make multiindex
     df = figaro_raw
     df.index = df.index.str.replace('_','|',1)
@@ -896,10 +887,6 @@ def parse_figaro(path, year=None):
     figaro_data = df.copy()
     
     #load lables
-    # figaroCountryList = pd.read_excel(path+"\Description-FIGARO-tables.xlsx", sheet_name = "Countries").iloc[10:39, 1:5]
-    # figaroCountryList.columns = ['Code_FigaroCountry', 'Name_FigaroCountry', 'Code_NonFigaroCountry', 'Name_NonFigaroCountry']
-    # labels_ind_FigaroCountry_raw = pd.read_excel(path+"\Description-FIGARO-tables.xlsx", sheet_name = "IndustriesDetailsFIGAROCountry")
-    # labels_ind_NonFigaroCountry_raw = pd.read_excel(path+"\Description-FIGARO-tables.xlsx", sheet_name = "IndutriesDetailsnonFIGARO")
     figaroCodeList_raw = pd.read_excel(path+"\Description-FIGARO-tables.xlsx", sheet_name = "Codes")
     figaroCodeList1 = figaroCodeList_raw.iloc[10:220, 1:3]
     figaroCodeList1.columns = ['Code', 'Name']
@@ -908,15 +895,6 @@ def parse_figaro(path, year=None):
     figaroCodeList = pd.concat([figaroCodeList1,figaroCodeList2], ignore_index=True)
     figaroCodeList['Code'] = figaroCodeList['Code'].replace('-','T', regex=True)
     
-    
-    # if year in range(2010,2018):
-    #     # labels_ind_FigaroCountry = labels_ind_FigaroCountry_raw.iloc[11:75, 1:3] 
-    #     # labels_ind_NonFigaroCountry = labels_ind_NonFigaroCountry_raw.iloc[10:40, 1:3]
-    #     last_interindsec = "U"  # last sector of the interindustry
-    # else:
-    #     # labels_ind_FigaroCountry = labels_ind_FigaroCountry_raw.iloc[11:32, 3:5] 
-    #     # labels_ind_NonFigaroCountry = labels_ind_NonFigaroCountry_raw.iloc[10:27, 3:5]
-    #     last_interindsec = "T_U"  # last sector of the interindustry
         
     # get the end of the interindustry matrix
     last_interindsec = "U"  # last sector of the interindustry
@@ -934,23 +912,6 @@ def parse_figaro(path, year=None):
            print(k[0])
            raise TypeError("industry name not found")
         
-        # if k[1] in labels_ind_FigaroCountry.Code.to_list():
-        #     # df.loc[df['B'] == 3, 'A']
-        #     tmp = labels_ind_FigaroCountry.loc[labels_ind_FigaroCountry['Code']==k[1],'Name'].iloc[0]
-        #     return  tuple([k[0],tmp])
-        # elif k[1] in labels_ind_NonFigaroCountry.Code.to_list():
-        #     tmp = labels_ind_NonFigaroCountry.loc[labels_ind_FigaroCountry['Code']==k[1],'Name'].iloc[0]
-        #     return  tuple([k[0],tmp])
-        # else:
-        #     print(k[1])
-        #     print(k[0])
-        #     raise TypeError("industry name not found")
-            
-        # if k[0] in figaroCountryList.iloc[:,0]:
-        #     print(k[0])
-        #     return figaroCountryList.loc[k[1],'Name_FigaroCountry']
-        # else: # not Figaro country
-        #     return labels_ind_NonFigaroCountry.loc[df.index[1][1],'Name']
     
     #a = convert_ind(df.index[1])
     figaro_data.index = pd.MultiIndex.from_tuples([convert_ind(k) for k,v in figaro_data.iterrows()])
@@ -1012,24 +973,12 @@ def parse_figaro(path, year=None):
     
     df_co2_HH = df_co2_raw[df_co2_raw['sto'].isna()]
     df_co2 = df_co2_raw[df_co2_raw['sto'].notna()]
-
-
-    
-    # #convert ind codes to names 
-    # for row in df_co2.itertuples():
-    #     ind_name1 = figaroCodeList_dict[row.industry]
-    #     ind_name2 = figaroCodeList_dict[row.sto]
-    #     df_co2['industry'].at[row.Index] = ind_name1 # update the row in the dataframe            
-    #     df_co2['sto'].at[row.Index] = ind_name2
-    
+   
 
     #initiatie extension dataframe with lable(in codes - get translated further down)
     F_CO2_footprint = pd.DataFrame(0,index=Y_codes.columns,columns=Z_codes.columns)
     
-    #make matrix     
-    # for row in df_co2.itertuples():
-    #     F_CO2_footprint.loc[(row.counterpart_area, row.sto),(row.ref_area ,row.industry)] = row.obs_value   
-    
+    #make matrix       
     for row in df_co2.itertuples():
         F_CO2_footprint.loc[(row.counterpart_area, row.sto),(row.ref_area ,row.industry)] = row.obs_value  
     
@@ -1041,17 +990,7 @@ def parse_figaro(path, year=None):
     Fhh_CO2_footprint = Fhh_CO2_footprint.to_frame()
     Fhh_CO2_footprint.columns.name = 'CO2 footprint'
     footprints = [F_CO2_footprint,Fhh_CO2_footprint]
-    # ext = dict()
-    # ext["CO2"] = {
-    #     "F_fp": F_CO2_footprint,
-    #     "F_Y_fp": Fhh_CO2_footprint,
-    #     "year": year,
-    #     #!!!"iosystem": figaro_iosystem,
-    #     "unit": 'Million tonnes',
-    #     "name": "CO2 Footprints FIGARO",
-    # }
-    # meta_rec._add_fileio("CO2 file extension parsed from {}".format(_CO2_folder))
-  
+
     figaro = IOSystem(
         Z=Z,
         Y=Y,
