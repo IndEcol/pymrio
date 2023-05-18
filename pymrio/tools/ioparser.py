@@ -775,6 +775,310 @@ def parse_exiobase3(path):
     return io
 
 
+
+
+
+
+
+def parse_figaro(path, year=None):
+    """Parse the FIGARO MRIO tables
+    
+    This function works for the .xlsb files. 
+
+    Note
+    ----
+    FIGARO has different sector classification for EU vs non EU
+
+
+    Parameters
+    ----------
+    path: str or pathlib.Path
+        The full path to a storage folder with all FIAGRO files or the path to 
+        one specific file.
+        In the later case, a specific year needs to be specified.
+
+    year: str or int, optional
+        Year to parse if 'path' is given as a folder.
+        If path points to a specific file, this parameter is not used.
+
+    Returns
+    -------
+    IOSystem
+
+    Raises
+    ------
+    ParserError
+        If the file to parse could not be definitely identified.
+    FileNotFoundError
+        If the specified data file could not be found.
+
+    """  
+
+    path = os.path.abspath(os.path.normpath(str(path)))
+
+    figaro_file_starts = "matrix_eu-ic-io_ind-by-ind_"
+
+    # determine which file to be parsed
+    if not os.path.isdir(path):
+        # 1. case - one file specified in path
+        figaro_file = path
+        path = os.path.split(figaro_file)[0]
+    else:
+        # 2. case: dir given - build figaro_file with the value given in year
+        if not year:
+            raise ParserError(
+                "No year specified "
+                "(either specify a specific file "
+                "or path and year)"
+            )
+
+        figaro_file_list = [
+            fl
+            for fl in os.listdir(path)
+            if (
+                os.path.splitext(fl)[1] in [".csv"]
+                and os.path.splitext(fl)[0]
+                in [figaro_file_starts + str(year)]
+            )
+        ]
+
+        if len(figaro_file_list) > 1:
+            unique_file_data = set([os.path.splitext(fl)[0] for fl in figaro_file_list])
+
+            if len(unique_file_data) > 1:
+                raise ParserError(
+                    "Multiple files for a given year "
+                    "found (specify a specific file in the "
+                    'parameter "path")'
+                )
+
+        elif len(figaro_file_list) == 0:
+            raise FileNotFoundError("No data file for the given year found")
+
+        figaro_file = os.path.join(path, figaro_file_list[0])
+
+    figaro_file_name = os.path.split(figaro_file)[1]
+
+    # try:
+    #     years = re.findall(r"\d\d\d\d", oecd_file_name)
+    #     oecd_version = "v" + years[0]
+    #     oecd_year = years[1]
+    #     meta_desc = "OECD ICIO for {}".format(oecd_year)
+
+    # except IndexError:
+    #     oecd_version = "n/a"
+    #     oecd_year = "n/a"
+    #     meta_desc = "OECD ICIO - year undefined"
+    if year is None:
+        year = int(figaro_file_name[-8:-4])
+
+            
+    meta_desc = "FIGARO MRIO for year " + str(year)
+    #!!! this needs attention... "File" seems strange
+    meta_rec = MRIOMetaData(
+        location=path,
+        name="FIGARO",
+        description=meta_desc,
+        version="2022 edition",
+        system="IxI",  
+    )
+
+    figaro_raw = pd.read_csv(figaro_file, sep=",", index_col=0).fillna(0)
+    meta_rec._add_fileio("FIGARO data parsed from {}".format(figaro_file))
+    #make multiindex
+    df = figaro_raw
+    df.index = df.index.str.replace('_','|',1)
+    df.columns = df.columns.str.replace('_','|',1)
+    def process_index(k):
+        return tuple(k.split("|"))
+    df.index = pd.MultiIndex.from_tuples([process_index(k) for k,v in df.iterrows()])
+    df.columns = pd.MultiIndex.from_tuples([process_index(k) for k,v in df.items()])
+    figaro_data = df.copy()
+    
+    #load lables
+    # figaroCountryList = pd.read_excel(path+"\Description-FIGARO-tables.xlsx", sheet_name = "Countries").iloc[10:39, 1:5]
+    # figaroCountryList.columns = ['Code_FigaroCountry', 'Name_FigaroCountry', 'Code_NonFigaroCountry', 'Name_NonFigaroCountry']
+    # labels_ind_FigaroCountry_raw = pd.read_excel(path+"\Description-FIGARO-tables.xlsx", sheet_name = "IndustriesDetailsFIGAROCountry")
+    # labels_ind_NonFigaroCountry_raw = pd.read_excel(path+"\Description-FIGARO-tables.xlsx", sheet_name = "IndutriesDetailsnonFIGARO")
+    figaroCodeList_raw = pd.read_excel(path+"\Description-FIGARO-tables.xlsx", sheet_name = "Codes")
+    figaroCodeList1 = figaroCodeList_raw.iloc[10:220, 1:3]
+    figaroCodeList1.columns = ['Code', 'Name']
+    figaroCodeList2 = figaroCodeList_raw.iloc[202:216, 3:5]
+    figaroCodeList2.columns = ['Code', 'Name']
+    figaroCodeList = pd.concat([figaroCodeList1,figaroCodeList2], ignore_index=True)
+    figaroCodeList['Code'] = figaroCodeList['Code'].replace('-','T', regex=True)
+    
+    
+    # if year in range(2010,2018):
+    #     # labels_ind_FigaroCountry = labels_ind_FigaroCountry_raw.iloc[11:75, 1:3] 
+    #     # labels_ind_NonFigaroCountry = labels_ind_NonFigaroCountry_raw.iloc[10:40, 1:3]
+    #     last_interindsec = "U"  # last sector of the interindustry
+    # else:
+    #     # labels_ind_FigaroCountry = labels_ind_FigaroCountry_raw.iloc[11:32, 3:5] 
+    #     # labels_ind_NonFigaroCountry = labels_ind_NonFigaroCountry_raw.iloc[10:27, 3:5]
+    #     last_interindsec = "T_U"  # last sector of the interindustry
+        
+    # get the end of the interindustry matrix
+    last_interindsec = "U"  # last sector of the interindustry
+    _lastZind = np.where(figaro_data.columns.get_level_values(1) == last_interindsec)[-1][-1]
+    
+    # labels_ind_FigaroCountry.columns = ['Code', 'Name']
+    # labels_ind_NonFigaroCountry.columns = ['Code', 'Name']
+    
+    def convert_ind(k):
+        if k[1] in figaroCodeList.Code.to_list():
+           tmp = figaroCodeList.loc[figaroCodeList['Code']==k[1],'Name'].iloc[0]
+           return  tuple([k[0],tmp])
+        else:
+           print(k[1])
+           print(k[0])
+           raise TypeError("industry name not found")
+        
+        # if k[1] in labels_ind_FigaroCountry.Code.to_list():
+        #     # df.loc[df['B'] == 3, 'A']
+        #     tmp = labels_ind_FigaroCountry.loc[labels_ind_FigaroCountry['Code']==k[1],'Name'].iloc[0]
+        #     return  tuple([k[0],tmp])
+        # elif k[1] in labels_ind_NonFigaroCountry.Code.to_list():
+        #     tmp = labels_ind_NonFigaroCountry.loc[labels_ind_FigaroCountry['Code']==k[1],'Name'].iloc[0]
+        #     return  tuple([k[0],tmp])
+        # else:
+        #     print(k[1])
+        #     print(k[0])
+        #     raise TypeError("industry name not found")
+            
+        # if k[0] in figaroCountryList.iloc[:,0]:
+        #     print(k[0])
+        #     return figaroCountryList.loc[k[1],'Name_FigaroCountry']
+        # else: # not Figaro country
+        #     return labels_ind_NonFigaroCountry.loc[df.index[1][1],'Name']
+    
+    #a = convert_ind(df.index[1])
+    figaro_data.index = pd.MultiIndex.from_tuples([convert_ind(k) for k,v in figaro_data.iterrows()])
+    figaro_data.columns = pd.MultiIndex.from_tuples([convert_ind(k) for k,v in figaro_data.items()])
+    
+    mon_unit = "Million Euros"
+    Z_unit = pd.DataFrame([mon_unit])
+    Z_unit.columns = ["unit"]
+    Z_unit["unit"] = mon_unit
+    
+    
+    
+    Zshape = (_lastZind, _lastZind)
+
+    Z = figaro_data.iloc[: Zshape[0] + 1, : Zshape[1] + 1].copy()
+    Y = figaro_data.iloc[: Zshape[0] + 1, Zshape[1] + 1 :].copy()
+    
+    Z_codes = df.iloc[: Zshape[0] + 1, : Zshape[1] + 1].copy()
+    Y_codes = df.iloc[: Zshape[0] + 1, Zshape[1] + 1 :].copy()
+    
+    # separate factor input extension
+    facinp = figaro_data.iloc[Zshape[0] + 1 :, :]
+    F_factor_input = facinp.iloc[:, : Zshape[1] + 1].copy() #F_factor_input
+    F_Y_factor_input = facinp.iloc[:, Zshape[1] + 1 :].copy() #F_Y_factor_input
+    
+
+    Z_index = Z.index
+    Z_columns = Z.columns
+    Z_index.names = IDX_NAMES["Z_row"]
+    Z_columns.names = IDX_NAMES["Z_col"]
+    Z.index = Z_index
+    Z.columns = Z_columns
+
+    Y.columns.names = IDX_NAMES["Y_col2"]
+    Y.index = Z.index
+
+    F_factor_input.columns = Z.columns
+    F_factor_input.index = F_factor_input.index.get_level_values(1)
+    F_factor_input.index.names = IDX_NAMES["VA_row_single"]
+    F_Y_factor_input.columns = Y.columns
+    F_Y_factor_input.index = F_factor_input.index
+    
+
+    
+    #fix extensions
+    # CO2 extension
+    a = figaroCodeList.copy()
+    a.set_index('Code',inplace=True)
+    figaroCodeList_dict= a.to_dict()['Name']
+    figaroCodeList_dict['HH'] = 'Private households'
+    
+    co2_ext = ".csv"
+    co2_start = "CO2_footprints_"
+    _CO2_folder = os.path.join(path, "FIGARO_footprints_2010-2020\\")
+
+    #these are footprints calculated already ... in long format
+    df_co2_raw = pd.read_csv(
+        _CO2_folder + co2_start + str(year) + co2_ext)
+    
+    df_co2_HH = df_co2_raw[df_co2_raw['sto'].isna()]
+    df_co2 = df_co2_raw[df_co2_raw['sto'].notna()]
+
+
+    
+    # #convert ind codes to names 
+    # for row in df_co2.itertuples():
+    #     ind_name1 = figaroCodeList_dict[row.industry]
+    #     ind_name2 = figaroCodeList_dict[row.sto]
+    #     df_co2['industry'].at[row.Index] = ind_name1 # update the row in the dataframe            
+    #     df_co2['sto'].at[row.Index] = ind_name2
+    
+
+    #initiatie extension dataframe with lable(in codes - get translated further down)
+    F_CO2_footprint = pd.DataFrame(0,index=Y_codes.columns,columns=Z_codes.columns)
+    
+    #make matrix     
+    # for row in df_co2.itertuples():
+    #     F_CO2_footprint.loc[(row.counterpart_area, row.sto),(row.ref_area ,row.industry)] = row.obs_value   
+    
+    for row in df_co2.itertuples():
+        F_CO2_footprint.loc[(row.counterpart_area, row.sto),(row.ref_area ,row.industry)] = row.obs_value  
+    
+    F_CO2_footprint.index = Y.columns
+    F_CO2_footprint.columns = Z.columns
+    
+    Fhh_CO2_footprint = df_co2_HH.obs_value
+    Fhh_CO2_footprint.index = df_co2_HH.ref_area
+    Fhh_CO2_footprint = Fhh_CO2_footprint.to_frame()
+    Fhh_CO2_footprint.columns.name = 'CO2 footprint'
+    footprints = [F_CO2_footprint,Fhh_CO2_footprint]
+    # ext = dict()
+    # ext["CO2"] = {
+    #     "F_fp": F_CO2_footprint,
+    #     "F_Y_fp": Fhh_CO2_footprint,
+    #     "year": year,
+    #     #!!!"iosystem": figaro_iosystem,
+    #     "unit": 'Million tonnes',
+    #     "name": "CO2 Footprints FIGARO",
+    # }
+    # meta_rec._add_fileio("CO2 file extension parsed from {}".format(_CO2_folder))
+  
+    figaro = IOSystem(
+        Z=Z,
+        Y=Y,
+        unit=Z_unit,
+        meta=meta_rec,
+        factor_inputs={
+            "name": "factor_inputs",
+            "unit": Z_unit,
+            "F": F_factor_input,
+            "F_Y": F_Y_factor_input
+        },          
+    )
+
+    return figaro, footprints 
+
+
+
+
+
+
+
+
+
+
+
+
+
 def parse_wiod(path, version, year=None, names=("isic", "c_codes"), popvector=None):
     """Parse the wiod source files for the IOSystem
 
@@ -1168,12 +1472,35 @@ def parse_wiod(path, version, year=None, names=("isic", "c_codes"), popvector=No
             "unit": {"all": None},
         },
     }
+    if version == 2016: 
+        dl_envext_para = {
+            "CO2": {
+                "name": "CO2 emissions - per source",
+                "start": "co2",
+                "ext": ".xlsx",
+                "unit": {"all": "Gg"},
+            },
+            "EM": {
+                "name": "Emission relevant energy use",
+                "start": "em",
+                "ext": ".xls",
+                "unit": {"all": "TJ"},
+            },
+            "EU": {
+                "name": "Gross energy use",
+                "start": "gross",
+                "ext": ".xls",
+                "unit": {"all": "TJ"},
+            },
+        }
+        
 
     _F_Y_template = pd.DataFrame(columns=F_Y_fac.columns)
     _ss_F_Y_pressure_column = "c37"
     for ik_ext in dl_envext_para:
         _dl_ex = __get_WIOD_env_extension(
             root_path=root_path,
+            version = version,
             year=wiot_year,
             ll_co=ll_countries,
             para=dl_envext_para[ik_ext],
@@ -1254,7 +1581,7 @@ def parse_wiod(path, version, year=None, names=("isic", "c_codes"), popvector=No
 
 
 
-def __get_WIOD_env_extension(root_path, year, ll_co, para):
+def __get_WIOD_env_extension(root_path, version, year, ll_co, para):
     """Parses the wiod environmental extension
 
     Extension can either be given as original .zip files or as extracted
@@ -1319,13 +1646,79 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
 
     dl_env = dict()
     dl_env_hh = dict()
-    for co in ll_co:
-        ll_pff_read = [
-            ff
-            for ff in ll_env_content
-            if ff.endswith(para["ext"])
-            and (ff.startswith(co.upper()) or ff.startswith(co.lower()))
-        ]
+    if version == 2013:
+        for co in ll_co:            
+            ll_pff_read = [
+                ff
+                for ff in ll_env_content
+                if ff.endswith(para["ext"])
+                and (ff.startswith(co.upper()) or ff.startswith(co.lower()))
+            ]  
+            if len(ll_pff_read) < 1:
+                raise ParserError(
+                    "Country data not complete for Extension "
+                    "{} - missing {}.".format(para["start"], co)
+                )
+    
+            elif len(ll_pff_read) > 1:
+                raise ParserError(
+                    "Multiple country data for Extension "
+                    "{} - country {}.".format(para["start"], co)
+                )
+    
+            pff_read = ll_pff_read[0]
+    
+            if pf_env.endswith(".zip"):
+                ff_excel = pd.ExcelFile(rf_zip.open(pff_read))
+            else:
+                ff_excel = pd.ExcelFile(os.path.join(pf_env, pff_read))
+            if str(year) in ff_excel.sheet_names:
+                df_env = ff_excel.parse(sheet_name=str(year), index_col=None, header=0)
+            else:
+                warnings.warn(
+                    "Extension {} does not include"
+                    "data for the year {} - "
+                    "Extension not included".format(para["start"], year),
+                    ParserWarning,
+                )
+                return None
+
+            if not df_env.index.is_numeric():
+                # upper case letter extensions gets parsed with multiindex, not
+                # quite sure why...
+                df_env.reset_index(inplace=True)
+    
+            # unit can be taken from the first cell in the excel sheet
+            if df_env.columns[0] != "level_0":
+                para["unit"]["all"] = df_env.columns[0]
+    
+            # two clean up cases - can be identified by lower/upper case extension
+            # description
+            if para["start"].islower():
+                pass
+            elif para["start"].isupper():
+                df_env = df_env.iloc[:, 1:]
+            else:
+                raise ParserError("Format of extension not given.")
+    
+            df_env.dropna(axis=0, how="all", inplace=True)
+            df_env = df_env[df_env.iloc[:, 0] != "total"]
+            df_env = df_env[df_env.iloc[:, 0] != "secTOT"]
+            df_env = df_env[df_env.iloc[:, 0] != "secQ"]
+            df_env.iloc[:, 0] = df_env.iloc[:, 0].astype(str)
+            df_env.iloc[:, 0].replace(to_replace="sec", value="", regex=True, inplace=True)
+    
+            df_env.set_index([df_env.columns[0]], inplace=True)
+            df_env.index.names = ["sector"]
+            df_env = df_env.T
+    
+            ikc_hh = "FC_HH"
+            dl_env_hh[co] = df_env[ikc_hh]
+            del df_env[ikc_hh]
+            dl_env[co] = df_env
+        
+    elif version == 2016:  #        for co in ll_co[:1]:
+        ll_pff_read = ll_env_content
 
         if len(ll_pff_read) < 1:
             raise ParserError(
@@ -1345,50 +1738,26 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
             ff_excel = pd.ExcelFile(rf_zip.open(pff_read))
         else:
             ff_excel = pd.ExcelFile(os.path.join(pf_env, pff_read))
-        if str(year) in ff_excel.sheet_names:
-            df_env = ff_excel.parse(sheet_name=str(year), index_col=None, header=0)
-        else:
-            warnings.warn(
-                "Extension {} does not include"
-                "data for the year {} - "
-                "Extension not included".format(para["start"], year),
-                ParserWarning,
-            )
-            return None
+        for co in ll_co:  
+            if str(co) in ff_excel.sheet_names:
+                df_env = ff_excel.parse(sheet_name=str(co), index_col=0, header=0)
 
-        if not df_env.index.is_numeric():
-            # upper case letter extensions gets parsed with multiindex, not
-            # quite sure why...
-            df_env.reset_index(inplace=True)
+    
+            # unit specified in "Notes
+            #!!!
+            #para["unit"]["all"] = 'kt' # für CO2
+    
 
-        # unit can be taken from the first cell in the excel sheet
-        if df_env.columns[0] != "level_0":
-            para["unit"]["all"] = df_env.columns[0]
-
-        # two clean up cases - can be identified by lower/upper case extension
-        # description
-        if para["start"].islower():
-            pass
-        elif para["start"].isupper():
-            df_env = df_env.iloc[:, 1:]
-        else:
-            raise ParserError("Format of extension not given.")
-
-        df_env.dropna(axis=0, how="all", inplace=True)
-        df_env = df_env[df_env.iloc[:, 0] != "total"]
-        df_env = df_env[df_env.iloc[:, 0] != "secTOT"]
-        df_env = df_env[df_env.iloc[:, 0] != "secQ"]
-        df_env.iloc[:, 0] = df_env.iloc[:, 0].astype(str)
-        df_env.iloc[:, 0].replace(to_replace="sec", value="", regex=True, inplace=True)
-
-        df_env.set_index([df_env.columns[0]], inplace=True)
-        df_env.index.names = ["sector"]
-        df_env = df_env.T
-
-        ikc_hh = "FC_HH"
-        dl_env_hh[co] = df_env[ikc_hh]
-        del df_env[ikc_hh]
-        dl_env[co] = df_env
+            df_env = df_env.loc[:,str(year)]
+            df_env = df_env.T
+    
+            ikc_hh = "FC_HH"
+            dl_env_hh[co] = df_env[ikc_hh]
+            del df_env[ikc_hh]
+            dl_env[co] = df_env
+        
+  
+        
 
     df_F = pd.concat(dl_env, axis=1)[ll_co]
     df_F_Y = pd.concat(dl_env_hh, axis=1)[ll_co]
@@ -1752,6 +2121,27 @@ def parse_oecd(path, year=None):
     )
 
     return oecd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def parse_eora26(path, year=None, price="bp", country_names="eora"):
