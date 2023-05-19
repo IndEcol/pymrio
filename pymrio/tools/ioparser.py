@@ -2039,52 +2039,98 @@ def parse_gloria(path):
     """
     path = Path(path)
     Z_matrix = None
+    Y_matrix = None
+    F_matrix = None
     metadata = __read_gloria_metadata()
+    year = path.name.split('_')[-1]
+    version = path.name.split('_')[-2]
     if zipfile.is_zipfile(path):
         with zipfile.ZipFile(path) as archive:
-            Z_file_name = __get_correct_csv_file(archive.namelist()[0])
+            Z_file_name = __get_correct_csv_file(archive.namelist()[0], 'T')
+            Y_file_name = __get_correct_csv_file(archive.namelist()[0], 'Y')
+            F_file_name = __get_correct_csv_file(archive.namelist()[0], 'V')
             with archive.open(Z_file_name) as z_file:
-                Z_matrix = __read_gloria_csv_file(z_file, index=metadata['index'], usecols=metadata['usecols'], chunksize=metadata['chunksize'])
-    else:
-        Z_file_name = __get_correct_csv_file(str(list(path.glob('*.csv'))[0]))
-        Z_matrix = __read_gloria_csv_file(Z_file_name, index=metadata['index'], usecols=metadata['usecols'], chunksize=metadata['chunksize'])
-    return IOSystem(Z=Z_matrix)
+                Z_matrix = __read_gloria_csv_file(z_file, row_index=metadata['full_index'], column_index=metadata['full_index'], usecols=metadata['Z_usecols'], chunksize=metadata['num_sectors'])
+            with archive.open(Y_file_name) as y_file:
+                Y_matrix = __read_gloria_csv_file(y_file, row_index=metadata['full_index'], column_index=metadata['Y_column_index'],  chunksize=metadata['num_sectors'])
+            with archive.open(F_file_name) as f_file:
+                F_matrix = __read_gloria_csv_file(f_file, row_index=metadata['F_row_index'], column_index=metadata['full_index'], usecols=metadata['Z_usecols'],  chunksize=len(metadata['F_row_index']))
+    elif path.is_dir():
+        Z_file_name = path / __get_correct_csv_file(list(path.glob('*.csv'))[0].name, 'T')
+        Y_file_name = path / __get_correct_csv_file(list(path.glob('*.csv'))[0].name, 'Y')
+        F_file_name = path / __get_correct_csv_file(list(path.glob('*.csv'))[0].name, 'V')
+
+        Z_matrix = __read_gloria_csv_file(Z_file_name, row_index=metadata['full_index'], column_index=metadata['full_index'], usecols=metadata['Z_usecols'], chunksize=metadata['num_sectors'])
+        Y_matrix = __read_gloria_csv_file(Y_file_name, row_index=metadata['full_index'], column_index=metadata['Y_column_index'], chunksize=metadata['num_sectors'])
+        F_matrix = __read_gloria_csv_file(F_file_name, row_index=metadata['F_row_index'], column_index=metadata['full_index'], usecols=metadata['Z_usecols'],  chunksize=len(metadata['F_row_index']))
+    factor_input = pymrio.Extension(name = 'Factor Input', F=F_matrix)
+    return IOSystem(Z=Z_matrix,
+                    Y=Y_matrix, 
+                    factor_input=factor_input,
+                    version=version,
+                    price="current",
+                    year=year,)
 
 
-def __get_correct_csv_file(example_filename):
+def __get_correct_csv_file(example_filename, matrix_type):
     f_split = example_filename.split('_')
-    return f'{f_split[0]}_120secMother_AllCountries_002_T-Results_{f_split[-3]}_{f_split[-2]}_Markup001(full).csv'
+    return f'{f_split[0]}_120secMother_AllCountries_002_{matrix_type}-Results_{f_split[-3]}_{f_split[-2]}_Markup001(full).csv'
 
 
-def __read_gloria_csv_file(file, index, usecols, chunksize):
+def __read_gloria_csv_file(file, row_index, column_index, chunksize, usecols=None, is_F_matrix=False):
     chunk_list = []
-    with pd.read_csv(file, usecols=usecols, chunksize=chunksize) as reader:
-        for i, chunk in enumerate(reader):
-            if i%2==1:
-                chunk_list.append(chunk)
+    df = None
+    if is_F_matrix:
+        with pd.read_csv(file, header=None, chunksize=chunksize) as reader:
+            for i, chunk in enumerate(reader):
+                    chunk.reset_index(drop=True, inplace=True)
+                    chunk_list.append(chunk.iloc[:, usecols[num_sectors*i:num_sectors*i+num_sectors]])
+        df = pd.concat(chunk_list, axis=1)
+    else:
+        with pd.read_csv(file, usecols=usecols, header=None, chunksize=chunksize) as reader:
+            for i, chunk in enumerate(reader):
+                if i%2==1:
+                    chunk_list.append(chunk)
 
-    df = pd.concat(chunk_list)
-    df.columns = index
-    df.index = index
+        df = pd.concat(chunk_list)
+
+    df.columns = column_index
+    df.index = row_index
     return df.astype(pd.SparseDtype("float", 0.0))
 
 
 def __read_gloria_metadata():
-    #reading regions and sectors from excel and into dataframes
-    metadata = pd.read_excel('README.xlsx',sheet_name=['Regions','Sectors'])
+    #reading metadata from excel and into dataframes
+    metadata = pd.read_excel(PYMRIO_PATH['gloria_metadata'],sheet_name=['Regions','Sectors','Value added and final demand'])
     regions_df = metadata.get('Regions')
     sectors_df = metadata.get('Sectors')
+    value_and_demand_df = metadata.get('Value added and final demand')
 
     # storing the number of items in each list
     num_regions = len(regions_df.index)
     num_sectors = len(sectors_df.index)
+    num_value_demand = len(value_and_demand_df.index)
 
     # create a list of column indexes to read from csv file
     columns_to_use = [s+r for r in range(0,num_regions*2*num_sectors, 2*num_sectors) for s in range(num_sectors)]
 
-    # create a multiIndex for each region and sector
+    # create a multiIndex for Z matrix with each region and sector
     regions_row=[regions_df['Region_acronyms'][reg] for reg in range(num_regions) for _ in range(num_sectors)]
     sectors_row=[sectors_df['Sector_names'][sec] for _ in range(num_regions) for sec in range(num_sectors)]
     index = pd.MultiIndex.from_tuples(list(zip(regions_row,sectors_row)), names=["region", "sector"])
-    
-    return {'usecols': columns_to_use, 'index': index, 'chunksize': num_sectors}
+
+    # Create index for columns in Y matrix with region and final demand 
+    y_column_region = [regions_df['Region_acronyms'][reg] for reg in range(num_regions) for _ in range(num_value_demand)]
+    y_column_demand = [value_and_demand_df['Final_demand_names'][dem] for _ in range(num_regions) for dem in range(num_value_demand)]
+    Y_column_index = pd.MultiIndex.from_tuples(list(zip(y_column_region,y_column_demand)), names=["region", "category"])
+
+    # Create index for F with value added
+    F_row_index = list(value_and_demand_df['Final_demand_names'])
+
+    return {'Z_usecols': columns_to_use, 
+            'full_index': index,
+            'Y_column_index': Y_column_index, 
+            'F_row_index': F_row_index, 
+            'num_sectors': num_sectors
+            }
+
