@@ -775,11 +775,6 @@ def parse_exiobase3(path):
     return io
 
 
-
-
-
-
-
 def parse_figaro(path, year=None):
     """Parse the FIGARO MRIO tables
     
@@ -1007,17 +1002,6 @@ def parse_figaro(path, year=None):
     return figaro, footprints 
 
 
-
-
-
-
-
-
-
-
-
-
-
 def parse_wiod(path, version, year=None, names=("isic", "c_codes"), popvector=None):
     """Parse the wiod source files for the IOSystem
 
@@ -1190,6 +1174,12 @@ def parse_wiod(path, version, year=None, names=("isic", "c_codes"), popvector=No
     # Wiod has an unfortunate file structure with overlapping metadata and
     # header. In order to deal with that first the full file is read.
     wiot_data = pd.read_excel(wiot_file, sheet_name=wiot_sheet, header=None)
+    
+    #extract sector names - hard coded version 2016
+    Z_names = pd.concat([wiot_data.iloc[4,4:2468],wiot_data.iloc[3,4:2468]],axis = 1)
+    Z_mulI = pd.MultiIndex.from_frame(Z_names)
+    Y_names_fdcat = pd.concat([wiot_data.iloc[4,2468:2688],wiot_data.iloc[3,2468:2688]],axis = 1)
+    Y_mulI = pd.MultiIndex.from_frame(Y_names_fdcat)
 
     meta_rec._add_fileio("WIOD data parsed from {}".format(wiot_file))
     # get meta data
@@ -1435,7 +1425,11 @@ def parse_wiod(path, version, year=None, names=("isic", "c_codes"), popvector=No
         
 
     _F_Y_template = pd.DataFrame(columns=F_Y_fac.columns)
-    _ss_F_Y_pressure_column = "c37"
+    if version == 2013:
+        _ss_F_Y_pressure_column = "c37"
+    elif version == 2016:
+        _ss_F_Y_pressure_column = "c57"
+        
     for ik_ext in dl_envext_para:
         _dl_ex = __get_WIOD_env_extension(
             root_path=root_path,
@@ -1502,12 +1496,32 @@ def parse_wiod(path, version, year=None, names=("isic", "c_codes"), popvector=No
             "used c_codes as final demand category names"
         )
 
-    wiod.Z.rename(columns=dd_sec_rename, index=dd_sec_rename, inplace=True)
-    wiod.Y.rename(columns=dd_fd_rename, index=dd_sec_rename, inplace=True)
-    for ext in wiod.get_extensions(data=True):
-        ext.F.rename(columns=dd_sec_rename, inplace=True)
-        ext.F_Y.rename(columns=dd_fd_rename, inplace=True)
-
+    if version == 2013: 
+        wiod.Z.rename(columns=dd_sec_rename, index=dd_sec_rename, inplace=True)
+        wiod.Y.rename(columns=dd_fd_rename, index=dd_sec_rename, inplace=True)    
+        for ext in wiod.get_extensions(data=True):
+            ext.F.rename(columns=dd_sec_rename, inplace=True)
+            ext.F_Y.rename(columns=dd_fd_rename, inplace=True)
+    elif version == 2016:
+        Zin = wiod.Z.index.names       
+        wiod.Z.index = Z_mulI
+        wiod.Z.index.names =Zin
+        Zcn = wiod.Z.columns.names
+        wiod.Z.columns = Z_mulI
+        wiod.Z.columns.names = Zcn
+        Yin = wiod.Y.index.names  
+        wiod.Y.index = Z_mulI
+        wiod.Y.index.names =Yin
+        Ycn = wiod.Y.columns.names
+        wiod.Y.columns = Y_mulI
+        wiod.Y.columns.names = Ycn
+        for ext in wiod.get_extensions(data=True):
+            Fcn = ext.F.columns.names
+            ext.F.columns = Z_mulI
+            ext.F.columns.names = Fcn
+            FYcn = ext.F_Y.columns.names
+            ext.F_Y.columns = Y_mulI
+            ext.F_Y.columns.names = FYcn
     return wiod
 
 
@@ -1585,14 +1599,37 @@ def __get_WIOD_env_extension(root_path, version, year, ll_co, para):
 
     dl_env = dict()
     dl_env_hh = dict()
-    if version == 2013:
-        for co in ll_co:            
-            ll_pff_read = [
-                ff
-                for ff in ll_env_content
-                if ff.endswith(para["ext"])
-                and (ff.startswith(co.upper()) or ff.startswith(co.lower()))
-            ]  
+    if version == 2013 or para["start"] != "co2":
+        for co in ll_co:  
+            if version == 2013:
+                ll_pff_read = [
+                    ff
+                    for ff in ll_env_content
+                    if ff.endswith(para["ext"])
+                    and (ff.startswith(co.upper()) or ff.startswith(co.lower()))
+                ]
+            elif para["start"] == "em":
+                ll_pff_read = [
+                    ff
+                    for ff in ll_env_content
+                    if ff.endswith(para["ext"])
+                    and (ff.startswith('EmRel10/NAMEA_EREU5610_' + co) or ff.startswith('NAMEA_EREU5610_' + co))
+                ]
+                # unit 
+                para["unit"]["all"] = "TJ"
+            elif para["start"] == "gross":
+                ll_pff_read = [
+                    ff
+                    for ff in ll_env_content
+                    if ff.endswith(para["ext"])
+                    and (ff.startswith('Gross10/NAMEA_GEU5610_' + co) or ff.startswith('NAMEA_GEU5610_' + co))
+                ]
+                # unit 
+                para["unit"]["all"] = "TJ"
+            else:
+                raise ParserError(
+                    "no extension data to read - sarah error")
+                   
             if len(ll_pff_read) < 1:
                 raise ParserError(
                     "Country data not complete for Extension "
@@ -1627,27 +1664,33 @@ def __get_WIOD_env_extension(root_path, version, year, ll_co, para):
                 # quite sure why...
                 df_env.reset_index(inplace=True)
     
-            # unit can be taken from the first cell in the excel sheet
-            if df_env.columns[0] != "level_0":
-                para["unit"]["all"] = df_env.columns[0]
+            
     
             # two clean up cases - can be identified by lower/upper case extension
             # description
-            if para["start"].islower():
-                pass
-            elif para["start"].isupper():
-                df_env = df_env.iloc[:, 1:]
-            else:
-                raise ParserError("Format of extension not given.")
+            if version == 2013:
+                # unit can be taken from the first cell in the excel sheet
+                if df_env.columns[0] != "level_0":
+                    para["unit"]["all"] = df_env.columns[0]
+                if para["start"].islower():
+                    pass
+                elif para["start"].isupper():
+                    df_env = df_env.iloc[:, 1:]
+                else:
+                    raise ParserError("Format of extension not given.")
     
             df_env.dropna(axis=0, how="all", inplace=True)
             df_env = df_env[df_env.iloc[:, 0] != "total"]
             df_env = df_env[df_env.iloc[:, 0] != "secTOT"]
             df_env = df_env[df_env.iloc[:, 0] != "secQ"]
+            df_env = df_env[df_env.iloc[:, 0] != "vTOTII_new"]
             df_env.iloc[:, 0] = df_env.iloc[:, 0].astype(str)
             df_env.iloc[:, 0].replace(to_replace="sec", value="", regex=True, inplace=True)
+            df_env.iloc[:, 0].replace(to_replace="v", value="", regex=True, inplace=True)
+            
     
             df_env.set_index([df_env.columns[0]], inplace=True)
+            df_env = df_env.rename(index={'CONS_h_new': 'FC_HH'})
             df_env.index.names = ["sector"]
             df_env = df_env.T
     
@@ -1656,30 +1699,25 @@ def __get_WIOD_env_extension(root_path, version, year, ll_co, para):
             del df_env[ikc_hh]
             dl_env[co] = df_env
         
+        df_F = pd.concat(dl_env, axis=1)[ll_co]
+        df_F_Y = pd.concat(dl_env_hh, axis=1)[ll_co]
+        df_F.fillna(0, inplace=True)
+        df_F_Y.fillna(0, inplace=True)
+        
     elif version == 2016:  #        for co in ll_co[:1]:
-        ll_pff_read = ll_env_content
-
-        if len(ll_pff_read) < 1:
-            raise ParserError(
-                "Country data not complete for Extension "
-                "{} - missing {}.".format(para["start"], co)
-            )
-
-        elif len(ll_pff_read) > 1:
-            raise ParserError(
-                "Multiple country data for Extension "
-                "{} - country {}.".format(para["start"], co)
-            )
-
-        pff_read = ll_pff_read[0]
+        pff_read = ll_env_content[0]
 
         if pf_env.endswith(".zip"):
             ff_excel = pd.ExcelFile(rf_zip.open(pff_read))
         else:
             ff_excel = pd.ExcelFile(os.path.join(pf_env, pff_read))
-        for co in ll_co:  
+        for co in ll_co: 
+            if str(co) == "ROW":
+                co = "RoW"
             if str(co) in ff_excel.sheet_names:
                 df_env = ff_excel.parse(sheet_name=str(co), index_col=0, header=0)
+            if str(co) == "RoW":
+                co = "ROW"   
 
     
             # unit specified in "Notes
@@ -1691,17 +1729,16 @@ def __get_WIOD_env_extension(root_path, version, year, ll_co, para):
             df_env = df_env.T
     
             ikc_hh = "FC_HH"
-            dl_env_hh[co] = df_env[ikc_hh]
+            dl_env_hh[co] = pd.DataFrame([df_env[ikc_hh]])
             del df_env[ikc_hh]
             dl_env[co] = df_env
         
-  
-        
+        df_F = pd.concat(dl_env, axis=0)[ll_co].to_frame().T.rename(index={'2000':para["start"]})
+        df_F_Y = pd.concat(dl_env_hh, axis=1)[ll_co].rename(index={'2000':para["start"]})
+        df_F_Y.columns = df_F_Y.columns.droplevel(1)
+        df_F_Y.fillna(0, inplace=True)
 
-    df_F = pd.concat(dl_env, axis=1)[ll_co]
-    df_F_Y = pd.concat(dl_env_hh, axis=1)[ll_co]
-    df_F.fillna(0, inplace=True)
-    df_F_Y.fillna(0, inplace=True)
+
 
     df_F.columns.names = IDX_NAMES["F_col"]
     df_F.index.names = IDX_NAMES["F_row_single"]
@@ -1816,7 +1853,7 @@ def __get_WIOD_SEA_extension(root_path, year, version, data_sheet="DATA"):
             ds_RoW = ds_use_sea.xs("USA", level="country", drop_level=False)
             ds_RoW.loc[:] = 0
             df_RoW = ds_RoW.reset_index()
-            df_RoW["country"] = "RoW"
+            df_RoW["country"] = "ROW"
             ds_use_sea = pd.concat([ds_use_sea.reset_index(), df_RoW]).set_index(
                 ["country", "code", "variable"]
             )
@@ -2060,22 +2097,6 @@ def parse_oecd(path, year=None):
     )
 
     return oecd
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
