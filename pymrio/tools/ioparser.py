@@ -2014,21 +2014,22 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
     return eora
 
 
-def parse_gloria(path):
+def parse_gloria(path, satellite_path=None):
     """Parses the Gloria database
 
     This parser works with either the compressed zip
     archive as downloaded or the extracted system.
 
-    Note
-    ----
-    At the moment only Z is extracted
+
 
     Parameters
     ----------
 
-    path : string or pathlib.Path
-        Path to the folder with the EXIOBASE files
+    path : pathlib.Path or string, optional
+        Path to the folder with the GLORIA files
+        or the compressed archive.
+    satellite : pathlib.Path or string, optional
+        Path to the folder with the GLORIA satellite account files
         or the compressed archive.
 
     Returns
@@ -2040,7 +2041,7 @@ def parse_gloria(path):
     path = Path(path)
     Z_matrix = None
     Y_matrix = None
-    F_matrix = None
+    VA_matrix = None
     metadata = __read_gloria_metadata()
     year = path.name.split('_')[-1]
     version = path.name.split('_')[-2]
@@ -2048,28 +2049,109 @@ def parse_gloria(path):
         with zipfile.ZipFile(path) as archive:
             Z_file_name = __get_correct_csv_file(archive.namelist()[0], 'T')
             Y_file_name = __get_correct_csv_file(archive.namelist()[0], 'Y')
-            F_file_name = __get_correct_csv_file(archive.namelist()[0], 'V')
+            VA_file_name = __get_correct_csv_file(archive.namelist()[0], 'V')
             with archive.open(Z_file_name) as z_file:
-                Z_matrix = __read_gloria_csv_file(z_file, row_index=metadata['full_index'], column_index=metadata['full_index'], usecols=metadata['Z_usecols'], chunksize=metadata['num_sectors'])
+                Z_matrix = __read_gloria_csv_file(z_file, 
+                                                  row_index=metadata['full_index'],
+                                                  column_index=metadata['full_index'],
+                                                  usecols=metadata['Z_usecols'],
+                                                  chunksize=metadata['num_sectors']
+                                                  )
             with archive.open(Y_file_name) as y_file:
-                Y_matrix = __read_gloria_csv_file(y_file, row_index=metadata['full_index'], column_index=metadata['Y_column_index'],  chunksize=metadata['num_sectors'])
-            with archive.open(F_file_name) as f_file:
-                F_matrix = __read_gloria_csv_file(f_file, row_index=metadata['F_row_index'], column_index=metadata['full_index'], usecols=metadata['Z_usecols'],  chunksize=len(metadata['F_row_index']))
+                Y_matrix = __read_gloria_csv_file(y_file,
+                                                  row_index=metadata['full_index'],
+                                                  column_index=metadata['Y_column_index'], 
+                                                  chunksize=metadata['num_sectors']
+                                                  )
+            with archive.open(VA_file_name) as f_file:
+                VA_matrix = __read_gloria_csv_file(f_file,
+                                                  row_index=metadata['VA_row_index'],
+                                                  column_index=metadata['full_index'],
+                                                  usecols=metadata['Z_usecols'],
+                                                  chunksize=len(metadata['VA_row_index']),
+                                                  num_sectors=metadata['num_sectors'], 
+                                                  is_VA_matrix=True
+                                                  )
     elif path.is_dir():
         Z_file_name = path / __get_correct_csv_file(list(path.glob('*.csv'))[0].name, 'T')
         Y_file_name = path / __get_correct_csv_file(list(path.glob('*.csv'))[0].name, 'Y')
-        F_file_name = path / __get_correct_csv_file(list(path.glob('*.csv'))[0].name, 'V')
+        VA_file_name = path / __get_correct_csv_file(list(path.glob('*.csv'))[0].name, 'V')
 
-        Z_matrix = __read_gloria_csv_file(Z_file_name, row_index=metadata['full_index'], column_index=metadata['full_index'], usecols=metadata['Z_usecols'], chunksize=metadata['num_sectors'])
-        Y_matrix = __read_gloria_csv_file(Y_file_name, row_index=metadata['full_index'], column_index=metadata['Y_column_index'], chunksize=metadata['num_sectors'])
-        F_matrix = __read_gloria_csv_file(F_file_name, row_index=metadata['F_row_index'], column_index=metadata['full_index'], usecols=metadata['Z_usecols'],  chunksize=len(metadata['F_row_index']))
-    factor_input = pymrio.Extension(name = 'Factor Input', F=F_matrix)
+        Z_matrix = __read_gloria_csv_file(Z_file_name,
+                                          row_index=metadata['full_index'],
+                                          column_index=metadata['full_index'],
+                                          usecols=metadata['Z_usecols'],
+                                          chunksize=metadata['num_sectors']
+                                          )
+        Y_matrix = __read_gloria_csv_file(Y_file_name,
+                                          row_index=metadata['full_index'],
+                                          column_index=metadata['Y_column_index'],
+                                          chunksize=metadata['num_sectors']
+                                          )
+        VA_matrix = __read_gloria_csv_file(VA_file_name,
+                                          row_index=metadata['VA_row_index'],
+                                          column_index=metadata['full_index'],
+                                          usecols=metadata['Z_usecols'],
+                                          chunksize=len(metadata['VA_row_index']),
+                                          num_sectors=metadata['num_sectors'],
+                                          is_VA_matrix=True
+                                          )
+    
+    factor_input = pymrio.Extension(name = 'Factor Input', F=VA_matrix)
+
+    if satellite_path:
+        satellite = parse_gloria_satellite(satellite_path, metadata)
+
     return IOSystem(Z=Z_matrix,
                     Y=Y_matrix, 
                     factor_input=factor_input,
-                    version=version,
-                    price="current",
-                    year=year,)
+                    satellites=satellite)
+
+    
+def parse_gloria_satellite(satellite_path, metadata):
+    path = Path(path)
+    F_matrix = None
+    F_F_Y_matrix = None
+
+
+    if zipfile.is_zipfile(path):
+        with zipfile.ZipFile(path) as archive:
+            F_file_name = __get_correct_csv_file(archive.namelist()[0], 'TQ')
+            F_Y_file_name = __get_correct_csv_file(archive.namelist()[0], 'YQ')
+            with archive.open(F_file_name) as z_file:
+                F_matrix = __read_gloria_csv_file(z_file, 
+                                                  row_index=metadata['satellites_row_index'],
+                                                  column_index=metadata['full_index'],
+                                                  usecols=metadata['Z_usecols'], 
+                                                  chunksize=metadata['num_sectors'],
+                                                  is_satellite=True
+                                                  )
+            with archive.open(F_Y_file_name) as y_file:
+                F_Y_matrix = __read_gloria_csv_file(y_file, 
+                                                  row_index=metadata['satellites_row_index'],
+                                                  column_index=metadata['Y_column_index'], 
+                                                  chunksize=metadata['num_sectors'],
+                                                  is_satellite=True
+                                                  )
+    elif path.is_dir():
+        F_file_name = path / __get_correct_csv_file(list(path.glob('*.csv'))[0].name, 'TQ')
+        F_Y_file_name = path / __get_correct_csv_file(list(path.glob('*.csv'))[0].name, 'YQ')
+        
+        F_matrix = __read_gloria_csv_file(F_file_name, 
+                                          row_index=metadata['satellites_row_index'],
+                                          column_index=metadata['full_index'],
+                                          usecols=metadata['Z_usecols'],
+                                          chunksize=metadata['num_sectors'],
+                                          is_satellite=True
+                                          )
+        F_Y_matrix = __read_gloria_csv_file(F_Y_file_name, 
+                                          row_index=metadata['satellites_row_index'],
+                                          column_index=metadata['Y_column_index'],
+                                          chunksize=metadata['num_sectors'],
+                                          is_satellite=True
+                                          )
+        
+    return pymrio.Extension(name = 'Satellites', F=F_matrix, F_Y=F_Y_matrix)
 
 
 def __get_correct_csv_file(example_filename, matrix_type):
@@ -2077,10 +2159,10 @@ def __get_correct_csv_file(example_filename, matrix_type):
     return f'{f_split[0]}_120secMother_AllCountries_002_{matrix_type}-Results_{f_split[-3]}_{f_split[-2]}_Markup001(full).csv'
 
 
-def __read_gloria_csv_file(file, row_index, column_index, chunksize, usecols=None, is_F_matrix=False):
+def __read_gloria_csv_file(file, row_index, column_index, chunksize, usecols=None, num_sectors=None, is_VA_matrix=False, is_satellite=False):
     chunk_list = []
     df = None
-    if is_F_matrix:
+    if is_VA_matrix:
         with pd.read_csv(file, header=None, chunksize=chunksize) as reader:
             for i, chunk in enumerate(reader):
                     chunk.reset_index(drop=True, inplace=True)
@@ -2089,7 +2171,7 @@ def __read_gloria_csv_file(file, row_index, column_index, chunksize, usecols=Non
     else:
         with pd.read_csv(file, usecols=usecols, header=None, chunksize=chunksize) as reader:
             for i, chunk in enumerate(reader):
-                if i%2==1:
+                if i%2==1 or is_satellite:
                     chunk_list.append(chunk)
 
         df = pd.concat(chunk_list)
@@ -2101,17 +2183,19 @@ def __read_gloria_csv_file(file, row_index, column_index, chunksize, usecols=Non
 
 def __read_gloria_metadata():
     #reading metadata from excel and into dataframes
-    metadata = pd.read_excel(PYMRIO_PATH['gloria_metadata'],sheet_name=['Regions','Sectors','Value added and final demand'])
+    metadata = pd.read_excel(PYMRIO_PATH['gloria_metadata'],sheet_name=['Regions','Sectors','Value added and final demand', 'Satellites'])
     regions_df = metadata.get('Regions')
     sectors_df = metadata.get('Sectors')
     value_and_demand_df = metadata.get('Value added and final demand')
+    satellites_df = metadata.get('Satellites')
 
     # storing the number of items in each list
     num_regions = len(regions_df.index)
     num_sectors = len(sectors_df.index)
     num_value_demand = len(value_and_demand_df.index)
+    num_satellites = len(satellites_df.index)
 
-    # create a list of column indexes to read from csv file
+    # create a list of column indexes to read from Z csv file
     columns_to_use = [s+r for r in range(0,num_regions*2*num_sectors, 2*num_sectors) for s in range(num_sectors)]
 
     # create a multiIndex for Z matrix with each region and sector
@@ -2124,13 +2208,19 @@ def __read_gloria_metadata():
     y_column_demand = [value_and_demand_df['Final_demand_names'][dem] for _ in range(num_regions) for dem in range(num_value_demand)]
     Y_column_index = pd.MultiIndex.from_tuples(list(zip(y_column_region,y_column_demand)), names=["region", "category"])
 
-    # Create index for F with value added
-    F_row_index = list(value_and_demand_df['Final_demand_names'])
+    # Create index for VA with value added
+    VA_row_index = list(value_and_demand_df['Final_demand_names'])
+
+    # Create index for satellites
+    satellites_row_index= list(satellites_df['Sat_indicator'])
+    satellites_row_units = list(satellites_df['Sat_unit'])
 
     return {'Z_usecols': columns_to_use, 
             'full_index': index,
             'Y_column_index': Y_column_index, 
-            'F_row_index': F_row_index, 
-            'num_sectors': num_sectors
+            'VA_row_index': VA_row_index, 
+            'num_sectors': num_sectors,
+            'satellites_row_index': satellites_row_index,
+            'satellites_row_units': satellites_row_units
             }
 
