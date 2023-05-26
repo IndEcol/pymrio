@@ -2016,8 +2016,66 @@ def parse_oecd(path, year=None):
     Z_index = pd.MultiIndex.from_tuples(tuple(ll) for ll in Z.index.str.split("_"))
     Z_columns = Z_index.copy()
     Z_index.names = IDX_NAMES["Z_row"]
+
+
+    Z_index = pd.MultiIndex.from_tuples(tuple(ll) for ll in Z.index.str.split("_"))
+
+    # Make names human readable not codes
+    # Hard coded in May 2023 
+    sectors = ["Agriculture, hunting, forestry",
+                      "Fishing and aquaculture",
+                       "Mining and quarrying, energy producing products",
+                        "Mining and quarrying, non-energy producing products",
+                        "Mining support service activities",
+                        "Food products, beverages and tobacco",
+                        "Textiles, textile products, leather and footwear",
+                        "Wood and products of wood and cork",
+                        "Paper products and printing",
+                        "Coke and refined petroleum products",
+                        "Chemical and chemical products",
+                        "Pharmaceuticals, medicinal chemical and botanical products",
+                        "Rubber and plastics products",
+                        "Other non-metallic mineral products",
+                        "Basic metals",
+                        "Fabricated metal products",
+                        "Computer, electronic and optical equipment",
+                        "Electrical equipment",
+                        "Machinery and equipment, nec",
+                        "Motor vehicles, trailers and semi-trailers",
+                        "Other transport equipment",
+                        "Manufacturing nec; repair and installation of machinery and equipment",
+                        "Electricity, gas, steam and air conditioning supply",
+                        "Water supply; sewerage, waste management and remediation activities",
+                        "Construction",
+                        "Wholesale and retail trade; repair of motor vehicles",
+                        "Land transport and transport via pipelines",
+                        "Water transport",
+                        "Air transport",
+                        "Warehousing and support activities for transportation",
+                        "Postal and courier activities",
+                        "Accommodation and food service activities",
+                        "Publishing, audiovisual and broadcasting activities",
+                        "Telecommunications",
+                        "IT and other information services",
+                        "Financial and insurance activities",
+                        "Real estate activities",
+                        "Professional, scientific and technical activities",
+                        "Administrative and support services",
+                        "Public administration and defence; compulsory social security",
+                        "Education",
+                        "Human health and social work activities",
+                        "Arts, entertainment and recreation",
+                        "Other service activities",
+                        "Activities of households as employers; undifferentiated goods- and services-producing activities of households for own use"
+                       ] 
+    
+    Z_columns = Z_index.copy()
+    Z_columns = Z_columns.set_levels(sectors, level=1)
+
+    Z_index.names = IDX_NAMES["Z_row"]
     Z_columns.names = IDX_NAMES["Z_col"]
     Z.index = Z_index
+
     Z.columns = Z_columns
 
     _midx = []
@@ -2031,6 +2089,8 @@ def parse_oecd(path, year=None):
             entries = [entries[1], entries[0]]
         _midx.append(tuple(entries))
     Y.columns = pd.MultiIndex.from_tuples(_midx)
+    Y.columns = Y.columns.set_levels(sectors, level=1)
+
     Y.columns.names = IDX_NAMES["Y_col2"]
     Y.index = Z.index
 
