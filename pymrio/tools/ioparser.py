@@ -2071,9 +2071,10 @@ def parse_oecd(path, year=None):
     
     Z_columns = Z_index.copy()
     Z_columns = Z_columns.set_levels(sectors, level=1)
-
     Z_index.names = IDX_NAMES["Z_row"]
     Z_columns.names = IDX_NAMES["Z_col"]
+    Z_index = Z_index.set_levels(sectors, level=1)
+
     Z.index = Z_index
 
     Z.columns = Z_columns
