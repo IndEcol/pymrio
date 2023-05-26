@@ -2090,15 +2090,27 @@ def parse_oecd(path, year=None):
             entries = [entries[1], entries[0]]
         _midx.append(tuple(entries))
     Y.columns = pd.MultiIndex.from_tuples(_midx)
-    Y.columns = Y.columns.set_levels(sectors, level=1)
-
     Y.columns.names = IDX_NAMES["Y_col2"]
-    Y.index = Z.index
 
+#renaming categories to be human readable
+#Hard coded in May 2023 - found in README, structure tab
+    categories = ["Household Final Consumption Expenditure",
+              "Non-Profit Institutions Serving Households",
+              "General Government Final Consumption",
+              "Gross Fixed Capital Formation",
+              "Changes in Inventories and Valuables",
+              "Direct purchases abroad by residents"] 
+
+
+
+# list that repeats per country times 67 times
+    Y.index = Z.index
+    Y.columns = Y.columns.set_levels(categories, level=1)
     F_factor_input.columns = Z.columns
     F_factor_input.index.names = IDX_NAMES["VA_row_single"]
     F_Y_factor_input.columns = Y.columns
     F_Y_factor_input.index = F_factor_input.index
+    F_Y_factor_input.columns = F_Y_factor_input.columns.set_levels(sectors, level=1)
 
     # Aggregation of CN and MX subregions
     core_co_names = Z.columns.get_level_values("region").unique()
