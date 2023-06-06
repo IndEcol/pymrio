@@ -2018,10 +2018,9 @@ def parse_oecd(path, year=None):
     Z_index.names = IDX_NAMES["Z_row"]
 
 
-    Z_index = pd.MultiIndex.from_tuples(tuple(ll) for ll in Z.index.str.split("_"))
-
     # Make names human readable not codes
     # Hard coded in May 2023 
+    # Do as excel solution
     sectors = ["Agriculture, hunting, forestry",
                       "Fishing and aquaculture",
                        "Mining and quarrying, energy producing products",
@@ -2155,6 +2154,28 @@ def parse_oecd(path, year=None):
     F_unit = pd.DataFrame(
         index=F_factor_input.index, data=mon_unit, columns=IDX_NAMES["unit"]
     )
+    # Value added rows for 1) Z 2)final demand (Y)
+    va = F_factor_input.loc[["VALU"]] 
+    va_y = F_Y_factor_input.loc[["VALU"]]
+
+    # taxes less subsidies for Z 
+    tls = F_factor_input.iloc[:-1]
+    sums = tls.sum(axis = 0)
+    tls_long = sums.reset_index()
+    tls_long.columns = ["region", "sector", "value"]
+    tls_wide = tls_long.pivot_table(columns=['region', "sector"], values='value')
+
+    # taxes less subsidies for Y
+    tls_y_raw = final_demand.iloc[-68:].copy()
+    sums_y = tls_y_raw.sum(axis = 0)
+    tls_y_long = sums_y.reset_index()
+    tls_y_long['region'] = tls_y_long['index'].str[:3]
+    tls_y_long['category'] = tls_y_long['index'].str.slice(4)
+    tls_y_long.drop("index", axis=1,inplace=True)
+    tls_y_long.columns = ["tls", "region", "category"]
+    tls_y_wide = tls_y_long.pivot_table(columns=['region', "category"], values='tls')
+    tls_y_wide.columns = tls_y_wide.columns.set_levels(categories, level=1)
+
 
     oecd = IOSystem(
         Z=Z,
@@ -2165,13 +2186,15 @@ def parse_oecd(path, year=None):
             "name": "factor_inputs",
             "unit": F_unit,
             "F": F_factor_input,
+            "VA": va,
+            "TLS": tls_wide,
             "F_Y": F_Y_factor_input,
+            "VA_Y": va_y,
+            "TLS_Y": tls_y_wide
         },
     )
 
     return oecd
-
-
 
 
 
