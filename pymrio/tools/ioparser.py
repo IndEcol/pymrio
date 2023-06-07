@@ -2164,6 +2164,9 @@ def parse_oecd(path, year=None):
     tls_long = sums.reset_index()
     tls_long.columns = ["region", "sector", "value"]
     tls_wide = tls_long.pivot_table(columns=['region', "sector"], values='value')
+    #Combine for IO object
+    F_Z = va.combine_first(tls_wide)
+
 
     # taxes less subsidies for Y
     tls_y_raw = final_demand.iloc[-68:].copy()
@@ -2175,6 +2178,8 @@ def parse_oecd(path, year=None):
     tls_y_long.columns = ["tls", "region", "category"]
     tls_y_wide = tls_y_long.pivot_table(columns=['region', "category"], values='tls')
     tls_y_wide.columns = tls_y_wide.columns.set_levels(categories, level=1)
+    #Combine for IO object
+    F_Y = va_y.combine_first(tls_y_wide)
 
 
     oecd = IOSystem(
@@ -2185,12 +2190,8 @@ def parse_oecd(path, year=None):
         factor_inputs={
             "name": "factor_inputs",
             "unit": F_unit,
-            "F": F_factor_input,
-            "VA": va,
-            "TLS": tls_wide,
-            "F_Y": F_Y_factor_input,
-            "VA_Y": va_y,
-            "TLS_Y": tls_y_wide
+            "F": F_Z,
+            "F_Y": F_Y,
         },
     )
 
