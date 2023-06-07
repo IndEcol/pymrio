@@ -2154,32 +2154,20 @@ def parse_oecd(path, year=None):
     F_unit = pd.DataFrame(
         index=F_factor_input.index, data=mon_unit, columns=IDX_NAMES["unit"]
     )
-    # Value added rows for 1) Z 2)final demand (Y)
-    va = F_factor_input.loc[["VALU"]] 
-    va_y = F_Y_factor_input.loc[["VALU"]]
-
-    # taxes less subsidies for Z 
+    # factor inputs less subsidies for Z 
     tls = F_factor_input.iloc[:-1]
     sums = tls.sum(axis = 0)
-    tls_long = sums.reset_index()
-    tls_long.columns = ["region", "sector", "value"]
-    tls_wide = tls_long.pivot_table(columns=['region', "sector"], values='value')
-    #Combine for IO object
-    F_Z = va.combine_first(tls_wide)
+    F_factor_input[:1] = sums
+    F_factor_input.rename(index={'AUS_TAXSUB': 'tls'}, inplace=True)
+    F_Z = F_factor_input.iloc[[0, -1]]
+    
 
-
-    # taxes less subsidies for Y
+    # factor inputs for Y
     tls_y_raw = final_demand.iloc[-68:].copy()
     sums_y = tls_y_raw.sum(axis = 0)
-    tls_y_long = sums_y.reset_index()
-    tls_y_long['region'] = tls_y_long['index'].str[:3]
-    tls_y_long['category'] = tls_y_long['index'].str.slice(4)
-    tls_y_long.drop("index", axis=1,inplace=True)
-    tls_y_long.columns = ["tls", "region", "category"]
-    tls_y_wide = tls_y_long.pivot_table(columns=['region', "category"], values='tls')
-    tls_y_wide.columns = tls_y_wide.columns.set_levels(categories, level=1)
-    #Combine for IO object
-    F_Y = va_y.combine_first(tls_y_wide)
+    F_Y_factor_input[:1] = sums_y
+    F_Y_factor_input.rename(index={'AUS_TAXSUB': 'tls'}, inplace=True)
+    F_Y = F_Y_factor_input.iloc[[0, -1]]
 
 
     oecd = IOSystem(
@@ -2196,7 +2184,6 @@ def parse_oecd(path, year=None):
     )
 
     return oecd
-
 
 
 
