@@ -15,8 +15,7 @@ import urllib3
 
 from pymrio.core.constants import __ROOT, GLORIA_URLS
 from pymrio.tools.iometadata import MRIOMetaData
-from pymrio.tools.ioutil import filename_from_url
-from pymrio.tools.ioutil import ssl_fix
+from pymrio.tools.ioutil import filename_from_url, ssl_fix
 
 WIOD_CONFIG = {
     "url_db_view": "http://www.wiod.org/database/wiots13",

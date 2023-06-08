@@ -660,7 +660,8 @@ def filename_from_url(url):
     """
     name = re.search("[^/\\&\?]+\.\w{2,7}(?=([\?&].*$|$))", url)
     return name.group()
-  
+
+
 def ssl_fix(*args, **kwargs):
     """
     Tries to use a request connection with Lagacy option
