@@ -12,7 +12,7 @@ from collections import namedtuple
 import requests
 import urllib3
 
-from pymrio.core.constants import __ROOT
+from pymrio.core.constants import __ROOT, GLORIA_URLS
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import filename_from_url
 
@@ -94,10 +94,7 @@ OECD_CONFIG = {
     },
 }
 
-GLORIA_CONFIG = {"datafiles": {}}
-
-with open(os.path.join(os.path.abspath(__ROOT), "../tools/gloria_urls.json"), "r") as f:
-    GLORIA_CONFIG["datafiles"] = json.load(f)
+GLORIA_CONFIG = {"datafiles": GLORIA_URLS}
 
 
 def _get_url_datafiles(
