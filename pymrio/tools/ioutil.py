@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import ssl
 import zipfile
 from collections import namedtuple
 from pathlib import Path
@@ -14,6 +15,8 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+import requests
+import urllib3
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH
 
@@ -657,3 +660,47 @@ def filename_from_url(url):
     """
     name = re.search("[^/\\&\?]+\.\w{2,7}(?=([\?&].*$|$))", url)
     return name.group()
+  
+def ssl_fix(*args, **kwargs):
+    """
+    Tries to use a request connection with Lagacy option
+    when normal connection fails
+
+    Parameters
+    ----------
+    Parameters of a normal requests.get() function
+        url: URL for the new :class:`Request` object.
+        params: (optional) Dictionary, list of tuples or bytes to send
+        in the query string for the class `Request`.
+        **kwargs: Optional arguments that `request` takes.
+
+    Returns
+    -------
+        r: class:`Response <Response>` object
+    """
+
+    class CustomHttpAdapter(requests.adapters.HTTPAdapter):
+        # "Transport adapter" that allows us to use custom ssl_context.
+
+        def __init__(self, ssl_context=None, **kwargs):
+            self.ssl_context = ssl_context
+            super().__init__(**kwargs)
+
+        def init_poolmanager(self, connections, maxsize, block=False):
+            self.poolmanager = urllib3.poolmanager.PoolManager(
+                num_pools=connections,
+                maxsize=maxsize,
+                block=block,
+                ssl_context=self.ssl_context,
+            )
+
+    try:
+        r = requests.get(*args, **kwargs)
+    except:
+        ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+        session = requests.session()
+        session.mount("https://", CustomHttpAdapter(ctx))
+        r = session.get(*args, **kwargs)
+
+    return r
