@@ -45,6 +45,7 @@ from pymrio.tools.iodownloader import (
     download_exiobase1,
     download_exiobase2,
     download_exiobase3,
+    download_gloria,
     download_oecd,
     download_wiod2013,
 )

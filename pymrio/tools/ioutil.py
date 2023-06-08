@@ -6,6 +6,7 @@ KST 20140502
 import json
 import logging
 import os
+import re
 import ssl
 import zipfile
 from collections import namedtuple
@@ -639,6 +640,26 @@ def sniff_csv_format(
                     break
 
     return dict(sep=sep, nr_header_row=nr_header_row, nr_index_col=nr_index_col)
+
+
+def filename_from_url(url):
+    """
+    Extract a file name from the download link for that file
+
+    Parameters
+    ----------
+
+    url: str,
+        The download link of the file
+
+    Returns
+    -------
+    str,
+        The extracted file name
+
+    """
+    name = re.search("[^/\\&\?]+\.\w{2,7}(?=([\?&].*$|$))", url)
+    return name.group()
 
 
 def ssl_fix(*args, **kwargs):
