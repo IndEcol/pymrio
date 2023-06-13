@@ -41,6 +41,12 @@ MISSING_AGG_ENTRY = {
     "sector": "Unspecified sector",
 }
 
+STORAGE_FORMAT = {
+    "txt": ["txt", "tsv", "csv"],
+    "parquet": ["parquet", "par", "parq"],
+    "pickle": ["pickle", "pkl"],
+}
+
 
 #  Download links for Gloria MRIO files
 GLORIA_URLS = {

@@ -18,6 +18,11 @@ Breaking changes
 * dropped support for Python 3.7 and added 3.10 and 3.11
 * License changed to LESSER GNU GENERAL PUBLIC LICENSE v3 (LGPLv3)
 
+New features
+============
+
+* Autodownloader for GLORIA MRIO (by TODO HAZIM)
+* Support of parquet format for load and save function 
 
 
 ***************************

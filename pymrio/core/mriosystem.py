@@ -23,7 +23,12 @@ import numpy as np
 import pandas as pd
 
 import pymrio.tools.ioutil as ioutil
-from pymrio.core.constants import DEFAULT_FILE_NAMES, GENERIC_NAMES, MISSING_AGG_ENTRY
+from pymrio.core.constants import (
+    DEFAULT_FILE_NAMES,
+    GENERIC_NAMES,
+    MISSING_AGG_ENTRY,
+    STORAGE_FORMAT,
+)
 from pymrio.tools.iomath import (
     calc_A,
     calc_accounts,
@@ -516,9 +521,7 @@ class BaseSystem:
                 else:
                     yield key
 
-    def save(
-        self, path, table_format="txt", sep="\t", table_ext=None, float_format="%.12g"
-    ):
+    def save(self, path, table_format="txt", sep="\t", float_format="%.12g"):
         """Saving the system to path
 
 
@@ -532,45 +535,39 @@ class BaseSystem:
             Format to save the DataFrames:
 
                 - 'pkl' : Binary pickle files,
-                          alias: 'pickle', 'bin', 'binary'
-                - 'txt' : Text files (default), alias: 'text', 'csv'
+                          alias: 'pickle'
+                - 'parquet': Parquet format
+                          alias: 'par'
+                - 'txt' : Text files (default), alias: 'text', 'csv', 'tsv'
 
-        table_ext : string, optional
-            File extension,
-            default depends on table_format(.pkl for pickle, .txt for text)
 
         sep : string, optional
             Field delimiter for the output file, only for txt files.
             Default: tab ('\t')
 
         float_format : string, optional
-            Format for saving the DataFrames,
-            default = '%.12g', only for txt files
+            Format for saving the DataFrames, only for txt files.
+            default = '%.12g'
         """
 
-        path = Path(path)
+        for format_key, format_extension in STORAGE_FORMAT.items():
+            if table_format.lower() in format_extension:
+                table_extension = table_format
+                table_format = format_key
+                break
+        else:
+            raise ValueError(
+                'Unknown table format "{}" - '
+                'must be "txt", "pkl", "parquet" or an alias as '
+                "defined in STORAGE_FORMAT".format(table_format)
+            )
 
+        path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
 
         para_file_path = path / DEFAULT_FILE_NAMES["filepara"]
         file_para = dict()
         file_para["files"] = dict()
-
-        if table_format in ["text", "csv", "txt"]:
-            table_format = "txt"
-        elif table_format in ["pickle", "bin", "binary", "pkl"]:
-            table_format = "pkl"
-        else:
-            raise ValueError(
-                'Unknown table format "{}" - '
-                'must be "txt" or "pkl"'.format(table_format)
-            )
-
-        if not table_ext:
-            if table_format == "txt":
-                table_ext = ".txt"
-            if table_format == "pkl":
-                table_ext = ".pkl"
 
         if str(type(self)) == "<class 'pymrio.core.mriosystem.IOSystem'>":
             file_para["systemtype"] = GENERIC_NAMES["iosys"]
@@ -594,13 +591,17 @@ class BaseSystem:
             else:
                 nr_header = 1
 
-            save_file = df_name + table_ext
+            save_file = df_name + "." + table_extension
             save_file_with_path = path / save_file
             logging.info("Save file {}".format(save_file_with_path))
             if table_format == "txt":
                 df.to_csv(save_file_with_path, sep=sep, float_format=float_format)
-            else:
+            elif table_format == "pickle":
                 df.to_pickle(save_file_with_path)
+            elif table_format == "parquet":
+                df.to_parquet(save_file_with_path)
+            else:
+                raise ValueError("Unknow table format passed through")
 
             file_para["files"][df_name] = dict()
             file_para["files"][df_name]["name"] = save_file
@@ -2064,9 +2065,7 @@ class IOSystem(BaseSystem):
         self.meta._add_modify("Reset full system to coefficients")
         return self
 
-    def save_all(
-        self, path, table_format="txt", sep="\t", table_ext=None, float_format="%.12g"
-    ):
+    def save_all(self, path, table_format="txt", sep="\t", float_format="%.12g"):
         """Saves the system and all extensions
 
         Extensions are saved in separate folders (names based on extension)
@@ -2083,7 +2082,6 @@ class IOSystem(BaseSystem):
             path=path,
             table_format=table_format,
             sep=sep,
-            table_ext=table_ext,
             float_format=float_format,
         )
 
@@ -2094,7 +2092,6 @@ class IOSystem(BaseSystem):
                 path=ext_path,
                 table_format=table_format,
                 sep=sep,
-                table_ext=table_ext,
                 float_format=float_format,
             )
         return self
