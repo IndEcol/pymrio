@@ -21,9 +21,14 @@ Breaking changes
 New features
 ============
 
-* Autodownloader for GLORIA MRIO (by TODO HAZIM)
+* Autodownloader for GLORIA MRIO (by @hazimhussein)
 * Support of parquet format for load and save function 
 
+
+Bugfixes
+============
+
+* Fix Eora downloader (by @hazimhussein)
 
 ***************************
 v0.4.8
