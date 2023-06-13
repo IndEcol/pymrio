@@ -68,8 +68,10 @@ def test_all(td_testmrio):
     assert all(mr.emissions.get_sectors() == sat_new.get_sectors())
 
 
-def test_fileio(tmpdir):
+def test_txt_zip_fileio(tmpdir):
     """Round trip with saving and loading the testmrio
+
+    Txt and zip format
 
     Also tests some fileio related util functions
     """
@@ -136,6 +138,32 @@ def test_fileio(tmpdir):
 
     with pytest.raises(pymrio.ReadError):
         pymrio.load(path="./foo")
+
+
+def test_parquet_fileio(tmpdir):
+    """Round trip with saving and loading the testmrio in parquet"""
+    mr = pymrio.load_test()
+
+    save_path = str(tmpdir.mkdir("pymrio_test_parquet"))
+
+    mr.save_all(save_path, table_format="parquet")
+
+    mr_load = pymrio.load_all(save_path)
+
+    assert mr_load == mr
+
+
+def test_pickle_fileio(tmpdir):
+    """Round trip with saving and loading the testmrio in pickle"""
+    mr = pymrio.load_test()
+
+    save_path = str(tmpdir.mkdir("pymrio_test_pickle"))
+
+    mr.save_all(save_path, table_format="pickle")
+
+    mr_load = pymrio.load_all(save_path)
+
+    assert mr_load == mr
 
 
 def test_reports(tmpdir):
