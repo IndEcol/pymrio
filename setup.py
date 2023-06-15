@@ -21,7 +21,8 @@ setup(
     },
     # This some needs to be here and in environment.yml (for conda)
     install_requires=[
-        "pandas >= 1.0",
+        "pandas >= 1.5",
+        "pyarrow >= 11.0",
         "numpy >= 1.20",
         "matplotlib >= 2.0.0",
         "requests >= 2.18",
