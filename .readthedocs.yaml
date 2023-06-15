@@ -13,12 +13,18 @@ build:
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
+   build: html
    configuration: doc/source/conf.py
+   fail_on_warning: false
 
 # If using Sphinx, optionally build your docs in additional formats such as PDF
 formats: all
 
-# Optionally declare the Python requirements required to build your docs
+conda:
+  environment: environment.yml
+
 python:
    install:
-   - requirements: doc/rtd-requirements.txt
+     - method: pip
+     - path: .
+
