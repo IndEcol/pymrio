@@ -2189,7 +2189,7 @@ def parse_oecd(path, year=None):
     return oecd
 
 
-def __get_oecd_extension(root_path, version_year, io_table_year):
+def __get_oecd_env_extension(root_path, version_year, io_table_year):
 
     """Parse the OECD CO2 embodied in production data
 
