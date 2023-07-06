@@ -250,6 +250,9 @@ def download_oecd(
     else:
         raise ValueError("Version not understood")
 
+
+    v2021_years = ["1995-1999", "2000-2004", "2005-2009", "2010-2014", "2015-2018"]
+
     if type(years) is int or type(years) is str:
         years = [years]
 
@@ -257,12 +260,20 @@ def download_oecd(
         if version == "v2018":
             years = range(2005, 2016)
         elif version == "v2021":
-            years = ["1995-1999", "2000-2004", "2005-2009", "2010-2014", "2015-2018"]
+            years = v2021_years
 
         else:
             years = range(1995, 2012)
 
     years = [str(yy) for yy in years]
+
+    if version == "v2021":
+        for index, year in enumerate(years):
+            if year not in v2021_years:
+                for yr in v2021_years:
+                    if int(yr[:4]) <= int(year) <= int(yr[-4:]):
+                        years[index]=yr
+
 
     downlog = MRIOMetaData._make_download_log(
         location=storage_folder,
