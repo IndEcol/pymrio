@@ -217,7 +217,10 @@ def download_oecd(
         version to be downloaded.
 
     years: list of int (4 digit) or str, optional
-        If years is given only downloads the specific years.
+        If years is given only downloads the specific years or corresponding bundles in v2021.
+        v2021 is only available in 5-years bundles 1995-1999, 2000-2004,..., 2015-2018, specific
+        bundles can be specified as str "1995-1999" otherwise the corresponding bundles for 
+        the required years would be downloaded
 
     overwrite_existing: boolean, optional
         If False, skip download of file already existing in
