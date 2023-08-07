@@ -31,8 +31,8 @@ jobs:
 
     - name: List environment
       run: |
-        mamba info
-        mamba list
+        micromamba info
+        micromamba list
 
     - name: Run tests
       run: |
