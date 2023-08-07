@@ -27,13 +27,13 @@ jobs:
           hashFiles('environment.yml') }}
 
     - name: Setup conda and environment
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v2.2.0
       with:
           auto-update-conda: true
           channels: conda-forge,defaults
           mamba-version: "*"
           channel-priority: true
-          activate-environment: coco-dev
+          activate-environment: pymrio_dev
           environment-file: environment.yml
           use-only-tar-bz2: true   # required for caching
 
