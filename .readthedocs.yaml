@@ -20,11 +20,8 @@ sphinx:
 # If using Sphinx, optionally build your docs in additional formats such as PDF
 formats: all
 
-conda:
-  environment: environment.yml
-
 python:
    install:
      - method: pip
-     - path: .
+     - requirements: doc/rtd-requirements.txt
 
