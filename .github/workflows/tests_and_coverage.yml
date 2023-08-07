@@ -13,29 +13,21 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    - name: Cache conda
-      uses: actions/cache@v2
+    - uses: mamba-org/setup-micromamba@v1
       env:
-        # Increase this value to reset cache if etc/example-environment.yml has not changed
-        CACHE_NUMBER: 0
+        ACTIONS_STEP_DEBUG: true
       with:
-        path: ~/conda_pkgs_dir
-        key:
-          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
-          hashFiles('environment.yml') }}
-
-    - name: Setup conda and environment
-      uses: conda-incubator/setup-miniconda@v2.2.0
-      with:
-          auto-update-conda: true
-          channels: conda-forge,defaults
-          mamba-version: "*"
-          channel-priority: true
-          activate-environment: pymrio_dev
+          micromamba-version: '1.3.1-0'
           environment-file: environment.yml
-          use-only-tar-bz2: true   # required for caching
+          init-shell: >-
+            bash
+            powershell
+          cache-environment: true
+          cache-downloads: true
+          post-cleanup: 'all'
+
 
     - name: List environment
       run: |
