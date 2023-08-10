@@ -471,6 +471,12 @@ def download_eora26(
     years = years if years else range(1990, 2017)
     years = [str(yy).zfill(4) for yy in years]
 
+    for year in years:
+        if not 1990 <= int(year) <= 2016:
+            raise ValueError(
+                "Open data for Eora26 is only avaliable for the years 1990-2016"
+            )
+
     if type(prices) is str:
         prices = [prices]
 
