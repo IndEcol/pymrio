@@ -468,7 +468,7 @@ def download_eora26(
 
     if type(years) is int or type(years) is str:
         years = [years]
-    years = years if years else range(1990, 2022)
+    years = years if years else range(1990, 2023)
     years = [str(yy).zfill(4) for yy in years]
 
     if type(prices) is str:
