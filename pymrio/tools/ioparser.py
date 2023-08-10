@@ -1859,9 +1859,26 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
 
     if is_zip:
         zip_file = zipfile.ZipFile(eora_loc)
+        indices_file = None
+        for key, filename in eora_files.items():
+            if filename not in zip_file.namelist() and filename.startswith("labels"):
+                try:
+                    indices_loc = os.path.join(path, "indices.zip")
+                    indices_file = zipfile.ZipFile(indices_loc)
+                except:
+                    raise ValueError(
+                        f"{filename} is not available in the zip file and no indices.zip file is available in the directory provided"
+                    )
+
         eora_data = {
             key: pd.read_csv(
                 zip_file.open(filename),
+                sep=eora_sep,
+                header=None,
+            )
+            if filename in zip_file.namelist()
+            else pd.read_csv(
+                indices_file.open(filename),
                 sep=eora_sep,
                 header=None,
             )
