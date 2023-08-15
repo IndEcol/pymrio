@@ -301,8 +301,8 @@ def test_characterize_extension(fix_testmrio):
     # coefficients and multipliers can not characterized directly, so these
     # should be removed and then recalculated
 
-    assert ex_calc.M == None
-    assert ex_calc.S == None
+    assert ex_calc.M is None
+    assert ex_calc.S is None
     t_calc.impacts = ex_calc
     t_calc.calc_all()
     pdt.assert_series_equal(
@@ -321,7 +321,7 @@ def test_characterize_extension(fix_testmrio):
             factors, characterization_factors_column="foo"
         )
     with pytest.raises(AssertionError):
-        ex_error = t_uncalc.factor_inputs.characterize(
+        ex_error = t_uncalc.factor_inputs.characterize(  # noqa: F841
             factors, characterization_factors_column="foo"
         )
 

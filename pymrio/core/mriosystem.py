@@ -1553,9 +1553,13 @@ class Extension(BaseSystem):
 
            or
 
-        namedtuple with .extension: pymrio.Extension .factors: pd.DataFrame (when return_char_matrix==True)
+        namedtuple with 
+            - .extension: pymrio.Extension 
+            - .factors: pd.DataFrame (when return_char_matrix==True)
 
         """
+
+        # TODO: if we get sector, we stack with sector, and with region the same
 
         name = name if name else self.name + "_characterized"
 
@@ -1575,6 +1579,7 @@ class Extension(BaseSystem):
             characterized_unit_column,
         ]
 
+        # TODO change to raise
         assert set(required_columns).issubset(
             set(factors.columns)
         ), "Not all required columns in the passed DataFrame >factors<"
