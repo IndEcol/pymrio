@@ -25,6 +25,7 @@ v0.5.1
 ***************************
 
 * small bugfix with version numbering
+* Eora uses labels from seperate file if not found in zip file
 
 ***************************
 v0.5.0

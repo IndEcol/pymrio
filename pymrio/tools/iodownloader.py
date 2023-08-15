@@ -497,6 +497,10 @@ def download_eora26(
         for yr in years
     ]
 
+    restricted_eora_urls.append(
+        "https://worldmrio.com/ComputationsM/Phase199/Loop082/simplified/indices.zip"
+    )
+
     downlog = MRIOMetaData._make_download_log(
         location=storage_folder,
         description="Download log for Eora",
