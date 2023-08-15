@@ -2,9 +2,13 @@
 Changelog
 #########
 
+***************************
+v0.5.3dev
+***************************
+
 
 ***************************
-v0.5.2
+v0.5.2 - 20230815
 ***************************
 
 New features
@@ -21,13 +25,13 @@ Development
 
 
 ***************************
-v0.5.1
+v0.5.1 - 20230615
 ***************************
 
 * small bugfix with version numbering
 
 ***************************
-v0.5.0
+v0.5.0 - 20230615
 ***************************
 
 Development
@@ -55,7 +59,7 @@ Bugfixes
 * Fix Eora downloader (by @hazimhussein)
 
 ***************************
-v0.4.8
+v0.4.8 - 20221116
 ***************************
 
 * Added inbuild classification for 
@@ -73,13 +77,13 @@ Bugfixes
 * updated deprecated pandas methods - fix #93
 
 ***************************
-v0.4.7
+v0.4.7 - 20220428
 ***************************
 
 * Fixed OECD downloader and parser (by @jaimeoliver1)
 
 ***************************
-v0.4.6
+v0.4.6 - 20211118
 ***************************
 
 * Fixed indexing bug in calc_accounts for non-full Y 
