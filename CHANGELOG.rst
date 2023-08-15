@@ -2,6 +2,24 @@
 Changelog
 #########
 
+
+***************************
+v0.5.2
+***************************
+
+New features
+============
+
+* OECD bundle download (by @hazimhussein) - see https://pymrio.readthedocs.io/en/latest/notebooks/autodownload.html#OECD-download
+
+
+Development
+===========
+
+* Switched to Micromamba in the CI 
+* Fixed readthedocs settings
+
+
 ***************************
 v0.5.1
 ***************************
