@@ -11,7 +11,7 @@ New features
 ============
 
 * OECD bundle download (by @hazimhussein) - see https://pymrio.readthedocs.io/en/latest/notebooks/autodownload.html#OECD-download
-
+* Fix EORA26 parsing (by @hazimhussein)
 
 Development
 ===========
@@ -25,7 +25,6 @@ v0.5.1
 ***************************
 
 * small bugfix with version numbering
-* Eora uses labels from seperate file if not found in zip file
 
 ***************************
 v0.5.0
