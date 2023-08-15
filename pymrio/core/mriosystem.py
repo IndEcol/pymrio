@@ -882,8 +882,9 @@ class Extension(BaseSystem):
             Row vector with population per region
         """
 
-        # TODO: This should only be used for calculating the full system.
-        # TODO There needs to be a new method for calculating the system for a different demand vector
+        # TODO This should only be used for calculating the full system.
+        # TODO There needs to be a new method for calculating the system 
+        # for a different demand vector in here
 
         if Y_agg is None:
             try:
@@ -1507,6 +1508,18 @@ class Extension(BaseSystem):
         Factors can contain more characterization factors which depend on stressors not
         present in the Extension - these will be automatically removed.
 
+
+        The dataframe passed for the characterization must be in a long format.
+        It must contain columns with the same names as in the index of the extension.
+        
+        The routine can also handle region or sector specific characterization factors.
+        In that case, the passed dataframe must also include columns 
+        for sector and/or region.
+        The names must be the same as the column names of the extension.
+
+        Other column names can be specified in the parameters, 
+        see below for the default values.
+
         Note
         ----
         Accordance of units is not checked - you must ensure that the
@@ -1579,7 +1592,13 @@ class Extension(BaseSystem):
             characterized_unit_column,
         ]
 
-        # TODO change to raise
+        if 'region' in factors.columns:
+            required_columns.append('region')
+        if 'sector' in factors.columns:
+            required_columns.append('sector')
+            
+        # CONT: this should pass in the test - FIX: this
+        # FIXME: change to raise
         assert set(required_columns).issubset(
             set(factors.columns)
         ), "Not all required columns in the passed DataFrame >factors<"
@@ -1594,11 +1613,13 @@ class Extension(BaseSystem):
             else:
                 factors_cleaned_gathered.append(fac_rest)
 
+        # FIXME: add switch in the paramter to keep them but with NA
         for imissi in impacts_stressors_missing:
             logging.warning(
                 f"Impact >{imissi}< removed - calculation requires stressors "
                 f"not present in extension >{self.name}<"
             )
+
         df_char = pd.concat(factors_cleaned_gathered)
         units = (
             df_char.loc[:, [characterized_name_column, characterized_unit_column]]
