@@ -276,6 +276,7 @@ def test_characterize_extension_reg_spec(fix_testmrio):
     t_calc = fix_testmrio.testmrio.calc_all()
     uncalc_name = "emissions_charact_uncalc"
 
+
     # CONT: Until here the new procedure should work already
     ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name)
     ex_calc = t_uncalc.emissions.characterize(factors)
@@ -320,11 +321,11 @@ def test_characterize_extension_reg_spec(fix_testmrio):
         check_names=False,
     )
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         ex_error = t_uncalc.emissions.characterize(
             factors, characterization_factors_column="foo"
         )
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         ex_error = t_uncalc.factor_inputs.characterize(  # noqa: F841
             factors, characterization_factors_column="foo"
         )
@@ -404,11 +405,11 @@ def test_characterize_extension(fix_testmrio):
         check_names=False,
     )
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         ex_error = t_uncalc.emissions.characterize(
             factors, characterization_factors_column="foo"
         )
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         ex_error = t_uncalc.factor_inputs.characterize(  # noqa: F841
             factors, characterization_factors_column="foo"
         )

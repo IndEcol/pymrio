@@ -1586,7 +1586,7 @@ class Extension(BaseSystem):
                 list([[r] for r in rows]), columns=rows.names
             )
 
-        required_columns = rows.names + [
+        required_columns = list(rows.names) + [
             characterization_factors_column,
             characterized_name_column,
             characterized_unit_column,
@@ -1597,36 +1597,63 @@ class Extension(BaseSystem):
         if 'sector' in factors.columns:
             required_columns.append('sector')
             
-        # CONT: this should pass in the test - FIX: this
-        # FIXME: change to raise
-        assert set(required_columns).issubset(
-            set(factors.columns)
-        ), "Not all required columns in the passed DataFrame >factors<"
+        if not set(required_columns).issubset(set(factors.columns)):
+            raise ValueError(
+                "Not all required columns in the passed DataFrame >factors<")
 
         impacts_stressors_missing = []
         factors_cleaned_gathered = []
+        # Check if all stressors need for calculating the characterization are given
+        # TODO: This might need to change - case when some stressor can be characterized, but not all are necessary
         for charact_name in factors[characterized_name_column].drop_duplicates():
             fac_rest = factors[factors[characterized_name_column] == charact_name]
             # This works since an inner merge returns a df with index present in both df
+            # if len(fac_rest.merge(df_stressors, how="inner")) < len(fac_rest):
+            #     impacts_stressors_missing.append(charact_name)
+            # else:
+            #     factors_cleaned_gathered.append(fac_rest)
+            # This works since an inner merge returns a df with index present in both df
             if len(fac_rest.merge(df_stressors, how="inner")) < len(fac_rest):
                 impacts_stressors_missing.append(charact_name)
-            else:
-                factors_cleaned_gathered.append(fac_rest)
 
-        # FIXME: add switch in the paramter to keep them but with NA
+            factors_cleaned_gathered.append(fac_rest)
+
+
+        # FIXME: add switch in the paramter to keep them but with NA, and to give a separate warning if just some are available
+        # for imissi in impacts_stressors_missing:
+        #     logging.warning(
+        #         f"Impact >{imissi}< removed - calculation requires stressors "
+        #         f"not present in extension >{self.name}<"
+        #     )
         for imissi in impacts_stressors_missing:
             logging.warning(
-                f"Impact >{imissi}< removed - calculation requires stressors "
-                f"not present in extension >{self.name}<"
+                f"Not all stressors for calculating impact >{imissi}< "
+                "available in extension >{self.name}<"
             )
 
         df_char = pd.concat(factors_cleaned_gathered)
+
         units = (
             df_char.loc[:, [characterized_name_column, characterized_unit_column]]
             .drop_duplicates()
             .set_index(characterized_name_column)
             .rename({characterized_unit_column: "unit"}, axis=1)
         )
+
+
+        # TODO: CONT: new approach
+            # - characterize in extensions - characterize abosolute values based on function below
+            # - characterize(extension, factors) - in iomath
+            #     accept extension in pymrio extension format or long format (convert to long format as pymrio function)
+            #     accept factors in long format (or build from characterization matrix)
+            #     return extension in pymrio extension format or long format
+        # if one column in factors missing (e.g. secor, or region, apply it to all)
+        #
+        # #           - header must be the same (no arguments, just check these)
+        #                 define fall back entries (e.g. region missing - take 'global')
+        #     #
+        __import__('IPython').embed() # DEBUG Shell 
+
         calc_matrix = (
             (
                 df_char.set_index(rows.names + [characterized_name_column])
@@ -1637,6 +1664,7 @@ class Extension(BaseSystem):
             .reindex(rows, axis=1)  # cases when not all stressors in factors
             .fillna(value=0)
         )
+
 
         ex = Extension(
             name=name,
