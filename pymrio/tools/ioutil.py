@@ -662,6 +662,34 @@ def filename_from_url(url):
     return name.group()
 
 
+def check_if_long(df, value_name="value"):
+    """ Checks if a given DataFrame follows is in a long format
+
+    Currently this only checks if 'value_name' is in the columns.
+    """
+    # TODO: actually check if we have a matrix or long format
+    if value_name not in df.columns:
+        return False
+
+def convert_to_long(df, value_name="value"):
+    """ Converts the pymrio matrix df format to a long format
+
+    All index and columns become separate columns (not index!)
+
+    Parameters
+    ----------
+    df: pymrio matrix
+        The pymrio matrix (e.g. Z, F, etc) to convert
+
+    value_name: str, optional
+        The name of the value column, default: 'value'
+    """
+    df_long = df.stack(df.columns.names)
+    df_long.name = value_name
+    df_long = df_long.reset_index()
+    return df_long
+
+
 def ssl_fix(*args, **kwargs):
     """
     Tries to use a request connection with Lagacy option

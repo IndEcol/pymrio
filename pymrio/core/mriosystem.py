@@ -1641,17 +1641,6 @@ class Extension(BaseSystem):
         )
 
 
-        # TODO: CONT: new approach
-            # - characterize in extensions - characterize abosolute values based on function below
-            # - characterize(extension, factors) - in iomath
-            #     accept extension in pymrio extension format or long format (convert to long format as pymrio function)
-            #     accept factors in long format (or build from characterization matrix)
-            #     return extension in pymrio extension format or long format
-        # if one column in factors missing (e.g. secor, or region, apply it to all)
-        #
-        # #           - header must be the same (no arguments, just check these)
-        #                 define fall back entries (e.g. region missing - take 'global')
-        #     #
         __import__('IPython').embed() # DEBUG Shell 
 
         calc_matrix = (
@@ -2695,3 +2684,106 @@ def concate_extension(*extensions, name):
         all_dict["name"] = name
 
     return Extension(**all_dict)
+
+def characterize(extension, char_factors, fallback=None):
+    """ Characterize extension or dataframe
+
+    Parameters
+    ----------
+    extension : Extension or pd.DataFrame
+        The extension or dataframe to characterize.
+        In case of a DataFrame that can be in the pymrio matrix format or 
+        a long format with one column 'value' and the other columns defining the postion
+        (basically a stack(column names) of the matrix format). 
+        See pymrio.convert_to_long for conversion.
+
+    char_factors : pd.DaraFrame
+        The characterization factors
+
+    fallback : string, optional
+        TODO: Define for dict and string, 
+        
+    """
+        # TODO: CONT: new approach
+            # - characterize in extensions - characterize abosolute values based on function below
+            # - characterize(extension, factors) - in iomath
+            #     accept extension in pymrio extension format or long format (convert to long format as pymrio function)
+            #     accept factors in long format (or build from characterization matrix)
+            #     return extension in pymrio extension format or long format
+        # if one column in factors missing (e.g. secor, or region, apply it to all)
+        #
+        # #           - header must be the same (no arguments, just check these)
+        #                 define fall back entries (e.g. region missing - take 'global')
+        #     #
+
+    # Special columns in char:, required: impact, factor, impact_unit
+    # Special columns in char:, optional: stressor_unit - does a check on the fly
+
+    if type(extension) is Extension:
+        # Later: loop through absolute dataframes and characterize each, set units and remove coefficients
+        raise NonImplementedError("Characterization of extensions not implemented yet")
+
+    if not ioutil.check_if_long(extension, value_col="value"):
+        extension = ioutil.convert_to_long(extension)
+        
+
+import pymrio
+tt = pymrio.load_test() 
+F = tt.emissions.F
+
+manres_awi = ((F.loc[("emission_type1", "air"), :] * 2 / 1000) + (F.loc[("emission_type2", "water"), :] * 1 / 1000)).sum()
+
+manres_total = ((F.loc[("emission_type1", "air"), :] * 1) + (F.loc[("emission_type2", "water"), :] * 1)).sum()
+
+
+
+f = pymrio.convert_to_long(F)
+
+factors = pd.read_csv( './pymrio/mrio_models/test_mrio/concordance/emissions_charact_reg_spec.tsv', sep="\t")
+
+fac_wo_reg = pd.read_csv( './pymrio/mrio_models/test_mrio/concordance/emissions_charact.tsv', sep="\t")
+
+factors = fac_wo_reg
+
+common_columns = list(set(factors.columns).intersection(set(f.columns)))
+
+factors = factors.set_index(common_columns)
+
+f = f.set_index(common_columns)
+
+f = f.set_index(['stressor', 'compartment', 'region', 'sector'])
+
+
+x = factors.factor * f.value
+
+x = f.value * factors.factor
+
+for impact_name in factors.impact.unique():
+    r=factors[factors.impact == impact_name].factor * f.value
+
+    r=factors[factors.impact == impact_name].factor * f.value
+    
+awi = factors[factors.impact == 'air water impact']
+
+tot= factors[factors.impact == 'total emissions']
+
+
+tot6 = tot.drop('reg6', axis=0)
+
+f.index.difference(tot6.index)
+
+tot6.index.difference(f.index)
+
+# res = awi.factor.multiply(f.value, fill_value=None)
+# res_awi = awi.factor.multiply(f.value)
+
+res_awi = f.copy()
+
+res_awi.value = f.value.multiply(awi.factor)
+
+
+# don’t do fill value here - keep the result, search for nan and report these
+res_tot = f.value.multiply(tot.factor)
+# res_tot = f.value.multiply(tot6.factor, fill_value=0)
+
+    
