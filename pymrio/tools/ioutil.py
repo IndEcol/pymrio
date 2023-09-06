@@ -18,7 +18,7 @@ import pandas as pd
 import requests
 import urllib3
 
-from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH
+from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH, LONG_VALUE_NAME
 
 
 def is_vector(inp):
@@ -662,19 +662,46 @@ def filename_from_url(url):
     return name.group()
 
 
-def check_if_long(df, value_name="value"):
+def check_if_long(df, value_name=LONG_VALUE_NAME):
     """ Checks if a given DataFrame follows is in a long format
 
     Currently this only checks if 'value_name' is in the columns.
+    In no parameter is given, it uses the default value 'value', defined
+    in constants.py
+
+    Note:
+    -----
+    This function does not check if the DataFrame is actually in a long format,
+    it only checks if the DataFrame has a column with the name 'value_name'.
+    There is an edge case of having 'value_name' as a column name, but not
+    being in a long format. This function will return True in this case.
+
+    Returns
+    -------
+    bool
+        True if the DataFrame is in a long format, False otherwise
     """
-    # TODO: actually check if we have a matrix or long format
-    if value_name not in df.columns:
+    if not isinstance(df, pd.DataFrame) or isinstance(df, pd.Series):
         return False
 
-def convert_to_long(df, value_name="value"):
+    # TODO: refactor once we have these in the constants.py
+    if isinstance(df, pd.DataFrame):
+        if 'region' in df.columns.names:
+            return False
+        if 'sector' in df.columns.names:
+            return False
+        if 'category' in df.columns.names:
+            return False
+    
+    if value_name not in df.columns:
+        return False
+    else:
+        return True
+
+def convert_to_long(df, value_name=LONG_VALUE_NAME):
     """ Converts the pymrio matrix df format to a long format
 
-    All index and columns become separate columns (not index!)
+    FIX: All index and columns become separate columns (not index!)
 
     Parameters
     ----------
@@ -683,10 +710,15 @@ def convert_to_long(df, value_name="value"):
 
     value_name: str, optional
         The name of the value column, default: 'value'
+        as defined in constants.py
+
+    Returns
+    -------
+    pd.DataFrame
     """
     df_long = df.stack(df.columns.names)
     df_long.name = value_name
-    df_long = df_long.reset_index()
+    df_long = pd.DataFrame(df_long)
     return df_long
 
 

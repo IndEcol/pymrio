@@ -17,7 +17,6 @@ import typing
 import warnings
 from pathlib import Path
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -2727,63 +2726,64 @@ def characterize(extension, char_factors, fallback=None):
         extension = ioutil.convert_to_long(extension)
         
 
-import pymrio
-tt = pymrio.load_test() 
-F = tt.emissions.F
+if __name__ == "__main__":
 
-manres_awi = ((F.loc[("emission_type1", "air"), :] * 2 / 1000) + (F.loc[("emission_type2", "water"), :] * 1 / 1000)).sum()
+    import pymrio
+    tt = pymrio.load_test() 
+    F = tt.emissions.F
 
-manres_total = ((F.loc[("emission_type1", "air"), :] * 1) + (F.loc[("emission_type2", "water"), :] * 1)).sum()
+    manres_awi = ((F.loc[("emission_type1", "air"), :] * 2 / 1000) + (F.loc[("emission_type2", "water"), :] * 1 / 1000)).sum()
 
-
-
-f = pymrio.convert_to_long(F)
-
-factors = pd.read_csv( './pymrio/mrio_models/test_mrio/concordance/emissions_charact_reg_spec.tsv', sep="\t")
-
-fac_wo_reg = pd.read_csv( './pymrio/mrio_models/test_mrio/concordance/emissions_charact.tsv', sep="\t")
-
-factors = fac_wo_reg
-
-common_columns = list(set(factors.columns).intersection(set(f.columns)))
-
-factors = factors.set_index(common_columns)
-
-f = f.set_index(common_columns)
-
-f = f.set_index(['stressor', 'compartment', 'region', 'sector'])
+    manres_total = ((F.loc[("emission_type1", "air"), :] * 1) + (F.loc[("emission_type2", "water"), :] * 1)).sum()
 
 
-x = factors.factor * f.value
 
-x = f.value * factors.factor
+    f = pymrio.convert_to_long(F)
 
-for impact_name in factors.impact.unique():
-    r=factors[factors.impact == impact_name].factor * f.value
+    factors = pd.read_csv( './pymrio/mrio_models/test_mrio/concordance/emissions_charact_reg_spec.tsv', sep="\t")
 
-    r=factors[factors.impact == impact_name].factor * f.value
-    
-awi = factors[factors.impact == 'air water impact']
+    fac_wo_reg = pd.read_csv( './pymrio/mrio_models/test_mrio/concordance/emissions_charact.tsv', sep="\t")
 
-tot= factors[factors.impact == 'total emissions']
+    factors = fac_wo_reg
 
 
-tot6 = tot.drop('reg6', axis=0)
+    # factors = factors.set_index(['stressor', 'compartment', 'impact', 'region'])
+    factors = factors.set_index(['stressor', 'compartment', 'impact'])
 
-f.index.difference(tot6.index)
+    # f.reset_index(inplace=True)
 
-tot6.index.difference(f.index)
+    # f = f.set_index(['stressor', 'compartment', 'region', 'sector'])
+
+
+    x = factors.factor * f.value
+
+    x = f.value * factors.factor
+
+    x.groupby(['impact', 'region', 'sector']).sum()
+
+    # CONT: This works now! need to be implemented in a function and tested for all cases
+        
+    awi = factors[factors.impact == 'air water impact']
+
+    tot= factors[factors.impact == 'total emissions']
+
+
+    tot6 = tot.drop('reg6', axis=0)
+
+    f.index.difference(tot6.index)
+
+    tot6.index.difference(f.index)
 
 # res = awi.factor.multiply(f.value, fill_value=None)
 # res_awi = awi.factor.multiply(f.value)
 
-res_awi = f.copy()
+    res_awi = f.copy()
 
-res_awi.value = f.value.multiply(awi.factor)
+    res_awi.value = f.value.multiply(awi.factor)
 
 
 # don’t do fill value here - keep the result, search for nan and report these
-res_tot = f.value.multiply(tot.factor)
+    res_tot = f.value.multiply(tot.factor)
 # res_tot = f.value.multiply(tot6.factor, fill_value=0)
 
-    
+        
