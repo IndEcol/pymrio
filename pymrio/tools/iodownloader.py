@@ -39,8 +39,7 @@ EORA26_CONFIG = {
 }
 
 EXIOBASE3_CONFIG = {
-    "url_db_view": "https://doi.org/10.5281/zenodo.5589597",  # lastest version
-    # "url_db_view": "https://doi.org/10.5281/zenodo.3583070",  # version 3.8.1
+    "url_db_view": "https://doi.org/10.5281/zenodo.3583070",  # lastest version
     # "url_db_view": "https://doi.org/10.5281/zenodo.3583071",  # version 3.7
     # "url_db_view": "https://doi.org/10.5281/zenodo.4277368",  # version 3.8
     "url_db_content": "",
@@ -554,7 +553,7 @@ def download_exiobase3(
     years=None,
     system=None,
     overwrite_existing=False,
-    doi="10.5281/zenodo.5589597",
+    doi="10.5281/zenodo.3583070",
 ):
     """
     Downloads EXIOBASE 3 files from Zenodo
