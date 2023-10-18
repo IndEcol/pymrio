@@ -43,7 +43,7 @@ EXIOBASE3_CONFIG = {
     # "url_db_view": "https://doi.org/10.5281/zenodo.3583071",  # version 3.7
     # "url_db_view": "https://doi.org/10.5281/zenodo.4277368",  # version 3.8
     "url_db_content": "",
-    "mrio_regex": r"https://zenodo.org/record/\d*/files/IOT_\d\d\d\d_[p,i]x[p,i].zip",
+    "mrio_regex": r"https://zenodo.org/records/\d*/files/IOT_\d\d\d\d_[p,i]x[p,i].zip",
     "requests_func": requests.get,
 }
 
