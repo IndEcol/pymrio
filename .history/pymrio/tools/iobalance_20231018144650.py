@@ -90,8 +90,8 @@ def system_is_balanced(
     """
    # Check shape of Inter industry is square
     if isinstance(Z, pd.DataFrame):
-        num_rows_z, num_cols_z = Z.shape
-        if num_rows_z == num_cols_z:
+        num_rows_Z, num_cols_Z = Z.shape
+        if num_rows_Z == num_cols_Z:
             pass
         else:
             raise NotSquareDataFrameError("Number of rows does not equal columns")
@@ -102,8 +102,8 @@ def system_is_balanced(
 
     # Value Added
     if isinstance(VA, pd.DataFrame):
-        num_rows_va, num_cols_va = VA.shape
-        if num_cols_va == num_cols_z:
+        num_rows_VA, num_cols_VA = VA.shape
+        if num_cols_VA == num_cols_Z:
             pass
         else:
             raise MatrixNotCompatibleError(
@@ -114,8 +114,8 @@ def system_is_balanced(
 
     # Check Final Demand
     if isinstance(Y, pd.DataFrame):
-        num_rows_y, num_cols_y = Y.shape
-        if num_rows_y == num_rows_z:
+        num_rows_Y, num_cols_Y = Y.shape
+        if num_rows_Y == num_rows_Z:
             pass
         else:
             raise MatrixNotCompatibleError(
@@ -126,8 +126,8 @@ def system_is_balanced(
 
     # Check Total Output
     if isinstance(x, pd.DataFrame):
-        num_rows_x, num_cols_x = x.shape
-        if num_rows_x == num_rows_z:
+        num_rows_X, num_cols_X = x.shape
+        if num_rows_X == num_rows_Z:
             pass
         else:
             raise MatrixNotCompatibleError(
@@ -138,9 +138,9 @@ def system_is_balanced(
 
     # check if total Output is the sum of Industry and final demand outputs
     for i in range(len(Z)):
-        inter_industry_sum = Z.iloc[i].sum()
-        final_demand_sum = Y.iloc[i].sum()
-        total = inter_industry_sum + final_demand_sum
+        Inter_industry_sum = Z.iloc[i].sum()
+        Final_demand_sum = Y.iloc[i].sum()
+        total = Inter_industry_sum + Final_demand_sum
 
         if np.isclose(total, float(x.iloc[i]), atol=tolerance):
             pass
@@ -151,17 +151,17 @@ def system_is_balanced(
 
     # check if system totals are balanced by summing total output and value added + InterIndustry
 
-    x_sum = x.sum(axis=0)  # Total Output sum
-    z_sum_vertical = Z.sum(
+    X_sum = x.sum(axis=0)  # Total Output sum
+    Z_sum_vertical = Z.sum(
         axis=0
     ).sum()  # Input Matrix sum (vertical sum of InterIndustry)
-    va_sum = VA.sum(axis=0).sum()  # Value Added sum
+    VA_sum = VA.sum(axis=0).sum()  # Value Added sum
 
-    input = z_sum_vertical + va_sum
-    output = x_sum
+    Input = Z_sum_vertical + VA_sum
+    Output = X_sum
 
     # round to the nearest thousands decimal
-    if np.isclose(input, output, atol=tolerance):
+    if np.isclose(Input, Output, atol=tolerance):
         pass
     else:
         raise SystemNotBalancedError(
@@ -178,10 +178,10 @@ def system_is_balanced(
         else:
             pass
 
-        sector_input_sum = float(Z.iloc[:, i].sum()) + float(VA.iloc[i].sum(axis=0))
+        sector_Input_sum = float(Z.iloc[:, i].sum()) + float(VA.iloc[i].sum(axis=0))
         sector_output_sum = float(x.iloc[i])
 
-        if np.isclose(sector_input_sum, sector_output_sum, atol=tolerance):
+        if np.isclose(sector_Input_sum, sector_output_sum, atol=tolerance):
             pass
 
         else:
