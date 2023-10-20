@@ -39,8 +39,8 @@ jobs:
          isort --project pymrio --profile black --check-only .
          coverage run --source=pymrio -m pytest --black -vv
 
-    - name: Coveralls analysis
-      run: COVERALLS_REPO_TOKEN=Om5uiItcP8u6aHRGWiWKjmNkZL1LKoHSB coveralls
+    - name: Coveralls upload
+      uses: coverallsapp/github-action@v2
 
 
  test_production:
