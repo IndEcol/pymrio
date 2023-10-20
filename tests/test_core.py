@@ -262,12 +262,13 @@ def test_diag_stressor(fix_testmrio):
     assert sum(dext_name.F.iloc[1:-1, 0]) == 0
 
 
-
 def test_characterize_extension_reg_spec(fix_testmrio):
     factors = pd.read_csv(
-        Path(PYMRIO_PATH["test_mrio"] 
-            / Path("concordance") 
-            / "emissions_charact_reg_spec.tsv"),
+        Path(
+            PYMRIO_PATH["test_mrio"]
+            / Path("concordance")
+            / "emissions_charact_reg_spec.tsv"
+        ),
         sep="\t",
     )
     shuffled = factors.sample(len(factors.index), random_state=666, axis=0)
@@ -275,7 +276,6 @@ def test_characterize_extension_reg_spec(fix_testmrio):
     t_uncalc = fix_testmrio.testmrio
     t_calc = fix_testmrio.testmrio.calc_all()
     uncalc_name = "emissions_charact_uncalc"
-
 
     # CONT: Until here the new procedure should work already
     ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name)
@@ -347,8 +347,6 @@ def test_characterize_extension_reg_spec(fix_testmrio):
         t_calc.emissions.S.loc[("emission_type1", "air"), :] / 1000,
         check_names=False,
     )
-
-
 
 
 def test_characterize_extension(fix_testmrio):

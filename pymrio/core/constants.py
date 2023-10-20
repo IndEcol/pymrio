@@ -48,7 +48,7 @@ STORAGE_FORMAT = {
 }
 
 # The default column name for the value column for long table format
-LONG_VALUE_NAME = 'value'
+LONG_VALUE_NAME = "value"
 
 
 #  Download links for Gloria MRIO files

@@ -882,7 +882,7 @@ class Extension(BaseSystem):
         """
 
         # TODO This should only be used for calculating the full system.
-        # TODO There needs to be a new method for calculating the system 
+        # TODO There needs to be a new method for calculating the system
         # for a different demand vector in here
 
         if Y_agg is None:
@@ -1510,13 +1510,13 @@ class Extension(BaseSystem):
 
         The dataframe passed for the characterization must be in a long format.
         It must contain columns with the same names as in the index of the extension.
-        
+
         The routine can also handle region or sector specific characterization factors.
-        In that case, the passed dataframe must also include columns 
+        In that case, the passed dataframe must also include columns
         for sector and/or region.
         The names must be the same as the column names of the extension.
 
-        Other column names can be specified in the parameters, 
+        Other column names can be specified in the parameters,
         see below for the default values.
 
         Note
@@ -1565,8 +1565,8 @@ class Extension(BaseSystem):
 
            or
 
-        namedtuple with 
-            - .extension: pymrio.Extension 
+        namedtuple with
+            - .extension: pymrio.Extension
             - .factors: pd.DataFrame (when return_char_matrix==True)
 
         """
@@ -1591,14 +1591,15 @@ class Extension(BaseSystem):
             characterized_unit_column,
         ]
 
-        if 'region' in factors.columns:
-            required_columns.append('region')
-        if 'sector' in factors.columns:
-            required_columns.append('sector')
-            
+        if "region" in factors.columns:
+            required_columns.append("region")
+        if "sector" in factors.columns:
+            required_columns.append("sector")
+
         if not set(required_columns).issubset(set(factors.columns)):
             raise ValueError(
-                "Not all required columns in the passed DataFrame >factors<")
+                "Not all required columns in the passed DataFrame >factors<"
+            )
 
         impacts_stressors_missing = []
         factors_cleaned_gathered = []
@@ -1616,7 +1617,6 @@ class Extension(BaseSystem):
                 impacts_stressors_missing.append(charact_name)
 
             factors_cleaned_gathered.append(fac_rest)
-
 
         # FIXME: add switch in the paramter to keep them but with NA, and to give a separate warning if just some are available
         # for imissi in impacts_stressors_missing:
@@ -1639,8 +1639,7 @@ class Extension(BaseSystem):
             .rename({characterized_unit_column: "unit"}, axis=1)
         )
 
-
-        __import__('IPython').embed() # DEBUG Shell 
+        __import__("IPython").embed()  # DEBUG Shell
 
         calc_matrix = (
             (
@@ -1652,7 +1651,6 @@ class Extension(BaseSystem):
             .reindex(rows, axis=1)  # cases when not all stressors in factors
             .fillna(value=0)
         )
-
 
         ex = Extension(
             name=name,
@@ -2684,36 +2682,37 @@ def concate_extension(*extensions, name):
 
     return Extension(**all_dict)
 
+
 def characterize(extension, char_factors, fallback=None):
-    """ Characterize extension or dataframe
+    """Characterize extension or dataframe
 
     Parameters
     ----------
     extension : Extension or pd.DataFrame
         The extension or dataframe to characterize.
-        In case of a DataFrame that can be in the pymrio matrix format or 
+        In case of a DataFrame that can be in the pymrio matrix format or
         a long format with one column 'value' and the other columns defining the postion
-        (basically a stack(column names) of the matrix format). 
+        (basically a stack(column names) of the matrix format).
         See pymrio.convert_to_long for conversion.
 
     char_factors : pd.DaraFrame
         The characterization factors
 
     fallback : string, optional
-        TODO: Define for dict and string, 
-        
+        TODO: Define for dict and string,
+
     """
-        # TODO: CONT: new approach
-            # - characterize in extensions - characterize abosolute values based on function below
-            # - characterize(extension, factors) - in iomath
-            #     accept extension in pymrio extension format or long format (convert to long format as pymrio function)
-            #     accept factors in long format (or build from characterization matrix)
-            #     return extension in pymrio extension format or long format
-        # if one column in factors missing (e.g. secor, or region, apply it to all)
-        #
-        # #           - header must be the same (no arguments, just check these)
-        #                 define fall back entries (e.g. region missing - take 'global')
-        #     #
+    # TODO: CONT: new approach
+    # - characterize in extensions - characterize abosolute values based on function below
+    # - characterize(extension, factors) - in iomath
+    #     accept extension in pymrio extension format or long format (convert to long format as pymrio function)
+    #     accept factors in long format (or build from characterization matrix)
+    #     return extension in pymrio extension format or long format
+    # if one column in factors missing (e.g. secor, or region, apply it to all)
+    #
+    # #           - header must be the same (no arguments, just check these)
+    #                 define fall back entries (e.g. region missing - take 'global')
+    #     #
 
     # Special columns in char:, required: impact, factor, impact_unit
     # Special columns in char:, optional: stressor_unit - does a check on the fly
@@ -2724,66 +2723,69 @@ def characterize(extension, char_factors, fallback=None):
 
     if not ioutil.check_if_long(extension, value_col="value"):
         extension = ioutil.convert_to_long(extension)
-        
+
 
 if __name__ == "__main__":
-
     import pymrio
-    tt = pymrio.load_test() 
+
+    tt = pymrio.load_test()
     F = tt.emissions.F
 
-    manres_awi = ((F.loc[("emission_type1", "air"), :] * 2 / 1000) + (F.loc[("emission_type2", "water"), :] * 1 / 1000)).sum()
+    manres_awi = (
+        (F.loc[("emission_type1", "air"), :] * 2 / 1000)
+        + (F.loc[("emission_type2", "water"), :] * 1 / 1000)
+    ).sum()
 
-    manres_total = ((F.loc[("emission_type1", "air"), :] * 1) + (F.loc[("emission_type2", "water"), :] * 1)).sum()
-
-
+    manres_total = (
+        (F.loc[("emission_type1", "air"), :] * 1)
+        + (F.loc[("emission_type2", "water"), :] * 1)
+    ).sum()
 
     f = pymrio.convert_to_long(F)
 
-    factors = pd.read_csv( './pymrio/mrio_models/test_mrio/concordance/emissions_charact_reg_spec.tsv', sep="\t")
+    factors = pd.read_csv(
+        "./pymrio/mrio_models/test_mrio/concordance/emissions_charact_reg_spec.tsv",
+        sep="\t",
+    )
 
-    fac_wo_reg = pd.read_csv( './pymrio/mrio_models/test_mrio/concordance/emissions_charact.tsv', sep="\t")
+    fac_wo_reg = pd.read_csv(
+        "./pymrio/mrio_models/test_mrio/concordance/emissions_charact.tsv", sep="\t"
+    )
 
     factors = fac_wo_reg
 
-
     # factors = factors.set_index(['stressor', 'compartment', 'impact', 'region'])
-    factors = factors.set_index(['stressor', 'compartment', 'impact'])
+    factors = factors.set_index(["stressor", "compartment", "impact"])
 
     # f.reset_index(inplace=True)
 
     # f = f.set_index(['stressor', 'compartment', 'region', 'sector'])
 
-
     x = factors.factor * f.value
 
     x = f.value * factors.factor
 
-    x.groupby(['impact', 'region', 'sector']).sum()
+    x.groupby(["impact", "region", "sector"]).sum()
 
     # CONT: This works now! need to be implemented in a function and tested for all cases
-        
-    awi = factors[factors.impact == 'air water impact']
 
-    tot= factors[factors.impact == 'total emissions']
+    awi = factors[factors.impact == "air water impact"]
 
+    tot = factors[factors.impact == "total emissions"]
 
-    tot6 = tot.drop('reg6', axis=0)
+    tot6 = tot.drop("reg6", axis=0)
 
     f.index.difference(tot6.index)
 
     tot6.index.difference(f.index)
 
-# res = awi.factor.multiply(f.value, fill_value=None)
-# res_awi = awi.factor.multiply(f.value)
+    # res = awi.factor.multiply(f.value, fill_value=None)
+    # res_awi = awi.factor.multiply(f.value)
 
     res_awi = f.copy()
 
     res_awi.value = f.value.multiply(awi.factor)
 
-
-# don’t do fill value here - keep the result, search for nan and report these
+    # don’t do fill value here - keep the result, search for nan and report these
     res_tot = f.value.multiply(tot.factor)
 # res_tot = f.value.multiply(tot6.factor, fill_value=0)
-
-        

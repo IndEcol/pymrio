@@ -18,7 +18,7 @@ import pandas as pd
 import requests
 import urllib3
 
-from pymrio.core.constants import DEFAULT_FILE_NAMES, PYMRIO_PATH, LONG_VALUE_NAME
+from pymrio.core.constants import DEFAULT_FILE_NAMES, LONG_VALUE_NAME, PYMRIO_PATH
 
 
 def is_vector(inp):
@@ -663,7 +663,7 @@ def filename_from_url(url):
 
 
 def check_if_long(df, value_name=LONG_VALUE_NAME):
-    """ Checks if a given DataFrame follows is in a long format
+    """Checks if a given DataFrame follows is in a long format
 
     Currently this only checks if 'value_name' is in the columns.
     In no parameter is given, it uses the default value 'value', defined
@@ -686,20 +686,21 @@ def check_if_long(df, value_name=LONG_VALUE_NAME):
 
     # TODO: refactor once we have these in the constants.py
     if isinstance(df, pd.DataFrame):
-        if 'region' in df.columns.names:
+        if "region" in df.columns.names:
             return False
-        if 'sector' in df.columns.names:
+        if "sector" in df.columns.names:
             return False
-        if 'category' in df.columns.names:
+        if "category" in df.columns.names:
             return False
-    
+
     if value_name not in df.columns:
         return False
     else:
         return True
 
+
 def convert_to_long(df, value_name=LONG_VALUE_NAME):
-    """ Converts the pymrio matrix df format to a long format
+    """Converts the pymrio matrix df format to a long format
 
     FIX: All index and columns become separate columns (not index!)
 
