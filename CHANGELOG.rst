@@ -10,6 +10,7 @@ Bugfixes
 ========
 
 * Fix downloader for new Zenodo API (by @hazimhussein)
+* Fix coverage report (by @konstantinstadler)
 
 ***************************
 v0.5.2 - 20230815
