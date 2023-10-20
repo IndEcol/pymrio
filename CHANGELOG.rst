@@ -3,9 +3,13 @@ Changelog
 #########
 
 ***************************
-v0.5.3dev
+v0.5.3
 ***************************
 
+Bugfixes
+========
+
+* Fix downloader for new Zenodo API (by @hazimhussein)
 
 ***************************
 v0.5.2 - 20230815
