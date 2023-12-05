@@ -2724,68 +2724,156 @@ def characterize(extension, char_factors, fallback=None):
     if not ioutil.check_if_long(extension, value_col="value"):
         extension = ioutil.convert_to_long(extension)
 
+def match_and_convert(df=None, cc=None, cc_headers=None):
+    """ Match rows and convert 
 
-if __name__ == "__main__":
+    This is a general function which can be used to
+
+        - convert stressor names
+        - convert units
+        - characterize stressors
+       
+    It works by matching rows in a dataframe, and applying a converstion to the matched rows.
+
+    Parameters
+    ----------
+    df : pd.DataFrame or pd.Series
+        The dataframe/series to convert
+
+    cc : pd.DataFrame
+        The conversion information
+        TODO: can be file or extension system
+        Possible implemantations: type check and recursive, or singledispatch from functools
+
+    cc_headers : dict
+        With the specs for which header specifies which info.
+
+    """
     import pymrio
-
     tt = pymrio.load_test()
     F = tt.emissions.F
+  
+    # What we need in cc_headers
+        # src_match_col_1
+        # bridge_match_col_1 
+        # or whatever _1 (could be _stressor or ...)
+        # col_conv_factor
 
-    manres_awi = (
-        (F.loc[("emission_type1", "air"), :] * 2 / 1000)
-        + (F.loc[("emission_type2", "water"), :] * 1 / 1000)
-    ).sum()
+    # Another setting: what to do with duplicate "impacts" - add, average, keep, custom function
 
-    manres_total = (
-        (F.loc[("emission_type1", "air"), :] * 1)
-        + (F.loc[("emission_type2", "water"), :] * 1)
-    ).sum()
-
+    # just some test data
     f = pymrio.convert_to_long(F)
-
+    fac_wo_reg = pd.read_csv(
+        "../../pymrio/mrio_models/test_mrio/concordance/emissions_charact.tsv", sep="\t"
+    )
     factors = pd.read_csv(
-        "./pymrio/mrio_models/test_mrio/concordance/emissions_charact_reg_spec.tsv",
+        "../../pymrio/mrio_models/test_mrio/concordance/emissions_charact_reg_spec.tsv",
         sep="\t",
     )
 
-    fac_wo_reg = pd.read_csv(
-        "./pymrio/mrio_models/test_mrio/concordance/emissions_charact.tsv", sep="\t"
-    )
 
-    factors = fac_wo_reg
+    # all specific conversions we need to do
+    bridge_match_col_1 = 'impact'
+    src_match_col_1 = 'stressor'
+    src_match_col_2 = 'compartment'
 
-    # factors = factors.set_index(['stressor', 'compartment', 'impact', 'region'])
-    factors = factors.set_index(["stressor", "compartment", "impact"])
+    bridge_match_cols = [bridge_match_col_1]
+    src_match_cols = [src_match_col_1]
+    # src_match_cols = [src_match_col_1, src_match_col_2]
 
-    # f.reset_index(inplace=True)
 
-    # f = f.set_index(['stressor', 'compartment', 'region', 'sector'])
+    src = factors.loc[:,src_match_cols]
+    for src_imp in src.iterrows():
+        print(src_imp)
 
-    x = factors.factor * f.value
+    src[~src.duplicated()]
 
-    x = f.value * factors.factor
 
-    x.groupby(["impact", "region", "sector"]).sum()
+    bridge = fac_wo_reg.loc[:,brige_match_cols]
+    unique_new = bridge[~bridge.duplicated()]
 
-    # CONT: This works now! need to be implemented in a function and tested for all cases
 
-    awi = factors[factors.impact == "air water impact"]
+    allf = dict()
+    for new_imp in bridge.iterrows():
+        # extract regex (later)
+        # find all matching values in f
+        F_imp = dict()
+        for col_src, col_bridge in zip(src_match_cols, bridge_match_cols):
+            F_res = F.loc[F[col_src] == new_imp[1][col_bridge], :]
+            F_imp[col_src] = F_res
+        df_imp = pd.concat(F_imp, axis=1)
+        allf[new_imp[1].values[0]] = df_imp
+        #CONT: cleanup and bugfix
+            
 
-    tot = factors[factors.impact == "total emissions"]
+        # log which are matched
+        # multiply with conversion factor
+        # and store to dict be concatenated later
 
-    tot6 = tot.drop("reg6", axis=0)
+    return locals()
 
-    f.index.difference(tot6.index)
 
-    tot6.index.difference(f.index)
-
-    # res = awi.factor.multiply(f.value, fill_value=None)
-    # res_awi = awi.factor.multiply(f.value)
-
-    res_awi = f.copy()
-
-    res_awi.value = f.value.multiply(awi.factor)
-
-    # don’t do fill value here - keep the result, search for nan and report these
-    res_tot = f.value.multiply(tot.factor)
-# res_tot = f.value.multiply(tot6.factor, fill_value=0)
+# if __name__ == "__main__":
+#     import pymrio
+#
+#     tt = pymrio.load_test()
+#     F = tt.emissions.F
+#
+#     manres_awi = (
+#         (F.loc[("emission_type1", "air"), :] * 2 / 1000)
+#         + (F.loc[("emission_type2", "water"), :] * 1 / 1000)
+#     ).sum()
+#
+#     manres_total = (
+#         (F.loc[("emission_type1", "air"), :] * 1)
+#         + (F.loc[("emission_type2", "water"), :] * 1)
+#     ).sum()
+#
+#     f = pymrio.convert_to_long(F)
+#
+#     factors = pd.read_csv(
+#         "./pymrio/mrio_models/test_mrio/concordance/emissions_charact_reg_spec.tsv",
+#         sep="\t",
+#     )
+#
+#     fac_wo_reg = pd.read_csv(
+#         "./pymrio/mrio_models/test_mrio/concordance/emissions_charact.tsv", sep="\t"
+#     )
+#
+#     factors = fac_wo_reg
+#
+#     # factors = factors.set_index(['stressor', 'compartment', 'impact', 'region'])
+#     factors = factors.set_index(["stressor", "compartment", "impact"])
+#
+#     # f.reset_index(inplace=True)
+#
+#     # f = f.set_index(['stressor', 'compartment', 'region', 'sector'])
+#
+#     x = factors.factor * f.value
+#
+#     x = f.value * factors.factor
+#
+#     x.groupby(["impact", "region", "sector"]).sum()
+#
+#     # CONT: This works now! need to be implemented in a function and tested for all cases
+#
+#     awi = factors[factors.impact == "air water impact"]
+#
+#     tot = factors[factors.impact == "total emissions"]
+#
+#     tot6 = tot.drop("reg6", axis=0)
+#
+#     f.index.difference(tot6.index)
+#
+#     tot6.index.difference(f.index)
+#
+#     # res = awi.factor.multiply(f.value, fill_value=None)
+#     # res_awi = awi.factor.multiply(f.value)
+#
+#     res_awi = f.copy()
+#
+#     res_awi.value = f.value.multiply(awi.factor)
+#
+#     # don’t do fill value here - keep the result, search for nan and report these
+#     res_tot = f.value.multiply(tot.factor)
+# # res_tot = f.value.multiply(tot6.factor, fill_value=0)
