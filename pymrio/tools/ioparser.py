@@ -1535,7 +1535,7 @@ def parse_oecd(path, year=None):
 
     path = os.path.abspath(os.path.normpath(str(path)))
 
-    oecd_file_starts = ["ICIO2016_", "ICIO2018_", "ICIO2021_"]
+    oecd_file_starts = ["ICIO2016_", "ICIO2018_", "ICIO2021_", "ICIO2023_"]
 
     # determine which oecd file to be parsed
     if not os.path.isdir(path):
@@ -1609,9 +1609,11 @@ def parse_oecd(path, year=None):
     oecd_raw.drop(oecd_totals_row, axis=0, errors="ignore", inplace=True)
 
     # Important - these must not match any country or industry name
-    factor_input = oecd_raw.filter(regex="VALU|TAX", axis=0)
+    factor_input_exact = oecd_raw.filter(items=["TLS", "VA"], axis=0)
+    factor_input_regex = oecd_raw.filter(regex="VALU|TAX", axis=0)
+    factor_input = pd.concat([factor_input_exact, factor_input_regex], axis=0)
     final_demand = oecd_raw.filter(
-        regex="HFCE|NPISH|NPS|GGFC|GFCF|INVNT|INV|DIRP|DPABR|FD|P33|DISC", axis=1
+        regex="HFCE|NPISH|NPS|GGFC|GFCF|INVNT|INV|DIRP|DPABR|FD|P33|DISC|OUT", axis=1
     )
 
     Z = oecd_raw.loc[
@@ -1624,7 +1626,9 @@ def parse_oecd(path, year=None):
     F_Y_factor_input = factor_input.loc[:, final_demand.columns]
     Y = final_demand.loc[final_demand.index.difference(F_factor_input.index), :]
 
-    Z_index = pd.MultiIndex.from_tuples(tuple(ll) for ll in Z.index.str.split("_"))
+    Z_index = pd.MultiIndex.from_tuples(
+        tuple(ll) for ll in Z.index.map(lambda x: x.split("_", maxsplit=1))
+    )
     Z_columns = Z_index.copy()
     Z_index.names = IDX_NAMES["Z_row"]
     Z_columns.names = IDX_NAMES["Z_col"]
