@@ -2724,7 +2724,7 @@ def characterize(extension, char_factors, fallback=None):
     if not ioutil.check_if_long(extension, value_col="value"):
         extension = ioutil.convert_to_long(extension)
 
-def match_and_convert(df=None, cc=None, cc_headers=None):
+def match_and_convert(src=None, bridge=None, src_match_col=None, bridge_match_col=None ):
     """ Match rows and convert 
 
     This is a general function which can be used to
@@ -2737,21 +2737,37 @@ def match_and_convert(df=None, cc=None, cc_headers=None):
 
     Parameters
     ----------
-    df : pd.DataFrame or pd.Series
+    src : pd.DataFrame or pd.Series
         The dataframe/series to convert
+        TODO: can be a list as well
 
-    cc : pd.DataFrame
-        The conversion information
+    bridge : pd.DataFrame
+        The conversion information to 
+        match and convert src to the new system (bridge over).
         TODO: can be file or extension system
-        Possible implemantations: type check and recursive, or singledispatch from functools
+        Possible implemantations: 
+        type check and recursive, or singledispatch from functools
 
-    cc_headers : dict
-        With the specs for which header specifies which info.
+    src_match_col : str or list of str
+        The columns in src to match with bridge_match_col.
+        Order is importantant, the first entry is 
+        matched with the first entry in bridge_match_col, etc.
+
+    bridge_match_col : str or list of str
+        The columns in bridge to match with src_match_col
+        Order is importantant, the first entry is 
+        matched with the first entry in src_match_col, etc.
+
+    agg_method : None, str or function
+        None: keep all matched rows
+        str: aggregate matched rows with this method (passed to groupby)
+        function: aggregate matched rows with this function (passed to groupby)
 
     """
+
     import pymrio
     tt = pymrio.load_test()
-    F = tt.emissions.F
+    src = tt.emissions.F
   
     # What we need in cc_headers
         # src_match_col_1
@@ -2762,7 +2778,8 @@ def match_and_convert(df=None, cc=None, cc_headers=None):
     # Another setting: what to do with duplicate "impacts" - add, average, keep, custom function
 
     # just some test data
-    f = pymrio.convert_to_long(F)
+    src = pymrio.convert_to_long(src).reset_index()
+
     fac_wo_reg = pd.read_csv(
         "../../pymrio/mrio_models/test_mrio/concordance/emissions_charact.tsv", sep="\t"
     )
@@ -2773,37 +2790,55 @@ def match_and_convert(df=None, cc=None, cc_headers=None):
 
 
     # all specific conversions we need to do
-    bridge_match_col_1 = 'impact'
-    src_match_col_1 = 'stressor'
-    src_match_col_2 = 'compartment'
+    bridge_match_col = ['impact']
+    src_match_col = ['stressor']
+    # src_match_col = ['stressor', 'compartment']
+    # TODO: argument checks, bridge_match_col and src_match_col must be lists of same length
 
-    bridge_match_cols = [bridge_match_col_1]
-    src_match_cols = [src_match_col_1]
-    # src_match_cols = [src_match_col_1, src_match_col_2]
-
-
-    src = factors.loc[:,src_match_cols]
-    for src_imp in src.iterrows():
-        print(src_imp)
-
-    src[~src.duplicated()]
+    # fac_stress = factors.loc[:,src_match_col]
+    # for _imp in src.iterrows():
+    #     print(src_imp)
+    #
+    # src[~src.duplicated()]
 
 
-    bridge = fac_wo_reg.loc[:,brige_match_cols]
-    unique_new = bridge[~bridge.duplicated()]
+    bridge = fac_wo_reg
 
+    # unique_new = bridge[~bridge.duplicated()]
+    #
 
     allf = dict()
-    for new_imp in bridge.iterrows():
-        # extract regex (later)
-        # find all matching values in f
-        F_imp = dict()
-        for col_src, col_bridge in zip(src_match_cols, bridge_match_cols):
-            F_res = F.loc[F[col_src] == new_imp[1][col_bridge], :]
-            F_imp[col_src] = F_res
-        df_imp = pd.concat(F_imp, axis=1)
-        allf[new_imp[1].values[0]] = df_imp
-        #CONT: cleanup and bugfix
+    for row in bridge.iterrows():
+        entry = row[1]
+
+        # TODO: for df in src
+        #
+        # TODO: extract regex (later)
+        #
+
+        # restrict to the subset we need for the current conversion
+        matched = src.copy()
+        for col_src, col_bridge in zip(src_match_col, bridge_match_col):
+            # select
+            matched = matched[matched.loc[:, col_src].str.contains(entry[col_src])]
+            # rename
+            matched.loc[:, col_src] = matched.loc[:, col_src].str.replace(entry[col_src], entry[col_bridge])
+
+        # multiply all numerical values with conversion factor
+        num_cols = matched.select_dtypes(include=[np.number]).columns
+
+        # multiply with conversion factor
+        matched.loc[:, num_cols] = matched.loc[:, num_cols] * entry['factor']
+
+        # groupby: all non numerical columns and not matched
+        # sum all numerical columns
+
+        col_to_group = [col for col in matched.columns if (col not in num_cols and col not in src_match_col)]
+
+        # group with ind name
+        gr = matched.groupby(col_to_group).sum()
+        
+
             
 
         # log which are matched
