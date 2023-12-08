@@ -2724,16 +2724,24 @@ def characterize(extension, char_factors, fallback=None):
     if not ioutil.check_if_long(extension, value_col="value"):
         extension = ioutil.convert_to_long(extension)
 
-def match_and_convert(src=None, bridge=None, src_match_col=None, bridge_match_col=None ):
-    """ Match rows and convert 
+
+def match_and_convert(
+    src=None, bridge=None, src_match_col=None, bridge_match_col=None, agg_method=None
+):
+    """Match rows and convert
 
     This is a general function which can be used to
 
         - convert stressor names
         - convert units
         - characterize stressors
-       
+
     It works by matching rows in a dataframe, and applying a converstion to the matched rows.
+
+    TODO: Assumption on the data format of src:
+        all non numerical columns are set as index, table can be in long or wide format, all "proper" columns are numerical
+        also set string columns as index, even if they are not used for matching (e.g. units). 
+        
 
     Parameters
     ----------
@@ -2742,43 +2750,51 @@ def match_and_convert(src=None, bridge=None, src_match_col=None, bridge_match_co
         TODO: can be a list as well
 
     bridge : pd.DataFrame
-        The conversion information to 
+        The conversion information to
         match and convert src to the new system (bridge over).
         TODO: can be file or extension system
-        Possible implemantations: 
+        Possible implemantations:
         type check and recursive, or singledispatch from functools
 
     src_match_col : str or list of str
         The columns in src to match with bridge_match_col.
-        Order is importantant, the first entry is 
+        Order is importantant, the first entry is
         matched with the first entry in bridge_match_col, etc.
 
     bridge_match_col : str or list of str
         The columns in bridge to match with src_match_col
-        Order is importantant, the first entry is 
+        Order is importantant, the first entry is
         matched with the first entry in src_match_col, etc.
 
-    agg_method : None, str or function
-        None: keep all matched rows
-        str: aggregate matched rows with this method (passed to groupby)
-        function: aggregate matched rows with this function (passed to groupby)
+    agg_method : None, or anything accepted by pandas.groupby.aggregate
+        None: keep all matched rows, no groupby applied
+        Otherwise: passed to aggregated func parameter
 
     """
 
     import pymrio
+
     tt = pymrio.load_test()
-    src = tt.emissions.F
-  
+
+
+
     # What we need in cc_headers
-        # src_match_col_1
-        # bridge_match_col_1 
-        # or whatever _1 (could be _stressor or ...)
-        # col_conv_factor
+    # src_match_col_1
+    # bridge_match_col_1
+    # or whatever _1 (could be _stressor or ...)
+    # col_conv_factor
 
     # Another setting: what to do with duplicate "impacts" - add, average, keep, custom function
 
     # just some test data
-    src = pymrio.convert_to_long(src).reset_index()
+
+    src = tt.emissions.F
+
+    src = pymrio.convert_to_long(src)
+
+    src_index_order = src.index.names.copy()
+
+    # src = src.reset_index()
 
     fac_wo_reg = pd.read_csv(
         "../../pymrio/mrio_models/test_mrio/concordance/emissions_charact.tsv", sep="\t"
@@ -2788,10 +2804,9 @@ def match_and_convert(src=None, bridge=None, src_match_col=None, bridge_match_co
         sep="\t",
     )
 
-
     # all specific conversions we need to do
-    bridge_match_col = ['impact']
-    src_match_col = ['stressor']
+    bridge_match_col = ["impact"]
+    src_match_col = ["stressor"]
     # src_match_col = ['stressor', 'compartment']
     # TODO: argument checks, bridge_match_col and src_match_col must be lists of same length
 
@@ -2801,13 +2816,12 @@ def match_and_convert(src=None, bridge=None, src_match_col=None, bridge_match_co
     #
     # src[~src.duplicated()]
 
-
     bridge = fac_wo_reg
 
     # unique_new = bridge[~bridge.duplicated()]
     #
 
-    allf = dict()
+    df_collector = []
     for row in bridge.iterrows():
         entry = row[1]
 
@@ -2818,38 +2832,59 @@ def match_and_convert(src=None, bridge=None, src_match_col=None, bridge_match_co
 
         # restrict to the subset we need for the current conversion
         matched = src.copy()
+
+        src.xs(entry[src_match_col], level=src_match_col, drop_level=False)
+
         for col_src, col_bridge in zip(src_match_col, bridge_match_col):
             # select
+
             matched = matched[matched.loc[:, col_src].str.contains(entry[col_src])]
+
+            c = entry[col_src]
+
+            src.xs(entry[col_src], level=col_src, drop_level=False)
+
             # rename
-            matched.loc[:, col_src] = matched.loc[:, col_src].str.replace(entry[col_src], entry[col_bridge])
+            matched.loc[:, col_src] = matched.loc[:, col_src].str.replace(
+                entry[col_src], entry[col_bridge]
+            )
 
         # multiply all numerical values with conversion factor
         num_cols = matched.select_dtypes(include=[np.number]).columns
 
         # multiply with conversion factor
-        matched.loc[:, num_cols] = matched.loc[:, num_cols] * entry['factor']
+        matched.loc[:, num_cols] = matched.loc[:, num_cols] * entry["factor"]
 
-        # groupby: all non numerical columns and not matched
-        # sum all numerical columns
+        # agg_method = "sum"
+        agg_method = None
+        col_to_group = [
+            col
+            for col in matched.columns
+            if (col not in num_cols and col not in src_match_col)
+        ]
+        index_order = src_match_col + col_to_group
+        if agg_method is not None:
+            fin_matched = (
+                matched.groupby(col_to_group)
+                .agg(func=agg_method)
+                .set_index(src_match_col, append=True, drop=True)
+            )
+        else:
+            fin_matched = matched.set_index(index_order)
+        fin_matched = fin_matched.reorder_levels(index_order)
+        df_collector.append(fin_matched)
 
-        col_to_group = [col for col in matched.columns if (col not in num_cols and col not in src_match_col)]
+    df_fin = pd.concat(df_collector)
 
-        # group with ind name
-        gr = matched.groupby(col_to_group).sum()
-        
-
-            
-
-        # log which are matched
-        # multiply with conversion factor
-        # and store to dict be concatenated later
+    # log which are matched
+    # multiply with conversion factor
+    # and store to dict be concatenated later
 
     return locals()
 
 
-# if __name__ == "__main__":
-#     import pymrio
+if __name__ == "__main__":
+    locals().update(match_and_convert())
 #
 #     tt = pymrio.load_test()
 #     F = tt.emissions.F
