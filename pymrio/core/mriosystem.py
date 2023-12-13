@@ -305,6 +305,7 @@ class BaseSystem:
             multiindex, with a valid regex expression at each position.
             Otherwise, the keys need to be strings.
             Only relevant if as_dict is True.
+            NOTE: This is broken if index is multiindex
 
         """
 
@@ -706,6 +707,47 @@ class BaseSystem:
 
         self.meta._add_modify("Changed Y category names")
         return self
+
+    def find(self, term):
+        """ Looks for term in index, sectors, regions, Y_categories
+
+        Mostly useful for a quick check if entry is present.
+
+        Internally that uses pd.str.contains as implemented
+        in ioutil.index_contains
+
+        For a multiindex, all levels of the multiindex are searched.
+
+        Parameters
+        ----------
+        term : string
+            String to search for
+
+        Returns
+        -------
+        dict of (multi)index
+            With keys 'index', 'region', 'sector', 'Y_category' and
+            values the found index entries.
+            Empty keys are ommited.
+            The values can be used directly on one of the DataFrames with .loc
+        """
+        index_find = ioutil.index_contains(self.get_index(as_dict=False), find_all=term)
+        reg_find = ioutil.index_contains(self.get_regions(), find_all=term)
+        sector_find = ioutil.index_contains(self.get_sectors(), find_all=term)
+        Y_find = ioutil.index_contains(self.get_Y_categories(), find_all=term)
+
+        res_dict = dict()
+        if len(index_find) > 0:
+            res_dict["index"] = index_find
+        if len(reg_find) > 0:
+            res_dict["region"] = reg_find
+        if len(sector_find) > 0:
+            res_dict["sector"] = sector_find
+        if len(Y_find) > 0:
+            res_dict["Y_category"] = Y_find
+
+        return res_dict
+
 
 
 # API classes

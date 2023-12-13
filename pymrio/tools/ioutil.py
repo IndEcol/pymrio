@@ -18,7 +18,8 @@ import pandas as pd
 import requests
 import urllib3
 
-from pymrio.core.constants import DEFAULT_FILE_NAMES, LONG_VALUE_NAME, PYMRIO_PATH
+from pymrio.core.constants import (DEFAULT_FILE_NAMES, LONG_VALUE_NAME,
+                                   PYMRIO_PATH)
 
 
 def is_vector(inp):
@@ -153,13 +154,17 @@ def get_file_para(path, path_in_arc=""):
 
     if zipfile.is_zipfile(str(path)):
         with zipfile.ZipFile(file=str(path)) as zf:
-            para_file_content = json.loads(zf.read(para_file_full_path).decode("utf-8"))
+            para_file_content = json.loads(
+                zf.read(para_file_full_path).decode("utf-8")
+            )
     else:
         with open(para_file_full_path, "r") as pf:
             para_file_content = json.load(pf)
 
     return namedtuple("file_parameter", ["folder", "name", "content"])(
-        para_file_folder, os.path.basename(para_file_full_path), para_file_content
+        para_file_folder,
+        os.path.basename(para_file_full_path),
+        para_file_content,
     )
 
 
@@ -276,7 +281,9 @@ def diagonalize_columns_to_sectors(
     """
 
     sectors = df.index.get_level_values(sector_index_level).unique()
-    sector_name = sector_index_level if type(sector_index_level) is str else "sector"
+    sector_name = (
+        sector_index_level if type(sector_index_level) is str else "sector"
+    )
 
     new_col_index = [
         tuple(list(orig) + [new]) for orig in df.columns for new in sectors
@@ -395,7 +402,8 @@ def set_block(arr, arr_block):
         )
     if nr_row / nr_row_block != nr_col / nr_col_block:
         raise ValueError(
-            "Block array can not be filled as " "diagonal blocks in the given array"
+            "Block array can not be filled as "
+            "diagonal blocks in the given array"
         )
 
     arr_out = arr.copy()
@@ -511,7 +519,8 @@ def build_agg_vec(agg_vec, **source):
                         ]
                     else:
                         agg_dict[entry] = [
-                            None if ee == "None" else ee for ee in _tmp[:, -1].tolist()
+                            None if ee == "None" else ee
+                            for ee in _tmp[:, -1].tolist()
                         ]
                     break
             else:
@@ -610,7 +619,11 @@ def sniff_csv_format(
 
     sep_aly_lines = [
         sorted(
-            [(line.count(sep), sep) for sep in potential_sep if line.count(sep) > 0],
+            [
+                (line.count(sep), sep)
+                for sep in potential_sep
+                if line.count(sep) > 0
+            ],
             key=lambda x: x[0],
             reverse=True,
         )
@@ -769,12 +782,12 @@ def ssl_fix(*args, **kwargs):
 
 
 def index_fullmatch(df_ix, find_all=None, **kwargs):
-    """ Fullmatch regex on index of df_ix
+    """Fullmatch regex on index of df_ix
 
-    Similar to pandas str.fullmatch, thus the whole 
+    Similar to pandas str.fullmatch, thus the whole
     string of the index must match.
 
-    The index levels need to be named (df.index.name needs to 
+    The index levels need to be named (df.index.name needs to
     be set for all levels).
 
     Note
@@ -793,7 +806,7 @@ def index_fullmatch(df_ix, find_all=None, **kwargs):
         If str (regex pattern) search for all matches in all index levels.
         All matching rows are returned. The remaining kwargs are ignored.
     kwargs : dict
-        The regex to match. The keys are the index names, 
+        The regex to match. The keys are the index names,
         the values are the regex to match.
         If the entry is not in index name, it is ignored silently.
 
@@ -803,15 +816,17 @@ def index_fullmatch(df_ix, find_all=None, **kwargs):
         The matched rows/index, same type as _dfs_idx
 
     """
-    return _index_regex_matcher(_dfs_idx=df_ix, _method='fullmatch', _find_all=find_all, **kwargs)
+    return _index_regex_matcher(
+        _dfs_idx=df_ix, _method="fullmatch", _find_all=find_all, **kwargs
+    )
 
 
 def index_match(df_ix, find_all=None, **kwargs):
-    """ Match regex on index of df_ix
+    """Match regex on index of df_ix
 
     Similar to pandas str.match, thus the start of the index string must match.
 
-    The index levels need to be named (df.index.name needs to 
+    The index levels need to be named (df.index.name needs to
     be set for all levels).
 
     Note
@@ -830,7 +845,7 @@ def index_match(df_ix, find_all=None, **kwargs):
         If str (regex pattern) search for all matches in all index levels.
         All matching rows are returned. The remaining kwargs are ignored.
     kwargs : dict
-        The regex to match. The keys are the index names, 
+        The regex to match. The keys are the index names,
         the values are the regex to match.
         If the entry is not in index name, it is ignored silently.
 
@@ -840,15 +855,18 @@ def index_match(df_ix, find_all=None, **kwargs):
         The matched rows/index, same type as _dfs_idx
 
     """
-    return _index_regex_matcher(_dfs_idx=df_ix, _method='match', _find_all=find_all, **kwargs)
+    return _index_regex_matcher(
+        _dfs_idx=df_ix, _method="match", _find_all=find_all, **kwargs
+    )
+
 
 def index_contains(df_ix, find_all=None, **kwargs):
-    """ Check if index contains a regex pattern.
+    """Check if index contains a regex pattern.
 
-    Similar to pandas str.contains, thus the index 
+    Similar to pandas str.contains, thus the index
     string must contain the regex pattern.
 
-    The index levels need to be named (df.index.name needs to 
+    The index levels need to be named (df.index.name needs to
     be set for all levels).
 
     Note
@@ -867,7 +885,7 @@ def index_contains(df_ix, find_all=None, **kwargs):
         If str (regex pattern) search for all matches in all index levels.
         All matching rows are returned. The remaining kwargs are ignored.
     kwargs : dict
-        The regex to match. The keys are the index names, 
+        The regex to match. The keys are the index names,
         the values are the regex to match.
         If the entry is not in index name, it is ignored silently.
 
@@ -877,16 +895,18 @@ def index_contains(df_ix, find_all=None, **kwargs):
         The matched rows/index, same type as _dfs_idx
 
     """
-    return _index_regex_matcher(_dfs_idx=df_ix, _method='contains', _find_all=find_all, **kwargs)
+    return _index_regex_matcher(
+        _dfs_idx=df_ix, _method="contains", _find_all=find_all, **kwargs
+    )
 
 
 def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
-    """ Match index of df with regex
-   
+    """Match index of df with regex
+
     The generic method for the contain, match, fullmatch implementation
     along the index of the pymrio dataframes.
 
-    The index levels need to be named (df.index.name needs to 
+    The index levels need to be named (df.index.name needs to
     be set for all levels).
 
     Note
@@ -907,7 +927,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
         If str (regex pattern) search for all matches in all index levels.
         All matching rows are returned. The remaining kwargs are ignored.
     kwargs : dict
-        The regex to match. The keys are the index names, 
+        The regex to match. The keys are the index names,
         the values are the regex to match.
         If the entry is not in index name, it is ignored silently.
 
@@ -917,8 +937,10 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
         The matched rows/index, same type as _dfs_idx
 
     """
-    if _method not in ['contains', 'match', 'fullmatch']:
-        raise ValueError('Method must be one of "contains", "match", "fullmatch"')
+    if _method not in ["contains", "match", "fullmatch"]:
+        raise ValueError(
+            'Method must be one of "contains", "match", "fullmatch"'
+        )
 
     if _find_all is not None:
         if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
@@ -926,8 +948,10 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
         elif type(_dfs_idx) in [pd.Index, pd.MultiIndex]:
             idx = _dfs_idx
         else:
-            raise ValueError('Type of _dfs_idx must be one of '
-                                'pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex')
+            raise ValueError(
+                "Type of _dfs_idx must be one of "
+                "pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex"
+            )
         found = np.array([], dtype=int)
         for idx_name in idx.names:
             fun = getattr(idx.get_level_values(idx_name).str, _method)
@@ -946,11 +970,12 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
             elif type(_dfs_idx) in [pd.Index, pd.MultiIndex]:
                 fun = getattr(_dfs_idx.get_level_values(key).str, _method)
             else:
-                raise ValueError('Type of _dfs_idx must be one of '
-                                 'pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex')
+                raise ValueError(
+                    "Type of _dfs_idx must be one of "
+                    "pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex"
+                )
             _dfs_idx = _dfs_idx[fun(value, case=True, flags=0, na=False)]
         except KeyError:
             pass
 
     return _dfs_idx
-
