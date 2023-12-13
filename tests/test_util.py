@@ -22,7 +22,8 @@ from pymrio.tools.ioutil import diagonalize_blocks  # noqa
 from pymrio.tools.ioutil import find_first_number  # noqa
 from pymrio.tools.ioutil import set_block  # noqa
 from pymrio.tools.ioutil import sniff_csv_format  # noqa
-from pymrio.tools.ioutil import diagonalize_columns_to_sectors, filename_from_url
+from pymrio.tools.ioutil import diagonalize_columns_to_sectors, filename_from_url # noqa
+from pymrio.tools.ioutil import index_fullmatch, index_match, index_contains  # noqa
 
 
 @pytest.fixture()
@@ -251,3 +252,65 @@ def test_filename_from_url():
 
     for filename in test_urls.keys():
         assert filename_from_url(test_urls[filename]) == filename
+
+
+def test_regex_fullmatch():
+    """Test regex matching"""
+
+    # Full functionality test with fullmatch
+
+    test_index = pd.MultiIndex.from_product(
+        [["a1", "b1", "c2", "b2"], ["aa", "bb", "cc", "dd"]], names=["region", "sector"]
+    )
+
+    test_df = pd.DataFrame(
+        data=np.random.random((16, 2)), index=test_index, columns=["foo", "bar"]
+    )
+
+    df_match = index_fullmatch(test_df, region="a.*", sector=".*b.*")
+
+    assert df_match.index.get_level_values("region").unique() == ["a1"]
+    assert df_match.index.get_level_values("sector").unique() == ["bb"]
+
+    df_match2 = index_fullmatch(test_df, region="a.*", sector=".*b.*", not_present_column = "abc", another_column = ".*")
+    assert df_match2.index.get_level_values("region").unique() == ["a1"]
+    assert df_match2.index.get_level_values("sector").unique() == ["bb"]
+
+    mdx_match = index_fullmatch(test_index, region=".*2", sector="cc")
+
+    assert len(mdx_match.get_level_values("region").unique().difference({"c2", "b2"}) ) == 0
+
+    test_ds = test_df.foo
+    ds_match = index_fullmatch(test_ds, sector="aa")
+
+    assert ds_match.index.get_level_values("sector").unique() == ["aa"]
+    assert all(ds_match.index.get_level_values("region").unique() == ["a1", "b1", "c2", "b2"])
+
+    idx_match = index_fullmatch(test_index.get_level_values("region"), region=".*2")
+    assert len(idx_match.get_level_values("region").unique().difference({"c2", "b2"}) ) == 0
+
+    # test with empty dataframes
+    test_empty = pd.DataFrame(index=test_index)
+    df_match_empty = index_fullmatch(test_empty, region=".*b.*", sector=".*b.*")
+
+    assert all(df_match_empty.index.get_level_values("region").unique() == ["b1", "b2"])
+    assert df_match_empty.index.get_level_values("sector").unique() == ["bb"]
+
+    # test with empty index
+    empty_index = pd.MultiIndex.from_product([[], []], names=["region", "sector"])
+
+    assert len(index_fullmatch(empty_index, region=".*", sector="cc")) == 0
+
+    # test the contains functionality
+    df_match_contains = index_contains(test_df, region="1", sector="c")
+    assert all(df_match_contains.index.get_level_values("region").unique() == ["a1", "b1"])
+    assert df_match_contains.index.get_level_values("sector").unique() == ["cc"]
+
+    # test the match functionality
+    df_match_match = index_match(test_df, region="b")
+    assert all(df_match_match.index.get_level_values("region").unique() == ["b1", "b2"])
+
+    # test wrong input
+    with pytest.raises(ValueError):
+        index_fullmatch("foo", region="a.*", sector=".*b.*", not_present_column = "abc")
+

@@ -766,3 +766,191 @@ def ssl_fix(*args, **kwargs):
         r = session.get(*args, **kwargs)
 
     return r
+
+
+def index_fullmatch(df_ix, find_all=None, **kwargs):
+    """ Fullmatch regex on index of df_ix
+
+    Similar to pandas str.fullmatch, thus the whole 
+    string of the index must match.
+
+    The index levels need to be named (df.index.name needs to 
+    be set for all levels).
+
+    Note
+    -----
+    Arguments are set to case=True, flags=0, na=False, regex=True.
+    For case insensitive matching, use (?i) at the beginning of the pattern.
+
+    See the pandas/python.re documentation for more details.
+
+
+    Parameters
+    ----------
+    df_ix : pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
+        Method works on Index directly or extract from DataFrame/Series
+    find_all : None or str
+        If str (regex pattern) search for all matches in all index levels.
+        All matching rows are returned. The remaining kwargs are ignored.
+    kwargs : dict
+        The regex to match. The keys are the index names, 
+        the values are the regex to match.
+        If the entry is not in index name, it is ignored silently.
+
+    Returns
+    -------
+    pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
+        The matched rows/index, same type as _dfs_idx
+
+    """
+    return _index_regex_matcher(_dfs_idx=df_ix, _method='fullmatch', _find_all=find_all, **kwargs)
+
+
+def index_match(df_ix, find_all=None, **kwargs):
+    """ Match regex on index of df_ix
+
+    Similar to pandas str.match, thus the start of the index string must match.
+
+    The index levels need to be named (df.index.name needs to 
+    be set for all levels).
+
+    Note
+    -----
+    Arguments are set to case=True, flags=0, na=False, regex=True.
+    For case insensitive matching, use (?i) at the beginning of the pattern.
+
+    See the pandas/python.re documentation for more details.
+
+
+    Parameters
+    ----------
+    df_ix : pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
+        Method works on Index directly or extract from DataFrame/Series
+    find_all : None or str
+        If str (regex pattern) search for all matches in all index levels.
+        All matching rows are returned. The remaining kwargs are ignored.
+    kwargs : dict
+        The regex to match. The keys are the index names, 
+        the values are the regex to match.
+        If the entry is not in index name, it is ignored silently.
+
+    Returns
+    -------
+    pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
+        The matched rows/index, same type as _dfs_idx
+
+    """
+    return _index_regex_matcher(_dfs_idx=df_ix, _method='match', _find_all=find_all, **kwargs)
+
+def index_contains(df_ix, find_all=None, **kwargs):
+    """ Check if index contains a regex pattern.
+
+    Similar to pandas str.contains, thus the index 
+    string must contain the regex pattern.
+
+    The index levels need to be named (df.index.name needs to 
+    be set for all levels).
+
+    Note
+    -----
+    Arguments are set to case=True, flags=0, na=False, regex=True.
+    For case insensitive matching, use (?i) at the beginning of the pattern.
+
+    See the pandas/python.re documentation for more details.
+
+
+    Parameters
+    ----------
+    df_ix : pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
+        Method works on Index directly or extract from DataFrame/Series
+    find_all : None or str
+        If str (regex pattern) search for all matches in all index levels.
+        All matching rows are returned. The remaining kwargs are ignored.
+    kwargs : dict
+        The regex to match. The keys are the index names, 
+        the values are the regex to match.
+        If the entry is not in index name, it is ignored silently.
+
+    Returns
+    -------
+    pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
+        The matched rows/index, same type as _dfs_idx
+
+    """
+    return _index_regex_matcher(_dfs_idx=df_ix, _method='contains', _find_all=find_all, **kwargs)
+
+
+def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
+    """ Match index of df with regex
+   
+    The generic method for the contain, match, fullmatch implementation
+    along the index of the pymrio dataframes.
+
+    The index levels need to be named (df.index.name needs to 
+    be set for all levels).
+
+    Note
+    -----
+    Arguments are set to case=True, flags=0, na=False, regex=True.
+    For case insensitive matching, use (?i) at the beginning of the pattern.
+
+    See the pandas/python.re documentation for more details.
+
+
+    Parameters
+    ----------
+    _dfs_idx : pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
+        Method works on Index directly or extract from DataFrame/Series
+    _method : str
+        The method to use for matching, one of 'contains', 'match', 'fullmatch'
+    _find_all : None or str
+        If str (regex pattern) search for all matches in all index levels.
+        All matching rows are returned. The remaining kwargs are ignored.
+    kwargs : dict
+        The regex to match. The keys are the index names, 
+        the values are the regex to match.
+        If the entry is not in index name, it is ignored silently.
+
+    Returns
+    -------
+    pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
+        The matched rows/index, same type as _dfs_idx
+
+    """
+    if _method not in ['contains', 'match', 'fullmatch']:
+        raise ValueError('Method must be one of "contains", "match", "fullmatch"')
+
+    if _find_all is not None:
+        if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
+            idx = _dfs_idx.index
+        elif type(_dfs_idx) in [pd.Index, pd.MultiIndex]:
+            idx = _dfs_idx
+        else:
+            raise ValueError('Type of _dfs_idx must be one of '
+                                'pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex')
+        found = np.array([], dtype=int)
+        for idx_name in idx.names:
+            fun = getattr(idx.get_level_values(idx_name).str, _method)
+            ff = idx[fun(_find_all, case=True, flags=0, na=False)]
+            found = np.append(found, idx.get_indexer(ff))
+        found = np.unique(found)
+        if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
+            return _dfs_idx.iloc[found]
+        else:
+            return _dfs_idx[found]
+
+    for key, value in kwargs.items():
+        try:
+            if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
+                fun = getattr(_dfs_idx.index.get_level_values(key).str, _method)
+            elif type(_dfs_idx) in [pd.Index, pd.MultiIndex]:
+                fun = getattr(_dfs_idx.get_level_values(key).str, _method)
+            else:
+                raise ValueError('Type of _dfs_idx must be one of '
+                                 'pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex')
+            _dfs_idx = _dfs_idx[fun(value, case=True, flags=0, na=False)]
+        except KeyError:
+            pass
+
+    return _dfs_idx
+

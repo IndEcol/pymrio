@@ -1639,8 +1639,6 @@ class Extension(BaseSystem):
             .rename({characterized_unit_column: "unit"}, axis=1)
         )
 
-        __import__("IPython").embed()  # DEBUG Shell
-
         calc_matrix = (
             (
                 df_char.set_index(rows.names + [characterized_name_column])
@@ -2724,6 +2722,66 @@ def characterize(extension, char_factors, fallback=None):
     if not ioutil.check_if_long(extension, value_col="value"):
         extension = ioutil.convert_to_long(extension)
 
+# TODO: move to util and write test
+# TODO: make method for core, each extension and all extensions and test
+# def regex_match(df_ix, **kwargs):
+#     """ Match index of df with regex
+#     
+#     The index levels need to be named (df.index.name needs to be set for all levels).
+#
+#     Note
+#     -----
+#     The matching is done with str.fullmatch.
+#     Thus the passed pattern needs to match the full entry.
+#     This can be converted into matching only the 
+#     beginning (simulating str.match) by appending '.*' to the pattern.
+#     To get the same behaviour as str.contains, append '.*' to 
+#     the beginning and end of the pattern.
+#
+#     Arguments of fullmatch are set to case=True, flags=0, na=False.
+#     If you want case insensitive matching, use (?i) at the beginning of the pattern.
+#
+#     See the pandas/python.re documentation for more details.
+#
+#
+#     Parameters
+#     ----------
+#     df_ix : pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
+#         Rows/Index will be matched
+#     kwargs : dict
+#         The regex to match. The keys are the index names, 
+#         the values are the regex to match.
+#         If the entry is not in index name, it is ignored silently.
+#
+#     Returns
+#     -------
+#     pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
+#         The matched rows/index, same type as df_ix
+#
+#     """
+#
+#     for key, value in kwargs.items():
+#         try:
+#             if type(df_ix) in [pd.DataFrame, pd.Series]:
+#                 df_ix = df_ix[df_ix.index.get_level_values(key).str.fullmatch(value, 
+#                                                                               case=True,
+#                                                                               flags=0, 
+#                                                                               na=False)]
+#             elif type(df_ix) in [pd.Index, pd.MultiIndex]:
+#                 df_ix = df_ix[df_ix.get_level_values(key).str.fullmatch(value, 
+#                                                                         case=True,
+#                                                                         flags=0, 
+#                                                                         na=False)]
+#         except KeyError:
+#             pass
+#
+#     return df_ix
+#
+# stre = "(?i)emiSsion_type1"
+#
+# mm = regex_match(tt.emissions.S, stressor=stre, abc="raba")
+#
+# mm = regex_match(tt.emissions.F, compartment='air', abc="raba")
 
 def match_and_convert(
     src=None, bridge=None, src_match_col=None, bridge_match_col=None, agg_method=None
@@ -2733,7 +2791,7 @@ def match_and_convert(
     This is a general function which can be used to
 
         - convert stressor names
-        - convert units
+        - convert units (not sure yet)
         - characterize stressors
 
     It works by matching rows in a dataframe, and applying a converstion to the matched rows.
@@ -2742,12 +2800,13 @@ def match_and_convert(
         all non numerical columns are set as index, table can be in long or wide format, all "proper" columns are numerical
         also set string columns as index, even if they are not used for matching (e.g. units). 
         
+        
 
     Parameters
     ----------
     src : pd.DataFrame or pd.Series
         The dataframe/series to convert
-        TODO: can be a list as well
+        TODO: can be a list as well - No: should be concanaeted before
 
     bridge : pd.DataFrame
         The conversion information to
@@ -2775,7 +2834,6 @@ def match_and_convert(
     import pymrio
 
     tt = pymrio.load_test()
-
 
 
     # What we need in cc_headers
@@ -2825,7 +2883,6 @@ def match_and_convert(
     for row in bridge.iterrows():
         entry = row[1]
 
-        # TODO: for df in src
         #
         # TODO: extract regex (later)
         #
@@ -2834,20 +2891,25 @@ def match_and_convert(
         matched = src.copy()
 
         src.xs(entry[src_match_col], level=src_match_col, drop_level=False)
+        # CONT: .xs does not work as we need to match with regex.
+        # Instead, rely on index, but put it as column in turns, then match with regex
+        # See below for the matching, make a example with regex for testing.
+        # Don’t need numcols, as all columns to aggregate should not be in the index (as in docstring)
+        # IDEA: regex_match: find all rows in an extension which match a regex, then extension_regex_match in core for all extensions
 
-        for col_src, col_bridge in zip(src_match_col, bridge_match_col):
-            # select
-
-            matched = matched[matched.loc[:, col_src].str.contains(entry[col_src])]
-
-            c = entry[col_src]
-
-            src.xs(entry[col_src], level=col_src, drop_level=False)
-
-            # rename
-            matched.loc[:, col_src] = matched.loc[:, col_src].str.replace(
-                entry[col_src], entry[col_bridge]
-            )
+        # for col_src, col_bridge in zip(src_match_col, bridge_match_col):
+        #     # select
+        #
+        #     matched = matched[matched.loc[:, col_src].str.contains(entry[col_src])]
+        #
+        #     c = entry[col_src]
+        #
+        #     src.xs(entry[col_src], level=col_src, drop_level=False)
+        #
+        #     # rename
+        #     matched.loc[:, col_src] = matched.loc[:, col_src].str.replace(
+        #         entry[col_src], entry[col_bridge]
+        #     )
 
         # multiply all numerical values with conversion factor
         num_cols = matched.select_dtypes(include=[np.number]).columns
