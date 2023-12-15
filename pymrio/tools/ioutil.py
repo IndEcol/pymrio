@@ -950,6 +950,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
         else:
             return _dfs_idx[found]
 
+    at_least_one_valid = False
     for key, value in kwargs.items():
         try:
             if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
@@ -962,7 +963,14 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
                     "pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex"
                 )
             _dfs_idx = _dfs_idx[fun(value, case=True, flags=0, na=False)]
+            at_least_one_valid = True
         except KeyError:
             pass
+
+    if not at_least_one_valid:
+        if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
+            _dfs_idx = pd.DataFrame(index=[], columns=_dfs_idx.columns)            
+        elif type(_dfs_idx) in [pd.Index, pd.MultiIndex]:
+            _dfs_idx = pd.Index([])
 
     return _dfs_idx

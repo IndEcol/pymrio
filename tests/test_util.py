@@ -339,3 +339,14 @@ def test_util_regex():
     # 5. test wrong input
     with pytest.raises(ValueError):
         index_fullmatch("foo", region="a.*", sector=".*b.*", not_present_column="abc")
+
+    # 6. test with all kwargs not present
+
+    df_some_match = index_match(test_df, region="a.*", sector=".*b.*", not_present_column="abc")
+    assert df_some_match.index.get_level_values("region").unique() == ["a1"]
+    assert df_some_match.index.get_level_values("sector").unique() == ["bb"]
+
+    df_none_match = index_match(test_df, not_present_column="abc")
+    df_none_match_index = index_contains(test_index, not_present_column="abc")
+    assert len(df_none_match) == 0
+    assert len(df_none_match_index) == 0
