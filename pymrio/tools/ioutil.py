@@ -969,7 +969,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
     if not at_least_one_valid:
         if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
-            _dfs_idx = pd.DataFrame(index=[], columns=_dfs_idx.columns)            
+            _dfs_idx = pd.DataFrame(index=[], columns=_dfs_idx.columns)
         elif type(_dfs_idx) in [pd.Index, pd.MultiIndex]:
             _dfs_idx = pd.Index([])
 

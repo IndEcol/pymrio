@@ -733,7 +733,9 @@ class BaseSystem:
         """
         res_dict = dict()
         try:
-            index_find = ioutil.index_contains(self.get_index(as_dict=False), find_all=term)
+            index_find = ioutil.index_contains(
+                self.get_index(as_dict=False), find_all=term
+            )
             if len(index_find) > 0:
                 res_dict["index"] = index_find
         except:  # noqa: E722
@@ -759,8 +761,8 @@ class BaseSystem:
         try:
             for ext in self.get_extensions(data=False):
                 ext_index_find = ioutil.index_contains(
-                    getattr(self, ext).get_index(as_dict=False), 
-                    find_all=term)
+                    getattr(self, ext).get_index(as_dict=False), find_all=term
+                )
                 if len(ext_index_find) > 0:
                     res_dict[ext + "_index"] = ext_index_find
         except:  # noqa: E722
@@ -801,7 +803,6 @@ class BaseSystem:
 
         """
         return ioutil.index_contains(self.get_index(as_dict=False), find_all, **kwargs)
-
 
     def match(self, find_all=None, **kwargs):
         """Check if index of the system match the regex pattern
@@ -870,7 +871,6 @@ class BaseSystem:
 
         """
         return ioutil.index_fullmatch(self.get_index(as_dict=False), find_all, **kwargs)
-
 
 
 # API classes
@@ -2163,6 +2163,67 @@ class IOSystem(BaseSystem):
                 yield getattr(self, key)
             else:
                 yield key
+
+    def extension_contains(self, extensions=None, find_all=None, **kwargs):
+        """Get a dict of extension index dicts
+
+        Parameters
+        ----------
+        extensions: str, list of str, list of extensions, None
+            Which extensions to consider, default (None): all extensions
+        find_all : None or str
+            If str (regex pattern) search in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        kwargs : dict
+            The regex which should be contained. The keys are the index names,
+            the values are the regex.
+            If the entry is not in index name, it is ignored silently.
+        """
+        method = "contains"
+        return self._apply_extension_method(
+            extensions, method, find_all=find_all, **kwargs
+        )
+
+    # TODO: CONT: added methods for match, fullmatch
+    # TODO: CONT: add method for extract extension
+
+    def _apply_extension_method(self, extensions, method, *args, **kwargs):
+        """Apply a method to a list of extensions
+
+        Parameters
+        ----------
+        extensions: str, list of str, list of extensions, None
+            Which extensions to consider, None: all extensions
+        method: str
+            The method to apply
+        args: list
+            The arguments to pass to the method
+        kwargs: dict
+            The keyword arguments to pass to the method
+
+        Returns
+        -------
+        dict
+            A dict with the extension names as keys and the return values of the
+            method as values
+
+        """
+        if extensions is None:
+            extensions = self.get_extensions(data=False)
+        elif (
+            str(type(extensions)) == "<class 'pymrio.core.mriosystem.Extension'>"
+        ) or type(extensions) == str:
+            extensions = [extensions]
+        result = dict()
+        for ext in extensions:
+            if type(ext) is str:
+                extname = ext
+                ext = getattr(self, ext)
+            else:
+                extname = ext.name
+            method_fun = getattr(ext, method)
+            result[extname] = method_fun(*args, **kwargs)
+        return result
 
     def reset_full(self, force=False):
         """Remove all accounts which can be recalculated based on Z, Y, F, F_Y

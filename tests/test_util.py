@@ -342,7 +342,9 @@ def test_util_regex():
 
     # 6. test with all kwargs not present
 
-    df_some_match = index_match(test_df, region="a.*", sector=".*b.*", not_present_column="abc")
+    df_some_match = index_match(
+        test_df, region="a.*", sector=".*b.*", not_present_column="abc"
+    )
     assert df_some_match.index.get_level_values("region").unique() == ["a1"]
     assert df_some_match.index.get_level_values("sector").unique() == ["bb"]
 
