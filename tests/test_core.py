@@ -512,6 +512,42 @@ def test_find(fix_testmrio):
     assert "regions" not in ext_find.keys()
     assert "Y_categories" not in ext_find.keys()
 
+def test_contain_match_matchall(fix_testmrio):
+    tt = fix_testmrio.testmrio
+    
+    cont_bare = tt.contains("th")
+    cont_find_all = tt.contains(find_all = "th")
+    assert all(cont_bare == cont_find_all)
+    assert 'other' in cont_bare.get_level_values('sector')
+    assert 'reg1' in cont_bare.get_level_values('region')
+    assert 'reg2' in cont_bare.get_level_values('region')
+    assert 'food' not in cont_bare.get_level_values('sector')
+
+    match_test_empty = tt.match("th")
+    fullmatch_test_empty = tt.fullmatch("oth")
+    fullmatch_test_empty2 = tt.fullmatch("OTHER")
+    assert len(match_test_empty) == 0
+    assert len(fullmatch_test_empty) == 0
+    assert len(fullmatch_test_empty2) == 0
+
+    match_test = tt.match("oth")
+    assert all(match_test == cont_bare)
+
+    fullmatch_test1 = tt.fullmatch("other")
+    fullmatch_test2 = tt.fullmatch(".*oth.*")
+    fullmatch_test3 = tt.fullmatch("(?i)OTHER")
+    fullmatch_test4 = tt.fullmatch("(?i).*THE.*")
+    assert all(fullmatch_test1 == cont_bare)
+    assert all(fullmatch_test2 == cont_bare)
+    assert all(fullmatch_test3 == cont_bare)
+    assert all(fullmatch_test4 == cont_bare)
+
+    # check with keywors and extensions
+    ext_air = tt.emissions.match(compartment = "air")
+    ext_air_none = tt.emissions.match(stressor = "air")
+    assert len(ext_air_none) == 0
+    assert len(ext_air) > 0
+
 def test_direct_account_calc(fix_testmrio):
     orig = fix_testmrio.testmrio
     orig.calc_all()

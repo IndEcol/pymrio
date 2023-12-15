@@ -768,6 +768,110 @@ class BaseSystem:
 
         return res_dict
 
+    def contains(self, find_all=None, **kwargs):
+        """Check if index of the system contains the regex pattern
+
+        Similar to pandas str.contains, thus the index
+        string must contain the regex pattern. Uses ioutil.index_contains
+
+        The index levels need to be named (df.index.name needs to
+        be set for all levels).
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+        Parameters
+        ----------
+        find_all : None or str
+            If str (regex pattern) search in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        kwargs : dict
+            The regex which should be contained. The keys are the index names,
+            the values are the regex.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        pd.Index or pd.MultiIndex
+            The matched rows/index
+
+        """
+        return ioutil.index_contains(self.get_index(as_dict=False), find_all, **kwargs)
+
+
+    def match(self, find_all=None, **kwargs):
+        """Check if index of the system match the regex pattern
+
+        Similar to pandas str.match, thus the start of the index string must match.
+        Uses ioutil.index_match
+
+        The index levels need to be named (df.index.name needs to
+        be set for all levels).
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+        Parameters
+        ----------
+        find_all : None or str
+            If str (regex pattern) search for all matches in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        kwargs : dict
+            The regex to match. The keys are the index names,
+            the values are the regex to match.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        pd.Index or pd.MultiIndex
+            The matched rows/index
+
+        """
+        return ioutil.index_match(self.get_index(as_dict=False), find_all, **kwargs)
+
+    def fullmatch(self, find_all=None, **kwargs):
+        """Check if a index row of the system is a full match to the regex pattern
+
+        Similar to pandas str.fullmatch, thus the whole
+        string of the index must match. Uses ioutil.index_fullmatch
+
+        The index levels need to be named (df.index.name needs to
+        be set for all levels).
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+        Parameters
+        ----------
+        find_all : None or str
+            If str (regex pattern) search for all matches in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        kwargs : dict
+            The regex to match. The keys are the index names,
+            the values are the regex to match.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        pd.Index or pd.MultiIndex
+            The matched rows/index
+
+        """
+        return ioutil.index_fullmatch(self.get_index(as_dict=False), find_all, **kwargs)
+
+
 
 # API classes
 class Extension(BaseSystem):
