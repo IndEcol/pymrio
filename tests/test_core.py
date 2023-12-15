@@ -554,6 +554,33 @@ def test_contain_match_matchall(fix_testmrio):
     assert all(ext_all_comp == tt.emissions.F.index)
 
 
+def test_extension_match_contain(fix_testmrio):
+    tt = fix_testmrio.testmrio
+    match_air = tt.extension_match(find_all="air")
+    assert len(match_air["factor_inputs"]) == 0
+    assert len(match_air["emissions"]) == 1
+
+    contain_value_added = tt.extension_contains(inputtype="dded")
+    assert len(contain_value_added["factor_inputs"]) == 1
+    assert len(contain_value_added["emissions"]) == 0
+
+    fullmatch_0 = tt.extension_fullmatch(emissions="dded")
+    assert len(fullmatch_0["factor_inputs"]) == 0
+    assert len(fullmatch_0["emissions"]) == 0
+    fullmatch_1 = tt.extension_fullmatch(stressor="emission_type.*")
+    assert len(fullmatch_1["factor_inputs"]) == 0
+    assert len(fullmatch_1["emissions"]) == 2
+
+    # dual match
+    dual_match1 = tt.extension_match(stressor="emission_type.*", compartment="air")
+    assert len(dual_match1["factor_inputs"]) == 0
+    assert len(dual_match1["emissions"]) == 1
+
+    dual_match2 = tt.extension_contains(stressor="1", inputtype="alue")
+    assert len(dual_match2["factor_inputs"]) == 1
+    assert len(dual_match2["emissions"]) == 1
+
+
 def test_direct_account_calc(fix_testmrio):
     orig = fix_testmrio.testmrio
     orig.calc_all()

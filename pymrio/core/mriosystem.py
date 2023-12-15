@@ -2164,8 +2164,20 @@ class IOSystem(BaseSystem):
             else:
                 yield key
 
-    def extension_contains(self, extensions=None, find_all=None, **kwargs):
-        """Get a dict of extension index dicts
+    def extension_fullmatch(self, extensions=None, find_all=None, **kwargs):
+        """Get a dict of extension index dicts with full match of a search pattern.
+
+        This calls the extension.fullmatch for all extensions.
+
+        Similar to pandas str.fullmatch, thus the start of the index string must match.
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
 
         Parameters
         ----------
@@ -2178,13 +2190,92 @@ class IOSystem(BaseSystem):
             The regex which should be contained. The keys are the index names,
             the values are the regex.
             If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        dict
+            A dict with the extension names as keys and an Index/MultiIndex of
+            the matched rows as values
         """
-        method = "contains"
         return self._apply_extension_method(
-            extensions, method, find_all=find_all, **kwargs
+            extensions, method="match", find_all=find_all, **kwargs
         )
 
-    # TODO: CONT: added methods for match, fullmatch
+    def extension_match(self, extensions=None, find_all=None, **kwargs):
+        """Get a dict of extension index dicts which match a search pattern
+
+        This calls the extension.match for all extensions.
+
+        Similar to pandas str.match, thus the start of the index string must match.
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+
+        Parameters
+        ----------
+        extensions: str, list of str, list of extensions, None
+            Which extensions to consider, default (None): all extensions
+        find_all : None or str
+            If str (regex pattern) search in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        kwargs : dict
+            The regex which should be contained. The keys are the index names,
+            the values are the regex.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        dict
+            A dict with the extension names as keys and an Index/MultiIndex of
+            the matched rows as values
+        """
+        return self._apply_extension_method(
+            extensions, method="match", find_all=find_all, **kwargs
+        )
+
+    def extension_contains(self, extensions=None, find_all=None, **kwargs):
+        """Get a dict of extension index dicts which contains a search pattern
+
+        This calls the extension.contains for all extensions.
+
+        Similar to pandas str.contains, thus the index
+        string must contain the regex pattern.
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+
+        Parameters
+        ----------
+        extensions: str, list of str, list of extensions, None
+            Which extensions to consider, default (None): all extensions
+        find_all : None or str
+            If str (regex pattern) search in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        kwargs : dict
+            The regex which should be contained. The keys are the index names,
+            the values are the regex.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        dict
+            A dict with the extension names as keys and an Index/MultiIndex of
+            the matched rows as values
+        """
+        return self._apply_extension_method(
+            extensions, method="contains", find_all=find_all, **kwargs
+        )
+
     # TODO: CONT: add method for extract extension
 
     def _apply_extension_method(self, extensions, method, *args, **kwargs):
