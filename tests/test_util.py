@@ -22,16 +22,18 @@ from pymrio.tools.ioutil import diagonalize_blocks  # noqa
 from pymrio.tools.ioutil import find_first_number  # noqa
 from pymrio.tools.ioutil import set_block  # noqa
 from pymrio.tools.ioutil import sniff_csv_format  # noqa
-from pymrio.tools.ioutil import (diagonalize_columns_to_sectors,  # noqa
-                                 filename_from_url, index_contains,
-                                 index_fullmatch, index_match)
+from pymrio.tools.ioutil import (
+    diagonalize_columns_to_sectors,  # noqa
+    filename_from_url,
+    index_contains,
+    index_fullmatch,
+    index_match,
+)
 
 
 @pytest.fixture()
 def csv_test_files_content():
-    test_para = namedtuple(
-        "test_para", ["text", "sep", "header_rows", "index_col"]
-    )
+    test_para = namedtuple("test_para", ["text", "sep", "header_rows", "index_col"])
 
     class example_csv_content:
         test_contents = [
@@ -207,9 +209,7 @@ def test_diagonalize_columns_to_sectors():
     inp_df = pd.DataFrame(data=inp_array, index=reg_sec_index, columns=regions)
     inp_df.columns.names = ["region"]
 
-    out_df = pd.DataFrame(
-        data=out_array, index=inp_df.index, columns=reg_sec_index
-    )
+    out_df = pd.DataFrame(data=out_array, index=inp_df.index, columns=reg_sec_index)
 
     diag_df = diagonalize_columns_to_sectors(inp_df)
     pdt.assert_frame_equal(diag_df, out_df)
@@ -291,12 +291,7 @@ def test_util_regex():
     mdx_match = index_fullmatch(test_index, region=".*2", sector="cc")
 
     assert (
-        len(
-            mdx_match.get_level_values("region")
-            .unique()
-            .difference({"c2", "b2"})
-        )
-        == 0
+        len(mdx_match.get_level_values("region").unique().difference({"c2", "b2"})) == 0
     )
 
     test_ds = test_df.foo
@@ -304,35 +299,23 @@ def test_util_regex():
 
     assert ds_match.index.get_level_values("sector").unique() == ["aa"]
     assert all(
-        ds_match.index.get_level_values("region").unique()
-        == ["a1", "b1", "c2", "b2"]
+        ds_match.index.get_level_values("region").unique() == ["a1", "b1", "c2", "b2"]
     )
 
-    idx_match = index_fullmatch(
-        test_index.get_level_values("region"), region=".*2"
-    )
+    idx_match = index_fullmatch(test_index.get_level_values("region"), region=".*2")
     assert (
-        len(
-            idx_match.get_level_values("region")
-            .unique()
-            .difference({"c2", "b2"})
-        )
-        == 0
+        len(idx_match.get_level_values("region").unique().difference({"c2", "b2"})) == 0
     )
 
     # test with empty dataframes
     test_empty = pd.DataFrame(index=test_index)
     df_match_empty = index_fullmatch(test_empty, region=".*b.*", sector=".*b.*")
 
-    assert all(
-        df_match_empty.index.get_level_values("region").unique() == ["b1", "b2"]
-    )
+    assert all(df_match_empty.index.get_level_values("region").unique() == ["b1", "b2"])
     assert df_match_empty.index.get_level_values("sector").unique() == ["bb"]
 
     # test with empty index
-    empty_index = pd.MultiIndex.from_product(
-        [[], []], names=["region", "sector"]
-    )
+    empty_index = pd.MultiIndex.from_product([[], []], names=["region", "sector"])
 
     assert len(index_fullmatch(empty_index, region=".*", sector="cc")) == 0
 
@@ -340,16 +323,13 @@ def test_util_regex():
 
     df_match_contains = index_contains(test_df, region="1", sector="c")
     assert all(
-        df_match_contains.index.get_level_values("region").unique()
-        == ["a1", "b1"]
+        df_match_contains.index.get_level_values("region").unique() == ["a1", "b1"]
     )
     assert df_match_contains.index.get_level_values("sector").unique() == ["cc"]
 
     # 3. test the match functionality
     df_match_match = index_match(test_df, region="b")
-    assert all(
-        df_match_match.index.get_level_values("region").unique() == ["b1", "b2"]
-    )
+    assert all(df_match_match.index.get_level_values("region").unique() == ["b1", "b2"])
 
     # 4. test the findall functionality
     df_match_findall = index_contains(test_df, find_all="c")
@@ -358,6 +338,4 @@ def test_util_regex():
 
     # 5. test wrong input
     with pytest.raises(ValueError):
-        index_fullmatch(
-            "foo", region="a.*", sector=".*b.*", not_present_column="abc"
-        )
+        index_fullmatch("foo", region="a.*", sector=".*b.*", not_present_column="abc")

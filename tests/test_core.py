@@ -349,6 +349,7 @@ def test_diag_stressor(fix_testmrio):
 #     )
 #
 
+
 def test_characterize_extension(fix_testmrio):
     factors = pd.read_csv(
         Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
@@ -494,6 +495,22 @@ def test_reset_to_coefficients(fix_testmrio):
     assert tt.Z is None
     assert tt.emissions.F is None
 
+def test_find(fix_testmrio):
+    tt = fix_testmrio.testmrio
+
+    all_found = tt.find(".*")
+    assert all(all_found["sectors"] == tt.get_sectors())
+    assert all(all_found["regions"] == tt.get_regions())
+    assert all(all_found["Y_categories"] == tt.get_Y_categories())
+    assert all(all_found["index"] == tt.get_index())
+
+    for ext in tt.get_extensions(data=False):
+        assert all(all_found[ext + "_index"] == tt.__dict__[ext].get_index())
+
+    ext_find = tt.find("air")
+    assert "sectors" not in ext_find.keys()
+    assert "regions" not in ext_find.keys()
+    assert "Y_categories" not in ext_find.keys()
 
 def test_direct_account_calc(fix_testmrio):
     orig = fix_testmrio.testmrio

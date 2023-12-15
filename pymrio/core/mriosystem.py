@@ -709,7 +709,7 @@ class BaseSystem:
         return self
 
     def find(self, term):
-        """ Looks for term in index, sectors, regions, Y_categories
+        """Looks for term in index, sectors, regions, Y_categories
 
         Mostly useful for a quick check if entry is present.
 
@@ -731,23 +731,42 @@ class BaseSystem:
             Empty keys are ommited.
             The values can be used directly on one of the DataFrames with .loc
         """
-        index_find = ioutil.index_contains(self.get_index(as_dict=False), find_all=term)
-        reg_find = ioutil.index_contains(self.get_regions(), find_all=term)
-        sector_find = ioutil.index_contains(self.get_sectors(), find_all=term)
-        Y_find = ioutil.index_contains(self.get_Y_categories(), find_all=term)
-
         res_dict = dict()
-        if len(index_find) > 0:
-            res_dict["index"] = index_find
-        if len(reg_find) > 0:
-            res_dict["region"] = reg_find
-        if len(sector_find) > 0:
-            res_dict["sector"] = sector_find
-        if len(Y_find) > 0:
-            res_dict["Y_category"] = Y_find
+        try:
+            index_find = ioutil.index_contains(self.get_index(as_dict=False), find_all=term)
+            if len(index_find) > 0:
+                res_dict["index"] = index_find
+        except:  # noqa: E722
+            pass
+        try:
+            reg_find = ioutil.index_contains(self.get_regions(), find_all=term)
+            if len(reg_find) > 0:
+                res_dict["regions"] = reg_find
+        except:  # noqa: E722
+            pass
+        try:
+            sector_find = ioutil.index_contains(self.get_sectors(), find_all=term)
+            if len(sector_find) > 0:
+                res_dict["sectors"] = sector_find
+        except:  # noqa: E722
+            pass
+        try:
+            Y_find = ioutil.index_contains(self.get_Y_categories(), find_all=term)
+            if len(Y_find) > 0:
+                res_dict["Y_categories"] = Y_find
+        except:  # noqa: E722
+            pass
+        try:
+            for ext in self.get_extensions(data=False):
+                ext_index_find = ioutil.index_contains(
+                    getattr(self, ext).get_index(as_dict=False), 
+                    find_all=term)
+                if len(ext_index_find) > 0:
+                    res_dict[ext + "_index"] = ext_index_find
+        except:  # noqa: E722
+            pass
 
         return res_dict
-
 
 
 # API classes
@@ -2764,20 +2783,21 @@ def characterize(extension, char_factors, fallback=None):
     if not ioutil.check_if_long(extension, value_col="value"):
         extension = ioutil.convert_to_long(extension)
 
+
 # TODO: move to util and write test
 # TODO: make method for core, each extension and all extensions and test
 # def regex_match(df_ix, **kwargs):
 #     """ Match index of df with regex
-#     
+#
 #     The index levels need to be named (df.index.name needs to be set for all levels).
 #
 #     Note
 #     -----
 #     The matching is done with str.fullmatch.
 #     Thus the passed pattern needs to match the full entry.
-#     This can be converted into matching only the 
+#     This can be converted into matching only the
 #     beginning (simulating str.match) by appending '.*' to the pattern.
-#     To get the same behaviour as str.contains, append '.*' to 
+#     To get the same behaviour as str.contains, append '.*' to
 #     the beginning and end of the pattern.
 #
 #     Arguments of fullmatch are set to case=True, flags=0, na=False.
@@ -2791,7 +2811,7 @@ def characterize(extension, char_factors, fallback=None):
 #     df_ix : pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex
 #         Rows/Index will be matched
 #     kwargs : dict
-#         The regex to match. The keys are the index names, 
+#         The regex to match. The keys are the index names,
 #         the values are the regex to match.
 #         If the entry is not in index name, it is ignored silently.
 #
@@ -2805,14 +2825,14 @@ def characterize(extension, char_factors, fallback=None):
 #     for key, value in kwargs.items():
 #         try:
 #             if type(df_ix) in [pd.DataFrame, pd.Series]:
-#                 df_ix = df_ix[df_ix.index.get_level_values(key).str.fullmatch(value, 
+#                 df_ix = df_ix[df_ix.index.get_level_values(key).str.fullmatch(value,
 #                                                                               case=True,
-#                                                                               flags=0, 
+#                                                                               flags=0,
 #                                                                               na=False)]
 #             elif type(df_ix) in [pd.Index, pd.MultiIndex]:
-#                 df_ix = df_ix[df_ix.get_level_values(key).str.fullmatch(value, 
+#                 df_ix = df_ix[df_ix.get_level_values(key).str.fullmatch(value,
 #                                                                         case=True,
-#                                                                         flags=0, 
+#                                                                         flags=0,
 #                                                                         na=False)]
 #         except KeyError:
 #             pass
@@ -2824,6 +2844,7 @@ def characterize(extension, char_factors, fallback=None):
 # mm = regex_match(tt.emissions.S, stressor=stre, abc="raba")
 #
 # mm = regex_match(tt.emissions.F, compartment='air', abc="raba")
+
 
 def match_and_convert(
     src=None, bridge=None, src_match_col=None, bridge_match_col=None, agg_method=None
@@ -2840,9 +2861,9 @@ def match_and_convert(
 
     TODO: Assumption on the data format of src:
         all non numerical columns are set as index, table can be in long or wide format, all "proper" columns are numerical
-        also set string columns as index, even if they are not used for matching (e.g. units). 
-        
-        
+        also set string columns as index, even if they are not used for matching (e.g. units).
+
+
 
     Parameters
     ----------
@@ -2876,7 +2897,6 @@ def match_and_convert(
     import pymrio
 
     tt = pymrio.load_test()
-
 
     # What we need in cc_headers
     # src_match_col_1

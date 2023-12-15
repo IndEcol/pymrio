@@ -18,8 +18,7 @@ import pandas as pd
 import requests
 import urllib3
 
-from pymrio.core.constants import (DEFAULT_FILE_NAMES, LONG_VALUE_NAME,
-                                   PYMRIO_PATH)
+from pymrio.core.constants import DEFAULT_FILE_NAMES, LONG_VALUE_NAME, PYMRIO_PATH
 
 
 def is_vector(inp):
@@ -154,9 +153,7 @@ def get_file_para(path, path_in_arc=""):
 
     if zipfile.is_zipfile(str(path)):
         with zipfile.ZipFile(file=str(path)) as zf:
-            para_file_content = json.loads(
-                zf.read(para_file_full_path).decode("utf-8")
-            )
+            para_file_content = json.loads(zf.read(para_file_full_path).decode("utf-8"))
     else:
         with open(para_file_full_path, "r") as pf:
             para_file_content = json.load(pf)
@@ -281,9 +278,7 @@ def diagonalize_columns_to_sectors(
     """
 
     sectors = df.index.get_level_values(sector_index_level).unique()
-    sector_name = (
-        sector_index_level if type(sector_index_level) is str else "sector"
-    )
+    sector_name = sector_index_level if type(sector_index_level) is str else "sector"
 
     new_col_index = [
         tuple(list(orig) + [new]) for orig in df.columns for new in sectors
@@ -402,8 +397,7 @@ def set_block(arr, arr_block):
         )
     if nr_row / nr_row_block != nr_col / nr_col_block:
         raise ValueError(
-            "Block array can not be filled as "
-            "diagonal blocks in the given array"
+            "Block array can not be filled as " "diagonal blocks in the given array"
         )
 
     arr_out = arr.copy()
@@ -519,8 +513,7 @@ def build_agg_vec(agg_vec, **source):
                         ]
                     else:
                         agg_dict[entry] = [
-                            None if ee == "None" else ee
-                            for ee in _tmp[:, -1].tolist()
+                            None if ee == "None" else ee for ee in _tmp[:, -1].tolist()
                         ]
                     break
             else:
@@ -619,11 +612,7 @@ def sniff_csv_format(
 
     sep_aly_lines = [
         sorted(
-            [
-                (line.count(sep), sep)
-                for sep in potential_sep
-                if line.count(sep) > 0
-            ],
+            [(line.count(sep), sep) for sep in potential_sep if line.count(sep) > 0],
             key=lambda x: x[0],
             reverse=True,
         )
@@ -938,9 +927,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
     """
     if _method not in ["contains", "match", "fullmatch"]:
-        raise ValueError(
-            'Method must be one of "contains", "match", "fullmatch"'
-        )
+        raise ValueError('Method must be one of "contains", "match", "fullmatch"')
 
     if _find_all is not None:
         if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
