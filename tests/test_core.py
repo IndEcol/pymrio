@@ -237,15 +237,24 @@ def test_copy_and_extensions(fix_testmrio):
     assert len(list(fix_testmrio.testmrio.get_extensions())) == 2
 
 
-def test_get_row_data(fix_testmrio):
-    stressor = ("emission_type1", "air")
+def test_extract(fix_testmrio):
     tt = fix_testmrio.testmrio.copy().calc_all()
-    td = tt.emissions.get_row_data(stressor)["D_exp_reg"]
-    md = pd.DataFrame(tt.emissions.D_exp_reg.loc[stressor])
-    pdt.assert_frame_equal(td, md)
 
-    for df_name in tt.emissions.get_DataFrame():
-        assert df_name in tt.emissions.get_row_data(stressor)
+    all_index = tt.emissions.get_index()
+    new_all = pymrio.Extension(name="new_all", **tt.emissions.extract(all_index))
+    assert new_all.name == "new_all"
+    for df in tt.emissions.get_DataFrame():
+        assert df in new_all.get_DataFrame()
+
+    id_air = tt.emissions.match(compartment="air")
+    new_air = pymrio.Extension(name="new_air", **tt.emissions.extract(index=id_air, dataframes=["S", "S_Y"]))
+
+    assert "F" not in new_air.get_DataFrame()
+    assert "S" in new_air.get_DataFrame()
+    assert "S_Y" in new_air.get_DataFrame()
+
+    with pytest.raises(AttributeError):
+        tt.emissions.extract(index=id_air, dataframes=["S", "FOO"])
 
 
 def test_diag_stressor(fix_testmrio):

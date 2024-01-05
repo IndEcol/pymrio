@@ -6,6 +6,13 @@ Changelog
 v0.5.3dev
 ***************************
 
+Depracted
+=========
+
+* extension.get_row_data()
+  The method get_row_data() is deprecated and will be removed in v0.6.0. 
+  Use extension.extract() instead.
+
 
 ***************************
 v0.5.2 - 20230815

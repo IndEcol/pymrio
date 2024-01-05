@@ -1568,11 +1568,13 @@ class Extension(BaseSystem):
             return None
 
     def get_row_data(self, row, name=None):
-        """Returns a dict with all available data for a row in the extension
+        """Returns a dict with all available data for a row in the extension.
+
+        If you need a new extension, see the extract method. 
 
         Parameters
         ----------
-        row : tuple, list, string
+        row : index, tuple, list, string
             A valid index for the extension DataFrames
         name : string, optional
             If given, adds a key 'name' with the given value to the dict. In
@@ -1581,14 +1583,55 @@ class Extension(BaseSystem):
 
         Returns
         -------
-        dict object with the data (pandas DataFrame)for the specific rows
+        dict object with the data (pandas DataFrame) for the specific rows
         """
+        # depraction warning
+
+        warnings.warn(
+            "This method will be removed in future versions. "
+            "Use extract method instead",
+            DeprecationWarning,
+        )
+
         retdict = {}
         for rowname, data in zip(self.get_DataFrame(), self.get_DataFrame(data=True)):
             retdict[rowname] = pd.DataFrame(data.loc[row])
         if name:
             retdict["name"] = name
         return retdict
+
+    def extract(self, index, dataframes=None):
+        """Returns a dict with all available data for a row in the extension.
+
+        Note
+        -----
+        To build a new extension from the extracted data, use the
+        Extension constructor.
+        new_extension = Extension(name='new_extension', **Extension.extract(index))
+
+        Parameters
+        ----------
+        index : valid row index 
+            A valid index for the extension DataFrames
+        dataframes : list, optional
+            The dataframes which should be extracted. If None (default),
+            all available dataframes are extracted.
+
+        Returns
+        -------
+        dict object with the data (pandas DataFrame) for the specific rows
+
+        """
+        retdict = {}
+        if dataframes is None:
+            dataframes = self.get_DataFrame()
+
+        for dfname in dataframes:
+            data = getattr(self, dfname)
+            retdict[dfname] = pd.DataFrame(data.loc[index])
+
+        return retdict
+
 
     def diag_stressor(self, stressor, name=None, _meta=None):
         """Diagonalize one row of the stressor matrix for a flow analysis.
@@ -2164,7 +2207,7 @@ class IOSystem(BaseSystem):
             else:
                 yield key
 
-    def extension_fullmatch(self, extensions=None, find_all=None, **kwargs):
+    def extension_fullmatch(self, find_all=None, extensions=None, **kwargs):
         """Get a dict of extension index dicts with full match of a search pattern.
 
         This calls the extension.fullmatch for all extensions.
@@ -2181,11 +2224,11 @@ class IOSystem(BaseSystem):
 
         Parameters
         ----------
-        extensions: str, list of str, list of extensions, None
-            Which extensions to consider, default (None): all extensions
         find_all : None or str
             If str (regex pattern) search in all index levels.
             All matching rows are returned. The remaining kwargs are ignored.
+        extensions: str, list of str, list of extensions, None
+            Which extensions to consider, default (None): all extensions
         kwargs : dict
             The regex which should be contained. The keys are the index names,
             the values are the regex.
@@ -2201,7 +2244,7 @@ class IOSystem(BaseSystem):
             extensions, method="match", find_all=find_all, **kwargs
         )
 
-    def extension_match(self, extensions=None, find_all=None, **kwargs):
+    def extension_match(self, find_all=None, extensions=None, **kwargs):
         """Get a dict of extension index dicts which match a search pattern
 
         This calls the extension.match for all extensions.
@@ -2218,11 +2261,11 @@ class IOSystem(BaseSystem):
 
         Parameters
         ----------
-        extensions: str, list of str, list of extensions, None
-            Which extensions to consider, default (None): all extensions
         find_all : None or str
             If str (regex pattern) search in all index levels.
             All matching rows are returned. The remaining kwargs are ignored.
+        extensions: str, list of str, list of extensions, None
+            Which extensions to consider, default (None): all extensions
         kwargs : dict
             The regex which should be contained. The keys are the index names,
             the values are the regex.
@@ -2238,7 +2281,7 @@ class IOSystem(BaseSystem):
             extensions, method="match", find_all=find_all, **kwargs
         )
 
-    def extension_contains(self, extensions=None, find_all=None, **kwargs):
+    def extension_contains(self, find_all=None, extensions=None, **kwargs):
         """Get a dict of extension index dicts which contains a search pattern
 
         This calls the extension.contains for all extensions.
@@ -2256,11 +2299,11 @@ class IOSystem(BaseSystem):
 
         Parameters
         ----------
-        extensions: str, list of str, list of extensions, None
-            Which extensions to consider, default (None): all extensions
         find_all : None or str
             If str (regex pattern) search in all index levels.
             All matching rows are returned. The remaining kwargs are ignored.
+        extensions: str, list of str, list of extensions, None
+            Which extensions to consider, default (None): all extensions
         kwargs : dict
             The regex which should be contained. The keys are the index names,
             the values are the regex.
@@ -2276,21 +2319,24 @@ class IOSystem(BaseSystem):
             extensions, method="contains", find_all=find_all, **kwargs
         )
 
-    # TODO: CONT: add method for extract extension
+
+
+            
+    # TODO: CONT: add extract method for all extensions
 
     def _apply_extension_method(self, extensions, method, *args, **kwargs):
         """Apply a method to a list of extensions
 
         Parameters
         ----------
-        extensions: str, list of str, list of extensions, None
-            Which extensions to consider, None: all extensions
+        extensions: str, list of str, list of extensions, or None
+            Specifies which extensions to consider. Use None to consider all extensions.
         method: str
-            The method to apply
+            Specifies the method to apply.
         args: list
-            The arguments to pass to the method
+            Specifies the arguments to pass to the method.
         kwargs: dict
-            The keyword arguments to pass to the method
+            Specifies the keyword arguments to pass to the method.
 
         Returns
         -------
@@ -2303,11 +2349,11 @@ class IOSystem(BaseSystem):
             extensions = self.get_extensions(data=False)
         elif (
             str(type(extensions)) == "<class 'pymrio.core.mriosystem.Extension'>"
-        ) or type(extensions) == str:
+        ) or isinstance(extensions, str):
             extensions = [extensions]
         result = dict()
         for ext in extensions:
-            if type(ext) is str:
+            if isinstance(ext, str):
                 extname = ext
                 ext = getattr(self, ext)
             else:
