@@ -104,6 +104,14 @@ def test_get_gross_trade(fix_testmrio):
         (None, False, False, ["Emissions", "Factor Inputs"]),
         (["Emissions", "Factor Inputs"], False, False, ["Emissions", "Factor Inputs"]),
         (["Emissions", "Factor Inputs"], False, True, ["emissions", "factor_inputs"]),
+        (["Emissions", "factor_inputs"], False, True, ["emissions", "factor_inputs"]),
+        (["emissions", "factor_inputs"], False, False, ["Emissions", "Factor Inputs"]),
+        (
+            ["emissions", "factor_inputs", "emissions"],
+            False,
+            False,
+            ["Emissions", "Factor Inputs", "Emissions"],
+        ),
     ],
 )
 def test_get_extensions(fix_testmrio, names, data, instance_names, result):
@@ -112,6 +120,19 @@ def test_get_extensions(fix_testmrio, names, data, instance_names, result):
         tt.get_extensions(names=names, data=data, instance_names=instance_names)
     )
     assert sorted(exts) == sorted(result)
+
+
+def test_get_extension_raise(fix_testmrio):
+    tt = fix_testmrio.testmrio
+    with pytest.raises(ValueError):
+        list(
+            tt.get_extensions(
+                names=["emissions", "foo"], data=False, instance_names=True
+            )
+        )
+
+
+(["emissions", "facor_inputs"], False, False, pytest.raises(ValueError)),
 
 
 def test_get_index(fix_testmrio):
@@ -253,9 +274,11 @@ def test_copy_and_extensions(fix_testmrio):
     tcp = fix_testmrio.testmrio.copy()
     tcp.remove_extension("Emissions")
     assert len(list(tcp.get_extensions())) == 1
-    tcp.remove_extension()
-    assert len(list(tcp.get_extensions())) == 0
-    assert len(list(fix_testmrio.testmrio.get_extensions())) == 2
+    with pytest.raises(TypeError):
+        tcp.remove_extension()
+    tcnew = fix_testmrio.testmrio.copy()
+    tcnew.remove_extension(tcnew.get_extensions())
+    assert len(list(tcnew.get_extensions())) == 0
 
 
 def test_extract(fix_testmrio):
@@ -576,7 +599,7 @@ def test_contain_match_matchall(fix_testmrio):
     assert all(fullmatch_test3 == cont_bare)
     assert all(fullmatch_test4 == cont_bare)
 
-    # check with keywors and extensions
+    # check with keywords and extensions
     ext_air = tt.emissions.match(compartment="air")
     ext_air_none = tt.emissions.match(stressor="air")
     assert len(ext_air_none) == 0
@@ -589,28 +612,45 @@ def test_contain_match_matchall(fix_testmrio):
 def test_extension_match_contain(fix_testmrio):
     tt = fix_testmrio.testmrio
     match_air = tt.extension_match(find_all="air")
-    assert len(match_air["factor_inputs"]) == 0
-    assert len(match_air["emissions"]) == 1
+    assert len(match_air["Factor Inputs"]) == 0
+    assert len(match_air["Emissions"]) == 1
 
     contain_value_added = tt.extension_contains(inputtype="dded")
-    assert len(contain_value_added["factor_inputs"]) == 1
-    assert len(contain_value_added["emissions"]) == 0
+    assert len(contain_value_added["Factor Inputs"]) == 1
+    assert len(contain_value_added["Emissions"]) == 0
 
     fullmatch_0 = tt.extension_fullmatch(emissions="dded")
-    assert len(fullmatch_0["factor_inputs"]) == 0
-    assert len(fullmatch_0["emissions"]) == 0
+    assert len(fullmatch_0["Factor Inputs"]) == 0
+    assert len(fullmatch_0["Emissions"]) == 0
     fullmatch_1 = tt.extension_fullmatch(stressor="emission_type.*")
-    assert len(fullmatch_1["factor_inputs"]) == 0
-    assert len(fullmatch_1["emissions"]) == 2
+    assert len(fullmatch_1["Factor Inputs"]) == 0
+    assert len(fullmatch_1["Emissions"]) == 2
 
     # dual match
     dual_match1 = tt.extension_match(stressor="emission_type.*", compartment="air")
-    assert len(dual_match1["factor_inputs"]) == 0
-    assert len(dual_match1["emissions"]) == 1
+    assert len(dual_match1["Factor Inputs"]) == 0
+    assert len(dual_match1["Emissions"]) == 1
 
     dual_match2 = tt.extension_contains(stressor="1", inputtype="alue")
-    assert len(dual_match2["factor_inputs"]) == 1
-    assert len(dual_match2["emissions"]) == 1
+    assert len(dual_match2["Factor Inputs"]) == 1
+    assert len(dual_match2["Emissions"]) == 1
+
+    # Test for extension instance and set names
+    inst_match = tt.extension_match(
+        extensions=["emissions", "factor_inputs"], stressor="emission_type.*"
+    )
+    assert len(inst_match["emissions"]) == 2
+    assert len(inst_match["factor_inputs"]) == 0
+
+    inst_match2 = tt.extension_match(
+        extensions=["emissions"], stressor="emission_type.*"
+    )
+    assert len(inst_match2["emissions"]) == 2
+    assert "factor_inputs" not in inst_match2.keys()
+
+    name_match = tt.extension_contains(extensions=["Factor Inputs"], inputtype="Value")
+    assert "factor_inputs" not in name_match.keys()
+    assert len(name_match["Factor Inputs"]) == 1
 
 
 def test_direct_account_calc(fix_testmrio):

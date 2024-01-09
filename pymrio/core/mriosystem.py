@@ -2194,7 +2194,8 @@ class IOSystem(BaseSystem):
         ----------
         names = str or list like, optional
            Extension names to yield. If None (default), all extensions are
-           yielded. This can be used to convert from set names to instance names.
+           yielded. This can be used to convert from set names to instance names
+           and vice versa or to harmonize a list of extensions.
 
         data : boolean, optional
            If True, returns a generator which yields the extensions.
@@ -2214,21 +2215,35 @@ class IOSystem(BaseSystem):
 
         """
 
-        ext_list = [
-            key for key in self.__dict__ if type(self.__dict__[key]) is Extension
+        all_ext_list = [
+            key for key in self.__dict__ if isinstance(self.__dict__[key], Extension)
         ]
-        ext_names = names if names else [getattr(self, ext).name for ext in ext_list]
+        all_name_list = [getattr(self, key).name for key in all_ext_list]
 
-        for key in ext_list:
-            if getattr(self, key).name not in ext_names:
-                continue
+        if isinstance(names, str):
+            names = [names]
+        _pre_ext = names if names else all_ext_list
+        ext_name_or_inst = [
+            nn.name if isinstance(nn, Extension) else nn for nn in _pre_ext
+        ]
+
+        for name in ext_name_or_inst:
+            if name in all_ext_list:
+                inst_name = name
+                ext_name = all_name_list[all_ext_list.index(name)]
+            elif name in all_name_list:
+                inst_name = all_ext_list[all_name_list.index(name)]
+                ext_name = name
+            else:
+                raise ValueError(f"Extension {name} not present in the system.")
+
             if data:
-                yield getattr(self, key)
+                yield getattr(self, inst_name)
             else:
                 if instance_names:
-                    yield key
+                    yield inst_name
                 else:
-                    yield getattr(self, key).name
+                    yield ext_name
 
     def extension_fullmatch(self, find_all=None, extensions=None, **kwargs):
         """Get a dict of extension index dicts with full match of a search pattern.
@@ -2387,24 +2402,25 @@ class IOSystem(BaseSystem):
         -------
         dict
             A dict with the extension names as keys and the return values of the
-            method as values
+            method as values. The keys are the same as in 'extensions', thus
+            convert these to the set names or instance names before (using
+            mrio.get_extensions)
 
         """
         if extensions is None:
-            extensions = self.get_extensions(data=False)
-        elif (
-            str(type(extensions)) == "<class 'pymrio.core.mriosystem.Extension'>"
-        ) or isinstance(extensions, str):
+            extensions = list(self.get_extensions(data=False, instance_names=False))
+        if isinstance(extensions, (Extension, str)):
             extensions = [extensions]
-        result = dict()
-        for ext in extensions:
-            if isinstance(ext, str):
-                extname = ext
-                ext = getattr(self, ext)
-            else:
-                extname = ext.name
+
+        instance_names = self.get_extensions(
+            names=extensions, data=False, instance_names=True
+        )
+        ext_data = self.get_extensions(names=extensions, data=True)
+
+        result = {}
+        for ext_name, inst_name, ext in zip(extensions, instance_names, ext_data):
             method_fun = getattr(ext, method)
-            result[extname] = method_fun(*args, **kwargs)
+            result[ext_name] = method_fun(*args, **kwargs)
         return result
 
     def reset_full(self, force=False):
@@ -2531,7 +2547,9 @@ class IOSystem(BaseSystem):
             float_format=float_format,
         )
 
-        for ext, ext_name in zip(self.get_extensions(data=True), self.get_extensions()):
+        for ext, ext_name in zip(
+            self.get_extensions(data=True), self.get_extensions(instance_names=True)
+        ):
             ext_path = path / ext_name
 
             ext.save(
@@ -2922,7 +2940,7 @@ class IOSystem(BaseSystem):
         self.calc_extensions()
         return self
 
-    def remove_extension(self, ext=None):
+    def remove_extension(self, ext):
         """Remove extension from IOSystem
 
         For single Extensions the same can be achieved with del
@@ -2932,26 +2950,21 @@ class IOSystem(BaseSystem):
         ----------
         ext : string or list, optional
             The extension to remove, this can be given as the name of the
-            instance or of Extension.name (the latter will be checked if no
+            instance or of Extension.name.
             instance was found)
-            If ext is None (default) all Extensions will be removed
         """
-        if ext is None:
-            ext = list(self.get_extensions())
         if type(ext) is str:
             ext = [ext]
 
         for ee in ext:
             try:
                 del self.__dict__[ee]
-            except KeyError:
-                for exinstancename, exdata in zip(
-                    self.get_extensions(data=False), self.get_extensions(data=True)
-                ):
-                    if exdata.name == ee:
-                        del self.__dict__[exinstancename]
-            finally:
                 self.meta._add_modify("Removed extension {}".format(ee))
+            except KeyError:
+                ext_instance = self.get_extensions(ee, instance_names=True)
+                for x in ext_instance:
+                    del self.__dict__[x]
+                    self.meta._add_modify("Removed extension {}".format(x))
 
         return self
 

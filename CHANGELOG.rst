@@ -11,10 +11,19 @@ Breaking changes
 
 * get_extensions has a new signature. 
   Two new paramters, names and istance_names.
-  Names allows to filter the extensions by name (set names of the attribute .name).
-  instance_names and be set to False to get the set names of the extensions.
+
+    - 'names' allows to filter the extensions by name (set names of the attribute .name
+        or the instance names, also allows to pass the extension itself). Can be used
+        to harmonize the names of an extension list.
+    - 'instance_names' can be set to False to get the "set names" of the extensions.
+
   When using keyword arguments before, the new signature should just work.
 
+* remove_extension: 
+  Previous all extensions got removed when no name was given.
+  This has changed. Now all extensions are kept when no name is given (TypeError is raised).
+  To remove all extensions, use mrio.remove_extension(mrio.get_extensions())
+  
 
 
 Depracted
