@@ -2383,6 +2383,10 @@ class IOSystem(BaseSystem):
         return self._apply_extension_method(
             extensions=None, method="extract", index=index_dict, dataframes=dataframes
         )
+    # CONT: 1) write tests for this, write test for extraction and new extension
+    # CONT: 2) write doc for contains, match, - function, extension function and top-level function
+    # show a new extension can be built 
+    
 
     def _apply_extension_method(self, extensions, method, *args, **kwargs):
         """Apply a method to a list of extensions
