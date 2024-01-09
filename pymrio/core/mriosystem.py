@@ -643,7 +643,7 @@ class BaseSystem:
             for ext in self.get_extensions(data=True):
                 for df in ext.get_DataFrame(data=True):
                     df.rename(index=regions, columns=regions, inplace=True)
-        except:
+        except:  # noqa: E722
             pass
 
         self.meta._add_modify("Changed country names")
@@ -759,7 +759,7 @@ class BaseSystem:
         except:  # noqa: E722
             pass
         try:
-            for ext in self.get_extensions(data=False):
+            for ext in self.get_extensions(data=False, instance_names=True):
                 ext_index_find = ioutil.index_contains(
                     getattr(self, ext).get_index(as_dict=False), find_all=term
                 )
@@ -1570,7 +1570,7 @@ class Extension(BaseSystem):
     def get_row_data(self, row, name=None):
         """Returns a dict with all available data for a row in the extension.
 
-        If you need a new extension, see the extract method. 
+        If you need a new extension, see the extract method.
 
         Parameters
         ----------
@@ -1611,8 +1611,10 @@ class Extension(BaseSystem):
 
         Parameters
         ----------
-        index : valid row index 
-            A valid index for the extension DataFrames
+        index : valid row index or dict
+            A valid index for the extension DataFrames.
+            Alternatively, a dict with the extension name as key and the valid index
+            as value can be passed.
         dataframes : list, optional
             The dataframes which should be extracted. If None (default),
             all available dataframes are extracted.
@@ -1622,6 +1624,10 @@ class Extension(BaseSystem):
         dict object with the data (pandas DataFrame) for the specific rows
 
         """
+
+        if type(index) is dict:
+            index = index.get(self.name, None)
+
         retdict = {}
         if dataframes is None:
             dataframes = self.get_DataFrame()
@@ -1631,7 +1637,6 @@ class Extension(BaseSystem):
             retdict[dfname] = pd.DataFrame(data.loc[index])
 
         return retdict
-
 
     def diag_stressor(self, stressor, name=None, _meta=None):
         """Diagonalize one row of the stressor matrix for a flow analysis.
@@ -1997,8 +2002,8 @@ class IOSystem(BaseSystem):
 
     def __eq__(self, other):
         """Only the dataframes are compared."""
-        self_ext = set(self.get_extensions(data=False))
-        other_ext = set(other.get_extensions(data=False))
+        self_ext = set(self.get_extensions(data=False, instance_names=True))
+        other_ext = set(other.get_extensions(data=False, instance_names=True))
         if len(self_ext.difference(other_ext)) < 0:
             return False
 
@@ -2112,7 +2117,7 @@ class IOSystem(BaseSystem):
             (e.g. households). Default: y is aggregated over all categories
         """
 
-        ext_list = list(self.get_extensions(data=False))
+        ext_list = list(self.get_extensions(data=False, instance_names=True))
         extensions = extensions or ext_list
         if type(extensions) == str:
             extensions = [extensions]
@@ -2182,15 +2187,26 @@ class IOSystem(BaseSystem):
                 **kwargs,
             )
 
-    def get_extensions(self, data=False):
+    def get_extensions(self, names=None, data=False, instance_names=True):
         """Yields the extensions or their names
 
         Parameters
         ----------
+        names = str or list like, optional
+           Extension names to yield. If None (default), all extensions are
+           yielded. This can be used to convert from set names to instance names.
+
         data : boolean, optional
            If True, returns a generator which yields the extensions.
            If False, returns a generator which yields the names of
            the extensions (default)
+
+        instance_names : boolean, optional
+            If True, returns the name of the instance, otherwise
+            the set (custom) name of the extension. (default: True)
+            For example, the test mrio has a extension named
+            'Factor Inputs' (get it with mrio.factor_inputs.name),
+            and an instance name 'factor_inputs'.
 
         Returns
         -------
@@ -2201,11 +2217,18 @@ class IOSystem(BaseSystem):
         ext_list = [
             key for key in self.__dict__ if type(self.__dict__[key]) is Extension
         ]
+        ext_names = names if names else [getattr(self, ext).name for ext in ext_list]
+
         for key in ext_list:
+            if getattr(self, key).name not in ext_names:
+                continue
             if data:
                 yield getattr(self, key)
             else:
-                yield key
+                if instance_names:
+                    yield key
+                else:
+                    yield getattr(self, key).name
 
     def extension_fullmatch(self, find_all=None, extensions=None, **kwargs):
         """Get a dict of extension index dicts with full match of a search pattern.
@@ -2319,10 +2342,32 @@ class IOSystem(BaseSystem):
             extensions, method="contains", find_all=find_all, **kwargs
         )
 
+    def extension_extract(self, index_dict, dataframes=None):
+        """Get a dict of extension index dicts which match a search pattern
 
+        This calls the extension.extract for all extensions.
 
-            
-    # TODO: CONT: add extract method for all extensions
+        Parameters
+        ----------
+        index_dict : dict
+            A dict with the index names as keys and the values as the
+            corresponding index values. The values can be a single value or a
+            list of values.
+
+        dataframes : list, optional
+            The dataframes which should be extracted. If None (default),
+            all available dataframes are extracted.
+
+        Returns
+        -------
+        dict
+            A dict with the extension names as keys and an Index/MultiIndex of
+            the matched rows as values
+
+        """
+        return self._apply_extension_method(
+            extensions=None, method="extract", index=index_dict, dataframes=dataframes
+        )
 
     def _apply_extension_method(self, extensions, method, *args, **kwargs):
         """Apply a method to a list of extensions

@@ -93,6 +93,27 @@ def test_get_gross_trade(fix_testmrio):
     )
 
 
+@pytest.mark.parametrize(
+    "names, data, instance_names, result",
+    [
+        (["Emissions"], False, False, ["Emissions"]),
+        (["Emissions"], False, True, ["emissions"]),
+        (["Factor Inputs"], False, True, ["factor_inputs"]),
+        (None, False, True, ["factor_inputs", "emissions"]),
+        (None, False, True, ["emissions", "factor_inputs"]),
+        (None, False, False, ["Emissions", "Factor Inputs"]),
+        (["Emissions", "Factor Inputs"], False, False, ["Emissions", "Factor Inputs"]),
+        (["Emissions", "Factor Inputs"], False, True, ["emissions", "factor_inputs"]),
+    ],
+)
+def test_get_extensions(fix_testmrio, names, data, instance_names, result):
+    tt = fix_testmrio.testmrio
+    exts = list(
+        tt.get_extensions(names=names, data=data, instance_names=instance_names)
+    )
+    assert sorted(exts) == sorted(result)
+
+
 def test_get_index(fix_testmrio):
     """Testing the different options for get_index in core.mriosystem"""
     tt = fix_testmrio.testmrio
@@ -247,7 +268,9 @@ def test_extract(fix_testmrio):
         assert df in new_all.get_DataFrame()
 
     id_air = tt.emissions.match(compartment="air")
-    new_air = pymrio.Extension(name="new_air", **tt.emissions.extract(index=id_air, dataframes=["S", "S_Y"]))
+    new_air = pymrio.Extension(
+        name="new_air", **tt.emissions.extract(index=id_air, dataframes=["S", "S_Y"])
+    )
 
     assert "F" not in new_air.get_DataFrame()
     assert "S" in new_air.get_DataFrame()

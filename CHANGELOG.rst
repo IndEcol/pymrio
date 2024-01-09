@@ -3,8 +3,19 @@ Changelog
 #########
 
 ***************************
-v0.5.3dev
+v0.6dev
 ***************************
+
+Breaking changes
+================
+
+* get_extensions has a new signature. 
+  Two new paramters, names and istance_names.
+  Names allows to filter the extensions by name (set names of the attribute .name).
+  instance_names and be set to False to get the set names of the extensions.
+  When using keyword arguments before, the new signature should just work.
+
+
 
 Depracted
 =========
