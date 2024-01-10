@@ -523,7 +523,7 @@ class BaseSystem:
 
     @property
     def empty(self):
-        """ True, if all dataframes of the system are empty"""
+        """True, if all dataframes of the system are empty"""
         for df in self.get_DataFrame(data=True):
             if len(df) > 0:
                 return False
@@ -1645,7 +1645,8 @@ class Extension(BaseSystem):
         else:
             if not all(elem in self.get_DataFrame() for elem in dataframes):
                 logging.warning(
-                    f"Not all requested dataframes are available in {self.name}")
+                    f"Not all requested dataframes are available in {self.name}"
+                )
             dataframes = [elem for elem in dataframes if elem in self.get_DataFrame()]
 
         for dfname in dataframes:
@@ -2380,10 +2381,9 @@ class IOSystem(BaseSystem):
             extensions, method="contains", find_all=find_all, **kwargs
         )
 
-    def extension_extract(self, index_dict, 
-                          dataframes=None, 
-                          include_empty=False, 
-                          return_type='dataframes'):
+    def extension_extract(
+        self, index_dict, dataframes=None, include_empty=False, return_type="dataframes"
+    ):
         """Get a dict of extension index dicts which match a search pattern
 
         This calls the extension.extract for all extensions.
@@ -2418,20 +2418,22 @@ class IOSystem(BaseSystem):
             the matched rows as values
 
         """
-        if return_type.lower() in ['dataframes', 'df']:
+        if return_type.lower() in ["dataframes", "df"]:
             return_as_extension = False
         else:
             return_as_extension = True
-        
-        if return_type.lower() not in ['dataframes', 'df', 'ext', 'extension']:
+
+        if return_type.lower() not in ["dataframes", "df", "ext", "extension"]:
             ext_name = return_type
         else:
             ext_name = None
 
-
         extracts = self._apply_extension_method(
-            extensions=None, method="extract", index=index_dict, 
-            dataframes=dataframes, return_as_extension=return_as_extension
+            extensions=None,
+            method="extract",
+            index=index_dict,
+            dataframes=dataframes,
+            return_as_extension=return_as_extension,
         )
 
         if (not include_empty) or ext_name:
@@ -2457,8 +2459,7 @@ class IOSystem(BaseSystem):
 
     # CONT: 1) write tests for this, write test for extraction and new extension
     # CONT: 2) write doc for contains, match, - function, extension function and top-level function
-    # show a new extension can be built 
-    
+    # show a new extension can be built
 
     def _apply_extension_method(self, extensions, method, *args, **kwargs):
         """Apply a method to a list of extensions
