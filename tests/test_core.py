@@ -132,7 +132,6 @@ def test_get_extension_raise(fix_testmrio):
         )
 
 
-(["emissions", "facor_inputs"], False, False, pytest.raises(ValueError)),
 
 
 def test_get_index(fix_testmrio):
@@ -285,23 +284,58 @@ def test_extract(fix_testmrio):
     tt = fix_testmrio.testmrio.copy().calc_all()
 
     all_index = tt.emissions.get_index()
-    new_all = pymrio.Extension(name="new_all", **tt.emissions.extract(all_index))
+    new_all = tt.emissions.extract(all_index, return_as_extension="new_all")
+
     assert new_all.name == "new_all"
     for df in tt.emissions.get_DataFrame():
         assert df in new_all.get_DataFrame()
 
-    id_air = tt.emissions.match(compartment="air")
-    new_air = pymrio.Extension(
-        name="new_air", **tt.emissions.extract(index=id_air, dataframes=["S", "S_Y"])
-    )
+    name_check = tt.emissions.extract(all_index, return_as_extension=True)
+    assert name_check.name == "Emissions_extracted"
+    for df in tt.emissions.get_DataFrame():
+        assert df in name_check.get_DataFrame()
 
-    assert "F" not in new_air.get_DataFrame()
+    id_air = tt.emissions.match(compartment="air")
+    new_air = tt.emissions.extract(index=id_air, return_as_extension="new_air") 
+
+    assert "F" in new_air.get_DataFrame()
     assert "S" in new_air.get_DataFrame()
     assert "S_Y" in new_air.get_DataFrame()
 
-    with pytest.raises(AttributeError):
-        tt.emissions.extract(index=id_air, dataframes=["S", "FOO"])
+    with_missing = tt.emissions.extract(index=id_air, dataframes=["F", "FOO"])
+    assert "F" in with_missing.keys()
+    assert "FOO" not in with_missing.keys()
 
+def test_extension_extract(fix_testmrio):
+    tt = fix_testmrio.testmrio
+
+    match_air = tt.extension_match(find_all="air")
+
+    dfa = tt.extension_extract(match_air, dataframes=["F", "F_Y"], include_empty=True)
+    assert dfa["Factor Inputs"]["F"].shape[0] == 0
+
+    exta = tt.extension_extract(match_air, dataframes=["F", "F_Y"], include_empty=True, return_as_extension=True )
+    assert exta["Factor Inputs"].F.shape[0] == 0
+    assert exta["Factor Inputs"].name == "Factor Inputs_extracted"
+    assert exta["Emissions"].name == "Emissions_extracted"
+
+    dfr = tt.extension_extract(match_air, dataframes=["F", "F_Y"], include_empty=False)
+    extr = tt.extension_extract(match_air, dataframes=["F", "F_Y"], include_empty=False, return_as_extension=True)
+    assert dfr["Emissions"]["F"].index[0] == ("emission_type1", "air")
+    assert extr["Emissions"].F.index[0] == ("emission_type1", "air")
+
+
+    match_more = tt.extension_match(find_all="air|Value")
+    tt.calc_all()
+    dfm = tt.extension_extract(match_more, include_empty=True, return_type='new')
+    assert dfm.name == 'new'
+    assert ("emission_type1", "air") in dfm.F.index
+    assert ("Value Added") in dfm.F.index
+    assert ("emission_type1", "air") in dfm.F_Y.index
+    assert ("Value Added") in dfm.F_Y.index
+    assert dfm.F_Y.loc["Value Added", :].sum().sum() == 0
+    assert all(dfm.get_regions() == tt.get_regions())
+    assert all(dfm.get_sectors() == tt.get_sectors())
 
 def test_diag_stressor(fix_testmrio):
     stressor_name = ("emission_type1", "air")
@@ -651,6 +685,8 @@ def test_extension_match_contain(fix_testmrio):
     name_match = tt.extension_contains(extensions=["Factor Inputs"], inputtype="Value")
     assert "factor_inputs" not in name_match.keys()
     assert len(name_match["Factor Inputs"]) == 1
+
+
 
 
 def test_direct_account_calc(fix_testmrio):

@@ -521,6 +521,15 @@ class BaseSystem:
                 else:
                     yield key
 
+    @property
+    def empty(self):
+        """ True, if all dataframes of the system are empty"""
+        for df in self.get_DataFrame(data=True):
+            if len(df) > 0:
+                return False
+        else:
+            return True
+
     def save(self, path, table_format="txt", sep="\t", float_format="%.12g"):
         """Saving the system to path
 
@@ -1600,14 +1609,9 @@ class Extension(BaseSystem):
             retdict["name"] = name
         return retdict
 
-    def extract(self, index, dataframes=None):
+    def extract(self, index, dataframes=None, return_as_extension=False):
         """Returns a dict with all available data for a row in the extension.
 
-        Note
-        -----
-        To build a new extension from the extracted data, use the
-        Extension constructor.
-        new_extension = Extension(name='new_extension', **Extension.extract(index))
 
         Parameters
         ----------
@@ -1617,26 +1621,45 @@ class Extension(BaseSystem):
             as value can be passed.
         dataframes : list, optional
             The dataframes which should be extracted. If None (default),
-            all available dataframes are extracted.
+            all available dataframes are extracted. If the list contains
+            dataframes which are not available, a warning is issued and
+            the missing dataframes are ignored.
+        return_as_extension : boolean or str, optional
+            If True, returns an Extension object with the extracted data.
+            Can also be a string with the name for the new extension (otherwise set
+            based on the current extension name +_extracted).
+            If False (default), returns a dict with the extracted data.
+
 
         Returns
         -------
         dict object with the data (pandas DataFrame) for the specific rows
 
         """
-
         if type(index) is dict:
             index = index.get(self.name, None)
 
         retdict = {}
         if dataframes is None:
             dataframes = self.get_DataFrame()
+        else:
+            if not all(elem in self.get_DataFrame() for elem in dataframes):
+                logging.warning(
+                    f"Not all requested dataframes are available in {self.name}")
+            dataframes = [elem for elem in dataframes if elem in self.get_DataFrame()]
 
         for dfname in dataframes:
             data = getattr(self, dfname)
             retdict[dfname] = pd.DataFrame(data.loc[index])
 
-        return retdict
+        if return_as_extension:
+            if type(return_as_extension) is str:
+                ext_name = return_as_extension
+            else:
+                ext_name = self.name + "_extracted"
+            return Extension(name=ext_name, **retdict)
+        else:
+            return retdict
 
     def diag_stressor(self, stressor, name=None, _meta=None):
         """Diagonalize one row of the stressor matrix for a flow analysis.
@@ -2357,7 +2380,10 @@ class IOSystem(BaseSystem):
             extensions, method="contains", find_all=find_all, **kwargs
         )
 
-    def extension_extract(self, index_dict, dataframes=None):
+    def extension_extract(self, index_dict, 
+                          dataframes=None, 
+                          include_empty=False, 
+                          return_type='dataframes'):
         """Get a dict of extension index dicts which match a search pattern
 
         This calls the extension.extract for all extensions.
@@ -2373,6 +2399,18 @@ class IOSystem(BaseSystem):
             The dataframes which should be extracted. If None (default),
             all available dataframes are extracted.
 
+        include_empty: boolean, optional
+            If True, the returned dict contains keys for all extensions,
+            even if no match was found. If False (default), only the
+            extensions with non-empty extracted data are returned.
+
+        return_type: str, optional
+            If 'dataframes' or 'df' (default), the returned dict contains dataframes.
+            If 'extensions' or 'ext', the returned dict contains Extension instances.
+            Any other string: Return one merged extension with the name set to the
+            passed string (this will automatically exclude empty extensions).
+
+
         Returns
         -------
         dict
@@ -2380,9 +2418,43 @@ class IOSystem(BaseSystem):
             the matched rows as values
 
         """
-        return self._apply_extension_method(
-            extensions=None, method="extract", index=index_dict, dataframes=dataframes
+        if return_type.lower() in ['dataframes', 'df']:
+            return_as_extension = False
+        else:
+            return_as_extension = True
+        
+        if return_type.lower() not in ['dataframes', 'df', 'ext', 'extension']:
+            ext_name = return_type
+        else:
+            ext_name = None
+
+
+        extracts = self._apply_extension_method(
+            extensions=None, method="extract", index=index_dict, 
+            dataframes=dataframes, return_as_extension=return_as_extension
         )
+
+        if (not include_empty) or ext_name:
+            if return_as_extension:
+                for ext in list(extracts.keys()):
+                    if extracts[ext].empty:
+                        del extracts[ext]
+            else:
+                # first remove empty dataframes
+                for ext in list(extracts.keys()):
+                    for df in list(extracts[ext].keys()):
+                        if extracts[ext][df].empty:
+                            del extracts[ext][df]
+                # second round remove empty extension keys
+                for ext in list(extracts.keys()):
+                    if not extracts[ext]:
+                        del extracts[ext]
+
+        if ext_name:
+            return concate_extension(*extracts.values(), name=ext_name)
+        else:
+            return extracts
+
     # CONT: 1) write tests for this, write test for extraction and new extension
     # CONT: 2) write doc for contains, match, - function, extension function and top-level function
     # show a new extension can be built 
