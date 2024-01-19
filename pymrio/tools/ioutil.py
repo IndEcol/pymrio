@@ -51,7 +51,6 @@ def is_vector(inp):
 def get_repo_content(path):
     """List of files in a repo (path or zip)
 
-
     Parameters
     ----------
 
@@ -166,12 +165,7 @@ def get_file_para(path, path_in_arc=""):
 
 
 def build_agg_matrix(agg_vector, pos_dict=None):
-    """Agg. matrix based on mapping given in input as numerical or str vector.
-
-    The aggregation matrix has the from nxm with
-
-    -n  new classificaction
-    -m  old classification
+    """ Aggregation based on mapping given in input as numerical or str vector.
 
     Parameters
     ----------
@@ -189,26 +183,47 @@ def build_agg_matrix(agg_vector, pos_dict=None):
             'string in agg_vector' = pos
             (as int, -1 if value should not be included in the aggregation)
 
-    Example 1:
-        input vector: np.array([0, 1, 1, 2]) or ['a', 'b', 'b', 'c']
+    Returns
+    -------
 
-        agg matrix:
+    agg_matrix : numpy ndarray
+        Aggregation matrix with shape (n, m) with n (rows) indicating the 
+        new classification and m (columns) the old classification
 
-           m0  m1  m2  m3
-        n0 1   0   0   0
-        n1 0   1   1   0
-        n2 0   0   0   1
+    Examples
+    ---------
 
-    Example 2:
-        input vector: np.array([1, 0, 0, 2]) or
-                      (['b', 'a', 'a', 'c'], dict(a=0,b=1,c=2))
+    Assume an input vector with either
 
-        agg matrix:
+    >>> inp1 = np.array([0, 1, 1, 2]) 
 
-           m0  m1  m2  m3
-        n0 0   1   1   0
-        n1 1   0   0   0
-        n2 0   0   0   1
+    or 
+
+    >>> inp2 = ['a', 'b', 'b', 'c']
+
+    inp1 and inp2 are equivalent, the entries are just indicators.
+
+    >>> build_agg_matrix(inp1)
+    >>> build_agg_matrix(inp2)
+
+    Returns
+
+    >>> array([[1., 0., 0., 0.],
+    >>>        [0., 1., 1., 0.],
+    >>>        [0., 0., 0., 1.]])
+
+    The order can be defined by a dictionary, thus 
+
+    >>> pymrio.build_agg_matrix(np.array([1, 0, 0, 2]))
+
+    is equivalent to 
+
+    >>> pymrio.build_agg_matrix(['b', 'a', 'a', 'c'], dict(a=0,b=1,c=2))
+
+    >>> array([[0., 1., 1., 0.],
+    >>>        [1., 0., 0., 0.],
+    >>>        [0., 0., 0., 1.]])
+
     """
     if isinstance(agg_vector, np.ndarray):
         agg_vector = agg_vector.flatten().tolist()
@@ -426,24 +441,11 @@ def unique_element(ll):
 
 
 def build_agg_vec(agg_vec, **source):
-    """Builds an combined aggregation vector based on various classifications
+    """Builds an combined aggregation vector considering diff classifications
 
     This function build an aggregation vector based on the order in agg_vec.
     The naming and actual mapping is given in source, either explicitly or by
     pointing to a folder with the mapping.
-
-    >>> build_agg_vec(['EU', 'OECD'], path = 'test')
-    ['EU', 'EU', 'EU', 'OECD', 'REST', 'REST']
-
-    >>> build_agg_vec(['OECD', 'EU'], path = 'test', miss='RoW')
-    ['OECD', 'EU', 'OECD', 'OECD', 'RoW', 'RoW']
-
-    >>> build_agg_vec(['EU', 'orig_regions'], path = 'test')
-    ['EU', 'EU', 'EU', 'reg4', 'reg5', 'reg6']
-
-    >>> build_agg_vec(['supreg1', 'other'], path = 'test',
-    >>>        other = [None, None, 'other1', 'other1', 'other2', 'other2'])
-    ['supreg1', 'supreg1', 'other1', 'other1', 'other2', 'other2']
 
 
     Parameters
@@ -489,7 +491,26 @@ def build_agg_vec(agg_vec, **source):
 
     Returns
     -------
-    list (aggregation vector)
+    list 
+        The aggregation vector
+
+    Examples
+    --------
+
+    >>> build_agg_vec(['EU', 'OECD'], path = 'test')
+    ['EU', 'EU', 'EU', 'OECD', 'REST', 'REST']
+
+    >>> build_agg_vec(['OECD', 'EU'], path = 'test', miss='RoW')
+    ['OECD', 'EU', 'OECD', 'OECD', 'RoW', 'RoW']
+
+    >>> build_agg_vec(['EU', 'orig_regions'], path = 'test')
+    ['EU', 'EU', 'EU', 'reg4', 'reg5', 'reg6']
+
+    >>> build_agg_vec(['supreg1', 'other'], path = 'test',
+    >>>        other = [None, None, 'other1', 'other1', 'other2', 'other2'])
+    ['supreg1', 'supreg1', 'other1', 'other1', 'other2', 'other2']
+
+
 
     """
 

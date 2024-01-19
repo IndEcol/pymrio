@@ -80,7 +80,7 @@ mrio.emissions.get_regions()
 mrio.emissions.get_rows()
 
 # %% [markdown]
-## Searching through the MRIO
+# # Searching through the MRIO
 
 # %% [markdown]
 # Several methods are available to search through the whole MRIO.

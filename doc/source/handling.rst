@@ -4,6 +4,7 @@ Handling MRIO data
 .. toctree::
   :maxdepth: 2
 
+  notebooks/explore
   notebooks/pymrio_directly_assign_attributes
   notebooks/working_with_wiod
   notebooks/working_with_exiobase

@@ -33,6 +33,10 @@ Depracted
   The method get_row_data() is deprecated and will be removed in v0.6.0. 
   Use extension.extract() instead.
 
+Misceallaneous
+==============
+
+* Updated and restructuring of the documentation
 
 ***************************
 v0.5.2 - 20230815
