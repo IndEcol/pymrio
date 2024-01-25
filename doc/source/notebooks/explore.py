@@ -113,9 +113,9 @@ mrio.find('(?i)value')
 # The MRIO class also contains a set of specific regular expresion search methods, mirroring the 'contains', 'match' and 'fullmatch' 
 # methods of the pandas DataFrame str column type. See the pandas documentation for details, in short:
 #
-#   -. 'contains' looks for a match anywhere in the string
-#   -. 'match' looks for a match at the beginning of the string
-#   -. 'fullmatch' looks for a match of the whole string
+#   - 'contains' looks for a match anywhere in the string
+#   - 'match' looks for a match at the beginning of the string
+#   - 'fullmatch' looks for a match of the whole string
 #
 # These methods are available for all index columns of the MRIO and have a similar signature:
 #
@@ -127,7 +127,7 @@ mrio.find('(?i)value')
 
 # %%
 mrio.contains(find_all = 'ad')
-mrio.contains('ad')
+mrio.contains('ad')  # find_all is the default argument
 
 # %%
 mrio.match('ad')
@@ -170,7 +170,7 @@ mrio.factor_inputs.contains(compartment='trade')
 
 # %% [markdown]
 # This allows to search for terms that are only in some index levels.
-# Locially, this is an 'or' search.
+# Logically, this is an 'or' search.
 # %%
 mrio.factor_inputs.contains(compartment='air', inputtype="Value")
 
