@@ -232,12 +232,14 @@ def calc_L(A):
         return np.linalg.inv(I - A)
 
 
-def calc_G(As, L=None):
-    """Calculate the Ghosh inverse matrix G from As (high computation) or from Leontief matrix L (low computation)
+def calc_G(As, L=None, x=None):
+    """Calculate the Ghosh inverse matrix G either from As (high computation effor) or from Leontief matrix L and x
+    (low computation effort)
 
-    G = inverse matrix of (I - As) =
+    G = inverse matrix of (I - As) = hat(x)^{-1} *  L^T * hat(x)
 
-    where I is an identity matrix of same shape as As.
+    where I is an identity matrix of same shape as As, and hat(x) is the diagonal matrix with values of x on the
+    diagonal.
 
     Note that we define G as the transpose of the Ghosh inverse matrix, so that we can apply the factors of
     production intensities from the left-hand-side for both Leontief and Ghosh attribution. In this way the
@@ -270,21 +272,19 @@ def calc_G(As, L=None):
                 recix = 1 / x
             recix[recix == np.inf] = 0
             recix = recix.reshape((1, -1))
-            if type(L) is pd.DataFrame:
-                L = L.values
-                G = np.transpose(x * np.transpose(np.transpose(L) * recix))
-                return pd.DataFrame(G, index=Z.index, columns=Z.columns)
-            else:
-                return np.transpose(x * np.transpose(np.transpose(L) * recix))
-            return
-    else:
+
+        if type(L) is pd.DataFrame:
+            return pd.DataFrame(recix * np.transpose(L.values * x), index=Z.index, columns=Z.columns)
+        else:
+            # G = hat(x)^{-1} *  L^T * hat(x) in mathematical form np.linalg.inv(hatx).dot(L.transpose()).dot(hatx).
+            # it is computationally much faster to multiply element-wise because hatx is a diagonal matrix.
+            return recix * np.transpose(L * x)
+    else:  # calculation of the inverse of I-As has a high computational cost.
         I = np.eye(As.shape[0])  # noqa
         if type(As) is pd.DataFrame:
-            return pd.DataFrame(
-                np.linalg.inv(I - As), index=As.index, columns=As.columns
-            )
+            return pd.DataFrame(np.linalg.inv(I - As), index=As.index, columns=As.columns)
         else:
-            return np.linalg.inv(I - As)
+            return np.linalg.inv(I - As)  # G = inverse matrix of (I - As)
 
 
 def calc_S(F, x):
