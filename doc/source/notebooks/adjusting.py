@@ -15,8 +15,8 @@
 
 # # Adjusting, Renaming and Restructuring
 
-# In this tutorial we will cover how to modify the structure of an MRIO system. 
-# This includes renaming sectors, regions and Y categories, 
+# In this tutorial we will cover how to modify the structure of an MRIO system.
+# This includes renaming sectors, regions and Y categories,
 # as well as restructuring (extracting and merging) satellite accounts.
 
 
@@ -91,13 +91,87 @@ mrio.rename_sectors(conv_dict)
 mrio.get_sectors()
 
 
-# In the mrio_class.sectors you will also find an entry 'Type' which represents a many to one mapping. This can be used for aggregating the MRIO and is explained [in the aggregation tutorial](aggregation_examples.ipynb#Aggregation-by-renaming).
+# In the mrio_class.sectors you will also find an entry 'Type' which
+# represents a many to one mapping.
+# This can be used for aggregating the
+# MRIO and is explained [in the aggregation tutorial](aggregation_examples.ipynb#Aggregation-by-renaming).
 
-## Extracting satellite accounts
+# # Extracting satellite accounts
 
 # Each extension/satellite account of the MRIO contains a method 'extract'.
+# This takes an index and extracts the corresponding satellite account entries.
+# The index can either be obtained manually, or one can use the contains/match/fullmatch methods of the extension to get the index.
 
+# Below we extract all extensions rows from the emission satallite account which contain the word 'air'.
 
-# Satellite accounts can be extracted from the MRIO system by using the extension_extract method. This method takes the name of the satellite account as first argument and a list of regions as second argument. The regions can be given as a list of region names or as a list of region indices. The method returns a new MRIO system with the extracted satellite account.
+air_emission_index = mrio.emissions.contains("air")
+air_accounts_dict = mrio.emissions.extract(index=air_emission_index)
 
-mrio.extension_extract("emissions", ["reg1", "reg2"])
+# The result is a dictionary with the extracted satellite accounts. The keys are the names of the satellite accounts and the values are the extracted satellite accounts.
+
+air_accounts_dict.keys()
+
+# Alternatively, one can automatically convert the extracted satellite accounts to a new MRIO extension.
+
+air_accounts_extension = mrio.emissions.extract(
+    index=air_emission_index, return_as_extension=True
+)
+print(air_accounts_extension)
+
+# The extract method can also be applied over all extensions.
+# This work well in combinaton with the contains/match/fullmatch methods of the extension.
+
+# Satellite accounts can be extracted from the MRIO system
+# by using the extension_extract method.
+# This method takes the name of the satellite account as first argument
+# and a list of regions as second argument.
+# The regions can be given as a list of region names or as a list of region indices.
+# The method returns a new MRIO system with the extracted satellite account.
+
+# In the somehow derived example below we extract entries accross
+# all accounts that contain the word 'Added' or the letter 2.
+
+cross_accounts_index = mrio.extension_contains("Added|2")
+
+# We can also extract all data from the satellite accounts with these indexes.
+
+cross_accounts_dict = mrio.extension_extract(cross_accounts_index)
+
+# This returns a dictionary of dictionaries with the extracted satellite accounts.
+
+cross_accounts_dict.keys()
+
+cross_accounts_dict["Emissions"].keys()
+
+# Again, we can also build a new MRIO extension from the extracted satellite accounts.
+
+# This can be either one per extension (by passing return_type="extension")
+
+cross_accounts_extension = mrio.extension_extract(
+    cross_accounts_index, return_type="extension"
+)
+
+# Or by passing any other string to return_type, which will be used as the new name of the extension.
+
+cross_accounts_all_new = mrio.extension_extract(
+    cross_accounts_index, return_type="new_name"
+)
+
+print(cross_accounts_all_new)
+
+# Index values levels and names of the new extension are based on the combination
+# of the original extensions index levels.
+# These are filled for nan for entries which did not have them before.
+
+cross_accounts_all_new.get_rows()
+
+# Both extract methods, extension_extract and extract, can also be used to extract only
+# a subset of the available dataframe accounts. This can be done by passing a list of
+# dataframe names to the dataframes parameter.
+
+only_fys = mrio.extension_extract(
+    cross_accounts_index, dataframes=["F_Y"], include_empty=True
+)
+
+only_fys.keys()
+only_fys["Emissions"].keys()

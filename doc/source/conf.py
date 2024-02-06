@@ -78,6 +78,7 @@ copyright = "2014, Konstantin Stadler"
 # The short X.Y version.
 
 import pymrio  # noqa
+
 version = pymrio.__version__
 # The full version, including alpha/beta/rc tags.
 release = pymrio.__version__

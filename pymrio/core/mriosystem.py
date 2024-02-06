@@ -2384,7 +2384,7 @@ class IOSystem(BaseSystem):
     def extension_extract(
         self, index_dict, dataframes=None, include_empty=False, return_type="dataframes"
     ):
-        """Get a dict of extension index dicts which match a search pattern
+        """Extract extension data accross all extensions.
 
         This calls the extension.extract for all extensions.
 
@@ -2456,10 +2456,6 @@ class IOSystem(BaseSystem):
             return concate_extension(*extracts.values(), name=ext_name)
         else:
             return extracts
-
-    # CONT: 1) write tests for this, write test for extraction and new extension
-    # CONT: 2) write doc for contains, match, - function, extension function and top-level function
-    # show a new extension can be built
 
     def _apply_extension_method(self, extensions, method, *args, **kwargs):
         """Apply a method to a list of extensions

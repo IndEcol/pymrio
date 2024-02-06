@@ -165,7 +165,7 @@ def get_file_para(path, path_in_arc=""):
 
 
 def build_agg_matrix(agg_vector, pos_dict=None):
-    """ Aggregation based on mapping given in input as numerical or str vector.
+    """Aggregation based on mapping given in input as numerical or str vector.
 
     Parameters
     ----------
@@ -187,7 +187,7 @@ def build_agg_matrix(agg_vector, pos_dict=None):
     -------
 
     agg_matrix : numpy ndarray
-        Aggregation matrix with shape (n, m) with n (rows) indicating the 
+        Aggregation matrix with shape (n, m) with n (rows) indicating the
         new classification and m (columns) the old classification
 
     Examples
@@ -195,9 +195,9 @@ def build_agg_matrix(agg_vector, pos_dict=None):
 
     Assume an input vector with either
 
-    >>> inp1 = np.array([0, 1, 1, 2]) 
+    >>> inp1 = np.array([0, 1, 1, 2])
 
-    or 
+    or
 
     >>> inp2 = ['a', 'b', 'b', 'c']
 
@@ -212,11 +212,11 @@ def build_agg_matrix(agg_vector, pos_dict=None):
     >>>        [0., 1., 1., 0.],
     >>>        [0., 0., 0., 1.]])
 
-    The order can be defined by a dictionary, thus 
+    The order can be defined by a dictionary, thus
 
     >>> pymrio.build_agg_matrix(np.array([1, 0, 0, 2]))
 
-    is equivalent to 
+    is equivalent to
 
     >>> pymrio.build_agg_matrix(['b', 'a', 'a', 'c'], dict(a=0,b=1,c=2))
 
@@ -491,7 +491,7 @@ def build_agg_vec(agg_vec, **source):
 
     Returns
     -------
-    list 
+    list
         The aggregation vector
 
     Examples
