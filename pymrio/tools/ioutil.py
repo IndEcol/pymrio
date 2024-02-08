@@ -995,3 +995,73 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
             _dfs_idx = pd.Index([])
 
     return _dfs_idx
+
+def _get_sample():
+    # DEV: Remove for release
+     
+    pass
+
+def match_and_convert(df, factor=1, **kwargs):
+    """
+
+    Parameters
+    ----------
+
+    df: pd.DataFrame
+        The DataFrame to process.
+        Index levels must be named, all matching occurs on the index.
+
+    factor: float, optional
+        The factor to multiply the matching values with.
+        Default: 1
+
+    kwargs: One for each index level which should be matched.
+
+
+    """
+    
+    factor = 1000
+
+    kwargs = dict(
+    stressor = r"emission_type.*",
+    compartment = r".*",
+    sector = r"food|mining",
+    rename_stressor = "ghg",
+    rename_compartment = "air",
+    rename_sector = None,
+    )
+
+    match_kwargs = {k:v for k,v in kwargs.items() if not k.startswith('rename_')}
+    rename_kwargs = {k:v for k,v in kwargs.items() if k.startswith('rename_')}
+
+    # emission_type1, emission_type2 - emission
+    # emission_type1, emission_type2 - ghg_type1, ghg_type2
+    # match = pymrio.index_match(df_ix=FF, stressor="emission_type.*")
+
+    match = pymrio.index_match(df_ix=FF, **match_kwargs)
+
+    for rename_idx_level, new_name in rename_kwargs.items():
+        if new_name:
+            idx_level = rename_idx_level.split('rename_')[1]
+            match = match.reset_index(idx_level)
+            match.loc[:, idx_level] = new_name
+            match = match.set_index(idx_level, append=True)
+
+    # CONT: find duplicates in index and aggregate
+    multi = match * factor
+    res = multi.agg(func='sum', axis=0) 
+    res
+
+    multi.groupby(level=['compartment', 'sector']).agg(func='sum')
+
+    import re
+
+    # write re.sub which converts: emission_type1, emission_type2 - emission
+    text = "emission_type1, emission_type2"
+    re.sub(r"emission", "ghg", text)
+
+    re.sub(r"\w+", "ghg", text)
+
+
+    pass
+
