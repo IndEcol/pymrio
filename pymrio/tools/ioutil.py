@@ -1001,9 +1001,64 @@ def _get_sample():
      
     pass
 
-def match_and_convert(df, factor=1, **kwargs):
+
+
+def match_and_convert(df_orig, df_map, agg_func):
+    """ Match and convert a DataFrame to a new classification
+    
+    Parameters
+    ----------
+    df_orig : pd.DataFrame
+        The DataFrame to process. All matching occurs on the index.
+        Thus stack the table if necessary.
+
+    df_map : pd.DataFrame
+        The DataFrame with the mapping of the old to the new classification.
+        This needs a specific structure.
+        Required columns:
+            
+            One columns/or index? for each match level
+        
+        Optional columns:
+            A new name, these
+
+    
+    stressor ... original index name
+    compartment ... original index name
+    factor ... the factor for multiplication
+    impact__stressor ... the new index name, replacing the stressor name
+    compartment__compartment ... the new compartment, from the original compartment
+    region__region ... the new region, from the original region
+    agg_func ... the aggregation function to use for multiple impact
+
+    Extension for extensions:
+    extensino ... extension name
+    unit_orig ... the original unit (optional, for double check with the unit)
+    unit_new ... the new unit to be set for the extension
+
     """
 
+
+    df_map = pd.DataFrame(
+        {
+            "stressor": ["emission_type1", "emission_type2"],
+            "compartment": ["air", "water"],
+            "factor": [1, 2],
+            "impact": ["ghg", "ghg"],
+            "compartment_compartment": ["air", "water"],
+            "region_new": ["region1", "region2"],
+            "unit_orig": ["kg", "kg"],
+            "unit_new": ["kg", "kg"],
+        }
+    )
+
+
+
+    pass
+
+def match_and_convert_legacy(df, factor=1, **kwargs):
+    """
+    OLD
     Parameters
     ----------
 
