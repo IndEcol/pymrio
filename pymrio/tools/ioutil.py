@@ -1004,7 +1004,7 @@ def _get_sample():
 
 
 
-def match_and_convert(df_orig, df_map, agg_func):
+def match_and_convert(df_orig, df_map, agg_func='sum'):
     """ Match and convert a DataFrame to a new classification
     
     Parameters
@@ -1031,6 +1031,7 @@ def match_and_convert(df_orig, df_map, agg_func):
         Some additional columns are possible, but not necessary:
 
         agg_func ... the aggregation function to use for multiple impact (summation by default)
+                    If passed as a column here, that overrides the default value/value passed as argument
         unit_orig ... the original unit (optional, for double check with an potential unit column in the original df)
         unit_new ... the new unit to be set as the unit column in the new df
 
@@ -1042,45 +1043,6 @@ def match_and_convert(df_orig, df_map, agg_func):
 
     """
 
-    # TESTS
-    to_char = pd.DataFrame(
-        data=5,
-        index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
-        columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
-    )
-    to_char.columns.names = ["reg", "sec"]
-    to_char.index.names = ["em_type", "compart"] 
-
-    mapping = pd.DataFrame(
-        columns=["em_type", "compart", "total__em_type", "factor"],
-        data=[["em.*", "air|water", "total_regex", 2], 
-              ["em1", "air", "total_sum", 2], 
-              ["em1", "water", "total_sum", 2], 
-              ["em2", "air", "total_sum", 2], 
-              ["em2", "water", "total_sum", 2], 
-              ["em1", "air", "all_air", 0.5], 
-              ["em2", "air", "all_air", 0.5]],
-    )
-
-    exp_res = pd.DataFrame(
-        columns = to_char.columns,
-        index = ["total_regex", "total_sum", "all_air"])
-    exp_res.loc['all_air'] = to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
-    exp_res.loc['total_regex'] = (to_char.sum(axis=1) * 2).values
-    exp_res.loc['total_sum'] = (to_char.sum(axis=1) * 2).values
-    exp_res = exp_res.astype(float)
-    exp_res.sort_index(inplace=True)
-
-    res = match_and_convert(to_char, mapping, agg_func="sum")
-    res.sort_index(inplace=True)
-
-    exp_res.index.names = res.index.names
-    exp_res.columns.names = res.columns.names
-
-    df_map = mapping
-    df_orig = to_char
-    # TEST END
-
     new_col = [col for col in df_map.columns if "__" in col]
     unique_new_index = df_map.loc[:, new_col].value_counts()
 
@@ -1089,96 +1051,27 @@ def match_and_convert(df_orig, df_map, agg_func):
 
     # loop over each new impact/characterized value
     for char in unique_new_index.index:
-        # __import__('pdb').set_trace()
         if len(char) == 1:
             df_cur_map = df_map.loc[[char[0]]]
         else:
             df_cur_map = df_map.loc[[char]]
-        agg_method = df_cur_map.agg_func if 'agg_func' in df_cur_map.columns else 'sum'
+        agg_method = df_cur_map.agg_func if 'agg_func' in df_cur_map.columns else agg_func
         df_agg = pd.DataFrame(columns=df_orig.columns, index=df_cur_map.index, data=0)
         df_agg.index.names = [n.split('__')[0] for n in df_agg.index.names]
         collector = []
 
+        # the loop for getting all (potential) regex matches
         for row in df_cur_map.iterrows():
-            # find via regex match - can be multiple entries defined in one row
             matched_entries = index_fullmatch(df_ix=df_orig, **row[1].to_dict())
             mul_entries = matched_entries * row[1].factor
             aggregated = mul_entries.aggregate(agg_method, axis=0)
             collector.append(aggregated)
 
-        df_collected = pd.concat(collector, axis=0)
-        # FIX: - think about adding the index (right amount for after the aggregation)
-        # CONT:
-        df_collected.index = df_agg.index
+
+        df_collected = pd.concat(collector, axis=1).T
+        df_collected.index = np.repeat(df_cur_map.index.unique(), df_collected.shape[0])
 
         res_collector.append(df_collected.groupby(by=df_collected.index.names).agg(agg_method))
 
-
     return pd.concat(res_collector, axis=0)
-
-
-
-def match_and_convert_legacy(df, factor=1, **kwargs):
-    """
-    OLD
-    Parameters
-    ----------
-
-    df: pd.DataFrame
-        The DataFrame to process.
-        Index levels must be named, all matching occurs on the index.
-
-    factor: float, optional
-        The factor to multiply the matching values with.
-        Default: 1
-
-    kwargs: One for each index level which should be matched.
-
-
-    """
-    
-    factor = 1000
-
-    kwargs = dict(
-    stressor = r"emission_type.*",
-    compartment = r".*",
-    sector = r"food|mining",
-    rename_stressor = "ghg",
-    rename_compartment = "air",
-    rename_sector = None,
-    )
-
-    match_kwargs = {k:v for k,v in kwargs.items() if not k.startswith('rename_')}
-    rename_kwargs = {k:v for k,v in kwargs.items() if k.startswith('rename_')}
-
-    # emission_type1, emission_type2 - emission
-    # emission_type1, emission_type2 - ghg_type1, ghg_type2
-    # match = pymrio.index_match(df_ix=FF, stressor="emission_type.*")
-
-    match = pymrio.index_match(df_ix=FF, **match_kwargs)
-
-    for rename_idx_level, new_index_name in rename_kwargs.items():
-        if new_index_name:
-            idx_level = rename_idx_level.split('rename_')[1]
-            match = match.reset_index(idx_level)
-            match.loc[:, idx_level] = new_index_name
-            match = match.set_index(idx_level, append=True)
-
-    # CONT: find duplicates in index and aggregate
-    multi = match * factor
-    res = multi.agg(func='sum', axis=0) 
-    res
-
-    multi.groupby(level=['compartment', 'sector']).agg(func='sum')
-
-    import re
-
-    # write re.sub which converts: emission_type1, emission_type2 - emission
-    text = "emission_type1, emission_type2"
-    re.sub(r"emission", "ghg", text)
-
-    re.sub(r"\w+", "ghg", text)
-
-
-    pass
 
