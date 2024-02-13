@@ -430,4 +430,37 @@ def test_char_table():
 
     pdt.assert_frame_equal(res2, exp_res2)
 
+    # TEST3 with passing through one index to the results
+    # Done for compartment here
+
+    map_test3 = pd.DataFrame(
+        columns=["em_type", "compart", "total__em_type", "compart__compart", "factor"],
+        data=[["em.*", "air|water", "total_regex", "all", 2], 
+              ["em1", "air", "total_sum", "all", 2], 
+              ["em1", "water", "total_sum", "all",  2], 
+              ["em2", "air", "total_sum", "all", 2], 
+              ["em2", "water", "total_sum", "all", 2], 
+              ["em1", "air", "all_air", "air", 0.5], 
+              ["em2", "air", "all_air", "air", 0.5]],
+    )
+
+    # alternative way to calculated the expected result
+    exp_res3 = pd.DataFrame(
+        columns = to_char.columns,
+        index = pd.MultiIndex.from_tuples(
+            [("total_regex", "all"), ("total_sum", "all"), ("all_air", "air")]))
+    exp_res3.loc[('all_air', 'air')] = to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
+    exp_res3.loc[('total_regex', 'all')] = (to_char.sum(axis=1) * 2).values
+    exp_res3.loc[('total_sum', 'all')] = (to_char.sum(axis=1) * 2).values
+    exp_res3 = exp_res3.astype(float)
+    exp_res3.sort_index(inplace=True)
+
+    res3 = match_and_convert(to_char, map_test3)
+    res3.sort_index(inplace=True)
+
+    exp_res3.index.names = res3.index.names
+    exp_res3.columns.names = res3.columns.names
+
+    pdt.assert_frame_equal(res3, exp_res3)
+
 

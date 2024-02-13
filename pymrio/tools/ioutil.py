@@ -1026,7 +1026,7 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
         compartment ... original index name
         factor ... the factor for multiplication
         impact__stressor ... the new index name, replacing the stressor name
-        compartment__compartment ... the new compartment, from the original compartment
+        compartment__compartment ... the new compartment, replacing the original compartment
 
         Some additional columns are possible, but not necessary:
 
@@ -1044,32 +1044,37 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
     """
 
     new_col = [col for col in df_map.columns if "__" in col]
-    unique_new_index = df_map.loc[:, new_col].value_counts()
+    unique_new_index = df_map.loc[:, new_col].value_counts().index
 
     df_map = df_map.set_index(new_col) 
     res_collector = []
 
     # loop over each new impact/characterized value
-    for char in unique_new_index.index:
+    for char in unique_new_index:
         if len(char) == 1:
             df_cur_map = df_map.loc[[char[0]]]
         else:
             df_cur_map = df_map.loc[[char]]
         agg_method = df_cur_map.agg_func if 'agg_func' in df_cur_map.columns else agg_func
-        df_agg = pd.DataFrame(columns=df_orig.columns, index=df_cur_map.index, data=0)
-        df_agg.index.names = [n.split('__')[0] for n in df_agg.index.names]
+
         collector = []
 
-        # the loop for getting all (potential) regex matches
+        # the loop for getting all (potential regex) matches and multiplication
         for row in df_cur_map.iterrows():
             matched_entries = index_fullmatch(df_ix=df_orig, **row[1].to_dict())
             mul_entries = matched_entries * row[1].factor
-            aggregated = mul_entries.aggregate(agg_method, axis=0)
-            collector.append(aggregated)
+            collector.append(mul_entries)
 
+        df_collected = pd.concat(collector, axis=0)
 
-        df_collected = pd.concat(collector, axis=1).T
-        df_collected.index = np.repeat(df_cur_map.index.unique(), df_collected.shape[0])
+        new_idx = df_cur_map.index.unique()
+        new_idx.names = [name.split('__')[0] for name in new_idx.names]
+        df_collected.index = np.repeat(new_idx, df_collected.shape[0])
+        # CONT: 
+        # Mkae a pass through of an index level which should be passed through
+        # Think of regions, or res3 in the test system
+
+        df_collected.groupby(by=df_collected.index.names).agg(agg_method)
 
         res_collector.append(df_collected.groupby(by=df_collected.index.names).agg(agg_method))
 
