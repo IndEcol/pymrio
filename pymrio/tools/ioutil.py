@@ -3,6 +3,7 @@ Utility function for pymrio
 
 KST 20140502
 """
+
 import json
 import logging
 import os
@@ -1014,22 +1015,25 @@ def match_and_convert(df_orig, df_map, agg_func):
 
     df_map : pd.DataFrame
         The DataFrame with the mapping of the old to the new classification.
-        This needs a specific structure.
-        Required columns:
-            
-            One columns/or index? for each match level
-        
-        Optional columns:
-            A new name, these
+        This requires a specific structure, which depends on the structure of the 
+        dataframe to be characterized: one column for each index level in the dataframe
+        and one column for each new index level in the characterized result dataframe.
 
+        This is better explained with an example. Assuming a dataframe with index names 'stressor' and 'compartment'
+        the characterizing dataframe would have the following structure:
     
-    stressor ... original index name
-    compartment ... original index name
-    factor ... the factor for multiplication
-    impact__stressor ... the new index name, replacing the stressor name
-    compartment__compartment ... the new compartment, from the original compartment
-    region__region ... the new region, from the original region
-    agg_func ... the aggregation function to use for multiple impact
+        stressor ... original index name
+        compartment ... original index name
+        factor ... the factor for multiplication
+        impact__stressor ... the new index name, replacing the stressor name
+        compartment__compartment ... the new compartment, from the original compartment
+
+        Some additional columns are possible, but not necessary:
+
+        agg_func ... the aggregation function to use for multiple impact (summation by default)
+        unit_orig ... the original unit (optional, for double check with an potential unit column in the original df)
+        unit_new ... the new unit to be set as the unit column in the new df
+
 
     Extension for extensions:
     extensino ... extension name
@@ -1038,23 +1042,81 @@ def match_and_convert(df_orig, df_map, agg_func):
 
     """
 
+    # TESTS
+    to_char = pd.DataFrame(
+        data=5,
+        index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
+        columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
+    )
+    to_char.columns.names = ["reg", "sec"]
+    to_char.index.names = ["em_type", "compart"] 
 
-    df_map = pd.DataFrame(
-        {
-            "stressor": ["emission_type1", "emission_type2"],
-            "compartment": ["air", "water"],
-            "factor": [1, 2],
-            "impact": ["ghg", "ghg"],
-            "compartment_compartment": ["air", "water"],
-            "region_new": ["region1", "region2"],
-            "unit_orig": ["kg", "kg"],
-            "unit_new": ["kg", "kg"],
-        }
+    mapping = pd.DataFrame(
+        columns=["em_type", "compart", "total__em_type", "factor"],
+        data=[["em.*", "air|water", "total_regex", 2], 
+              ["em1", "air", "total_sum", 2], 
+              ["em1", "water", "total_sum", 2], 
+              ["em2", "air", "total_sum", 2], 
+              ["em2", "water", "total_sum", 2], 
+              ["em1", "air", "all_air", 0.5], 
+              ["em2", "air", "all_air", 0.5]],
     )
 
+    exp_res = pd.DataFrame(
+        columns = to_char.columns,
+        index = ["total_regex", "total_sum", "all_air"])
+    exp_res.loc['all_air'] = to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
+    exp_res.loc['total_regex'] = (to_char.sum(axis=1) * 2).values
+    exp_res.loc['total_sum'] = (to_char.sum(axis=1) * 2).values
+    exp_res = exp_res.astype(float)
+    exp_res.sort_index(inplace=True)
+
+    res = match_and_convert(to_char, mapping, agg_func="sum")
+    res.sort_index(inplace=True)
+
+    exp_res.index.names = res.index.names
+    exp_res.columns.names = res.columns.names
+
+    df_map = mapping
+    df_orig = to_char
+    # TEST END
+
+    new_col = [col for col in df_map.columns if "__" in col]
+    unique_new_index = df_map.loc[:, new_col].value_counts()
+
+    df_map = df_map.set_index(new_col) 
+    res_collector = []
+
+    # loop over each new impact/characterized value
+    for char in unique_new_index.index:
+        # __import__('pdb').set_trace()
+        if len(char) == 1:
+            df_cur_map = df_map.loc[[char[0]]]
+        else:
+            df_cur_map = df_map.loc[[char]]
+        agg_method = df_cur_map.agg_func if 'agg_func' in df_cur_map.columns else 'sum'
+        df_agg = pd.DataFrame(columns=df_orig.columns, index=df_cur_map.index, data=0)
+        df_agg.index.names = [n.split('__')[0] for n in df_agg.index.names]
+        collector = []
+
+        for row in df_cur_map.iterrows():
+            # find via regex match - can be multiple entries defined in one row
+            matched_entries = index_fullmatch(df_ix=df_orig, **row[1].to_dict())
+            mul_entries = matched_entries * row[1].factor
+            aggregated = mul_entries.aggregate(agg_method, axis=0)
+            collector.append(aggregated)
+
+        df_collected = pd.concat(collector, axis=0)
+        # FIX: - think about adding the index (right amount for after the aggregation)
+        # CONT:
+        df_collected.index = df_agg.index
+
+        res_collector.append(df_collected.groupby(by=df_collected.index.names).agg(agg_method))
 
 
-    pass
+    return pd.concat(res_collector, axis=0)
+
+
 
 def match_and_convert_legacy(df, factor=1, **kwargs):
     """
@@ -1095,11 +1157,11 @@ def match_and_convert_legacy(df, factor=1, **kwargs):
 
     match = pymrio.index_match(df_ix=FF, **match_kwargs)
 
-    for rename_idx_level, new_name in rename_kwargs.items():
-        if new_name:
+    for rename_idx_level, new_index_name in rename_kwargs.items():
+        if new_index_name:
             idx_level = rename_idx_level.split('rename_')[1]
             match = match.reset_index(idx_level)
-            match.loc[:, idx_level] = new_name
+            match.loc[:, idx_level] = new_index_name
             match = match.set_index(idx_level, append=True)
 
     # CONT: find duplicates in index and aggregate

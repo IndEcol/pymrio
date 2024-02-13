@@ -16,18 +16,19 @@ from faker import Faker
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
 
-from pymrio.tools.ioutil import build_agg_matrix  # noqa
-from pymrio.tools.ioutil import build_agg_vec  # noqa
-from pymrio.tools.ioutil import diagonalize_blocks  # noqa
-from pymrio.tools.ioutil import find_first_number  # noqa
-from pymrio.tools.ioutil import set_block  # noqa
-from pymrio.tools.ioutil import sniff_csv_format  # noqa
-from pymrio.tools.ioutil import (
+from pymrio.tools.ioutil import (  # noqa
+    build_agg_matrix,
+    build_agg_vec,
+    diagonalize_blocks,
+    find_first_number,
+    set_block,
+    sniff_csv_format,
     diagonalize_columns_to_sectors,  # noqa
     filename_from_url,
     index_contains,
     index_fullmatch,
     index_match,
+    match_and_convert,
 )
 
 
@@ -352,3 +353,47 @@ def test_util_regex():
     df_none_match_index = index_contains(test_index, not_present_column="abc")
     assert len(df_none_match) == 0
     assert len(df_none_match_index) == 0
+
+
+def test_char_table():
+    """ Testing the characterization of one table """
+
+    to_char = pd.DataFrame(
+        data=5,
+        index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
+        columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
+    )
+    to_char.columns.names = ["reg", "sec"]
+    to_char.index.names = ["em_type", "compart"] 
+
+    mapping = pd.DataFrame(
+        columns=["em_type", "compart", "total__em_type", "factor"],
+        data=[["em.*", "air|water", "total_regex", 2], 
+
+              ["em1", "air", "total_sum", 2], 
+              ["em1", "water", "total_sum", 2], 
+              ["em2", "air", "total_sum", 2], 
+              ["em2", "water", "total_sum", 2], 
+
+              ["em1", "air", "all_air", 0.5], 
+              ["em2", "air", "all_air", 0.5]],
+    )
+
+    exp_res = pd.DataFrame(
+        columns = to_char.columns,
+        index = ["total_regex", "total_sum", "all_air"])
+    exp_res.loc['all_air'] = to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
+    exp_res.loc['total_regex'] = (to_char.sum(axis=1) * 2).values
+    exp_res.loc['total_sum'] = (to_char.sum(axis=1) * 2).values
+    exp_res = exp_res.astype(float)
+    exp_res.sort_index(inplace=True)
+
+    res = match_and_convert(to_char, mapping, agg_func="sum")
+    res.sort_index(inplace=True)
+
+    exp_res.index.names = res.index.names
+    exp_res.columns.names = res.columns.names
+
+    pdt.assert_frame_equal(res, exp_res)
+
+
