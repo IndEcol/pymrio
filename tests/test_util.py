@@ -393,7 +393,9 @@ def test_char_table():
     res1 = match_and_convert(to_char, map_test1)
     res1.sort_index(inplace=True)
 
+
     exp_res1.index.names = res1.index.names
+
     exp_res1.columns.names = res1.columns.names
 
     pdt.assert_frame_equal(res1, exp_res1)

@@ -1028,6 +1028,8 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
         impact__stressor ... the new index name, replacing the stressor name
         compartment__compartment ... the new compartment, replacing the original compartment
 
+        The structure "stressor" and "impact_stressor" is important.
+
         Some additional columns are possible, but not necessary:
 
         agg_func ... the aggregation function to use for multiple impact (summation by default)
@@ -1042,6 +1044,39 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
     unit_new ... the new unit to be set for the extension
 
     """
+
+    # DEV: Remove for release
+    # agg_func = 'sum'
+    # df_map = pd.DataFrame(
+    #     columns=["em_type", "compart", "total__em_type", "factor"],
+    #     data=[["em.*", "air|water", "total_regex", 2], 
+    #           ["em1", "air", "total_sum", 2], 
+    #           ["em1", "water", "total_sum", 2], 
+    #           ["em2", "air", "total_sum", 2], 
+    #           ["em2", "water", "total_sum", 2], 
+    #           ["em1", "air", "all_air", 0.5], 
+    #           ["em2", "air", "all_air", 0.5]],
+    # )
+    #
+    # df_map = pd.DataFrame(
+    #     columns=["em_type", "total__em_type", "factor"],
+    #     data=[["em.*",  "total_regex", 2], 
+    #           ["em1",  "total_sum", 2], 
+    #           ["em1",  "total_sum", 2], 
+    #           ["em2",  "total_sum", 2], 
+    #           ["em2",  "total_sum", 2], 
+    #           ["em1",  "all_air", 0.5], 
+    #           ["em2",  "all_air", 0.5]],
+    # )
+
+    #
+    # df_orig = pd.DataFrame(
+    #     data=5,
+    #     index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
+    #     columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
+    # )
+    # df_orig.columns.names = ["reg", "sec"]
+    # df_orig.index.names = ["em_type", "compart"] 
 
     new_col = [col for col in df_map.columns if "__" in col]
     unique_new_index = df_map.loc[:, new_col].value_counts().index
@@ -1067,15 +1102,41 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
 
         df_collected = pd.concat(collector, axis=0)
 
-        new_idx = df_cur_map.index.unique()
-        new_idx.names = [name.split('__')[0] for name in new_idx.names]
-        df_collected.index = np.repeat(new_idx, df_collected.shape[0])
-        # CONT: 
-        # Mkae a pass through of an index level which should be passed through
-        # Think of regions, or res3 in the test system
+        new_name_order = []
 
-        df_collected.groupby(by=df_collected.index.names).agg(agg_method)
+        for idx_rename in df_cur_map.index.names:
+            try:
+                new_idx_rename, old_idx_rename = idx_rename.split('__')
+                new_name_order.append(new_idx_rename)
+            except ValueError:
+                raise ValueError(
+                    f"Column {idx_rename} does not contain/more then one '__'")
 
+            for idx_old_names in df_collected.index.names:
+                if old_idx_rename in idx_old_names:
+                    df_collected.index = df_collected.index.set_names(new_idx_rename, 
+                                                                      level=idx_old_names)
+
+                    df_collected.reset_index(level=new_idx_rename, inplace=True)
+
+                    for row in df_cur_map.reset_index().iterrows():
+
+                        new_row_name = row[1][idx_rename]
+                        old_row_name = row[1][old_idx_rename]
+                        df_collected.loc[:, new_idx_rename] = df_collected.loc[:, new_idx_rename].str.replace(pat=old_row_name, 
+                                                              repl=new_row_name,
+                                                              regex=True)
+
+                    df_collected.set_index(new_idx_rename, drop=True, append=True, inplace=True)
+
+        # append name not in new_name_order if any
+
+        for idx_name in df_collected.index.names:
+            if idx_name not in new_name_order:
+                new_name_order.append(idx_name)
+        df_collected = df_collected.reorder_levels(new_name_order, axis=0)
+        
+        # CONT: new test cases and logic for compartment included
         res_collector.append(df_collected.groupby(by=df_collected.index.names).agg(agg_method))
 
     return pd.concat(res_collector, axis=0)
