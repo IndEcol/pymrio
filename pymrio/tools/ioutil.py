@@ -1,4 +1,4 @@
-"""
+""
 Utility function for pymrio
 
 KST 20140502
@@ -1137,6 +1137,8 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
         df_collected = df_collected.reorder_levels(new_name_order, axis=0)
         
         # CONT: new test cases and logic for compartment included
+        # Idea is to pass through all index levels which are not specified in the map or in the __ columns
+        # To remove a level, provide __ and give it one common name (e.g. "DROP") and then remove
         res_collector.append(df_collected.groupby(by=df_collected.index.names).agg(agg_method))
 
     return pd.concat(res_collector, axis=0)
