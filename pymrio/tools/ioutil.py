@@ -1090,6 +1090,7 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
             df_cur_map = df_map.loc[[char[0]]]
         else:
             df_cur_map = df_map.loc[[char]]
+
         agg_method = df_cur_map.agg_func if 'agg_func' in df_cur_map.columns else agg_func
 
         collector = []
@@ -1110,7 +1111,7 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
                 new_name_order.append(new_idx_rename)
             except ValueError:
                 raise ValueError(
-                    f"Column {idx_rename} does not contain/more then one '__'")
+                    f"Column {idx_rename} does not contain/contains more then one '__'")
 
             for idx_old_names in df_collected.index.names:
                 if old_idx_rename in idx_old_names:
@@ -1127,7 +1128,10 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
                                                               repl=new_row_name,
                                                               regex=True)
 
-                    df_collected.set_index(new_idx_rename, drop=True, append=True, inplace=True)
+                    df_collected.set_index(new_idx_rename, 
+                                           drop=True, 
+                                           append=True, 
+                                           inplace=True)
 
         # append name not in new_name_order if any
 
