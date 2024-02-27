@@ -5,6 +5,7 @@ import string
 import sys
 from collections import namedtuple
 from unittest.mock import mock_open, patch
+
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
@@ -15,19 +16,19 @@ from faker import Faker
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
 
+from pymrio.tools.ioutil import diagonalize_columns_to_sectors  # noqa
 from pymrio.tools.ioutil import (  # noqa
     build_agg_matrix,
     build_agg_vec,
     diagonalize_blocks,
-    find_first_number,
-    set_block,
-    sniff_csv_format,
-    diagonalize_columns_to_sectors,  # noqa
     filename_from_url,
+    find_first_number,
     index_contains,
     index_fullmatch,
     index_match,
     match_and_convert,
+    set_block,
+    sniff_csv_format,
 )
 
 
@@ -355,7 +356,7 @@ def test_util_regex():
 
 
 def test_char_table():
-    """ Testing the characterization of one table """
+    """Testing the characterization of one table"""
 
     to_char = pd.DataFrame(
         data=5,
@@ -363,30 +364,32 @@ def test_char_table():
         columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
     )
     to_char.columns.names = ["reg", "sec"]
-    to_char.index.names = ["em_type", "compart"] 
+    to_char.index.names = ["em_type", "compart"]
 
     # TEST1: with only impact (one index level in the result) , sum over compartments
 
     map_test1 = pd.DataFrame(
         columns=["em_type", "compart", "total__em_type", "factor"],
-        data=[["em.*", "air|water", "total_regex", 2], 
-
-              ["em1", "air", "total_sum", 2], 
-              ["em1", "water", "total_sum", 2], 
-              ["em2", "air", "total_sum", 2], 
-              ["em2", "water", "total_sum", 2], 
-
-              ["em1", "air", "all_air", 0.5], 
-              ["em2", "air", "all_air", 0.5]],
+        data=[
+            ["em.*", "air|water", "total_regex", 2],
+            ["em1", "air", "total_sum", 2],
+            ["em1", "water", "total_sum", 2],
+            ["em2", "air", "total_sum", 2],
+            ["em2", "water", "total_sum", 2],
+            ["em1", "air", "all_air", 0.5],
+            ["em2", "air", "all_air", 0.5],
+        ],
     )
 
     # alternative way to calculated the expected result
     exp_res1 = pd.DataFrame(
-        columns = to_char.columns,
-        index = ["total_regex", "total_sum", "all_air"])
-    exp_res1.loc['all_air'] = to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
-    exp_res1.loc['total_regex'] = (to_char.sum(axis=1) * 2).values
-    exp_res1.loc['total_sum'] = (to_char.sum(axis=1) * 2).values
+        columns=to_char.columns, index=["total_regex", "total_sum", "all_air"]
+    )
+    exp_res1.loc["all_air"] = (
+        to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
+    )
+    exp_res1.loc["total_regex"] = (to_char.sum(axis=1) * 2).values
+    exp_res1.loc["total_sum"] = (to_char.sum(axis=1) * 2).values
     exp_res1 = exp_res1.astype(float)
     exp_res1.sort_index(inplace=True)
 
@@ -404,23 +407,29 @@ def test_char_table():
 
     map_test2 = pd.DataFrame(
         columns=["em_type", "compart", "total__em_type", "compart__compart", "factor"],
-        data=[["em.*", "air|water", "total_regex", "all", 2], 
-              ["em1", "air", "total_sum", "all", 2], 
-              ["em1", "water", "total_sum", "all",  2], 
-              ["em2", "air", "total_sum", "all", 2], 
-              ["em2", "water", "total_sum", "all", 2], 
-              ["em1", "air", "all_air", "air", 0.5], 
-              ["em2", "air", "all_air", "air", 0.5]],
+        data=[
+            ["em.*", "air|water", "total_regex", "all", 2],
+            ["em1", "air", "total_sum", "all", 2],
+            ["em1", "water", "total_sum", "all", 2],
+            ["em2", "air", "total_sum", "all", 2],
+            ["em2", "water", "total_sum", "all", 2],
+            ["em1", "air", "all_air", "air", 0.5],
+            ["em2", "air", "all_air", "air", 0.5],
+        ],
     )
 
     # alternative way to calculated the expected result
     exp_res2 = pd.DataFrame(
-        columns = to_char.columns,
-        index = pd.MultiIndex.from_tuples(
-            [("total_regex", "all"), ("total_sum", "all"), ("all_air", "air")]))
-    exp_res2.loc[('all_air', 'air')] = to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
-    exp_res2.loc[('total_regex', 'all')] = (to_char.sum(axis=1) * 2).values
-    exp_res2.loc[('total_sum', 'all')] = (to_char.sum(axis=1) * 2).values
+        columns=to_char.columns,
+        index=pd.MultiIndex.from_tuples(
+            [("total_regex", "all"), ("total_sum", "all"), ("all_air", "air")]
+        ),
+    )
+    exp_res2.loc[("all_air", "air")] = (
+        to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
+    )
+    exp_res2.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).values
+    exp_res2.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).values
     exp_res2 = exp_res2.astype(float)
     exp_res2.sort_index(inplace=True)
 
@@ -437,23 +446,29 @@ def test_char_table():
 
     map_test3 = pd.DataFrame(
         columns=["em_type", "compart", "total__em_type", "compart__compart", "factor"],
-        data=[["em.*", "air|water", "total_regex", "all", 2], 
-              ["em1", "air", "total_sum", "all", 2], 
-              ["em1", "water", "total_sum", "all",  2], 
-              ["em2", "air", "total_sum", "all", 2], 
-              ["em2", "water", "total_sum", "all", 2], 
-              ["em1", "air", "all_air", "air", 0.5], 
-              ["em2", "air", "all_air", "air", 0.5]],
+        data=[
+            ["em.*", "air|water", "total_regex", "all", 2],
+            ["em1", "air", "total_sum", "all", 2],
+            ["em1", "water", "total_sum", "all", 2],
+            ["em2", "air", "total_sum", "all", 2],
+            ["em2", "water", "total_sum", "all", 2],
+            ["em1", "air", "all_air", "air", 0.5],
+            ["em2", "air", "all_air", "air", 0.5],
+        ],
     )
 
     # alternative way to calculated the expected result
     exp_res3 = pd.DataFrame(
-        columns = to_char.columns,
-        index = pd.MultiIndex.from_tuples(
-            [("total_regex", "all"), ("total_sum", "all"), ("all_air", "air")]))
-    exp_res3.loc[('all_air', 'air')] = to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
-    exp_res3.loc[('total_regex', 'all')] = (to_char.sum(axis=1) * 2).values
-    exp_res3.loc[('total_sum', 'all')] = (to_char.sum(axis=1) * 2).values
+        columns=to_char.columns,
+        index=pd.MultiIndex.from_tuples(
+            [("total_regex", "all"), ("total_sum", "all"), ("all_air", "air")]
+        ),
+    )
+    exp_res3.loc[("all_air", "air")] = (
+        to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
+    )
+    exp_res3.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).values
+    exp_res3.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).values
     exp_res3 = exp_res3.astype(float)
     exp_res3.sort_index(inplace=True)
 
@@ -464,5 +479,3 @@ def test_char_table():
     exp_res3.columns.names = res3.columns.names
 
     pdt.assert_frame_equal(res3, exp_res3)
-
-

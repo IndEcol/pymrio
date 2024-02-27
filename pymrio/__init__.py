@@ -66,6 +66,12 @@ from pymrio.tools.iomath import (
 )
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioparser import *
-from pymrio.tools.ioutil import build_agg_matrix, build_agg_vec, convert_to_long
-from pymrio.tools.ioutil import index_match, index_contains, index_fullmatch
+from pymrio.tools.ioutil import (
+    build_agg_matrix,
+    build_agg_vec,
+    convert_to_long,
+    index_contains,
+    index_fullmatch,
+    index_match,
+)
 from pymrio.version import __version__

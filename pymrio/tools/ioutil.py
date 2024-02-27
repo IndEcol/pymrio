@@ -1,4 +1,4 @@
-""
+"""
 Utility function for pymrio
 
 KST 20140502
