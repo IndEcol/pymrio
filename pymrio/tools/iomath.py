@@ -274,7 +274,9 @@ def calc_G(As, L=None, x=None):
             recix = recix.reshape((1, -1))
 
         if type(L) is pd.DataFrame:
-            return pd.DataFrame(recix * np.transpose(L.values * x), index=Z.index, columns=Z.columns)
+            return pd.DataFrame(
+                recix * np.transpose(L.values * x), index=Z.index, columns=Z.columns
+            )
         else:
             # G = hat(x)^{-1} *  L^T * hat(x) in mathematical form np.linalg.inv(hatx).dot(L.transpose()).dot(hatx).
             # it is computationally much faster to multiply element-wise because hatx is a diagonal matrix.
@@ -282,7 +284,9 @@ def calc_G(As, L=None, x=None):
     else:  # calculation of the inverse of I-As has a high computational cost.
         I = np.eye(As.shape[0])  # noqa
         if type(As) is pd.DataFrame:
-            return pd.DataFrame(np.linalg.inv(I - As), index=As.index, columns=As.columns)
+            return pd.DataFrame(
+                np.linalg.inv(I - As), index=As.index, columns=As.columns
+            )
         else:
             return np.linalg.inv(I - As)  # G = inverse matrix of (I - As)
 
