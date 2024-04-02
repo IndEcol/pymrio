@@ -6,6 +6,16 @@ Changelog
 v0.5.4 dev
 ***************************
 
+New features
+============
+
+* Added Gosh implementation for downstream analysis (by @Beckebanze , #136)
+
+    - equivalent of A for Ghosh (A* in literature, called As in pymrio)
+    - the Ghosh inverse (often referred to G in literature). 
+    - downstream scope 3 multiplier, M_{down}, such the sum of the M+M_{down} is the full scope multiplier, with M the existing multiplier in pymrio that covers scope 1,2&3 upstream.
+    - a short addition to the pymrio background page that introduces the Ghosh model
+    - tests that test the functionality of the added functions
 
 ***************************
 v0.5.3 - 20231023
