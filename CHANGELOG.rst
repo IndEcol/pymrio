@@ -24,6 +24,17 @@ Breaking changes
   This has changed. Now all extensions are kept when no name is given (TypeError is raised).
   To remove all extensions, use mrio.remove_extension(mrio.get_extensions())
   
+New features
+============
+
+* Added Gosh implementation for downstream analysis (by @Beckebanze , #136)
+
+    - equivalent of A for Ghosh (A* in literature, called As in pymrio)
+    - the Ghosh inverse (often referred to G in literature). 
+    - downstream scope 3 multiplier, M_{down}, such the sum of the M+M_{down} is the full scope multiplier, with M the existing multiplier in pymrio that covers scope 1,2&3 upstream.
+    - a short addition to the pymrio background page that introduces the Ghosh model
+    - tests that test the functionality of the added functions
+
 
 
 Depracted
@@ -37,6 +48,17 @@ Misceallaneous
 ==============
 
 * Updated and restructuring of the documentation
+
+***************************
+v0.5.3 - 20231023
+***************************
+
+Bugfixes
+========
+
+* Fix downloader for new Zenodo API (by @hazimhussein)
+* Fix coverage report (by @konstantinstadler)
+>>>>>>> master
 
 ***************************
 v0.5.2 - 20230815

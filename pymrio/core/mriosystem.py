@@ -31,11 +31,14 @@ from pymrio.core.constants import (
 from pymrio.tools.iomath import (
     calc_A,
     calc_accounts,
+    calc_As,
     calc_F,
     calc_F_Y,
+    calc_G,
     calc_gross_trade,
     calc_L,
     calc_M,
+    calc_M_down,
     calc_S,
     calc_S_Y,
     calc_x,
@@ -911,6 +914,8 @@ class Extension(BaseSystem):
         Direct impact (extensions) coefficients of final demand. Index as F_Y
     M : pandas.DataFrame
         Multipliers with multiindex as F
+    M_down : pandas.DataFrame
+        Downstream multipliers with multiindex as F
     D_cba : pandas.DataFrame
         Footprint of consumption,  further specification with
         _reg (per region) or _cap (per capita) possible
@@ -949,6 +954,7 @@ class Extension(BaseSystem):
         S=None,
         S_Y=None,
         M=None,
+        M_down=None,
         D_cba=None,
         D_pba=None,
         D_imp=None,
@@ -963,6 +969,7 @@ class Extension(BaseSystem):
         self.S = S
         self.S_Y = S_Y
         self.M = M
+        self.M_down = M_down
         self.D_cba = D_cba
         self.D_pba = D_pba
         self.D_imp = D_imp
@@ -1015,7 +1022,7 @@ class Extension(BaseSystem):
     def __str__(self):
         return super().__str__("Extension {} with parameters: ").format(self.name)
 
-    def calc_system(self, x, Y, Y_agg=None, L=None, population=None):
+    def calc_system(self, x, Y, Y_agg=None, L=None, G=None, population=None):
         """Calculates the missing part of the extension plus accounts
 
         This method allows to specify an aggregated Y_agg for the
@@ -1025,7 +1032,7 @@ class Extension(BaseSystem):
         Calculates:
 
         - for each sector and country:
-            S, S_Y (if F_Y available), M, D_cba, D_pba_sector, D_imp_sector,
+            S, S_Y (if F_Y available), M, M_down, D_cba, D_pba_sector, D_imp_sector,
             D_exp_sector
         - for each region:
             D_cba_reg, D_pba_reg, D_imp_reg, D_exp_reg,
@@ -1051,6 +1058,9 @@ class Extension(BaseSystem):
             Leontief input output table L. If this is not given,
             the method recalculates M based on D_cba (must be present in
             the extension).
+        G : pandas.DataFrame or numpy.array, optional
+            Ghosh input output table G. If this is not given,
+            M_down is not calculated.
         population : pandas.DataFrame or np.array, optional
             Row vector with population per region
         """
@@ -1100,6 +1110,17 @@ class Extension(BaseSystem):
                     logging.debug(
                         "Recalculation of M not possible - cause: {}".format(ex)
                     )
+
+        if self.M_down is None:
+            if G is not None:
+                self.M_down = calc_M_down(self.S, G)
+                logging.debug("{} - M_down calculated based on G".format(self.name))
+            else:
+                logging.debug(
+                    "Calculation of M_down not possible because G is not available.".format(
+                        self.name
+                    )
+                )
 
         F_Y_agg = 0
         if self.F_Y is not None:
@@ -1974,8 +1995,10 @@ class IOSystem(BaseSystem):
         Z=None,
         Y=None,
         A=None,
+        As=None,
         x=None,
         L=None,
+        G=None,
         unit=None,
         population=None,
         system=None,
@@ -1992,7 +2015,9 @@ class IOSystem(BaseSystem):
         self.Y = Y
         self.x = x
         self.A = A
+        self.As = As
         self.L = L
+        self.G = G
         self.unit = unit
         self.population = population
 
@@ -2070,7 +2095,7 @@ class IOSystem(BaseSystem):
         """
         Calculates missing parts of the IOSystem and all extensions.
 
-        This method call calc_system and calc_extensions
+        This method calls calc_system and calc_extensions
 
         """
         self.calc_system()
@@ -2117,9 +2142,17 @@ class IOSystem(BaseSystem):
             self.A = calc_A(self.Z, self.x)
             self.meta._add_modify("Coefficient matrix A calculated")
 
+        if self.As is None:
+            self.As = calc_As(self.Z, self.x)
+            self.meta._add_modify("Coefficient matrix As calculated")
+
         if self.L is None:
             self.L = calc_L(self.A)
             self.meta._add_modify("Leontief matrix L calculated")
+
+        if self.G is None:
+            self.G = calc_G(self.As)
+            self.meta._add_modify("Ghosh matrix G calculated")
 
         return self
 
@@ -2152,7 +2185,12 @@ class IOSystem(BaseSystem):
             )
             ext = getattr(self, ext_name)
             ext.calc_system(
-                x=self.x, Y=self.Y, L=self.L, Y_agg=Y_agg, population=self.population
+                x=self.x,
+                Y=self.Y,
+                L=self.L,
+                G=self.G,
+                Y_agg=Y_agg,
+                population=self.population,
             )
         return self
 

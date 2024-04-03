@@ -1871,16 +1871,18 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
                     )
 
         eora_data = {
-            key: pd.read_csv(
-                zip_file.open(filename),
-                sep=eora_sep,
-                header=None,
-            )
-            if filename in zip_file.namelist()
-            else pd.read_csv(
-                indices_file.open(filename),
-                sep=eora_sep,
-                header=None,
+            key: (
+                pd.read_csv(
+                    zip_file.open(filename),
+                    sep=eora_sep,
+                    header=None,
+                )
+                if filename in zip_file.namelist()
+                else pd.read_csv(
+                    indices_file.open(filename),
+                    sep=eora_sep,
+                    header=None,
+                )
             )
             for key, filename in eora_files.items()
         }

@@ -4,7 +4,7 @@ All methods here should follow the functional programming paradigm
 
 Note
 ----
-To avoid namespace pollution everythin here starts with calc_
+To avoid namespace pollution everything here starts with calc_
 
 """
 
@@ -152,6 +152,50 @@ def calc_A(Z, x):
         return Z * recix
 
 
+def calc_As(Z, x):
+    """Calculate the As matrix (coefficients) from Z and x
+
+    As is a normalized version of the industrial flows of the transpose of Z, which quantifies the input to downstream
+    sectors.
+
+    Parameters
+    ----------
+    Z : pandas.DataFrame or numpy.array
+        Symmetric input output table (flows)
+    x : pandas.DataFrame or numpy.array
+        Industry output column vector
+
+    Returns
+    -------
+    pandas.DataFrame or numpy.array
+        Symmetric input output table (coefficients) As
+        The type is determined by the type of Z.
+        If DataFrame index/columns as Z
+
+    """
+    if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
+        x = x.values
+    if (type(x) is not np.ndarray) and (x == 0):
+        recix = 0
+    else:
+        with warnings.catch_warnings():
+            # catch the divide by zero warning
+            # we deal wit that by setting to 0 afterwards
+            warnings.simplefilter("ignore")
+            recix = 1 / x
+        recix[recix == np.inf] = 0
+        recix = recix.reshape((1, -1))
+    # use numpy broadcasting - factor ten faster
+    # Mathematical form - slow
+    # return Z.dot(np.diagflat(recix))
+    if type(Z) is pd.DataFrame:
+        return pd.DataFrame(
+            np.transpose(Z.values) * recix, index=Z.index, columns=Z.columns
+        )
+    else:
+        return np.transpose(Z) * recix
+
+
 def calc_L(A):
     """Calculate the Leontief L from A
 
@@ -186,6 +230,65 @@ def calc_L(A):
         return pd.DataFrame(np.linalg.inv(I - A), index=A.index, columns=A.columns)
     else:
         return np.linalg.inv(I - A)
+
+
+def calc_G(As, L=None, x=None):
+    """Calculate the Ghosh inverse matrix G either from As (high computation effor) or from Leontief matrix L and x
+    (low computation effort)
+
+    G = inverse matrix of (I - As) = hat(x)^{-1} *  L^T * hat(x)
+
+    where I is an identity matrix of same shape as As, and hat(x) is the diagonal matrix with values of x on the
+    diagonal.
+
+    Note that we define G as the transpose of the Ghosh inverse matrix, so that we can apply the factors of
+    production intensities from the left-hand-side for both Leontief and Ghosh attribution. In this way the
+    multipliers have the same (vector) dimensions and can be added.
+
+    Parameters
+    ----------
+    As : pandas.DataFrame or numpy.array
+        Symmetric input output table (coefficients)
+
+    Returns
+    -------
+    pandas.DataFrame or numpy.array
+        Ghosh input output table G
+        The type is determined by the type of As.
+        If DataFrame index/columns as As
+
+    """
+    # if L has already been calculated, then G can be derived from it with low computational cost.
+    if L is not None and x is not None:
+        if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
+            x = x.values
+        if (type(x) is not np.ndarray) and (x == 0):
+            recix = 0
+        else:
+            with warnings.catch_warnings():
+                # catch the divide by zero warning
+                # we deal wit that by setting to 0 afterwards
+                warnings.simplefilter("ignore")
+                recix = 1 / x
+            recix[recix == np.inf] = 0
+            recix = recix.reshape((1, -1))
+
+        if type(L) is pd.DataFrame:
+            return pd.DataFrame(
+                recix * np.transpose(L.values * x), index=Z.index, columns=Z.columns
+            )
+        else:
+            # G = hat(x)^{-1} *  L^T * hat(x) in mathematical form np.linalg.inv(hatx).dot(L.transpose()).dot(hatx).
+            # it is computationally much faster to multiply element-wise because hatx is a diagonal matrix.
+            return recix * np.transpose(L * x)
+    else:  # calculation of the inverse of I-As has a high computational cost.
+        I = np.eye(As.shape[0])  # noqa
+        if type(As) is pd.DataFrame:
+            return pd.DataFrame(
+                np.linalg.inv(I - As), index=As.index, columns=As.columns
+            )
+        else:
+            return np.linalg.inv(I - As)  # G = inverse matrix of (I - As)
 
 
 def calc_S(F, x):
@@ -308,11 +411,36 @@ def calc_M(S, L):
     -------
     pandas.DataFrame or numpy.array
         Multipliers M
-        The type is determined by the type of D.
-        If DataFrame index/columns as D
+        The type is determined by the type of S.
+        If DataFrame index/columns as S
 
     """
     return S.dot(L)
+
+
+def calc_M_down(S, G):
+    """Calculate downstream multipliers of the extensions
+
+    M_down = S * ( G - I )
+
+    Where I is an identity matrix of same shape as G
+
+    Parameters
+    ----------
+    G : pandas.DataFrame or numpy.array
+        Ghosh input output table G
+    S : pandas.DataFrame or numpy.array
+        Direct impact coefficients
+
+    Returns
+    -------
+    pandas.DataFrame or numpy.array
+        Downstream multipliers M
+        The type is determined by the type of S.
+        If DataFrame index/columns as S
+
+    """
+    return S.dot(G - np.eye(G.shape[0]))
 
 
 def calc_e(M, Y):
@@ -333,7 +461,9 @@ def calc_e(M, Y):
         Multipliers m
         The type is determined by the type of M.
         If DataFrame index/columns as M
-    The calcubased on multipliers M and finald demand Y"""
+        The calculation is based on multipliers M and final demand Y
+
+    """
 
     return M.dot(Y)
 
@@ -357,8 +487,6 @@ def recalc_M(S, D_cba, Y):
         Multipliers M
         The type is determined by the type of D_cba.
         If DataFrame index/columns as D_cba
-
-
     """
 
     Y_diag = ioutil.diagonalize_columns_to_sectors(Y)
@@ -471,7 +599,6 @@ def calc_gross_trade(
               columns: importing countries
             - totals: df with gross total imports and exports per sector
               and region
-
 
     """
 

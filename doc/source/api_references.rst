@@ -183,10 +183,13 @@ numpy array.
    calc_x
    calc_Z
    calc_A
+   calc_As
    calc_L
+   calc_G
    calc_S
    calc_F
    calc_M
+   calc_M_down
    calc_e
    calc_accounts
 
