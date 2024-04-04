@@ -997,16 +997,16 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
     return _dfs_idx
 
+
 def _get_sample():
     # DEV: Remove for release
-     
+
     pass
 
 
+def match_and_convert(df_orig, df_map, agg_func="sum"):
+    """Match and convert a DataFrame to a new classification
 
-def match_and_convert(df_orig, df_map, agg_func='sum'):
-    """ Match and convert a DataFrame to a new classification
-    
     Parameters
     ----------
     df_orig : pd.DataFrame
@@ -1015,13 +1015,13 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
 
     df_map : pd.DataFrame
         The DataFrame with the mapping of the old to the new classification.
-        This requires a specific structure, which depends on the structure of the 
+        This requires a specific structure, which depends on the structure of the
         dataframe to be characterized: one column for each index level in the dataframe
         and one column for each new index level in the characterized result dataframe.
 
         This is better explained with an example. Assuming a dataframe with index names 'stressor' and 'compartment'
         the characterizing dataframe would have the following structure:
-    
+
         stressor ... original index name
         compartment ... original index name
         factor ... the factor for multiplication
@@ -1049,23 +1049,23 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
     # agg_func = 'sum'
     # df_map = pd.DataFrame(
     #     columns=["em_type", "compart", "total__em_type", "factor"],
-    #     data=[["em.*", "air|water", "total_regex", 2], 
-    #           ["em1", "air", "total_sum", 2], 
-    #           ["em1", "water", "total_sum", 2], 
-    #           ["em2", "air", "total_sum", 2], 
-    #           ["em2", "water", "total_sum", 2], 
-    #           ["em1", "air", "all_air", 0.5], 
+    #     data=[["em.*", "air|water", "total_regex", 2],
+    #           ["em1", "air", "total_sum", 2],
+    #           ["em1", "water", "total_sum", 2],
+    #           ["em2", "air", "total_sum", 2],
+    #           ["em2", "water", "total_sum", 2],
+    #           ["em1", "air", "all_air", 0.5],
     #           ["em2", "air", "all_air", 0.5]],
     # )
     #
     # df_map = pd.DataFrame(
     #     columns=["em_type", "total__em_type", "factor"],
-    #     data=[["em.*",  "total_regex", 2], 
-    #           ["em1",  "total_sum", 2], 
-    #           ["em1",  "total_sum", 2], 
-    #           ["em2",  "total_sum", 2], 
-    #           ["em2",  "total_sum", 2], 
-    #           ["em1",  "all_air", 0.5], 
+    #     data=[["em.*",  "total_regex", 2],
+    #           ["em1",  "total_sum", 2],
+    #           ["em1",  "total_sum", 2],
+    #           ["em2",  "total_sum", 2],
+    #           ["em2",  "total_sum", 2],
+    #           ["em1",  "all_air", 0.5],
     #           ["em2",  "all_air", 0.5]],
     # )
 
@@ -1076,12 +1076,12 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
     #     columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
     # )
     # df_orig.columns.names = ["reg", "sec"]
-    # df_orig.index.names = ["em_type", "compart"] 
+    # df_orig.index.names = ["em_type", "compart"]
 
     new_col = [col for col in df_map.columns if "__" in col]
     unique_new_index = df_map.loc[:, new_col].value_counts().index
 
-    df_map = df_map.set_index(new_col) 
+    df_map = df_map.set_index(new_col)
     res_collector = []
 
     # loop over each new impact/characterized value
@@ -1091,7 +1091,9 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
         else:
             df_cur_map = df_map.loc[[char]]
 
-        agg_method = df_cur_map.agg_func if 'agg_func' in df_cur_map.columns else agg_func
+        agg_method = (
+            df_cur_map.agg_func if "agg_func" in df_cur_map.columns else agg_func
+        )
 
         collector = []
 
@@ -1107,31 +1109,31 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
 
         for idx_rename in df_cur_map.index.names:
             try:
-                new_idx_rename, old_idx_rename = idx_rename.split('__')
+                new_idx_rename, old_idx_rename = idx_rename.split("__")
                 new_name_order.append(new_idx_rename)
             except ValueError:
                 raise ValueError(
-                    f"Column {idx_rename} does not contain/contains more then one '__'")
+                    f"Column {idx_rename} does not contain/contains more then one '__'"
+                )
 
             for idx_old_names in df_collected.index.names:
                 if old_idx_rename in idx_old_names:
-                    df_collected.index = df_collected.index.set_names(new_idx_rename, 
-                                                                      level=idx_old_names)
+                    df_collected.index = df_collected.index.set_names(
+                        new_idx_rename, level=idx_old_names
+                    )
 
                     df_collected.reset_index(level=new_idx_rename, inplace=True)
 
                     for row in df_cur_map.reset_index().iterrows():
-
                         new_row_name = row[1][idx_rename]
                         old_row_name = row[1][old_idx_rename]
-                        df_collected.loc[:, new_idx_rename] = df_collected.loc[:, new_idx_rename].str.replace(pat=old_row_name, 
-                                                              repl=new_row_name,
-                                                              regex=True)
+                        df_collected.loc[:, new_idx_rename] = df_collected.loc[
+                            :, new_idx_rename
+                        ].str.replace(pat=old_row_name, repl=new_row_name, regex=True)
 
-                    df_collected.set_index(new_idx_rename, 
-                                           drop=True, 
-                                           append=True, 
-                                           inplace=True)
+                    df_collected.set_index(
+                        new_idx_rename, drop=True, append=True, inplace=True
+                    )
 
         # append name not in new_name_order if any
 
@@ -1139,11 +1141,12 @@ def match_and_convert(df_orig, df_map, agg_func='sum'):
             if idx_name not in new_name_order:
                 new_name_order.append(idx_name)
         df_collected = df_collected.reorder_levels(new_name_order, axis=0)
-        
+
         # CONT: new test cases and logic for compartment included
         # Idea is to pass through all index levels which are not specified in the map or in the __ columns
         # To remove a level, provide __ and give it one common name (e.g. "DROP") and then remove
-        res_collector.append(df_collected.groupby(by=df_collected.index.names).agg(agg_method))
+        res_collector.append(
+            df_collected.groupby(by=df_collected.index.names).agg(agg_method)
+        )
 
     return pd.concat(res_collector, axis=0)
-

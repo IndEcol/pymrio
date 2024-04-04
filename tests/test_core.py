@@ -282,19 +282,19 @@ def test_extract(fix_testmrio):
     tt = fix_testmrio.testmrio.copy().calc_all()
 
     all_index = tt.emissions.get_index()
-    new_all = tt.emissions.extract(all_index, return_as_extension="new_all")
+    new_all = tt.emissions.extract(all_index, return_type="new_all")
 
     assert new_all.name == "new_all"
     for df in tt.emissions.get_DataFrame():
         assert df in new_all.get_DataFrame()
 
-    name_check = tt.emissions.extract(all_index, return_as_extension=True)
+    name_check = tt.emissions.extract(all_index, return_type="ext")
     assert name_check.name == "Emissions_extracted"
     for df in tt.emissions.get_DataFrame():
         assert df in name_check.get_DataFrame()
 
     id_air = tt.emissions.match(compartment="air")
-    new_air = tt.emissions.extract(index=id_air, return_as_extension="new_air")
+    new_air = tt.emissions.extract(index=id_air, return_type="new_air")
 
     assert "F" in new_air.get_DataFrame()
     assert "S" in new_air.get_DataFrame()
@@ -314,7 +314,7 @@ def test_extension_extract(fix_testmrio):
     assert dfa["Factor Inputs"]["F"].shape[0] == 0
 
     exta = tt.extension_extract(
-        match_air, dataframes=["F", "F_Y"], include_empty=True, return_as_extension=True
+        match_air, dataframes=["F", "F_Y"], include_empty=True, return_type="extension"
     )
     assert exta["Factor Inputs"].F.shape[0] == 0
     assert exta["Factor Inputs"].name == "Factor Inputs_extracted"
@@ -325,7 +325,7 @@ def test_extension_extract(fix_testmrio):
         match_air,
         dataframes=["F", "F_Y"],
         include_empty=False,
-        return_as_extension=True,
+        return_type="ext",
     )
     assert dfr["Emissions"]["F"].index[0] == ("emission_type1", "air")
     assert extr["Emissions"].F.index[0] == ("emission_type1", "air")

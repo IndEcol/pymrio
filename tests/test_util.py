@@ -355,7 +355,7 @@ def test_util_regex():
     assert len(df_none_match_index) == 0
 
 
-def test_char_table():
+def test_match_and_convert():
     """Testing the characterization of one table"""
 
     to_char = pd.DataFrame(

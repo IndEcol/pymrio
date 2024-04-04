@@ -1630,7 +1630,7 @@ class Extension(BaseSystem):
             retdict["name"] = name
         return retdict
 
-    def extract(self, index, dataframes=None, return_as_extension=False):
+    def extract(self, index, dataframes=None, return_type="dataframes"):
         """Returns a dict with all available data for a row in the extension.
 
 
@@ -1645,16 +1645,16 @@ class Extension(BaseSystem):
             all available dataframes are extracted. If the list contains
             dataframes which are not available, a warning is issued and
             the missing dataframes are ignored.
-        return_as_extension : boolean or str, optional
-            If True, returns an Extension object with the extracted data.
-            Can also be a string with the name for the new extension (otherwise set
-            based on the current extension name +_extracted).
-            If False (default), returns a dict with the extracted data.
+        return_type: str, optional
+            If 'dataframe' or 'df' (also with 's' plural, default), the returned dict contains dataframes.
+            If 'extension' or 'ext' (also with 's' plural) an Extension object is returned (named like the original with _extracted appended).
+            Any other string: an Extension object is returned, with the name set to the passed string.
 
 
         Returns
         -------
         dict object with the data (pandas DataFrame) for the specific rows
+        or an Extension object (based on return_type)
 
         """
         if type(index) is dict:
@@ -1674,14 +1674,13 @@ class Extension(BaseSystem):
             data = getattr(self, dfname)
             retdict[dfname] = pd.DataFrame(data.loc[index])
 
-        if return_as_extension:
-            if type(return_as_extension) is str:
-                ext_name = return_as_extension
-            else:
-                ext_name = self.name + "_extracted"
-            return Extension(name=ext_name, **retdict)
-        else:
+        if return_type.lower() in ["dataframes", "dataframe", "dfs", "df"]:
             return retdict
+        elif return_type.lower() in ["extensions", "extension", "ext", "exts"]:
+            ext_name = self.name + "_extracted"
+        else:
+            ext_name = return_type
+        return Extension(name=ext_name, **retdict)
 
     def diag_stressor(self, stressor, name=None, _meta=None):
         """Diagonalize one row of the stressor matrix for a flow analysis.
@@ -2443,7 +2442,7 @@ class IOSystem(BaseSystem):
             extensions with non-empty extracted data are returned.
 
         return_type: str, optional
-            If 'dataframes' or 'df' (default), the returned dict contains dataframes.
+            If 'dataframe' or 'df' (also with 's' plural, default), the returned dict contains dataframes.
             If 'extensions' or 'ext', the returned dict contains Extension instances.
             Any other string: Return one merged extension with the name set to the
             passed string (this will automatically exclude empty extensions).
@@ -2456,22 +2455,22 @@ class IOSystem(BaseSystem):
             the matched rows as values
 
         """
-        if return_type.lower() in ["dataframes", "df"]:
+        if return_type.lower() in ["dataframes", "dataframe", "dfs", "df"]:
             return_as_extension = False
+            ext_name = None
+        elif return_type.lower() in ["extensions", "extension", "ext", "exts"]:
+            return_as_extension = True
+            ext_name = None
         else:
             return_as_extension = True
-
-        if return_type.lower() not in ["dataframes", "df", "ext", "extension"]:
             ext_name = return_type
-        else:
-            ext_name = None
 
         extracts = self._apply_extension_method(
             extensions=None,
             method="extract",
             index=index_dict,
             dataframes=dataframes,
-            return_as_extension=return_as_extension,
+            return_type=return_type,
         )
 
         if (not include_empty) or ext_name:
