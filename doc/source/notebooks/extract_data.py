@@ -57,11 +57,99 @@ A_mining
 # %% [markdown]
 # Here we use use the `extract` method available in the extension object.
 # This expect a list of rows (index) to extract.
+# Here we extract some rows from the emission extension table.
+# To do so, we first define the rows (index) to extract:
 
-row = mrio.emissions.get_rows()
+# %%
+rows_to_extract =[('emission_type1',   'air'),
+                  ('emission_type2', 'water')]
 
-df_extract = mrio.emissions.extract(row, return_type="dataframe")
-ext_extract = mrio.emissions.extract(row, return_type="extension")
+# %% [markdown]
+# We can now use the `extract` method to extract the data, either as a pandas DataFrame
 
-# CONT: DESRIBE STUFF ABOVE
-# For example, to extract the total value added for all regions and sectors we can use:
+# %%
+df_extract = mrio.emissions.extract(rows_to_extract, return_type="dataframe")
+df_extract.keys()
+
+# %% [markdown]
+# Or we extract into a new extension object:
+
+# %%
+ext_extract = mrio.emissions.extract(rows_to_extract, return_type="extension")
+str(ext_extract)
+
+# %% [markdown]
+# Note that the name of the extension object is now `Emissions_extracted`, based on the name of the original extension object.
+# To use another name, just pass the name as the `return_type` method.
+
+# %% 
+new_extension = mrio.emissions.extract(rows_to_extract, return_type="new_extension")
+str(new_extension)
+
+# %% [markdown]
+# Extracting to dataframes is also a convienient 
+# way to convert an extension object to a dictionary:
+
+# %% 
+df_all = mrio.emissions.extract(mrio.emissions.get_rows(), return_type="dfs")
+df_all.keys()
+
+
+# The method also allows to only extract some of the accounts:
+df_some = mrio.emissions.extract(mrio.emissions.get_rows(), dataframes=['D_cba', 'D_pba'], return_type="dfs")
+df_some.keys()
+
+
+
+# %% [markdown]
+#### Extracting from all extensions
+
+# %% [markdown]
+# We can also extract data from all extensions at once. 
+# This is done using the `extension_extract` method from the pymrio object.
+# This expect a dict with keys based on the extension names and values as a list of rows (index) to extract.
+
+# %% [markdown]
+# Lets assume we want to extract value added and all emissions.
+# We first define the rows (index) to extract:
+
+# %%
+to_extract = {'Factor Inputs': 'Value Added',
+              'Emissions': [('emission_type1',   'air'),
+                            ('emission_type2', 'water')]}
+
+
+# %% [markdown]
+# And can then use the `extension_extract` method to extract the data, either as a pandas DataFrame, 
+# which returns a dictionary with the extension names as keys
+
+# %%
+df_extract_all = mrio.extension_extract(to_extract, return_type="dataframe")
+df_extract_all.keys()
+
+# %% 
+df_extract_all['Factor Inputs'].keys()
+
+# %% [markdown]
+# We can also extract into a dictionary of extension objects:
+
+# %%
+ext_extract_all = mrio.extension_extract(to_extract, return_type="extensions")
+ext_extract_all.keys()
+
+extracts = ext_extract_all 
+
+r = pymrio.concate_extension(*extracts.values(), name="abc")
+
+# %% 
+str(ext_extract_all['Factor Inputs'])
+
+# %% [markdown]
+# Or merge the extracted data into a new pymrio Extension object (when passing a new name as return_type):
+ext_new = mrio.extension_extract(to_extract, return_type="new_merged_extension")
+str(ext_new)
+
+# %% [markdown]
+# CONT: Extraction to a single extensio does not work.
+# Issue: when only one extension row, it becomes a data series, not a dataframe.
+

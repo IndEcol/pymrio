@@ -2428,7 +2428,7 @@ class IOSystem(BaseSystem):
         Parameters
         ----------
         index_dict : dict
-            A dict with the index names as keys and the values as the
+            A dict with the extension names as keys and the values as the
             corresponding index values. The values can be a single value or a
             list of values.
 
