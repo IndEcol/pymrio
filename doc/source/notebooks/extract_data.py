@@ -100,7 +100,6 @@ df_some = mrio.emissions.extract(mrio.emissions.get_rows(), dataframes=['D_cba',
 df_some.keys()
 
 
-
 # %% [markdown]
 #### Extracting from all extensions
 
@@ -117,6 +116,7 @@ df_some.keys()
 to_extract = {'Factor Inputs': 'Value Added',
               'Emissions': [('emission_type1',   'air'),
                             ('emission_type2', 'water')]}
+
 
 
 # %% [markdown]
@@ -137,19 +137,33 @@ df_extract_all['Factor Inputs'].keys()
 ext_extract_all = mrio.extension_extract(to_extract, return_type="extensions")
 ext_extract_all.keys()
 
-extracts = ext_extract_all 
-
-r = pymrio.concate_extension(*extracts.values(), name="abc")
-
 # %% 
 str(ext_extract_all['Factor Inputs'])
 
 # %% [markdown]
 # Or merge the extracted data into a new pymrio Extension object (when passing a new name as return_type):
+
+# %%
 ext_new = mrio.extension_extract(to_extract, return_type="new_merged_extension")
 str(ext_new)
 
 # %% [markdown]
-# CONT: Extraction to a single extensio does not work.
-# Issue: when only one extension row, it becomes a data series, not a dataframe.
+# CONT: Continue with explaining, mention the work with find_all etc
 
+# CONT: Make test cases for the things below
+
+
+mrio.factor_inputs.extract("Value Added", return_type="ext").F
+
+mrio.factor_inputs.extract(("Value Added"), return_type="ext").F
+
+mrio.factor_inputs.extract(["Value Added"], return_type="ext").F
+
+
+mrio.factor_inputs.extract(mrio.factor_inputs.get_rows(), return_type="ext").F
+
+mrio.emissions.extract(mrio.emissions.get_rows(), return_type="ext").F
+
+mrio.emissions.extract(mrio.emissions.get_rows()[0], return_type="ext").F
+
+mrio.emissions.get_rows()[0]

@@ -1659,6 +1659,8 @@ class Extension(BaseSystem):
         """
         if type(index) is dict:
             index = index.get(self.name, None)
+        if type(index) in (str, tuple):
+            index = [index]
 
         retdict = {}
         if dataframes is None:
@@ -1672,7 +1674,7 @@ class Extension(BaseSystem):
 
         for dfname in dataframes:
             data = getattr(self, dfname)
-            retdict[dfname] = pd.DataFrame(data.loc[index])
+            retdict[dfname] = data.loc[index, :]
 
         if return_type.lower() in ["dataframes", "dataframe", "dfs", "df"]:
             return retdict
