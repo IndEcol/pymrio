@@ -305,17 +305,31 @@ def test_extract(fix_testmrio):
     assert "FOO" not in with_missing.keys()
 
     # Test for correct shape when extracting one row
-    assert tt.factor_inputs.extract("Value Added", return_type="ext").F.index == tt.factor_inputs.get_rows()
-    assert tt.factor_inputs.extract(("Value Added"), return_type="ext").F.index == tt.factor_inputs.get_rows()
-    assert tt.factor_inputs.extract(["Value Added"], return_type="ext").F.index == tt.factor_inputs.get_rows()
+    assert (
+        tt.factor_inputs.extract("Value Added", return_type="ext").F.index
+        == tt.factor_inputs.get_rows()
+    )
+    assert (
+        tt.factor_inputs.extract(("Value Added"), return_type="ext").F.index
+        == tt.factor_inputs.get_rows()
+    )
+    assert (
+        tt.factor_inputs.extract(["Value Added"], return_type="ext").F.index
+        == tt.factor_inputs.get_rows()
+    )
 
-    assert tt.factor_inputs.extract(tt.factor_inputs.get_rows(), return_type="ext").F.index == tt.factor_inputs.get_rows()
-    pdt.assert_index_equal(tt.emissions.extract(tt.emissions.get_rows(), return_type="ext").F.index, tt.emissions.get_rows())
-    assert tt.emissions.extract(tt.emissions.get_rows()[0], return_type="ext").F.index == tt.emissions.get_rows()[0]
-
-
-
-
+    assert (
+        tt.factor_inputs.extract(tt.factor_inputs.get_rows(), return_type="ext").F.index
+        == tt.factor_inputs.get_rows()
+    )
+    pdt.assert_index_equal(
+        tt.emissions.extract(tt.emissions.get_rows(), return_type="ext").F.index,
+        tt.emissions.get_rows(),
+    )
+    assert (
+        tt.emissions.extract(tt.emissions.get_rows()[0], return_type="ext").F.index
+        == tt.emissions.get_rows()[0]
+    )
 
 
 def test_extension_extract(fix_testmrio):
@@ -354,7 +368,6 @@ def test_extension_extract(fix_testmrio):
     assert dfm.F_Y.loc["Value Added", :].sum().sum() == 0
     assert all(dfm.get_regions() == tt.get_regions())
     assert all(dfm.get_sectors() == tt.get_sectors())
-
 
 
 def test_diag_stressor(fix_testmrio):

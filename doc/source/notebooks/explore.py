@@ -214,3 +214,7 @@ pymrio.index_contains(df.index, "trade")
 
 # %%
 pymrio.index_fullmatch(df, region="reg[2,4]", sector="m.*")
+
+# %% [markdown]
+# All search methods can easily be combined with the extract methods to extract the data that was found.
+# For more information on this, see the [extract_data](./extract_data.ipynb) notebook.

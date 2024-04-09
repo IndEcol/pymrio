@@ -61,8 +61,7 @@ A_mining
 # To do so, we first define the rows (index) to extract:
 
 # %%
-rows_to_extract =[('emission_type1',   'air'),
-                  ('emission_type2', 'water')]
+rows_to_extract = [("emission_type1", "air"), ("emission_type2", "water")]
 
 # %% [markdown]
 # We can now use the `extract` method to extract the data, either as a pandas DataFrame
@@ -82,21 +81,23 @@ str(ext_extract)
 # Note that the name of the extension object is now `Emissions_extracted`, based on the name of the original extension object.
 # To use another name, just pass the name as the `return_type` method.
 
-# %% 
+# %%
 new_extension = mrio.emissions.extract(rows_to_extract, return_type="new_extension")
 str(new_extension)
 
 # %% [markdown]
-# Extracting to dataframes is also a convienient 
+# Extracting to dataframes is also a convienient
 # way to convert an extension object to a dictionary:
 
-# %% 
+# %%
 df_all = mrio.emissions.extract(mrio.emissions.get_rows(), return_type="dfs")
 df_all.keys()
 
 
 # The method also allows to only extract some of the accounts:
-df_some = mrio.emissions.extract(mrio.emissions.get_rows(), dataframes=['D_cba', 'D_pba'], return_type="dfs")
+df_some = mrio.emissions.extract(
+    mrio.emissions.get_rows(), dataframes=["D_cba", "D_pba"], return_type="dfs"
+)
 df_some.keys()
 
 
@@ -104,7 +105,7 @@ df_some.keys()
 #### Extracting from all extensions
 
 # %% [markdown]
-# We can also extract data from all extensions at once. 
+# We can also extract data from all extensions at once.
 # This is done using the `extension_extract` method from the pymrio object.
 # This expect a dict with keys based on the extension names and values as a list of rows (index) to extract.
 
@@ -113,22 +114,22 @@ df_some.keys()
 # We first define the rows (index) to extract:
 
 # %%
-to_extract = {'Factor Inputs': 'Value Added',
-              'Emissions': [('emission_type1',   'air'),
-                            ('emission_type2', 'water')]}
-
+to_extract = {
+    "Factor Inputs": "Value Added",
+    "Emissions": [("emission_type1", "air"), ("emission_type2", "water")],
+}
 
 
 # %% [markdown]
-# And can then use the `extension_extract` method to extract the data, either as a pandas DataFrame, 
+# And can then use the `extension_extract` method to extract the data, either as a pandas DataFrame,
 # which returns a dictionary with the extension names as keys
 
 # %%
 df_extract_all = mrio.extension_extract(to_extract, return_type="dataframe")
 df_extract_all.keys()
 
-# %% 
-df_extract_all['Factor Inputs'].keys()
+# %%
+df_extract_all["Factor Inputs"].keys()
 
 # %% [markdown]
 # We can also extract into a dictionary of extension objects:
@@ -137,8 +138,8 @@ df_extract_all['Factor Inputs'].keys()
 ext_extract_all = mrio.extension_extract(to_extract, return_type="extensions")
 ext_extract_all.keys()
 
-# %% 
-str(ext_extract_all['Factor Inputs'])
+# %%
+str(ext_extract_all["Factor Inputs"])
 
 # %% [markdown]
 # Or merge the extracted data into a new pymrio Extension object (when passing a new name as return_type):
@@ -150,20 +151,25 @@ str(ext_new)
 # %% [markdown]
 # CONT: Continue with explaining, mention the work with find_all etc
 
-# CONT: Make test cases for the things below
+# %% [markdown]
+#### Search and extract
 
+# %% [markdown]
+# The extract methods can also be used in combination with the [search/explore](./explore.ipynb) methods of pymrio.
+# This allows to search for specific rows and then extract the data.
 
-mrio.factor_inputs.extract("Value Added", return_type="ext").F
+# %% [markdown]
+# For example, to extract all emissions from the air compartment we can use:
 
-mrio.factor_inputs.extract(("Value Added"), return_type="ext").F
+# %%
+match_air = mrio.extension_match(find_all="air")
 
-mrio.factor_inputs.extract(["Value Added"], return_type="ext").F
+# %% [markdown]
+# And then make a new extension object with the extracted data:
 
+# %%
+air_emissions = mrio.emissions.extract(match_air, return_type="extracted_air_emissions")
+print(air_emissions)
 
-mrio.factor_inputs.extract(mrio.factor_inputs.get_rows(), return_type="ext").F
-
-mrio.emissions.extract(mrio.emissions.get_rows(), return_type="ext").F
-
-mrio.emissions.extract(mrio.emissions.get_rows()[0], return_type="ext").F
-
-mrio.emissions.get_rows()[0]
+# %% [markdown]
+# For more information on the search methods see the [explore notebook](./explore.ipynb).
