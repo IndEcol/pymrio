@@ -93,11 +93,11 @@ OECD_CONFIG = {
             "2015-2018": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=59a3d7f2-3f23-40d5-95ca-48da84c0f861",
         },
         "v2023": {
-            "1995-2000": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=88e186db-b5ed-4d08-a1f1-bb2c817caae4",
-            "2001-2005": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=c0e89731-540c-4848-bc2d-40ef8a6a0e87",
-            "2006-2010": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=993087cc-be0a-4f62-85b1-44644583febe",
-            "2011-2015": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=8e933dee-1431-4c4d-895a-bc47a6e495a7",
-            "2016-2020": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=d83434d0-a5b5-46bf-8a9f-5b6f364da6f5",
+            "1995-2000": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=d26ad811-5b58-4f0c-a4e3-06a1469e475c",
+            "2001-2005": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=7cb93dae-e491-4cfd-ac67-889eb7016a4a",
+            "2006-2010": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=ea165bfb-3a85-4e0a-afee-6ba8e6c16052",
+            "2011-2015": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1f791bc6-befb-45c5-8b34-668d08a1702a",
+            "2016-2020": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=d1ab2315-298c-4e93-9a81-c6f2273139fe",
         },
     },
 }
@@ -205,7 +205,7 @@ def _download_urls(
 
 
 def download_oecd(
-    storage_folder, version="v2021", years=None, overwrite_existing=False
+    storage_folder, version="v2023", years=None, overwrite_existing=False
 ):
     """Downloads the OECD ICIO tables
 
@@ -324,19 +324,13 @@ def download_oecd(
             if version == "v2023":
                 for file in os.listdir(storage_folder):
                     absolute_path = os.path.join(storage_folder, file)
-                    if file.endswith(".zip"):
-                        with zipfile.ZipFile(absolute_path, "r") as zip_ref:
-                            zip_ref.extractall(storage_folder)
-                            os.rename(
-                                os.path.join(
-                                    storage_folder, file.replace(".zip", ".csv")
-                                ),
-                                os.path.join(
-                                    storage_folder,
-                                    "ICIO2023_" + file.replace(".zip", ".csv"),
-                                ),
-                            )
-                        os.remove(absolute_path)
+                    os.rename(
+                        os.path.join(storage_folder, file),
+                        os.path.join(
+                            storage_folder,
+                            "ICIO2023_" + file.replace("_SML", ""),
+                        ),
+                    )
 
         downlog._add_fileio(
             "Downloaded {} to {}".format(
