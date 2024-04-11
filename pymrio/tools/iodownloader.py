@@ -92,6 +92,13 @@ OECD_CONFIG = {
             "2010-2014": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=2c2f499f-5703-4034-9457-2f7518e8f2fc",
             "2015-2018": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=59a3d7f2-3f23-40d5-95ca-48da84c0f861",
         },
+        "v2023": {
+            "1995-2000": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=d26ad811-5b58-4f0c-a4e3-06a1469e475c",
+            "2001-2005": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=7cb93dae-e491-4cfd-ac67-889eb7016a4a",
+            "2006-2010": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=ea165bfb-3a85-4e0a-afee-6ba8e6c16052",
+            "2011-2015": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1f791bc6-befb-45c5-8b34-668d08a1702a",
+            "2016-2020": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=d1ab2315-298c-4e93-9a81-c6f2273139fe",
+        },
     },
 }
 
@@ -198,7 +205,7 @@ def _download_urls(
 
 
 def download_oecd(
-    storage_folder, version="v2021", years=None, overwrite_existing=False
+    storage_folder, version="v2023", years=None, overwrite_existing=False
 ):
     """Downloads the OECD ICIO tables
 
@@ -242,37 +249,35 @@ def download_oecd(
     os.makedirs(storage_folder, exist_ok=True)
 
     if type(version) is int:
-        version = str(version)
+        version = "v" + str(version)
 
-    if ("8" in version) or ("4" in version):
-        version = "v2018"
-    elif ("3" in version) or ("6" in version):
-        version = "v2016"
-    elif "21" in version:
-        version = "v2021"
-    else:
+    if not version in ("v2016", "v2018", "v2021", "v2023"):
         raise ValueError("Version not understood")
-
-    v2021_years = ["1995-1999", "2000-2004", "2005-2009", "2010-2014", "2015-2018"]
 
     if type(years) is int or type(years) is str:
         years = [years]
+
+    if version == "v2021":
+        bundle_years = ["1995-1999", "2000-2004", "2005-2009", "2010-2014", "2015-2018"]
+    elif version == "v2023":
+        bundle_years = ["1995-2000", "2001-2005", "2006-2010", "2011-2015", "2016-2020"]
 
     if not years:
         if version == "v2018":
             years = range(2005, 2016)
         elif version == "v2021":
-            years = v2021_years
-
+            years = bundle_years.copy()
+        elif version == "v2023":
+            years = bundle_years.copy()
         else:
             years = range(1995, 2012)
 
     years = [str(yy) for yy in years]
 
-    if version == "v2021":
+    if version == "v2021" or version == "v2023":
         for index, year in enumerate(years):
-            if year not in v2021_years:
-                for yr in v2021_years:
+            if year not in bundle_years:
+                for yr in bundle_years:
                     if int(yr[:4]) <= int(year) <= int(yr[-4:]):
                         years[index] = yr
 
@@ -298,6 +303,10 @@ def download_oecd(
                 ]
                 if set(filenames).issubset(os.listdir(storage_folder)):
                     continue
+            if version == "v2023":
+                filename = "ICIO-" + yy + "-extended.zip"
+                filenames = [f"{yr}.zip" for yr in range(int(yy[:4]), int(yy[-4:]) + 1)]
+
             elif filename in os.listdir(storage_folder):
                 continue
 
@@ -308,10 +317,20 @@ def download_oecd(
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
 
-        if version == "v2021":
+        if version == "v2021" or version == "v2023":
             with zipfile.ZipFile(storage_file, "r") as zip_ref:
                 zip_ref.extractall(storage_folder)
             os.remove(storage_file)
+            if version == "v2023":
+                for file in os.listdir(storage_folder):
+                    absolute_path = os.path.join(storage_folder, file)
+                    os.rename(
+                        os.path.join(storage_folder, file),
+                        os.path.join(
+                            storage_folder,
+                            "ICIO2023_" + file.replace("_SML", ""),
+                        ),
+                    )
 
         downlog._add_fileio(
             "Downloaded {} to {}".format(
