@@ -2,9 +2,8 @@
 Changelog
 #########
 
-***************************
 v0.6dev
-***************************
+=======
 
 Breaking changes
 ================
@@ -27,7 +26,9 @@ Breaking changes
 New features
 ============
 
-* Added Gosh implementation for downstream analysis (by @Beckebanze , #136)
+* added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
+
+* Added draft Gosh implementation for downstream analysis (by @Beckebanze , #136)
 
     - equivalent of A for Ghosh (A* in literature, called As in pymrio)
     - the Ghosh inverse (often referred to G in literature). 
@@ -50,6 +51,23 @@ Misceallaneous
 * Updated and restructuring of the documentation
 
 ***************************
+v0.5.4 - 20240412
+***************************
+
+New features
+============
+
+* added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
+
+* Added draft Gosh implementation for downstream analysis (by @Beckebanze , #136)
+
+    - equivalent of A for Ghosh (A* in literature, called As in pymrio)
+    - the Ghosh inverse (often referred to G in literature). 
+    - downstream scope 3 multiplier, M_{down}, such the sum of the M+M_{down} is the full scope multiplier, with M the existing multiplier in pymrio that covers scope 1,2&3 upstream.
+    - a short addition to the pymrio background page that introduces the Ghosh model
+    - tests that test the functionality of the added functions
+
+***************************
 v0.5.3 - 20231023
 ***************************
 
@@ -58,7 +76,6 @@ Bugfixes
 
 * Fix downloader for new Zenodo API (by @hazimhussein)
 * Fix coverage report (by @konstantinstadler)
->>>>>>> master
 
 ***************************
 v0.5.2 - 20230815
