@@ -1011,7 +1011,7 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
     ----------
     df_orig : pd.DataFrame
         The DataFrame to process. All matching occurs on the index.
-        Thus stack the table if necessary.
+        Thus stack the tables if necessary.
 
     df_map : pd.DataFrame
         The DataFrame with the mapping of the old to the new classification.
@@ -1025,15 +1025,15 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
         stressor ... original index name
         compartment ... original index name
         factor ... the factor for multiplication
-        impact__stressor ... the new index name, replacing the stressor name
+        impact__stressor ... the new index name, replacing the previous index name "stressor"
         compartment__compartment ... the new compartment, replacing the original compartment
 
         The structure "stressor" and "impact_stressor" is important.
 
         Some additional columns are possible, but not necessary:
 
-        agg_func ... the aggregation function to use for multiple impact (summation by default)
-                    If passed as a column here, that overrides the default value/value passed as argument
+        agg_func ... the aggregation function to use for multiple matchings (summation by default)
+                    If passed as a column here, that overrides the default value (passed as argument)
         unit_orig ... the original unit (optional, for double check with an potential unit column in the original df)
         unit_new ... the new unit to be set as the unit column in the new df
 
