@@ -3,13 +3,15 @@ Changelog
 #########
 
 ***************************
-v0.5.4 dev
+v0.5.4 - 20240412
 ***************************
 
 New features
 ============
 
-* Added Gosh implementation for downstream analysis (by @Beckebanze , #136)
+* added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
+
+* Added draft Gosh implementation for downstream analysis (by @Beckebanze , #136)
 
     - equivalent of A for Ghosh (A* in literature, called As in pymrio)
     - the Ghosh inverse (often referred to G in literature). 
