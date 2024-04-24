@@ -145,7 +145,8 @@ def _get_url_datafiles(
     # but currently works for wiod and eora
     returnvalue = namedtuple("url_content", ["raw_text", "data_urls"])
     url_text = requests_func(url_db_view, cookies=access_cookie).text
-    data_urls = [url_db_content + ff for ff in re.findall(mrio_regex, url_text)]
+    data_urls = [url_db_content +
+                 ff for ff in re.findall(mrio_regex, url_text)]
     return returnvalue(raw_text=url_text, data_urls=data_urls)
 
 
@@ -198,7 +199,8 @@ def _download_urls(
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
 
-        downlog_handler._add_fileio("Downloaded {} to {}".format(url, filename))
+        downlog_handler._add_fileio(
+            "Downloaded {} to {}".format(url, filename))
         downlog_handler.save()
 
     return downlog_handler
@@ -258,9 +260,11 @@ def download_oecd(
         years = [years]
 
     if version == "v2021":
-        bundle_years = ["1995-1999", "2000-2004", "2005-2009", "2010-2014", "2015-2018"]
+        bundle_years = ["1995-1999", "2000-2004",
+                        "2005-2009", "2010-2014", "2015-2018"]
     elif version == "v2023":
-        bundle_years = ["1995-2000", "2001-2005", "2006-2010", "2011-2015", "2016-2020"]
+        bundle_years = ["1995-2000", "2001-2005",
+                        "2006-2010", "2011-2015", "2016-2020"]
 
     if not years:
         if version == "v2018":
@@ -291,7 +295,8 @@ def download_oecd(
 
     for yy in years:
         if yy not in OECD_CONFIG["datafiles"][version].keys():
-            raise ValueError("Datafile for {} not specified or available.".format(yy))
+            raise ValueError(
+                "Datafile for {} not specified or available.".format(yy))
 
         filename = "ICIO" + version.lstrip("v") + "_" + yy + ".zip"
 
@@ -305,7 +310,8 @@ def download_oecd(
                     continue
             if version == "v2023":
                 filename = "ICIO-" + yy + "-extended.zip"
-                filenames = [f"{yr}.zip" for yr in range(int(yy[:4]), int(yy[-4:]) + 1)]
+                filenames = [f"{yr}.zip" for yr in range(
+                    int(yy[:4]), int(yy[-4:]) + 1)]
 
             elif filename in os.listdir(storage_folder):
                 continue
@@ -484,7 +490,8 @@ def download_eora26(
             )
 
             email = input("Enter your Eora account email: ")
-            password = getpass.getpass(prompt="Enter your Eora account password: ")
+            password = getpass.getpass(
+                prompt="Enter your Eora account password: ")
 
         elif "Sorry, wrong password provided" in r.text:
             print(
@@ -492,7 +499,8 @@ def download_eora26(
             Please try again"""
             )
 
-            password = getpass.getpass(prompt="Enter your Eora account password: ")
+            password = getpass.getpass(
+                prompt="Enter your Eora account password: ")
 
         else:
             false_cred = False
@@ -746,6 +754,12 @@ def download_gloria(
                     if str(yr) in filename_from_url(file)
                 ]
             )
+        files_to_download.extend(
+            [
+                file
+                for file in urls[f"0{int(version)}"]
+                if 'ReadMe' in filename_from_url(file)
+            ])
     else:
         files_to_download = urls[f"0{int(version)}"]
 
