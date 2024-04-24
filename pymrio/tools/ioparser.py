@@ -2084,14 +2084,14 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
         raise ValueError('price should be bp or pp')
 
     gloria_mrio_files = {
-        "T": f'_120secMother_AllCountries_002_T-Results_{str(year)}_{str(version)}_{extension}.csv',
-        "Y": f'_120secMother_AllCountries_002_Y-Results_{str(year)}_{str(version)}_{extension}.csv',
-        "VA": f'_120secMother_AllCountries_002_V-Results_{str(year)}_{str(version)}_Markup001(full).csv',
+        "T": f'_120secMother_AllCountries_002_T-Results_{str(year)}_0{str(version)}_{extension}.csv',
+        "Y": f'_120secMother_AllCountries_002_Y-Results_{str(year)}_0{str(version)}_{extension}.csv',
+        "VA": f'_120secMother_AllCountries_002_V-Results_{str(year)}_0{str(version)}_Markup001(full).csv',
     }
 
     gloria_satellite_files = {
-        "Q": f'_120secMother_AllCountries_002_TQ-Results_{str(year)}_{str(version)}_Markup001(full).csv',
-        "QY": f'_120secMother_AllCountries_002_YQ-Results_{str(year)}_{str(version)}_Markup001(full).csv'
+        "Q": f'_120secMother_AllCountries_002_TQ-Results_{str(year)}_0{str(version)}_Markup001(full).csv',
+        "QY": f'_120secMother_AllCountries_002_YQ-Results_{str(year)}_0{str(version)}_Markup001(full).csv'
     }
 
     header = namedtuple("header", "index columns index_names, column_names")
@@ -2130,7 +2130,7 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
     }
 
     mrio_path = glob.glob(
-        os.path.join(path, f"GLORIA_MRIOs_0{str(version)}_{str(year)}*"))[0]
+        os.path.join(path, f"GLORIA_MRIOs_{str(version)}_{str(year)}*"))[0]
     gloria_zip_ext = ".zip"
 
     # First we load the monetary data
