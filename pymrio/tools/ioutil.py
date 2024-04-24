@@ -997,12 +997,59 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
     return _dfs_idx
 
+def match_manual(df_orig, agg_func, factor, new_index_name, **kwargs):
+    """Match and convert a DataFrame to a new classification
 
-def _get_sample():
-    # DEV: Remove for release
+    Parameters
+    ----------
+    df_orig : pd.DataFrame
+        The DataFrame to process. All matching occurs on the index.
+        Thus stack the tables if necessary.
 
-    pass
+    agg_func : str or func
+        the aggregation function to use for multiple matchings (summation by default)
 
+    factor : float
+        the factor for multiplication
+
+    new_index_name : str
+        the new index name to be set for the new df
+
+    kwargs : dict
+        The regex to match. The keys are the index names,
+        the values are the regex to match.
+        If the entry is not in index name, it is ignored silently.
+
+    Returns
+    -------
+    pd.DataFrame
+        The matched and converted DataFrame
+
+    a, b, c
+
+    a=xxx
+    b=yyy
+
+    A, B
+    stressor = "emis.*"
+    compartment = "air|water"
+    impact__stressor = "GHG"
+    compartment__compartment = "total"
+
+    """
+
+
+    new_col = [col for col in df_orig.columns if "__" in col]
+    unique_new_index = df_orig.loc[:, new_col].value_counts().index
+
+    res_collector = []
+
+    # loop over each new impact/characterized value
+    for char in unique_new_index:
+        if len(char) == 1:
+            df_cur_map = df_orig.loc[[char[0]]]
+        else:
+            df_cur_map = df_orig.loc[[char]]
 
 def match_and_convert(df_orig, df_map, agg_func="sum"):
     """Match and convert a DataFrame to a new classification
@@ -1019,7 +1066,8 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
         dataframe to be characterized: one column for each index level in the dataframe
         and one column for each new index level in the characterized result dataframe.
 
-        This is better explained with an example. Assuming a dataframe with index names 'stressor' and 'compartment'
+        This is better explained with an example. 
+        Assuming a dataframe with index names 'stressor' and 'compartment'
         the characterizing dataframe would have the following structure:
 
         stressor ... original index name
@@ -1028,14 +1076,15 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
         impact__stressor ... the new index name, replacing the previous index name "stressor"
         compartment__compartment ... the new compartment, replacing the original compartment
 
-        The structure "stressor" and "impact_stressor" is important.
+        The structure "stressor" and "impact__stressor" is important.
 
         Some additional columns are possible, but not necessary:
 
-        agg_func ... the aggregation function to use for multiple matchings (summation by default)
-                    If passed as a column here, that overrides the default value (passed as argument)
         unit_orig ... the original unit (optional, for double check with an potential unit column in the original df)
         unit_new ... the new unit to be set as the unit column in the new df
+
+    agg_func : str or func
+        the aggregation function to use for multiple matchings (summation by default)
 
 
     Extension for extensions:
@@ -1085,15 +1134,11 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
     res_collector = []
 
     # loop over each new impact/characterized value
-    for char in unique_new_index:
-        if len(char) == 1:
-            df_cur_map = df_map.loc[[char[0]]]
+    for entry in unique_new_index:
+        if len(entry) == 1:
+            df_cur_map = df_map.loc[[entry[0]]]
         else:
-            df_cur_map = df_map.loc[[char]]
-
-        agg_method = (
-            df_cur_map.agg_func if "agg_func" in df_cur_map.columns else agg_func
-        )
+            df_cur_map = df_map.loc[[entry]]
 
         collector = []
 
@@ -1108,6 +1153,9 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
         new_name_order = []
 
         for idx_rename in df_cur_map.index.names:
+            # TODO: most of this logic can be outside the top level loop
+            # TODO: clearest to parse the __ into a named tuple list, and loop over these
+            # TODO: move the check if columns are named correct up to the beginning
             try:
                 new_idx_rename, old_idx_rename = idx_rename.split("__")
                 new_name_order.append(new_idx_rename)
@@ -1146,7 +1194,7 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
         # Idea is to pass through all index levels which are not specified in the map or in the __ columns
         # To remove a level, provide __ and give it one common name (e.g. "DROP") and then remove
         res_collector.append(
-            df_collected.groupby(by=df_collected.index.names).agg(agg_method)
+            df_collected.groupby(by=df_collected.index.names).agg(agg_func)
         )
 
     return pd.concat(res_collector, axis=0)
