@@ -60,6 +60,7 @@ IDX_NAMES = {
     "VA_row_single": ["inputtype"],
     "VA_row_unit": ["inputtype", "unit"],
     "VA_row_unit_cat": ["inputtype", "category"],
+    "VA_row_region": ["region", "inputtype"],
     "unit": ["unit"],
     "_reg_sec_unit": ["region", "sector", "unit"],
     "T_col": ["region", "system", "sector"],
@@ -2038,6 +2039,7 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
     Note
     ----
 
+    Countries with null transaction matrix are removed to avoid singular matrices
     Parameters
     ----------
 
@@ -2107,26 +2109,26 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
             index="labels_Q",
             columns="labels_T",
             index_names=IDX_NAMES["F_row_cat_unit"],
-            column_names=IDX_NAMES["F_col"],
+            column_names=IDX_NAMES["T_col"],
         ),
         "QY": header(
             index="labels_Q",
             columns="labels_Y",
-            index_names=IDX_NAMES["F_row_src"],
+            index_names=IDX_NAMES["F_row_cat_unit"],
             column_names=IDX_NAMES["Y_col2"],
         ),
         "VA": header(
             index="labels_VA",
             columns="labels_T",
-            index_names=IDX_NAMES["VA_row_unit_cat"],
-            column_names=IDX_NAMES["F_col"],
+            index_names=IDX_NAMES["VA_row_region"],
+            column_names=IDX_NAMES["T_col"],
         ),
         "Y": header(
             index="labels_T",
             columns="labels_Y",
-            index_names=IDX_NAMES["Y_row"],
+            index_names=IDX_NAMES["T_row"],
             column_names=IDX_NAMES["Y_col2"],
-        ),
+        )
     }
 
     mrio_path = glob.glob(
@@ -2206,7 +2208,7 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
     gloria_data_sut["labels_Y"] = pd.DataFrame(
         itertools.product(regions, fd_cats))
     gloria_data_sut["labels_VA"] = pd.DataFrame(
-        itertools.product(sectors, va_cats))
+        itertools.product(regions, va_cats))
     gloria_data_sut["labels_Q"] = satellite_cats[[
         "Sat_indicator", "Sat_head_indicator", "Sat_unit"]]
 
@@ -2223,6 +2225,36 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
             .index
         )
         gloria_data_sut[key].index.names = gloria_header_spec[key].index_names
+
+    # Remove empty countries (Such as DYE in 2022)
+    row_sum = gloria_data_sut["T"].groupby('region').sum().sum(axis=1)
+    column_sum = gloria_data_sut["T"].groupby('region', axis=1).sum()
+    empty_countries = row_sum[(row_sum == 0) & (
+        column_sum == 0)].index.to_list()
+
+    for key in gloria_data_sut.keys():
+        try:
+            meta_rec._add_modify(
+                "Remove empty countries ({empty_countries}) columns "
+                "from {table}".format(
+                    name=empty_countries,
+                    table=key)
+            )
+            gloria_data_sut[key] = gloria_data_sut[key].drop(
+                empty_countries, axis=1, level=0)
+        except KeyError:
+            pass
+        try:
+            meta_rec._add_modify(
+                "Remove empty countries ({empty_countries}) row "
+                "from {table}".format(
+                    name=empty_countries,
+                    table=key)
+            )
+            gloria_data_sut[key] = gloria_data_sut[key].drop(
+                empty_countries, axis=0, level=0)
+        except KeyError:
+            pass
 
     # Extract Supply and Use tables from the Transaction matrix
     gloria_data_sut["V"] = gloria_data_sut["T"].loc[gloria_data_sut["T"].index.get_level_values(1) == 'Industry',
@@ -2277,7 +2309,9 @@ def __construct_IO(data_sut, construct='B'):
         C: Fixed Industry Sales Structure, industry by industry
         D: Fixed Commodity Sales Structure, industry by industry
 
-    From Miller Blair 2009
+    From Miller Blair 2009 and Eurostat Manual of Supply, Use and
+    Input-Output Tables
+    https://ec.europa.eu/eurostat/documents/3859598/5902113/KS-RA-07-013-EN.PDF/b0b3d71e-3930-4442-94be-70b36cea9b39
     """
 
     # Industry output
@@ -2293,11 +2327,14 @@ def __construct_IO(data_sut, construct='B'):
     # commodity x industry
     B = data_sut["U"].values @ np.diag(x_inv)
 
+    # commodity x industry
+    C = data_sut["V"].T.values @ np.diag(x_inv)
+
     # industry x commodity
     D = data_sut["V"].values @ np.diag(q_inv)
 
-    # commodity x industry
-    C = data_sut["V"].T.values @ np.diag(x_inv)
+    # Transformer matrix (called T in Eurostat)
+    T = np.linalg.inv(data_sut["V"].T.values) @ np.diag(q)
 
     if construct == 'A':
         I = np.eye(data_sut["U"].shape[0])
@@ -2305,32 +2342,62 @@ def __construct_IO(data_sut, construct='B'):
                          index=data_sut["U"].index,
                          columns=data_sut["U"].index)
         x_io = q
+
+        # Value added in commodity x value added category
+        VA = pd.DataFrame(data_sut["VA"].values @ T,
+                          index=data_sut["U"].index,
+                          columns=data_sut["VA"].columns)
+        Q = pd.DataFrame(data_sut["Q"].values @ T,
+                         index=data_sut["U"].index,
+                         columns=data_sut["Q"].columns)
+        Y = data_sut["Y"]
+
     elif construct == 'B':
         I = np.eye(data_sut["U"].shape[0])
         A = pd.DataFrame(np.linalg.inv(I - B @ D),
                          index=data_sut["U"].index,
                          columns=data_sut["U"].index)
         x_io = q
+        VA = pd.DataFrame(data_sut["VA"].values @ T,
+                          index=data_sut["U"].index,
+                          columns=data_sut["VA"].columns)
+        Q = pd.DataFrame(data_sut["Q"].values @ T,
+                         index=data_sut["U"].index,
+                         columns=data_sut["Q"].columns)
+        Y = data_sut["Y"]
+
     elif construct == 'C':
         I = np.eye(data_sut["U"].shape[1])
         A = pd.DataFrame(np.linalg.inv(I - np.linalg.inv(C) @ B) @ np.linalg.inv(C),
                          index=data_sut["U"].columns,
                          columns=data_sut["U"].columns)
         x_io = x
+        VA = data_sut["VA"]
+        Q = data_sut["Q"]
+        Y = pd.DataFrame(T @ data_sut["Y"].values,
+                         index=data_sut["U"].columns,
+                         columns=data_sut["Y"].columns)
+
     elif construct == 'D':
         I = np.eye(data_sut["U"].shape[1])
         A = pd.DataFrame(np.linalg.inv(I - D @ B) @ D,
                          index=data_sut["U"].columns,
                          columns=data_sut["U"].columns)
         x_io = x
+        VA = data_sut["VA"]
+        Q = data_sut["Q"]
+        Y = pd.DataFrame(T @ data_sut["Y"].values,
+                         index=data_sut["U"].columns,
+                         columns=data_sut["Y"].columns)
+
     else:
         raise ParserError('Construct should be A, B, C or D')
 
     data_io = {}
-    data_io["Y"] = data_sut["Y"]
-    data_io["Q"] = data_sut["Q"]
+    data_io["Y"] = Y
+    data_io["Q"] = Q
     data_io["QY"] = data_sut["QY"]
-    data_io["VA"] = data_sut["VA"]
+    data_io["VA"] = VA
     data_io["A"] = A
     data_io["x"] = x_io
 
