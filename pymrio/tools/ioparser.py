@@ -2228,14 +2228,15 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
 
     # Remove empty countries (Such as DYE in 2022)
     row_sum = gloria_data_sut["T"].groupby('region').sum().sum(axis=1)
-    column_sum = gloria_data_sut["T"].groupby('region', axis=1).sum()
+    column_sum = gloria_data_sut["T"].T.groupby(
+        'region').sum().sum(axis=1)
     empty_countries = row_sum[(row_sum == 0) & (
         column_sum == 0)].index.to_list()
 
     for key in gloria_data_sut.keys():
         try:
             meta_rec._add_modify(
-                "Remove empty countries ({empty_countries}) columns "
+                "Remove empty countries ({name}) columns "
                 "from {table}".format(
                     name=empty_countries,
                     table=key)
@@ -2246,7 +2247,7 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
             pass
         try:
             meta_rec._add_modify(
-                "Remove empty countries ({empty_countries}) row "
+                "Remove empty countries ({name}) row "
                 "from {table}".format(
                     name=empty_countries,
                     table=key)
@@ -2301,7 +2302,7 @@ def __construct_IO(data_sut, construct='B'):
         Y: Final demand: commodity x final demand category
         Q: Satellite accounts: satellite account x industry
         QY: Final demand satellite account: satellite account x final demand category
-        VA: Value added: industry x value added category
+        VA: Value added: value added category x industry
 
     construct: int, optional
         A: Commodity Technology, commodity by commodity
@@ -2310,7 +2311,7 @@ def __construct_IO(data_sut, construct='B'):
         D: Fixed Commodity Sales Structure, industry by industry
 
     From Miller Blair 2009 and Eurostat Manual of Supply, Use and
-    Input-Output Tables
+    Input-Output Tables p.349
     https://ec.europa.eu/eurostat/documents/3859598/5902113/KS-RA-07-013-EN.PDF/b0b3d71e-3930-4442-94be-70b36cea9b39
     """
 
@@ -2345,11 +2346,11 @@ def __construct_IO(data_sut, construct='B'):
 
         # Value added in commodity x value added category
         VA = pd.DataFrame(data_sut["VA"].values @ T,
-                          index=data_sut["U"].index,
-                          columns=data_sut["VA"].columns)
+                          index=data_sut["VA"].index,
+                          columns=data_sut["U"].index)
         Q = pd.DataFrame(data_sut["Q"].values @ T,
-                         index=data_sut["U"].index,
-                         columns=data_sut["Q"].columns)
+                         index=data_sut["Q"].index,
+                         columns=data_sut["U"].index)
         Y = data_sut["Y"]
 
     elif construct == 'B':
@@ -2359,11 +2360,11 @@ def __construct_IO(data_sut, construct='B'):
                          columns=data_sut["U"].index)
         x_io = q
         VA = pd.DataFrame(data_sut["VA"].values @ T,
-                          index=data_sut["U"].index,
-                          columns=data_sut["VA"].columns)
+                          index=data_sut["VA"].index,
+                          columns=data_sut["U"].index)
         Q = pd.DataFrame(data_sut["Q"].values @ T,
-                         index=data_sut["U"].index,
-                         columns=data_sut["Q"].columns)
+                         index=data_sut["Q"].index,
+                         columns=data_sut["U"].index)
         Y = data_sut["Y"]
 
     elif construct == 'C':
