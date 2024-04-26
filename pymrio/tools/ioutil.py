@@ -997,63 +997,6 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
     return _dfs_idx
 
-def match_manual(df_orig, agg_func, factor, new_index_name, **kwargs):
-    """Match and convert a DataFrame to a new classification
-
-    Parameters
-    ----------
-    df_orig : pd.DataFrame
-        The DataFrame to process. All matching occurs on the index.
-        Thus stack the tables if necessary.
-
-    agg_func : str or func
-        the aggregation function to use for multiple matchings (summation by default)
-
-    factor : float
-        the factor for multiplication
-
-    new_index_name : str
-        the new index name to be set for the new df
-
-    kwargs : dict
-        The regex to match. The keys are the index names,
-        the values are the regex to match.
-        If the entry is not in index name, it is ignored silently.
-
-    Returns
-    -------
-    pd.DataFrame
-        The matched and converted DataFrame
-
-    a, b, c
-
-    a=xxx
-    b=yyy
-
-    A, B
-    stressor = "emis.*"
-    compartment = "air|water"
-    impact__stressor = "GHG"
-    compartment__compartment = "total"
-
-    """
-
-
-    bridge_columns = [col for col in df_orig.columns if "__" in col]
-    unique_new_index = df_orig.loc[:, bridge_columns].value_counts().index
-
-
-
-
-
-    res_collector = []
-
-    # loop over each new impact/characterized value
-    for char in unique_new_index:
-        if len(char) == 1:
-            df_cur_map = df_orig.loc[[char[0]]]
-        else:
-            df_cur_map = df_orig.loc[[char]]
 
 def match_and_convert(df_orig, df_map, agg_func="sum"):
     """Match and convert a DataFrame to a new classification
@@ -1070,7 +1013,7 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
         dataframe to be characterized: one column for each index level in the dataframe
         and one column for each new index level in the characterized result dataframe.
 
-        This is better explained with an example. 
+        This is better explained with an example.
         Assuming a dataframe with index names 'stressor' and 'compartment'
         the characterizing dataframe would have the following structure:
 
@@ -1117,7 +1060,6 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
             raise ValueError(f"Column {col} contains more then one '__'")
         assert bridge.orig in df_map.columns, f"Column {bridge.new} not in df_map"
         assert bridge.orig in df_orig.index.names, f"Column {bridge.orig} not in df_orig"
-        bridges.append(bridge)
 
     df_map = df_map.set_index(bridge_columns)
     res_collector = []
@@ -1134,7 +1076,6 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
             collector.append(mul_entries)
 
         df_collected = pd.concat(collector, axis=0)
-
 
         for bridge in bridges:
             for idx_old_names in df_collected.index.names:
