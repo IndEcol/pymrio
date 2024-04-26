@@ -2034,12 +2034,13 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
 
 
 def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria"):
-    """Parse the GLORIA database
+    """Parse the GLORIA database in SUT format
 
     Note
     ----
 
     Countries with null transaction matrix are removed to avoid singular matrices
+
     Parameters
     ----------
 
@@ -2283,7 +2284,7 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
 def __construct_IO(data_sut, construct='B'):
     # Construct the IO matrices from the SUT matrices
     """
-    Builds input output matrices from SUT ones
+    Builds input output matrices from SUT matrices
 
     Note
     ----
@@ -2403,6 +2404,40 @@ def __construct_IO(data_sut, construct='B'):
 
 def parse_gloria(path, year=2022, version='59', price="bp", country_names="gloria",
                  construct='B'):
+    """Parse the GLORIA database in IO format
+
+    Note
+    ----
+
+    Countries with null transaction matrix are removed to avoid singular matrices
+    For GLORIA, all constructs are equivalent (Supply table is diagonal)
+
+    Parameters
+    ----------
+
+    path : string or pathlib.Path
+       Path to the Gloria raw storage folder, which should contain 3
+       files/folders for a given year (as downloaded by download_gloria in
+       iodownloader) :
+        - GLORIA_MRIOs_{version}_{year}.zip or extracted folder
+        - GLORIA_SatelliteAccounts_0{version}_{year}.zip or extracted folder
+        - GLORIA_ReadMe_{version}.xlsx
+
+    year : int or str
+        4 digit year spec.
+
+    version : str, optional
+        version of gloria to use
+
+    price : str, optional
+        'bp' or 'pp'
+
+    country_names: str, optional
+        Which country names to use:
+        'gloria' = Gloria ISO 3
+        'full' = Full country names as provided by Gloria
+        Passing the first letter suffice.
+    """
 
     gloria_data_sut, meta_rec = parse_gloria_sut(
         path, year, version, price, country_names)
@@ -2412,12 +2447,12 @@ def parse_gloria(path, year=2022, version='59', price="bp", country_names="glori
     gloria_data = __construct_IO(gloria_data_sut, construct=construct)
 
     A_unit = pd.DataFrame(
-        data=["Mill USD"] * len(gloria_data["A"].index),
+        data=["‘000 US$"] * len(gloria_data["A"].index),
         index=gloria_data["A"].index,
         columns=["unit"],
     )
     VA_unit = pd.DataFrame(
-        data=["Mill USD"] * len(gloria_data["VA"].index),
+        data=["‘000 US$"] * len(gloria_data["VA"].index),
         index=gloria_data["VA"].index,
         columns=["unit"],
     )
