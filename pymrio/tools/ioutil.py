@@ -1039,8 +1039,12 @@ def match_manual(df_orig, agg_func, factor, new_index_name, **kwargs):
     """
 
 
-    new_col = [col for col in df_orig.columns if "__" in col]
-    unique_new_index = df_orig.loc[:, new_col].value_counts().index
+    bridge_columns = [col for col in df_orig.columns if "__" in col]
+    unique_new_index = df_orig.loc[:, bridge_columns].value_counts().index
+
+
+
+
 
     res_collector = []
 
@@ -1076,6 +1080,10 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
         impact__stressor ... the new index name, replacing the previous index name "stressor"
         compartment__compartment ... the new compartment, replacing the original compartment
 
+        the columsn with __ we call bridge columns, they are used to match the original index
+        the new dataframe with have index names based on the first part of the bridge column, in the order
+        in which the bridge columns are given in the mapping dataframe.
+
         The structure "stressor" and "impact__stressor" is important.
 
         Some additional columns are possible, but not necessary:
@@ -1093,53 +1101,30 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
     unit_new ... the new unit to be set for the extension
 
     """
+    bridge_columns = [col for col in df_map.columns if "__" in col]
+    unique_new_index = df_map.loc[:, bridge_columns].value_counts().index
 
-    # DEV: Remove for release
-    # agg_func = 'sum'
-    # df_map = pd.DataFrame(
-    #     columns=["em_type", "compart", "total__em_type", "factor"],
-    #     data=[["em.*", "air|water", "total_regex", 2],
-    #           ["em1", "air", "total_sum", 2],
-    #           ["em1", "water", "total_sum", 2],
-    #           ["em2", "air", "total_sum", 2],
-    #           ["em2", "water", "total_sum", 2],
-    #           ["em1", "air", "all_air", 0.5],
-    #           ["em2", "air", "all_air", 0.5]],
-    # )
-    #
-    # df_map = pd.DataFrame(
-    #     columns=["em_type", "total__em_type", "factor"],
-    #     data=[["em.*",  "total_regex", 2],
-    #           ["em1",  "total_sum", 2],
-    #           ["em1",  "total_sum", 2],
-    #           ["em2",  "total_sum", 2],
-    #           ["em2",  "total_sum", 2],
-    #           ["em1",  "all_air", 0.5],
-    #           ["em2",  "all_air", 0.5]],
-    # )
+    bridge_components = namedtuple("bridge_components", ["new", "orig", "raw"])
+    bridges = []
 
-    #
-    # df_orig = pd.DataFrame(
-    #     data=5,
-    #     index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
-    #     columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
-    # )
-    # df_orig.columns.names = ["reg", "sec"]
-    # df_orig.index.names = ["em_type", "compart"]
+    # some consitency checks of arguments and restructuring if everything is ok
+    if len(bridge_columns) == 0:
+        raise ValueError("No columns with '__' in the mapping DataFrame")
+    for col in bridge_columns:
+        if col.count("__") == 1:
+            bridge = bridge_components(*col.split("__"), col)
+        else:
+            raise ValueError(f"Column {col} contains more then one '__'")
+        assert bridge.orig in df_map.columns, f"Column {bridge.new} not in df_map"
+        assert bridge.orig in df_orig.index.names, f"Column {bridge.orig} not in df_orig"
+        bridges.append(bridge)
 
-    new_col = [col for col in df_map.columns if "__" in col]
-    unique_new_index = df_map.loc[:, new_col].value_counts().index
-
-    df_map = df_map.set_index(new_col)
+    df_map = df_map.set_index(bridge_columns)
     res_collector = []
 
     # loop over each new impact/characterized value
     for entry in unique_new_index:
-        if len(entry) == 1:
-            df_cur_map = df_map.loc[[entry[0]]]
-        else:
-            df_cur_map = df_map.loc[[entry]]
-
+        df_cur_map = df_map.loc[[entry]]
         collector = []
 
         # the loop for getting all (potential regex) matches and multiplication
@@ -1150,47 +1135,29 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
 
         df_collected = pd.concat(collector, axis=0)
 
-        new_name_order = []
 
-        for idx_rename in df_cur_map.index.names:
-            # TODO: most of this logic can be outside the top level loop
-            # TODO: clearest to parse the __ into a named tuple list, and loop over these
-            # TODO: move the check if columns are named correct up to the beginning
-            try:
-                new_idx_rename, old_idx_rename = idx_rename.split("__")
-                new_name_order.append(new_idx_rename)
-            except ValueError:
-                raise ValueError(
-                    f"Column {idx_rename} does not contain/contains more then one '__'"
-                )
-
+        for bridge in bridges:
             for idx_old_names in df_collected.index.names:
-                if old_idx_rename in idx_old_names:
+                if bridge.orig in idx_old_names:
                     df_collected.index = df_collected.index.set_names(
-                        new_idx_rename, level=idx_old_names
+                        bridge.new, level=idx_old_names
                     )
 
-                    df_collected.reset_index(level=new_idx_rename, inplace=True)
+                    df_collected.reset_index(level=bridge.new, inplace=True)
 
                     for row in df_cur_map.reset_index().iterrows():
-                        new_row_name = row[1][idx_rename]
-                        old_row_name = row[1][old_idx_rename]
-                        df_collected.loc[:, new_idx_rename] = df_collected.loc[
-                            :, new_idx_rename
+                        new_row_name = row[1][bridge.raw]
+                        old_row_name = row[1][bridge.orig]
+                        df_collected.loc[:, bridge.new] = df_collected.loc[
+                            :, bridge.new
                         ].str.replace(pat=old_row_name, repl=new_row_name, regex=True)
 
                     df_collected.set_index(
-                        new_idx_rename, drop=True, append=True, inplace=True
+                        bridge.new, drop=True, append=True, inplace=True
                     )
 
-        # append name not in new_name_order if any
-
-        for idx_name in df_collected.index.names:
-            if idx_name not in new_name_order:
-                new_name_order.append(idx_name)
-        df_collected = df_collected.reorder_levels(new_name_order, axis=0)
-
         # CONT: new test cases and logic for compartment included
+        # CONT: test cases for wrong input
         # Idea is to pass through all index levels which are not specified in the map or in the __ columns
         # To remove a level, provide __ and give it one common name (e.g. "DROP") and then remove
         res_collector.append(
