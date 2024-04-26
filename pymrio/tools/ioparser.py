@@ -5,17 +5,17 @@ as
 KST 20140903
 """
 
+import glob
+import itertools
 import logging
 import os
 import re
 import warnings
 import zipfile
-import glob
 from collections import namedtuple
 
 import numpy as np
 import pandas as pd
-import itertools
 
 # Constants and global variables
 from pymrio.core.constants import PYMRIO_PATH
@@ -64,7 +64,7 @@ IDX_NAMES = {
     "unit": ["unit"],
     "_reg_sec_unit": ["region", "sector", "unit"],
     "T_col": ["region", "system", "sector"],
-    "T_row": ["region", "system", "sector"]
+    "T_row": ["region", "system", "sector"],
 }
 
 
@@ -133,8 +133,7 @@ def parse_exio12_ext(
 
     ext_file = os.path.abspath(str(ext_file))
 
-    F = pd.read_csv(ext_file, header=[0, 1],
-                    index_col=list(range(index_col)), sep=sep)
+    F = pd.read_csv(ext_file, header=[0, 1], index_col=list(range(index_col)), sep=sep)
 
     F.columns.names = ["region", "sector"]
 
@@ -180,7 +179,7 @@ def get_exiobase12_version(filename):
     """
     try:
         ver_match = re.search(r"(\d+\w*(\.|\-|\_))*\d+\w*", filename)
-        version = ver_match.string[ver_match.start(): ver_match.end()]
+        version = ver_match.string[ver_match.start() : ver_match.end()]
         if re.search(r"\_\d\d\d\d", version[-5:]):
             version = version[:-5]
     except AttributeError:
@@ -251,13 +250,11 @@ def get_exiobase_files(path, coefficients=True):
             if repo_content.iszip:
                 format_para = sniff_csv_format(found_file[0], zip_file=path)
             else:
-                format_para = sniff_csv_format(
-                    os.path.join(path, found_file[0]))
+                format_para = sniff_csv_format(os.path.join(path, found_file[0]))
             exio_files[kk] = dict(
                 root_repo=path,
                 file_path=found_file[0],
-                version=get_exiobase12_version(
-                    os.path.basename(found_file[0])),
+                version=get_exiobase12_version(os.path.basename(found_file[0])),
                 index_rows=format_para["nr_header_row"],
                 index_col=format_para["nr_index_col"],
                 unit_col=format_para["nr_index_col"] - 1,
@@ -286,8 +283,7 @@ def generic_exiobase12_parser(exio_files, system=None):
     """
 
     version = " & ".join(
-        {dd.get("version", "")
-         for dd in exio_files.values() if dd.get("version", "")}
+        {dd.get("version", "") for dd in exio_files.values() if dd.get("version", "")}
     )
 
     meta_rec = MRIOMetaData(system=system, name="EXIOBASE", version=version)
@@ -333,8 +329,7 @@ def generic_exiobase12_parser(exio_files, system=None):
         if table == "A" or table == "Z":
             core_data[table].columns.names = ["region", "sector"]
             _unit = (
-                pd.DataFrame(core_data[table].iloc[:, 0]
-                             ).reset_index(level="unit").unit
+                pd.DataFrame(core_data[table].iloc[:, 0]).reset_index(level="unit").unit
             )
             _unit = pd.DataFrame(_unit)
             _unit.columns = ["unit"]
@@ -371,8 +366,7 @@ def generic_exiobase12_parser(exio_files, system=None):
         else:
             ext_data[tt].columns.names = ["region", "sector"]
         try:
-            _unit = pd.DataFrame(ext_data[tt].iloc[:, 0]).reset_index(
-                level="unit").unit
+            _unit = pd.DataFrame(ext_data[tt].iloc[:, 0]).reset_index(level="unit").unit
         except IndexError:
             _unit = pd.DataFrame(ext_data[tt].iloc[:, 0])
             _unit.columns = ["unit"]
@@ -391,8 +385,7 @@ def generic_exiobase12_parser(exio_files, system=None):
 
         ext_data[tt].reset_index(level="unit", drop=True, inplace=True)
         ext_dict = extensions.get(ext_name, dict())
-        ext_dict.update(
-            {table_type: ext_data[tt], "unit": _unit, "name": ext_name})
+        ext_dict.update({table_type: ext_data[tt], "unit": _unit, "name": ext_name})
         extensions.update({ext_name: ext_dict})
 
     if version[0] == "1":
@@ -640,15 +633,14 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
             _unit[Qname].columns = ["unit"]
             _unit[Qname].index.name = "impact"
             charac_data[Qname] = charac_data[Qname].iloc[
-                :, Q_head_col_rowunit[Qname] + 1:
+                :, Q_head_col_rowunit[Qname] + 1 :
             ]
             charac_data[Qname].index.name = "impact"
 
             try:
                 _F_Y = io.__dict__[Qsheets[Qname]].F_Y.values
             except AttributeError:
-                _F_Y = np.zeros(
-                    [io.__dict__[Qsheets[Qname]].S.shape[0], io.Y.shape[1]])
+                _F_Y = np.zeros([io.__dict__[Qsheets[Qname]].S.shape[0], io.Y.shape[1]])
 
             _impact[Qname] = {
                 "S": charac_data[Qname].dot(io.__dict__[Qsheets[Qname]].S.values),
@@ -948,20 +940,17 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     # get meta data
     wiot_year = wiot_data.iloc[wiot_meta["year"], wiot_meta["col"]][-4:]
     wiot_iosystem = (
-        wiot_data.iloc[wiot_meta["iosystem"],
-                       wiot_meta["col"]].rstrip(")").lstrip("(")
+        wiot_data.iloc[wiot_meta["iosystem"], wiot_meta["col"]].rstrip(")").lstrip("(")
     )
     meta_rec.change_meta("system", wiot_iosystem)
     _wiot_unit = (
-        wiot_data.iloc[wiot_meta["unit"],
-                       wiot_meta["col"]].rstrip(")").lstrip("(")
+        wiot_data.iloc[wiot_meta["unit"], wiot_meta["col"]].rstrip(")").lstrip("(")
     )
 
     # remove meta data, empty rows, total column
-    wiot_data.iloc[0: wiot_meta["end_row"], wiot_meta["col"]] = np.NaN
+    wiot_data.iloc[0 : wiot_meta["end_row"], wiot_meta["col"]] = np.NaN
     wiot_data.drop(wiot_empty_top_rows, axis=0, inplace=True)
-    wiot_data.drop(
-        wiot_data.columns[wiot_marks["total_column"]], axis=1, inplace=True)
+    wiot_data.drop(wiot_data.columns[wiot_marks["total_column"]], axis=1, inplace=True)
     # at this stage row and column header should have the same size but
     # the index starts now at two - replace/reset to row numbers
     wiot_data.index = range(wiot_data.shape[0])
@@ -978,39 +967,36 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
 
     # get the end of the interindustry matrix
     _lastZcol = wiot_data[
-        wiot_data.iloc[:, wiot_header["c_code"]
-                       ] == wiot_marks["last_interindsec"]
+        wiot_data.iloc[:, wiot_header["c_code"]] == wiot_marks["last_interindsec"]
     ].index[-1]
     _lastZrow = wiot_data[
         wiot_data[wiot_header["c_code"]] == wiot_marks["last_interindsec"]
     ].index[-1]
 
     if _lastZcol != _lastZrow:
-        raise ParserError(
-            "Interindustry matrix not symetric in the WIOD source file")
+        raise ParserError("Interindustry matrix not symetric in the WIOD source file")
     else:
         Zshape = (_lastZrow, _lastZcol)
 
     # separate factor input extension and remove
     # totals in the first and last row
-    facinp = wiot_data.iloc[Zshape[0] + 1:, :]
+    facinp = wiot_data.iloc[Zshape[0] + 1 :, :]
     facinp = facinp.drop(
-        facinp[facinp[wiot_header["c_code"]].isin(
-            wiot_marks["tot_facinp"])].index,
+        facinp[facinp[wiot_header["c_code"]].isin(wiot_marks["tot_facinp"])].index,
         axis=0,
     )
 
     Z = wiot_data.iloc[: Zshape[0] + 1, : Zshape[1] + 1].copy()
-    Y = wiot_data.iloc[: Zshape[0] + 1, Zshape[1] + 1:].copy()
+    Y = wiot_data.iloc[: Zshape[0] + 1, Zshape[1] + 1 :].copy()
     F_fac = facinp.iloc[:, : Zshape[1] + 1].copy()
-    F_Y_fac = facinp.iloc[:, Zshape[1] + 1:].copy()
+    F_Y_fac = facinp.iloc[:, Zshape[1] + 1 :].copy()
 
     index_wiot_headers = [nr for nr in wiot_header.values()]
     # Save lookup of sectors and codes - to be used at the end of the parser
     # Assuming USA is present in every WIOT year
     wiot_sector_lookup = (
         wiot_data[wiot_data[wiot_header["region"]] == "USA"]
-        .iloc[:, 0: max(index_wiot_headers) + 1]
+        .iloc[:, 0 : max(index_wiot_headers) + 1]
         .applymap(str)
     )
     wiot_sector_lookup.columns = [
@@ -1026,8 +1012,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
             wiot_header["c_code"],
         ],
     ]
-    wiot_fd_lookup = _Y[_Y.iloc[:, wiot_header["region"]]
-                        == "USA"].applymap(str)
+    wiot_fd_lookup = _Y[_Y.iloc[:, wiot_header["region"]] == "USA"].applymap(str)
     wiot_fd_lookup.columns = [
         entry[1] for entry in sorted(zip(wiot_header.values(), wiot_header.keys()))
     ]
@@ -1037,9 +1022,8 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     # set the index/columns, work with code b/c these are also used in the
     # extensions
     Z[wiot_header["code"]] = Z[wiot_header["code"]].astype(str)
-    Z.set_index([wiot_header["region"], wiot_header["code"]],
-                inplace=True, drop=False)
-    Z = Z.iloc[max(index_wiot_headers) + 1:, max(index_wiot_headers) + 1:]
+    Z.set_index([wiot_header["region"], wiot_header["code"]], inplace=True, drop=False)
+    Z = Z.iloc[max(index_wiot_headers) + 1 :, max(index_wiot_headers) + 1 :]
     Z.index.names = IDX_NAMES["Z_col"]
     Z.columns = Z.index
 
@@ -1047,14 +1031,14 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     Y.columns = pd.MultiIndex.from_arrays(
         indexY_col_head.values, names=IDX_NAMES["Y_col2"]
     )
-    Y = Y.iloc[max(index_wiot_headers) + 1:, :]
+    Y = Y.iloc[max(index_wiot_headers) + 1 :, :]
     Y.index = Z.index
 
     F_fac.set_index(
         [wiot_header["sector_names"]], inplace=True, drop=False
     )  # c_code missing, use names
     F_fac.index.names = ["inputtype"]
-    F_fac = F_fac.iloc[:, max(index_wiot_headers) + 1:]
+    F_fac = F_fac.iloc[:, max(index_wiot_headers) + 1 :]
     F_fac.columns = Z.columns
     F_Y_fac.columns = Y.columns
     F_Y_fac.index = F_fac.index
@@ -1107,8 +1091,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
             "unit": _F_sea_unit,
             "name": "SEA",
         }
-        meta_rec._add_fileio(
-            "SEA file extension parsed from {}".format(root_path))
+        meta_rec._add_fileio("SEA file extension parsed from {}".format(root_path))
 
     # Environmental extensions, names follow the name given
     # in the meta sheet (except for CO2 to get a better description).
@@ -1308,11 +1291,9 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
 
     if pf_env.endswith(".zip"):
         rf_zip = zipfile.ZipFile(pf_env)
-        ll_env_content = [
-            ff for ff in rf_zip.namelist() if ff.endswith(para["ext"])]
+        ll_env_content = [ff for ff in rf_zip.namelist() if ff.endswith(para["ext"])]
     else:
-        ll_env_content = [ff for ff in os.listdir(
-            pf_env) if ff.endswith(para["ext"])]
+        ll_env_content = [ff for ff in os.listdir(pf_env) if ff.endswith(para["ext"])]
 
     dl_env = dict()
     dl_env_hh = dict()
@@ -1343,8 +1324,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         else:
             ff_excel = pd.ExcelFile(os.path.join(pf_env, pff_read))
         if str(year) in ff_excel.sheet_names:
-            df_env = ff_excel.parse(sheet_name=str(
-                year), index_col=None, header=0)
+            df_env = ff_excel.parse(sheet_name=str(year), index_col=None, header=0)
         else:
             warnings.warn(
                 "Extension {} does not include"
@@ -1377,8 +1357,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         df_env = df_env[df_env.iloc[:, 0] != "secTOT"]
         df_env = df_env[df_env.iloc[:, 0] != "secQ"]
         df_env.iloc[:, 0] = df_env.iloc[:, 0].astype(str)
-        df_env.iloc[:, 0].replace(
-            to_replace="sec", value="", regex=True, inplace=True)
+        df_env.iloc[:, 0].replace(to_replace="sec", value="", regex=True, inplace=True)
 
         df_env.set_index([df_env.columns[0]], inplace=True)
         df_env.index.names = ["sector"]
@@ -1476,8 +1455,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
         # get useful data (employment)
         mt_sea = ["EMP", "EMPE", "H_EMP", "H_EMPE"]
         ds_use_sea = pd.concat(
-            [ds_sea.xs(key=vari, level="Variable", drop_level=False)
-             for vari in mt_sea]
+            [ds_sea.xs(key=vari, level="Variable", drop_level=False) for vari in mt_sea]
         )
         ds_use_sea.drop(labels="TOT", level="Code", inplace=True)
         ds_use_sea.reset_index("Description", drop=True, inplace=True)
@@ -1591,8 +1569,7 @@ def parse_oecd(path, year=None):
         ]
 
         if len(oecd_file_list) > 1:
-            unique_file_data = set([os.path.splitext(fl)[0]
-                                   for fl in oecd_file_list])
+            unique_file_data = set([os.path.splitext(fl)[0] for fl in oecd_file_list])
 
             if len(unique_file_data) > 1:
                 raise ParserError(
@@ -1654,8 +1631,7 @@ def parse_oecd(path, year=None):
         :, factor_input.columns.difference(final_demand.columns)
     ]
     F_Y_factor_input = factor_input.loc[:, final_demand.columns]
-    Y = final_demand.loc[final_demand.index.difference(
-        F_factor_input.index), :]
+    Y = final_demand.loc[final_demand.index.difference(F_factor_input.index), :]
 
     Z_index = pd.MultiIndex.from_tuples(
         tuple(ll) for ll in Z.index.map(lambda x: x.split("_", maxsplit=1))
@@ -1703,33 +1679,28 @@ def parse_oecd(path, year=None):
 
         # aggregate rows
         Z.loc[co_name, :] = (
-            Z.loc[co_name, :] + Z.loc[agg_list,
-                                      :].groupby(level="sector", axis=0).sum()
+            Z.loc[co_name, :] + Z.loc[agg_list, :].groupby(level="sector", axis=0).sum()
         ).values
         Z = Z.drop(agg_list, axis=0)
         Y.loc[co_name, :] = (
-            Y.loc[co_name, :] + Y.loc[agg_list,
-                                      :].groupby(level="sector", axis=0).sum()
+            Y.loc[co_name, :] + Y.loc[agg_list, :].groupby(level="sector", axis=0).sum()
         ).values
         Y = Y.drop(agg_list, axis=0)
 
         # aggregate columns
         Z.loc[:, co_name] = (
-            Z.loc[:, co_name] +
-            Z.loc[:, agg_list].groupby(level="sector", axis=1).sum()
+            Z.loc[:, co_name] + Z.loc[:, agg_list].groupby(level="sector", axis=1).sum()
         ).values
         Z = Z.drop(agg_list, axis=1)
 
         F_factor_input.loc[:, co_name] = (
             F_factor_input.loc[:, co_name]
-            + F_factor_input.loc[:,
-                                 agg_list].groupby(level="sector", axis=1).sum()
+            + F_factor_input.loc[:, agg_list].groupby(level="sector", axis=1).sum()
         ).values
         F_factor_input = F_factor_input.drop(agg_list, axis=1)
 
     # unit df generation at the end to have consistent index
-    unit = pd.DataFrame(index=Z.index, data=mon_unit,
-                        columns=IDX_NAMES["unit"])
+    unit = pd.DataFrame(index=Z.index, data=mon_unit, columns=IDX_NAMES["unit"])
     F_unit = pd.DataFrame(
         index=F_factor_input.index, data=mon_unit, columns=IDX_NAMES["unit"]
     )
@@ -1951,15 +1922,12 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
     eora_data["labels_VA"] = eora_data["labels_VA"].iloc[
         :, : len(eora_header_spec["VA"].column_names)
     ]
-    labQ = eora_data["labels_Q"].iloc[:, : len(
-        eora_header_spec["Q"].column_names)]
+    labQ = eora_data["labels_Q"].iloc[:, : len(eora_header_spec["Q"].column_names)]
     labQ.columns = IDX_NAMES["F_row_src"]
-    Q_unit = pd.DataFrame(
-        labQ["stressor"].str.extract(r"\((.*)\)", expand=False))
+    Q_unit = pd.DataFrame(labQ["stressor"].str.extract(r"\((.*)\)", expand=False))
     Q_unit.columns = IDX_NAMES["unit"]
 
-    labQ["stressor"] = labQ["stressor"].str.replace(
-        r"\s\((.*)\)", "", regex=True)
+    labQ["stressor"] = labQ["stressor"].str.replace(r"\s\((.*)\)", "", regex=True)
     eora_data["labels_Q"] = labQ
 
     for key in eora_header_spec.keys():
@@ -2020,8 +1988,7 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
         Z=eora_data["Z"],
         Y=eora_data["Y"],
         unit=Z_unit,
-        Q={"name": "Q", "unit": Q_unit,
-            "F": eora_data["Q"], "F_Y": eora_data["QY"]},
+        Q={"name": "Q", "unit": Q_unit, "F": eora_data["Q"], "F_Y": eora_data["QY"]},
         VA={
             "name": "VA",
             "F": eora_data["VA"],
@@ -2033,7 +2000,7 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
     return eora
 
 
-def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria"):
+def parse_gloria_sut(path, year, version="59", price="bp", country_names="gloria"):
     """Parse the GLORIA database in SUT format
 
     Note
@@ -2079,22 +2046,22 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
 
     path = os.path.abspath(os.path.normpath(str(path)))
 
-    if price == 'bp':
-        extension = 'Markup001(full)'
-    elif price == 'pp':
-        extension = 'Markup005(full)'
+    if price == "bp":
+        extension = "Markup001(full)"
+    elif price == "pp":
+        extension = "Markup005(full)"
     else:
-        raise ValueError('price should be bp or pp')
+        raise ValueError("price should be bp or pp")
 
     gloria_mrio_files = {
-        "T": f'_120secMother_AllCountries_002_T-Results_{str(year)}_0{str(version)}_{extension}.csv',
-        "Y": f'_120secMother_AllCountries_002_Y-Results_{str(year)}_0{str(version)}_{extension}.csv',
-        "VA": f'_120secMother_AllCountries_002_V-Results_{str(year)}_0{str(version)}_Markup001(full).csv',
+        "T": f"_120secMother_AllCountries_002_T-Results_{str(year)}_0{str(version)}_{extension}.csv",
+        "Y": f"_120secMother_AllCountries_002_Y-Results_{str(year)}_0{str(version)}_{extension}.csv",
+        "VA": f"_120secMother_AllCountries_002_V-Results_{str(year)}_0{str(version)}_Markup001(full).csv",
     }
 
     gloria_satellite_files = {
-        "Q": f'_120secMother_AllCountries_002_TQ-Results_{str(year)}_0{str(version)}_Markup001(full).csv',
-        "QY": f'_120secMother_AllCountries_002_YQ-Results_{str(year)}_0{str(version)}_Markup001(full).csv'
+        "Q": f"_120secMother_AllCountries_002_TQ-Results_{str(year)}_0{str(version)}_Markup001(full).csv",
+        "QY": f"_120secMother_AllCountries_002_YQ-Results_{str(year)}_0{str(version)}_Markup001(full).csv",
     }
 
     header = namedtuple("header", "index columns index_names, column_names")
@@ -2129,11 +2096,12 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
             columns="labels_Y",
             index_names=IDX_NAMES["T_row"],
             column_names=IDX_NAMES["Y_col2"],
-        )
+        ),
     }
 
     mrio_path = glob.glob(
-        os.path.join(path, f"GLORIA_MRIOs_{str(version)}_{str(year)}*"))[0]
+        os.path.join(path, f"GLORIA_MRIOs_{str(version)}_{str(year)}*")
+    )[0]
     gloria_zip_ext = ".zip"
 
     # First we load the monetary data
@@ -2159,13 +2127,13 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
     else:
         for key, filename in gloria_mrio_files.items():
             gloria_data_sut[key] = pd.read_csv(
-                glob.glob(os.path.join(mrio_path, '*' + filename))[0],
-                header=None
+                glob.glob(os.path.join(mrio_path, "*" + filename))[0], header=None
             )
 
     # Then we load the satellite data
-    satellite_path = glob.glob(os.path.join(
-        path, f"GLORIA_SatelliteAccounts_0{str(version)}_{str(year)}*"))[0]
+    satellite_path = glob.glob(
+        os.path.join(path, f"GLORIA_SatelliteAccounts_0{str(version)}_{str(year)}*")
+    )[0]
     if os.path.splitext(satellite_path)[1] == gloria_zip_ext:
         satellite_is_zip = True
     else:
@@ -2183,35 +2151,34 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
     else:
         for key, filename in gloria_satellite_files.items():
             gloria_data_sut[key] = pd.read_csv(
-                glob.glob(os.path.join(satellite_path, '*' + filename))[0],
-                header=None
+                glob.glob(os.path.join(satellite_path, "*" + filename))[0], header=None
             )
 
     # And finally the labels
-    gloria_meta_path = glob.glob(os.path.join(
-        path, f"GLORIA_ReadMe_0{str(version)}.xlsx"))[0]
-    regions = pd.read_excel(gloria_meta_path, sheet_name='Regions')[
-        country_col]
-    sectors = pd.read_excel(gloria_meta_path, sheet_name='Sectors')[
-        'Sector_names']
+    gloria_meta_path = glob.glob(
+        os.path.join(path, f"GLORIA_ReadMe_0{str(version)}.xlsx")
+    )[0]
+    regions = pd.read_excel(gloria_meta_path, sheet_name="Regions")[country_col]
+    sectors = pd.read_excel(gloria_meta_path, sheet_name="Sectors")["Sector_names"]
 
     va_fd_sheet = pd.read_excel(
-        gloria_meta_path, sheet_name='Value added and final demand')
-    fd_cats = va_fd_sheet['Final_demand_names'].to_list()
-    va_cats = va_fd_sheet['Value_added_names'].to_list()
+        gloria_meta_path, sheet_name="Value added and final demand"
+    )
+    fd_cats = va_fd_sheet["Final_demand_names"].to_list()
+    va_cats = va_fd_sheet["Value_added_names"].to_list()
 
-    satellite_cats = pd.read_excel(gloria_meta_path, sheet_name='Satellites')
+    satellite_cats = pd.read_excel(gloria_meta_path, sheet_name="Satellites")
 
-    system = ['Industry', 'Product']
+    system = ["Industry", "Product"]
 
     gloria_data_sut["labels_T"] = pd.DataFrame(
-        itertools.product(regions, system, sectors))
-    gloria_data_sut["labels_Y"] = pd.DataFrame(
-        itertools.product(regions, fd_cats))
-    gloria_data_sut["labels_VA"] = pd.DataFrame(
-        itertools.product(regions, va_cats))
-    gloria_data_sut["labels_Q"] = satellite_cats[[
-        "Sat_indicator", "Sat_head_indicator", "Sat_unit"]]
+        itertools.product(regions, system, sectors)
+    )
+    gloria_data_sut["labels_Y"] = pd.DataFrame(itertools.product(regions, fd_cats))
+    gloria_data_sut["labels_VA"] = pd.DataFrame(itertools.product(regions, va_cats))
+    gloria_data_sut["labels_Q"] = satellite_cats[
+        ["Sat_indicator", "Sat_head_indicator", "Sat_unit"]
+    ]
 
     for key in gloria_header_spec.keys():
         gloria_data_sut[key].columns = (
@@ -2228,60 +2195,63 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
         gloria_data_sut[key].index.names = gloria_header_spec[key].index_names
 
     # Remove empty countries (Such as DYE in 2022)
-    row_sum = gloria_data_sut["T"].groupby('region').sum().sum(axis=1)
-    column_sum = gloria_data_sut["T"].T.groupby(
-        'region').sum().sum(axis=1)
-    empty_countries = row_sum[(row_sum == 0) & (
-        column_sum == 0)].index.to_list()
+    row_sum = gloria_data_sut["T"].groupby("region").sum().sum(axis=1)
+    column_sum = gloria_data_sut["T"].T.groupby("region").sum().sum(axis=1)
+    empty_countries = row_sum[(row_sum == 0) & (column_sum == 0)].index.to_list()
 
     for key in gloria_data_sut.keys():
         if "region" in gloria_data_sut[key].columns.names:
             meta_rec._add_modify(
                 "Remove empty countries ({name}) columns "
-                "from {table}".format(
-                    name=empty_countries,
-                    table=key)
+                "from {table}".format(name=empty_countries, table=key)
             )
             gloria_data_sut[key] = gloria_data_sut[key].drop(
-                empty_countries, axis=1, level=0)
+                empty_countries, axis=1, level=0
+            )
         if "region" in gloria_data_sut[key].index.names:
             meta_rec._add_modify(
                 "Remove empty countries ({name}) row "
-                "from {table}".format(
-                    name=empty_countries,
-                    table=key)
+                "from {table}".format(name=empty_countries, table=key)
             )
             gloria_data_sut[key] = gloria_data_sut[key].drop(
-                empty_countries, axis=0, level=0)
+                empty_countries, axis=0, level=0
+            )
 
     # Extract Supply and Use tables from the Transaction matrix
-    gloria_data_sut["V"] = gloria_data_sut["T"].loc[gloria_data_sut["T"].index.get_level_values(1) == 'Industry',
-                                                    gloria_data_sut["T"].columns.get_level_values(1) == 'Product']
+    gloria_data_sut["V"] = gloria_data_sut["T"].loc[
+        gloria_data_sut["T"].index.get_level_values(1) == "Industry",
+        gloria_data_sut["T"].columns.get_level_values(1) == "Product",
+    ]
     gloria_data_sut["V"].columns = gloria_data_sut["V"].columns.droplevel(1)
     gloria_data_sut["V"].index = gloria_data_sut["V"].index.droplevel(1)
 
-    gloria_data_sut["U"] = gloria_data_sut["T"].loc[gloria_data_sut["T"].index.get_level_values(1) == 'Product',
-                                                    gloria_data_sut["T"].columns.get_level_values(1) == 'Industry']
+    gloria_data_sut["U"] = gloria_data_sut["T"].loc[
+        gloria_data_sut["T"].index.get_level_values(1) == "Product",
+        gloria_data_sut["T"].columns.get_level_values(1) == "Industry",
+    ]
     gloria_data_sut["U"].columns = gloria_data_sut["U"].columns.droplevel(1)
     gloria_data_sut["U"].index = gloria_data_sut["U"].index.droplevel(1)
 
     # Remove 0s in value added, final demand and satellites
     gloria_data_sut["VA"] = gloria_data_sut["VA"].loc[
-        :, gloria_data_sut["VA"].columns.get_level_values(1) == 'Industry']
+        :, gloria_data_sut["VA"].columns.get_level_values(1) == "Industry"
+    ]
     gloria_data_sut["VA"].columns = gloria_data_sut["VA"].columns.droplevel(1)
 
     gloria_data_sut["Y"] = gloria_data_sut["Y"].loc[
-        gloria_data_sut["Y"].index.get_level_values(1) == 'Product', :]
+        gloria_data_sut["Y"].index.get_level_values(1) == "Product", :
+    ]
     gloria_data_sut["Y"].index = gloria_data_sut["Y"].index.droplevel(1)
 
     gloria_data_sut["Q"] = gloria_data_sut["Q"].loc[
-        :, gloria_data_sut["Q"].columns.get_level_values(1) == 'Industry']
+        :, gloria_data_sut["Q"].columns.get_level_values(1) == "Industry"
+    ]
     gloria_data_sut["Q"].columns = gloria_data_sut["Q"].columns.droplevel(1)
 
     return gloria_data_sut, meta_rec
 
 
-def __construct_IO(data_sut, construct='B'):
+def __construct_IO(data_sut, construct="B"):
     # Construct the IO matrices from the SUT matrices
     """
     Builds input output matrices from SUT matrices
@@ -2314,12 +2284,12 @@ def __construct_IO(data_sut, construct='B'):
 
     # Industry output
     x = data_sut["V"].sum(axis=1)
-    x_inv = 1/x
+    x_inv = 1 / x
     x_inv[x_inv == np.inf] = 0
 
     # Commodity output
     q = data_sut["V"].sum(axis=0)
-    q_inv = 1/q
+    q_inv = 1 / q
     q_inv[q_inv == np.inf] = 0
 
     # commodity x industry
@@ -2334,62 +2304,82 @@ def __construct_IO(data_sut, construct='B'):
     # Transformer matrix (called T in Eurostat)
     T = np.linalg.inv(data_sut["V"].T.values) @ np.diag(q)
 
-    if construct == 'A':
+    if construct == "A":
         I = np.eye(data_sut["U"].shape[0])
-        A = pd.DataFrame(np.linalg.inv(I - B @ np.linalg.inv(C)),
-                         index=data_sut["U"].index,
-                         columns=data_sut["U"].index)
+        A = pd.DataFrame(
+            np.linalg.inv(I - B @ np.linalg.inv(C)),
+            index=data_sut["U"].index,
+            columns=data_sut["U"].index,
+        )
         x_io = q
 
         # Value added in commodity x value added category
-        VA = pd.DataFrame(data_sut["VA"].values @ T,
-                          index=data_sut["VA"].index,
-                          columns=data_sut["U"].index)
-        Q = pd.DataFrame(data_sut["Q"].values @ T,
-                         index=data_sut["Q"].index,
-                         columns=data_sut["U"].index)
+        VA = pd.DataFrame(
+            data_sut["VA"].values @ T,
+            index=data_sut["VA"].index,
+            columns=data_sut["U"].index,
+        )
+        Q = pd.DataFrame(
+            data_sut["Q"].values @ T,
+            index=data_sut["Q"].index,
+            columns=data_sut["U"].index,
+        )
         Y = data_sut["Y"]
 
-    elif construct == 'B':
+    elif construct == "B":
         I = np.eye(data_sut["U"].shape[0])
-        A = pd.DataFrame(np.linalg.inv(I - B @ D),
-                         index=data_sut["U"].index,
-                         columns=data_sut["U"].index)
+        A = pd.DataFrame(
+            np.linalg.inv(I - B @ D),
+            index=data_sut["U"].index,
+            columns=data_sut["U"].index,
+        )
         x_io = q
-        VA = pd.DataFrame(data_sut["VA"].values @ T,
-                          index=data_sut["VA"].index,
-                          columns=data_sut["U"].index)
-        Q = pd.DataFrame(data_sut["Q"].values @ T,
-                         index=data_sut["Q"].index,
-                         columns=data_sut["U"].index)
+        VA = pd.DataFrame(
+            data_sut["VA"].values @ T,
+            index=data_sut["VA"].index,
+            columns=data_sut["U"].index,
+        )
+        Q = pd.DataFrame(
+            data_sut["Q"].values @ T,
+            index=data_sut["Q"].index,
+            columns=data_sut["U"].index,
+        )
         Y = data_sut["Y"]
 
-    elif construct == 'C':
+    elif construct == "C":
         I = np.eye(data_sut["U"].shape[1])
-        A = pd.DataFrame(np.linalg.inv(I - np.linalg.inv(C) @ B) @ np.linalg.inv(C),
-                         index=data_sut["U"].columns,
-                         columns=data_sut["U"].columns)
+        A = pd.DataFrame(
+            np.linalg.inv(I - np.linalg.inv(C) @ B) @ np.linalg.inv(C),
+            index=data_sut["U"].columns,
+            columns=data_sut["U"].columns,
+        )
         x_io = x
         VA = data_sut["VA"]
         Q = data_sut["Q"]
-        Y = pd.DataFrame(T @ data_sut["Y"].values,
-                         index=data_sut["U"].columns,
-                         columns=data_sut["Y"].columns)
+        Y = pd.DataFrame(
+            T @ data_sut["Y"].values,
+            index=data_sut["U"].columns,
+            columns=data_sut["Y"].columns,
+        )
 
-    elif construct == 'D':
+    elif construct == "D":
         I = np.eye(data_sut["U"].shape[1])
-        A = pd.DataFrame(np.linalg.inv(I - D @ B) @ D,
-                         index=data_sut["U"].columns,
-                         columns=data_sut["U"].columns)
+        A = pd.DataFrame(
+            np.linalg.inv(I - D @ B) @ D,
+            index=data_sut["U"].columns,
+            columns=data_sut["U"].columns,
+        )
         x_io = x
         VA = data_sut["VA"]
         Q = data_sut["Q"]
-        Y = pd.DataFrame(T @ data_sut["Y"].values,
-                         index=data_sut["U"].columns,
-                         columns=data_sut["Y"].columns)
+        Y = pd.DataFrame(
+            T @ data_sut["Y"].values,
+            index=data_sut["U"].columns,
+            columns=data_sut["Y"].columns,
+        )
 
     else:
-        raise ParserError('Construct should be A, B, C or D')
+        raise ParserError("Construct should be A, B, C or D")
 
     data_io = {}
     data_io["Y"] = Y
@@ -2402,8 +2392,9 @@ def __construct_IO(data_sut, construct='B'):
     return data_io
 
 
-def parse_gloria(path, year=2022, version='59', price="bp", country_names="gloria",
-                 construct='B'):
+def parse_gloria(
+    path, year=2022, version="59", price="bp", country_names="gloria", construct="B"
+):
     """Parse the GLORIA database in IO format
 
     Note
@@ -2440,7 +2431,8 @@ def parse_gloria(path, year=2022, version='59', price="bp", country_names="glori
     """
 
     gloria_data_sut, meta_rec = parse_gloria_sut(
-        path, year, version, price, country_names)
+        path, year, version, price, country_names
+    )
 
     # Construct the IO matrices from the SUT matrices, for GLORIA all
     # constructs are equivalent (the supply table only has diagonal values)
@@ -2464,8 +2456,12 @@ def parse_gloria(path, year=2022, version='59', price="bp", country_names="glori
         x=gloria_data["x"],
         Y=gloria_data["Y"],
         unit=A_unit,
-        Q={"name": "Q", "unit": Q_unit,
-           "F": gloria_data["Q"], "F_Y": gloria_data["QY"]},
+        Q={
+            "name": "Q",
+            "unit": Q_unit,
+            "F": gloria_data["Q"],
+            "F_Y": gloria_data["QY"],
+        },
         VA={
             "name": "VA",
             "F": gloria_data["VA"],
