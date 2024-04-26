@@ -2,6 +2,7 @@
 
 import os
 import sys
+import warnings
 
 import numpy as np
 import pandas.testing as pdt
@@ -197,8 +198,10 @@ def test_oecd_2016():
     assert np.allclose(
         oecd.Z.loc[("AUS", "C01T05AGR"), ("AUS", "C01T05AGR")], 23697.221
     )
-    assert np.allclose(oecd.Z.loc[("NZL", "C23PET"), ("AUS", "C20WOD")], 684.49784)
-    assert np.allclose(oecd.Y.loc[("NZL", "C23PET"), ("PER", "DIRP")], 14822221.0)
+    assert np.allclose(
+        oecd.Z.loc[("NZL", "C23PET"), ("AUS", "C20WOD")], 684.49784)
+    assert np.allclose(
+        oecd.Y.loc[("NZL", "C23PET"), ("PER", "DIRP")], 14822221.0)
 
     # Test aggregation
     assert "CHN" in oecd.get_regions()
@@ -213,7 +216,8 @@ def test_oecd_2016():
     assert np.allclose(
         oecd.Z.loc[("CHN", "C01T05AGR"), ("AUS", "C15T16FOD")], 6932.1858
     )
-    assert np.allclose(oecd.Y.loc[("CHN", "C23PET"), ("NZL", "HFCE")], 24074818)
+    assert np.allclose(
+        oecd.Y.loc[("CHN", "C23PET"), ("NZL", "HFCE")], 24074818)
     assert np.allclose(
         oecd.factor_inputs.F.loc["VA+TAXSUB", ("CHN", "C20WOD")], 569612.84
     )
@@ -238,7 +242,8 @@ def test_oecd_2018():
 
     assert np.allclose(oecd.Z.loc[("BEL", "16"), ("AUS", "05T06")], 150.89421)
     assert np.allclose(oecd.Y.loc[("BRA", "09"), ("COL", "GGFC")], 11211977)
-    assert np.allclose(oecd.factor_inputs.F.loc["VALU", ("MEX", "01T03")], 284552.21)
+    assert np.allclose(
+        oecd.factor_inputs.F.loc["VALU", ("MEX", "01T03")], 284552.21)
     assert np.allclose(
         oecd.factor_inputs.F.loc["MEX_TAXSUB", ("BEL", "16")], 1.66161232097811
     )
@@ -250,7 +255,8 @@ def test_parse_eora26(fix_testmrio_calc):
     test_mrio = fix_testmrio_calc.testmrio
 
     eora_short = pymrio.parse_eora26(eora_mockpath, year=2010)
-    eora_full = pymrio.parse_eora26(eora_mockpath, year=2010, country_names="full")
+    eora_full = pymrio.parse_eora26(
+        eora_mockpath, year=2010, country_names="full")
 
     eora_short.calc_all()
 
@@ -262,8 +268,29 @@ def test_parse_eora26(fix_testmrio_calc):
     assert eora_full.get_regions()[0] == "Region 1"
 
     with pytest.raises(pymrio.ParserError):
-        _ = pymrio.parse_eora26(eora_mockpath, year=2010, country_names="bogus")
+        _ = pymrio.parse_eora26(
+            eora_mockpath, year=2010, country_names="bogus")
+
+
+def test_parse_gloria():
+    gloria_mockpath = os.path.join(testpath, "mock_mrios", "gloria_mock")
+
+    prices = ['bp', 'pp']
+    country_names = ['gloria', 'full']
+    constructs = ['A', 'B', 'C', 'D']
+
+    for country_name in country_names:
+        for price in prices:
+            for construct in constructs:
+                with warnings.catch_warnings():
+                    warnings.simplefilter(
+                        action='ignore', category=FutureWarning)
+                    gloria = pymrio.parse_gloria(gloria_mockpath,
+                                                 price=price,
+                                                 country_names=country_name,
+                                                 construct=construct)
+                    gloria.calc_all()
 
 
 if __name__ == "__main__":
-    test_oecd_2016()
+    test_parse_gloria()

@@ -2182,7 +2182,7 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
     else:
         for key, filename in gloria_satellite_files.items():
             gloria_data_sut[key] = pd.read_csv(
-                glob.glob(os.path.join(mrio_path, '*' + filename))[0],
+                glob.glob(os.path.join(satellite_path, '*' + filename))[0],
                 header=None
             )
 
