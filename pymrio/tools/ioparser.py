@@ -2234,7 +2234,7 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
         column_sum == 0)].index.to_list()
 
     for key in gloria_data_sut.keys():
-        try:
+        if "region" in gloria_data_sut[key].columns.names:
             meta_rec._add_modify(
                 "Remove empty countries ({name}) columns "
                 "from {table}".format(
@@ -2243,9 +2243,7 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
             )
             gloria_data_sut[key] = gloria_data_sut[key].drop(
                 empty_countries, axis=1, level=0)
-        except KeyError:
-            pass
-        try:
+        if "region" in gloria_data_sut[key].index.names:
             meta_rec._add_modify(
                 "Remove empty countries ({name}) row "
                 "from {table}".format(
@@ -2254,8 +2252,6 @@ def parse_gloria_sut(path, year, version='59', price="bp", country_names="gloria
             )
             gloria_data_sut[key] = gloria_data_sut[key].drop(
                 empty_countries, axis=0, level=0)
-        except KeyError:
-            pass
 
     # Extract Supply and Use tables from the Transaction matrix
     gloria_data_sut["V"] = gloria_data_sut["T"].loc[gloria_data_sut["T"].index.get_level_values(1) == 'Industry',
