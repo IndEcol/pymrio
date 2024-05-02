@@ -2444,7 +2444,10 @@ def parse_gloria(
         columns=["unit"],
     )
 
-    Q_unit = gloria_data["Q"].index
+    Q_unit = pd.DataFrame(gloria_data["Q"].index.get_level_values(2))
+    gloria_data["Q"].index = gloria_data["Q"].index.droplevel(2)
+    Q_unit.columns = IDX_NAMES["unit"]
+    Q_unit.index = gloria_data["Q"].index
 
     gloria = IOSystem(
         A=gloria_data["A"],
