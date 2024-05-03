@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.0
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -44,14 +44,14 @@ A_mining
 
 # %% [markdown]
 # For further information on the pandas multiindex see the [pandas documentation on advanced indexing.](https://pandas.pydata.org/docs/user_guide/advanced.html)
-
-### Extracting data across extension tables
+#
+# ## Extracting data across extension tables
 
 # %% [markdown]
 # Pymrio includes methods for bulk extraction of data across extension tables. These can either work on a specific extension or across all extensions of the system.
 
 # %% [markdown]
-#### Extracting from a specific extension
+# ### Extracting from a specific extension
 
 
 # %% [markdown]
@@ -102,7 +102,7 @@ df_some.keys()
 
 
 # %% [markdown]
-#### Extracting from all extensions
+# ### Extracting from all extensions
 
 # %% [markdown]
 # We can also extract data from all extensions at once.
@@ -152,7 +152,7 @@ str(ext_new)
 # CONT: Continue with explaining, mention the work with find_all etc
 
 # %% [markdown]
-#### Search and extract
+# ### Search and extract
 
 # %% [markdown]
 # The extract methods can also be used in combination with the [search/explore](./explore.ipynb) methods of pymrio.

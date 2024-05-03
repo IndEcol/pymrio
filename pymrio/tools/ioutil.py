@@ -998,8 +998,8 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
     return _dfs_idx
 
 
-def match_and_convert(df_orig, df_map, agg_func="sum"):
-    """Match and convert a DataFrame to a new classification
+def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
+    """ Convert a DataFrame to a new classification
 
     Parameters
     ----------
@@ -1037,6 +1037,10 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
     agg_func : str or func
         the aggregation function to use for multiple matchings (summation by default)
 
+    drop_not_bridged : bool, optional
+        What to do with index levels in df_orig not appearing in the bridge columns.
+        If True, drop them (aggregation across these), if False, pass them through to the result
+
 
     Extension for extensions:
     extensino ... extension name
@@ -1044,8 +1048,31 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
     unit_new ... the new unit to be set for the extension
 
     """
+
+    # df_orig = pd.DataFrame(
+    #     data=5,
+    #     index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
+    #     columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
+    # )
+    # df_orig.columns.names = ["reg", "sec"]
+    # df_orig.index.names = ["em_type", "compart"]
+    #
+    # df_map = pd.DataFrame(
+    #     columns=["em_type", "compart", "total__em_type", "factor"],
+    #     data=[
+    #         ["em.*", "air|water", "total_regex", 2],
+    #         ["em1", "air", "total_sum", 2],
+    #         ["em1", "water", "total_sum", 2],
+    #         ["em2", "air", "total_sum", 2],
+    #         ["em2", "water", "total_sum", 2],
+    #         ["em1", "air", "all_air", 0.5],
+    #         ["em2", "air", "all_air", 0.5],
+    #     ],
+    # )
+    #
+    #
     bridge_columns = [col for col in df_map.columns if "__" in col]
-    unique_new_index = df_map.loc[:, bridge_columns].value_counts().index
+    unique_new_index = df_map.loc[:, bridge_columns].drop_duplicates().set_index(bridge_columns).index
 
     bridge_components = namedtuple("bridge_components", ["new", "orig", "raw"])
     bridges = []
@@ -1060,6 +1087,9 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
             raise ValueError(f"Column {col} contains more then one '__'")
         assert bridge.orig in df_map.columns, f"Column {bridge.new} not in df_map"
         assert bridge.orig in df_orig.index.names, f"Column {bridge.orig} not in df_orig"
+        bridges.append(bridge)
+
+    orig_index_not_bridged = [ix for ix in df_orig.index.names if ix not in [b.orig for b in bridges]]
 
     df_map = df_map.set_index(bridge_columns)
     res_collector = []
@@ -1083,26 +1113,32 @@ def match_and_convert(df_orig, df_map, agg_func="sum"):
                     df_collected.index = df_collected.index.set_names(
                         bridge.new, level=idx_old_names
                     )
-
                     df_collected.reset_index(level=bridge.new, inplace=True)
-
                     for row in df_cur_map.reset_index().iterrows():
                         new_row_name = row[1][bridge.raw]
                         old_row_name = row[1][bridge.orig]
                         df_collected.loc[:, bridge.new] = df_collected.loc[
                             :, bridge.new
                         ].str.replace(pat=old_row_name, repl=new_row_name, regex=True)
-
                     df_collected.set_index(
                         bridge.new, drop=True, append=True, inplace=True
                     )
 
-        # CONT: new test cases and logic for compartment included
         # CONT: test cases for wrong input
-        # Idea is to pass through all index levels which are not specified in the map or in the __ columns
-        # To remove a level, provide __ and give it one common name (e.g. "DROP") and then remove
+        # CONT: test cases for just rename
+        # CONT: docs with test cases
         res_collector.append(
             df_collected.groupby(by=df_collected.index.names).agg(agg_func)
         )
 
-    return pd.concat(res_collector, axis=0)
+    all_result = pd.concat(res_collector, axis=0)
+
+    if drop_not_bridged:
+        all_result = all_result.reset_index(level=orig_index_not_bridged, drop=True)
+    else:
+        # move the not bridged index levels to the end of the index
+        new_index = [ix for ix in all_result.index.names if ix not in orig_index_not_bridged]
+        all_result = all_result.reorder_levels(new_index + orig_index_not_bridged)
+
+    agg_all = all_result.groupby(by=all_result.index.names).agg(agg_func)
+    return agg_all

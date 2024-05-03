@@ -26,7 +26,7 @@ from pymrio.tools.ioutil import (  # noqa
     index_contains,
     index_fullmatch,
     index_match,
-    match_and_convert,
+    convert,
     set_block,
     sniff_csv_format,
 )
@@ -355,7 +355,37 @@ def test_util_regex():
     assert len(df_none_match_index) == 0
 
 
-def test_match_and_convert():
+
+def test_convert_rename():
+    """ Testing the renaming of one table"""
+
+    to_char = pd.DataFrame(
+        data=5,
+        index=pd.MultiIndex.from_product([["em1", "em2", "emA"], ["air", "water"]]),
+        columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
+    )
+    to_char.columns.names = ["reg", "sec"]
+    to_char.index.names = ["em_type", "compart"]
+
+
+    rename_bridge = pd.DataFrame(
+        columns=["em_type", "compart", "stressor__em_type", "factor"],
+        data=[
+            ["em1", "air|water", "emission-1", 2],
+            # ["em1", "air", "total_sum", 2],
+            # ["em1", "water", "total_sum", 2],
+            # ["em2", "air", "total_sum", 2],
+            # ["em2", "water", "total_sum", 2],
+            # ["em1", "air", "all_air", 0.5],
+            # ["em2", "air", "all_air", 0.5],
+        ],
+    )
+
+    char_res = convert(to_char, rename_bridge)
+
+
+
+def test_convert_characterize():
     """Testing the characterization of one table"""
 
     to_char = pd.DataFrame(
@@ -366,7 +396,7 @@ def test_match_and_convert():
     to_char.columns.names = ["reg", "sec"]
     to_char.index.names = ["em_type", "compart"]
 
-    # TEST1: with only impact (one index level in the result) , sum over compartments
+    # TEST1A: with only impact (one index level in the result) , sum over compartments as the compartment gets dropped in the argument
 
     map_test1 = pd.DataFrame(
         columns=["em_type", "compart", "total__em_type", "factor"],
@@ -382,26 +412,47 @@ def test_match_and_convert():
     )
 
     # alternative way to calculated the expected result
-    exp_res1 = pd.DataFrame(
+    exp_res1A = pd.DataFrame(
         columns=to_char.columns, index=["total_regex", "total_sum", "all_air"]
     )
-    exp_res1.loc["all_air"] = (
+    exp_res1A.loc["all_air"] = (
         to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
     )
-    exp_res1.loc["total_regex"] = (to_char.sum(axis=1) * 2).values
-    exp_res1.loc["total_sum"] = (to_char.sum(axis=1) * 2).values
-    exp_res1 = exp_res1.astype(float)
-    exp_res1.sort_index(inplace=True)
+    exp_res1A.loc["total_regex"] = (to_char.sum(axis=1) * 2).values
+    exp_res1A.loc["total_sum"] = (to_char.sum(axis=1) * 2).values
+    exp_res1A = exp_res1A.astype(float)
+    exp_res1A.sort_index(inplace=True)
 
-    # res1 = match_and_convert(to_char, map_test1)
-    # res1.sort_index(inplace=True)
-    #
-    #
-    # exp_res1.index.names = res1.index.names
-    #
-    # exp_res1.columns.names = res1.columns.names
-    #
-    # pdt.assert_frame_equal(res1, exp_res1)
+    res1A = convert(to_char, map_test1, drop_not_bridged=True)
+
+    res1A.sort_index(inplace=True)
+
+    exp_res1A.index.names = res1A.index.names
+    exp_res1A.columns.names = res1A.columns.names
+
+    pdt.assert_frame_equal(res1A, exp_res1A)
+
+    # TEST1B: with only impact (one index level in the result) , keep compartments as these are not dropped now
+
+    res1B = convert(to_char, map_test1, drop_not_bridged=False)
+
+    exp_res1B = pd.DataFrame(
+        columns=to_char.columns,
+        index=pd.MultiIndex.from_tuples(
+            [("all_air", "air"), ("total_regex", "air"), ("total_regex", "water"), ("total_sum", "air"), ("total_sum", "water")]),
+        data=[
+            [5, 5, 5, 5],
+            [20, 20, 20, 20],
+            [20, 20, 20, 20],
+            [20, 20, 20, 20],
+            [20, 20, 20, 20],
+        ]
+    )
+    exp_res1B = exp_res1B.astype(float)
+    exp_res1B.index.names = res1B.index.names
+
+    pdt.assert_frame_equal(res1B, exp_res1B) 
+
 
     # TEST2 with impact per compartment (two index levels in the result)
 
@@ -433,7 +484,7 @@ def test_match_and_convert():
     exp_res2 = exp_res2.astype(float)
     exp_res2.sort_index(inplace=True)
 
-    res2 = match_and_convert(to_char, map_test2)
+    res2 = convert(to_char, map_test2)
     res2.sort_index(inplace=True)
 
     exp_res2.index.names = res2.index.names
@@ -472,7 +523,7 @@ def test_match_and_convert():
     exp_res3 = exp_res3.astype(float)
     exp_res3.sort_index(inplace=True)
 
-    res3 = match_and_convert(to_char, map_test3)
+    res3 = convert(to_char, map_test3)
     res3.sort_index(inplace=True)
 
     exp_res3.index.names = res3.index.names
