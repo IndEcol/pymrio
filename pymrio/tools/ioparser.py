@@ -2288,7 +2288,7 @@ def __construct_IO(data_sut, construct="B"):
     g_inv[g_inv == np.inf] = 0
 
     # Commodity output
-    q = data_sut["V"].sum(axis=0)
+    q = data_sut["U"].sum(axis=1) + data_sut["Y"].sum(axis=1)
     q_inv = 1 / q
     q_inv[q_inv == np.inf] = 0
 
@@ -2301,7 +2301,6 @@ def __construct_IO(data_sut, construct="B"):
             index=data_sut["U"].index,
             columns=data_sut["U"].index,
         )
-        x_io = q
 
         # Value added in commodity x value added category
         VA = pd.DataFrame(
@@ -2325,7 +2324,6 @@ def __construct_IO(data_sut, construct="B"):
             columns=data_sut["U"].index,
         )
 
-        x_io = q
         VA = pd.DataFrame(
             data_sut["VA"].values @ T,
             index=data_sut["VA"].index,
@@ -2346,7 +2344,7 @@ def __construct_IO(data_sut, construct="B"):
             index=data_sut["U"].index,
             columns=data_sut["U"].index,
         )
-        x_io = g
+
         VA = data_sut["VA"]
         Q = data_sut["Q"]
         Y = pd.DataFrame(
@@ -2364,7 +2362,6 @@ def __construct_IO(data_sut, construct="B"):
             columns=data_sut["U"].index,
         )
 
-        x_io = g
         VA = data_sut["VA"]
         Q = data_sut["Q"]
         Y = pd.DataFrame(
@@ -2382,7 +2379,6 @@ def __construct_IO(data_sut, construct="B"):
     data_io["QY"] = data_sut["QY"]
     data_io["VA"] = VA
     data_io["A"] = A
-    data_io["x"] = x_io
 
     return data_io
 
