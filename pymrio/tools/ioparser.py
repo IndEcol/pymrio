@@ -2448,7 +2448,6 @@ def parse_gloria(
 
     gloria = IOSystem(
         A=gloria_data["A"],
-        x=gloria_data["x"],
         Y=gloria_data["Y"],
         unit=A_unit,
         Q={
