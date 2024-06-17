@@ -746,6 +746,13 @@ def download_gloria(
                     if str(yr) in filename_from_url(file)
                 ]
             )
+        files_to_download.extend(
+            [
+                file
+                for file in urls[f"0{int(version)}"]
+                if "ReadMe" in filename_from_url(file)
+            ]
+        )
     else:
         files_to_download = urls[f"0{int(version)}"]
 
