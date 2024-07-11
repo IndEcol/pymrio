@@ -570,3 +570,10 @@ def test_convert_characterize():
     exp_res3.columns.names = res3.columns.names
 
     pdt.assert_frame_equal(res3, exp_res3)
+
+def test_convert_wrong_inputs():
+    pass
+    # things to catch and implement:
+    # - bridge matrix with __ wrong name in column header
+    # - bridge matrix with row not in df_orig, should be a warning
+    # - bridge matrix with non-duplicates for the same row
