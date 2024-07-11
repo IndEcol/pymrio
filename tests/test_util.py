@@ -1,4 +1,4 @@
-""" test cases for all util functions """
+"""test cases for all util functions"""
 
 import os
 import string
@@ -20,13 +20,13 @@ from pymrio.tools.ioutil import diagonalize_columns_to_sectors  # noqa
 from pymrio.tools.ioutil import (  # noqa
     build_agg_matrix,
     build_agg_vec,
+    convert,
     diagonalize_blocks,
     filename_from_url,
     find_first_number,
     index_contains,
     index_fullmatch,
     index_match,
-    convert,
     set_block,
     sniff_csv_format,
 )
@@ -355,34 +355,68 @@ def test_util_regex():
     assert len(df_none_match_index) == 0
 
 
-
 def test_convert_rename():
-    """ Testing the renaming of one table"""
+    """Testing the renaming of one table"""
 
     to_char = pd.DataFrame(
-        data=5,
+        data=99.0,
         index=pd.MultiIndex.from_product([["em1", "em2", "emA"], ["air", "water"]]),
         columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
     )
+
     to_char.columns.names = ["reg", "sec"]
     to_char.index.names = ["em_type", "compart"]
 
-
-    rename_bridge = pd.DataFrame(
-        columns=["em_type", "compart", "stressor__em_type", "factor"],
+    rename_bridge_simple = pd.DataFrame(
+        columns=["em_type", "stressor__em_type", "factor"],
         data=[
-            ["em1", "air|water", "emission-1", 2],
-            # ["em1", "air", "total_sum", 2],
-            # ["em1", "water", "total_sum", 2],
-            # ["em2", "air", "total_sum", 2],
-            # ["em2", "water", "total_sum", 2],
-            # ["em1", "air", "all_air", 0.5],
-            # ["em2", "air", "all_air", 0.5],
+            ["em1", "emission-1", 1],
+            ["em2", "emission2", 1],
+            ["emA", "emission A", 1],
         ],
     )
 
-    char_res = convert(to_char, rename_bridge)
+    char_res_keep_comp = convert(to_char, rename_bridge_simple, drop_not_bridged=False)
+    assert all(char_res_keep_comp.columns == to_char.columns)
+    assert all(
+        char_res_keep_comp.index.get_level_values("compart")
+        == to_char.index.get_level_values("compart")
+    )
+    npt.assert_allclose(char_res_keep_comp.values, to_char.values)
 
+    pdt.assert_index_equal(
+        char_res_keep_comp.index.get_level_values("stressor"),
+        pd.Index(
+            [
+                "emission A",
+                "emission A",
+                "emission-1",
+                "emission-1",
+                "emission2",
+                "emission2",
+            ],
+            dtype="object",
+            name="stressor",
+        ),
+    )
+
+    char_res_agg_comp = convert(to_char, rename_bridge_simple, drop_not_bridged=True)
+
+    assert all(char_res_agg_comp.columns == to_char.columns)
+    assert char_res_agg_comp.sum().sum() == to_char.sum().sum()
+
+    pdt.assert_index_equal(
+        char_res_agg_comp.index,
+        pd.Index(
+            [
+                "emission A",
+                "emission-1",
+                "emission2",
+            ],
+            dtype="object",
+            name="stressor",
+        ),
+    )
 
 
 def test_convert_characterize():
@@ -439,20 +473,26 @@ def test_convert_characterize():
     exp_res1B = pd.DataFrame(
         columns=to_char.columns,
         index=pd.MultiIndex.from_tuples(
-            [("all_air", "air"), ("total_regex", "air"), ("total_regex", "water"), ("total_sum", "air"), ("total_sum", "water")]),
+            [
+                ("all_air", "air"),
+                ("total_regex", "air"),
+                ("total_regex", "water"),
+                ("total_sum", "air"),
+                ("total_sum", "water"),
+            ]
+        ),
         data=[
             [5, 5, 5, 5],
             [20, 20, 20, 20],
             [20, 20, 20, 20],
             [20, 20, 20, 20],
             [20, 20, 20, 20],
-        ]
+        ],
     )
     exp_res1B = exp_res1B.astype(float)
     exp_res1B.index.names = res1B.index.names
 
-    pdt.assert_frame_equal(res1B, exp_res1B) 
-
+    pdt.assert_frame_equal(res1B, exp_res1B)
 
     # TEST2 with impact per compartment (two index levels in the result)
 

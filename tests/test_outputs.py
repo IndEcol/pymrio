@@ -1,16 +1,16 @@
-""" Test for producing graphical outputs
+"""Test for producing graphical outputs
 
-    The report functionality is tested separately
-    in test_integration
+The report functionality is tested separately
+in test_integration
 
-    Note
-    ----
+Note
+----
 
-    Here we use the values returned from the plotted graph
-    for testing. Regression tests against plotted graphs,
-    as provided by image_comparison decorator of matplotlib,
-    are not used since this is deprecated and also not consistent
-    across different plotting engines.
+Here we use the values returned from the plotted graph
+for testing. Regression tests against plotted graphs,
+as provided by image_comparison decorator of matplotlib,
+are not used since this is deprecated and also not consistent
+across different plotting engines.
 
 """
 

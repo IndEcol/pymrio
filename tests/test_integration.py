@@ -1,4 +1,4 @@
-""" Testing functions for the full run based on
+"""Testing functions for the full run based on
 the small MRIO given within pymrio.
 
 This tests the full computation and fileio.

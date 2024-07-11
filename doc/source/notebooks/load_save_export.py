@@ -21,9 +21,10 @@
 # %% [markdown]
 # Here, we use the included small test MRIO system to highlight the different function. The same functions are available for any MRIO loaded into pymrio. Expect, however, significantly decreased performance due to the size of real MRIO system.
 
+import os
+
 # %%
 import pymrio
-import os
 
 io = pymrio.load_test().calc_all()
 

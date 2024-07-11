@@ -1,4 +1,4 @@
-""" test cases for all mathematical functions """
+"""test cases for all mathematical functions"""
 
 import os
 import sys

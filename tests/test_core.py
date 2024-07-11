@@ -1,5 +1,4 @@
-""" Testing core functionality of pymrio
-"""
+"""Testing core functionality of pymrio"""
 
 import os
 import sys

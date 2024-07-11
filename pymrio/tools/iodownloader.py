@@ -1,5 +1,4 @@
-""" Utility functions for automatic downloading of public MRIO databases
-"""
+"""Utility functions for automatic downloading of public MRIO databases"""
 
 import getpass
 import itertools

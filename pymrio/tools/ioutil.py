@@ -999,13 +999,13 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
 
 def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
-    """ Convert a DataFrame to a new classification
+    """Convert a DataFrame to a new classification
 
     Parameters
     ----------
     df_orig : pd.DataFrame
         The DataFrame to process. All matching occurs on the index.
-        Thus stack the tables if necessary.
+        Stack tables if necessary.
 
     df_map : pd.DataFrame
         The DataFrame with the mapping of the old to the new classification.
@@ -1014,17 +1014,24 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
         and one column for each new index level in the characterized result dataframe.
 
         This is better explained with an example.
-        Assuming a dataframe with index names 'stressor' and 'compartment'
-        the characterizing dataframe would have the following structure:
+        Assuming a original dataframe df_orig with
+        index names 'stressor' and 'compartment'
+        the characterizing dataframe would have the following structure (column names):
 
         stressor ... original index name
         compartment ... original index name
-        factor ... the factor for multiplication
-        impact__stressor ... the new index name, replacing the previous index name "stressor"
-        compartment__compartment ... the new compartment, replacing the original compartment
+        factor ... the factor for multiplication/characterization
+        impact__stressor ... the new index name,
+            replacing the previous index name "stressor".
+            Thus here "stressor" will be renamed to "impact", and the row index
+            will be renamed by the entries here.
+        compartment__compartment ... the new compartment,
+            replacing the original compartment. No rename of column happens here,
+            still row index will be renamed as given here.
 
-        the columsn with __ we call bridge columns, they are used to match the original index
-        the new dataframe with have index names based on the first part of the bridge column, in the order
+        the columsn with __ are called bridge columns, they are used
+        to match the original index. The new dataframe with have index names
+        based on the first part of the bridge column, in the order
         in which the bridge columns are given in the mapping dataframe.
 
         The structure "stressor" and "impact__stressor" is important.
@@ -1049,30 +1056,10 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
 
     """
 
-    # df_orig = pd.DataFrame(
-    #     data=5,
-    #     index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
-    #     columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
-    # )
-    # df_orig.columns.names = ["reg", "sec"]
-    # df_orig.index.names = ["em_type", "compart"]
-    #
-    # df_map = pd.DataFrame(
-    #     columns=["em_type", "compart", "total__em_type", "factor"],
-    #     data=[
-    #         ["em.*", "air|water", "total_regex", 2],
-    #         ["em1", "air", "total_sum", 2],
-    #         ["em1", "water", "total_sum", 2],
-    #         ["em2", "air", "total_sum", 2],
-    #         ["em2", "water", "total_sum", 2],
-    #         ["em1", "air", "all_air", 0.5],
-    #         ["em2", "air", "all_air", 0.5],
-    #     ],
-    # )
-    #
-    #
     bridge_columns = [col for col in df_map.columns if "__" in col]
-    unique_new_index = df_map.loc[:, bridge_columns].drop_duplicates().set_index(bridge_columns).index
+    unique_new_index = (
+        df_map.loc[:, bridge_columns].drop_duplicates().set_index(bridge_columns).index
+    )
 
     bridge_components = namedtuple("bridge_components", ["new", "orig", "raw"])
     bridges = []
@@ -1086,10 +1073,14 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
         else:
             raise ValueError(f"Column {col} contains more then one '__'")
         assert bridge.orig in df_map.columns, f"Column {bridge.new} not in df_map"
-        assert bridge.orig in df_orig.index.names, f"Column {bridge.orig} not in df_orig"
+        assert (
+            bridge.orig in df_orig.index.names
+        ), f"Column {bridge.orig} not in df_orig"
         bridges.append(bridge)
 
-    orig_index_not_bridged = [ix for ix in df_orig.index.names if ix not in [b.orig for b in bridges]]
+    orig_index_not_bridged = [
+        ix for ix in df_orig.index.names if ix not in [b.orig for b in bridges]
+    ]
 
     df_map = df_map.set_index(bridge_columns)
     res_collector = []
@@ -1125,7 +1116,7 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
                     )
 
         # CONT: test cases for wrong input
-        # CONT: test cases for just rename
+        # CONT: docs for just rename (see tests already done)
         # CONT: docs with test cases
         res_collector.append(
             df_collected.groupby(by=df_collected.index.names).agg(agg_func)
@@ -1137,7 +1128,9 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
         all_result = all_result.reset_index(level=orig_index_not_bridged, drop=True)
     else:
         # move the not bridged index levels to the end of the index
-        new_index = [ix for ix in all_result.index.names if ix not in orig_index_not_bridged]
+        new_index = [
+            ix for ix in all_result.index.names if ix not in orig_index_not_bridged
+        ]
         all_result = all_result.reorder_levels(new_index + orig_index_not_bridged)
 
     agg_all = all_result.groupby(by=all_result.index.names).agg(agg_func)

@@ -19,7 +19,7 @@
 # Pymrio contains several possibilities to convert data from one system to another.
 
 # %% [markdown]
-# The term *convert* is meant very general here, it contains 
+# The term *convert* is meant very general here, it contains
 #     - finding and extracting data based on indicies across a table or an mrio(-extension) system based on name and potentially constrained by sector/region or any other specification
 #     - converting the names of the found indicies
 #     - adjusting the numerical values of the data, e.g. for unit conversion or characterisation
@@ -33,7 +33,7 @@
 
 
 # %% [markdown]
-# Irrespectively of the table or the mrio system, the convert function always follows the same pattern. 
+# Irrespectively of the table or the mrio system, the convert function always follows the same pattern.
 # It requires a bridge table, which contains the mapping of the indicies of the source data to the indicies of the target data.
 # This bridge table has to follow a specific format, depending on the table to be converted.
 
@@ -62,5 +62,3 @@
 
 # %% [markdown]
 # ## Converting a pymrio extension
-
-

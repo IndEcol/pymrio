@@ -1,4 +1,4 @@
-""" Mathematical functions for input output calculations
+"""Mathematical functions for input output calculations
 
 All methods here should follow the functional programming paradigm
 

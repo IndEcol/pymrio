@@ -1,5 +1,4 @@
-""" Meta data for provenance and version tracking in pymrio
-"""
+"""Meta data for provenance and version tracking in pymrio"""
 
 import datetime
 import getpass

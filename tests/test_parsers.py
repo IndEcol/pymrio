@@ -1,4 +1,4 @@
-""" Tests the parsing of different MRIOs """
+"""Tests the parsing of different MRIOs"""
 
 import os
 import sys
