@@ -571,9 +571,90 @@ def test_convert_characterize():
 
     pdt.assert_frame_equal(res3, exp_res3)
 
+
 def test_convert_wrong_inputs():
     pass
     # things to catch and implement:
     # - bridge matrix with __ wrong name in column header
     # - bridge matrix with row not in df_orig, should be a warning
     # - bridge matrix with non-duplicates for the same row
+
+    to_char = pd.DataFrame(
+        data=5,
+        index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
+        columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
+    )
+    to_char.columns.names = ["reg", "sec"]
+    to_char.index.names = ["em_type", "compart"]
+
+    # TEST1, no mapping columns
+
+    map_test1 = pd.DataFrame(
+        columns=["em_type", "compart", "total_to_em_type", "factor"],
+        data=[
+            ["em.*", "air|water", "total_regex", 2],
+            ["em1", "air", "total_sum", 2],
+            ["em1", "water", "total_sum", 2],
+            ["em2", "air", "total_sum", 2],
+            ["em2", "water", "total_sum", 2],
+            ["em1", "air", "all_air", 0.5],
+            ["em2", "air", "all_air", 0.5],
+        ],
+    )
+
+    with pytest.raises(ValueError):
+        res1 = convert(to_char, map_test1)
+
+    # TEST2, wrong format of mapping columns
+
+    map_test2 = pd.DataFrame(
+        columns=["em_type", "compart", "total__to__type", "factor"],
+        data=[
+            ["em.*", "air|water", "total_regex", 2],
+            ["em1", "air", "total_sum", 2],
+            ["em1", "water", "total_sum", 2],
+            ["em2", "air", "total_sum", 2],
+            ["em2", "water", "total_sum", 2],
+            ["em1", "air", "all_air", 0.5],
+            ["em2", "air", "all_air", 0.5],
+        ],
+    )
+
+    with pytest.raises(ValueError):
+        res1 = convert(to_char, map_test2)
+
+    # TEST3, wrong name in the bridge columns
+
+    map_test3 = pd.DataFrame(
+        columns=["em_type", "compart", "total__foo", "factor"],
+        data=[
+            ["em.*", "air|water", "total_regex", 2],
+            ["em1", "air", "total_sum", 2],
+            ["em1", "water", "total_sum", 2],
+            ["em2", "air", "total_sum", 2],
+            ["em2", "water", "total_sum", 2],
+            ["em1", "air", "all_air", 0.5],
+            ["em2", "air", "all_air", 0.5],
+        ],
+    )
+
+    with pytest.raises(ValueError):
+        res3 = convert(to_char, map_test3)
+
+    # TEST4, bridge names to not match the original names
+
+    map_test4 = pd.DataFrame(
+        columns=["BAR", "compart", "total__BAR", "factor"],
+        data=[
+            ["em.*", "air|water", "total_regex", 2],
+            ["em1", "air", "total_sum", 2],
+            ["em1", "water", "total_sum", 2],
+            ["em2", "air", "total_sum", 2],
+            ["em2", "water", "total_sum", 2],
+            ["em1", "air", "all_air", 0.5],
+            ["em2", "air", "all_air", 0.5],
+        ],
+    )
+
+    with pytest.raises(ValueError):
+        res4 = convert(to_char, map_test4)

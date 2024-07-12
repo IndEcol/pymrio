@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -20,10 +20,11 @@
 
 # %% [markdown]
 # The term *convert* is meant very general here, it contains
-#     - finding and extracting data based on indicies across a table or an mrio(-extension) system based on name and potentially constrained by sector/region or any other specification
-#     - converting the names of the found indicies
-#     - adjusting the numerical values of the data, e.g. for unit conversion or characterisation
-#     - aggregating the extracted data, e.g. for the purpose of characterization
+#
+# - finding and extracting data based on indicies across a table or an mrio(-extension) system based on name and potentially constrained by sector/region or any other specification
+# - converting the names of the found indicies
+# - adjusting the numerical values of the data, e.g. for unit conversion or characterisation
+# - aggregating the extracted data, e.g. for the purpose of characterization
 
 # %% [markdown]
 # Pymrio allows these convert function either on one specific table (which not necessaryly has to be a table of the mrio system) or on the whole mrio(-extension) system.

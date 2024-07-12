@@ -1072,11 +1072,12 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
             bridge = bridge_components(*col.split("__"), col)
         else:
             raise ValueError(f"Column {col} contains more then one '__'")
-        assert bridge.orig in df_map.columns, f"Column {bridge.new} not in df_map"
-        assert (
-            bridge.orig in df_orig.index.names
-        ), f"Column {bridge.orig} not in df_orig"
-        bridges.append(bridge)
+        if bridge.orig not in df_map.columns:
+            raise ValueError(f"Column {bridge.orig} not in df_map")
+        elif bridge.orig not in df_orig.index.names:
+            raise ValueError(f"Column {bridge.orig} not in df_orig")
+        else:
+            bridges.append(bridge)
 
     orig_index_not_bridged = [
         ix for ix in df_orig.index.names if ix not in [b.orig for b in bridges]
@@ -1115,7 +1116,6 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
                         bridge.new, drop=True, append=True, inplace=True
                     )
 
-        # CONT: test cases for wrong input
         # CONT: docs for just rename (see tests already done)
         # CONT: docs with test cases
         res_collector.append(
