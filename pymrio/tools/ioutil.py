@@ -1116,8 +1116,6 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
                         bridge.new, drop=True, append=True, inplace=True
                     )
 
-        # CONT: docs for just rename (see tests already done)
-        # CONT: docs with test cases
         res_collector.append(
             df_collected.groupby(by=df_collected.index.names).agg(agg_func)
         )

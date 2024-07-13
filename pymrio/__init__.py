@@ -73,5 +73,6 @@ from pymrio.tools.ioutil import (
     index_contains,
     index_fullmatch,
     index_match,
+    convert,
 )
 from pymrio.version import __version__
