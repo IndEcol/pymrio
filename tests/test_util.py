@@ -419,6 +419,24 @@ def test_convert_rename():
     )
 
 
+
+    # without factor should give the same result
+    rename_bridge_simple_wo_factor = pd.DataFrame(
+        columns=["em_type", "stressor__em_type"],
+        data=[
+            ["em1", "emission-1"],
+            ["em2", "emission2"],
+            ["emA", "emission A"],
+        ],
+    )
+
+    char_res_keep_comp_wo_factor = convert(to_char, rename_bridge_simple_wo_factor, drop_not_bridged=False)
+
+    pdt.assert_frame_equal(
+        char_res_keep_comp_wo_factor,
+        char_res_keep_comp)
+
+
 def test_convert_characterize():
     """Testing the characterization of one table"""
 

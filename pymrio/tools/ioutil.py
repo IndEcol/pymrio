@@ -1021,6 +1021,8 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
         stressor ... original index name
         compartment ... original index name
         factor ... the factor for multiplication/characterization
+            If no factor is given, the factor is assumed to be 1.
+            This can be used, to simplify renaming/aggregation mappings.
         impact__stressor ... the new index name,
             replacing the previous index name "stressor".
             Thus here "stressor" will be renamed to "impact", and the row index
@@ -1094,7 +1096,10 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
         # the loop for getting all (potential regex) matches and multiplication
         for row in df_cur_map.iterrows():
             matched_entries = index_fullmatch(df_ix=df_orig, **row[1].to_dict())
-            mul_entries = matched_entries * row[1].factor
+            try:
+                mul_entries = matched_entries * row[1].factor
+            except AttributeError:
+                mul_entries = matched_entries
             collector.append(mul_entries)
 
         df_collected = pd.concat(collector, axis=0)
