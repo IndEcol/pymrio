@@ -998,14 +998,19 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
     return _dfs_idx
 
 
-def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
+def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
     """Convert a DataFrame to a new classification
 
     Parameters
     ----------
     df_orig : pd.DataFrame
-        The DataFrame to process. All matching occurs on the index.
-        Stack tables if necessary.
+        The DataFrame to process. 
+        The index levels need to be named (df.index.name needs to
+        be set for all levels). All index to be bridged to new 
+        names need to be in the index (these are columns
+        indicated with two underscores '__' in the mapping dataframe, df_map).
+        Other constraining conditions (e.g. regions, sectors) can be either 
+        in the index or columns. The values in index are preferred.
 
     df_map : pd.DataFrame
         The DataFrame with the mapping of the old to the new classification.
@@ -1020,6 +1025,7 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
 
         stressor ... original index name
         compartment ... original index name
+        region ... original column name
         factor ... the factor for multiplication/characterization
             If no factor is given, the factor is assumed to be 1.
             This can be used, to simplify renaming/aggregation mappings.
@@ -1036,16 +1042,23 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
         based on the first part of the bridge column, in the order
         in which the bridge columns are given in the mapping dataframe.
 
+        "region" is constraining column, these can either be for the index or column
+        in df_orig. In case both exist, the one in index is preferred.
+
         The structure "stressor" and "impact__stressor" is important.
 
 
     agg_func : str or func
         the aggregation function to use for multiple matchings (summation by default)
 
-    drop_not_bridged : bool, optional
+    drop_not_bridged_index : bool, optional
         What to do with index levels in df_orig not appearing in the bridge columns.
         If True, drop them (aggregation across these), if False, 
-        pass them through to the result. In case some need to be dropped, and some not
+        pass them through to the result. 
+
+        *Note:* Only index levels will be dropped, not columns.
+
+        In case some index levels need to be dropped, and some not
         make a bridge column for the ones to be dropped and map all to the same name. 
         Then drop this index level after the conversion.
 
@@ -1068,6 +1081,7 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
     if isinstance(df_orig, pd.Series):
         df_orig = pd.DataFrame(df_orig)
 
+
     # some consitency checks of arguments and restructuring if everything is ok
     if len(bridge_columns) == 0:
         raise ValueError("No columns with '__' in the mapping DataFrame")
@@ -1082,12 +1096,28 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
             raise ValueError(f"Column {bridge.orig} not in df_orig")
         else:
             bridges.append(bridge)
-
+    
     orig_index_not_bridged = [
         ix for ix in df_orig.index.names if ix not in [b.orig for b in bridges]
     ]
 
     df_map = df_map.set_index(bridge_columns)
+
+    stacked_columns = []
+    order_column_names = df_orig.columns.names
+    for col in df_map.columns:
+        if col in ["factor", "unit"]:
+            continue
+        if col not in df_orig.index.names:
+            if col in df_orig.columns.names:
+                df_orig = df_orig.stack(col)
+                stacked_columns.append(col)
+                if isinstance(df_orig, pd.Series):
+                    df_orig.name = "FOO_CONVERT_REMOVE"
+                    df_orig = pd.DataFrame(df_orig)
+            else:
+                print("TODO: log warning for missing column")
+
     res_collector = []
 
     # loop over each new impact/characterized value
@@ -1129,14 +1159,27 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
 
     all_result = pd.concat(res_collector, axis=0)
 
-    if drop_not_bridged:
+    if len(stacked_columns) > 0:
+        all_result = all_result.unstack(stacked_columns)
+        try:
+            all_result = all_result.loc[:, "FOO_CONVERT_REMOVE"]
+        except KeyError:
+            pass
+        if len(all_result.columns.names) > 1:
+            all_result.reorder_levels(order_column_names, axis=1)
+
+    if drop_not_bridged_index:
         all_result = all_result.reset_index(level=orig_index_not_bridged, drop=True)
     else:
         # move the not bridged index levels to the end of the index
         new_index = [
             ix for ix in all_result.index.names if ix not in orig_index_not_bridged
         ]
-        all_result = all_result.reorder_levels(new_index + orig_index_not_bridged)
+        try:
+            all_result = all_result.reorder_levels(new_index + orig_index_not_bridged)
+        except TypeError:
+            # case where there is only one index level
+            pass
     
     return all_result.groupby(by=all_result.index.names).agg(agg_func)
 

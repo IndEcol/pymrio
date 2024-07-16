@@ -282,18 +282,16 @@ data=[
 )
 landuse_characterization
 
-land_use_result_stacked = pd.DataFrame(land_use_result.stack(level="region"), columns=["totals"])
-land_use_result_stacked
 
-biodiv_result = pymrio.convert(land_use_result_stacked, landuse_characterization, drop_not_bridged=False)
-biodiv_result.unstack(level="region")["totals"]
+biodiv_result = pymrio.convert(land_use_result, landuse_characterization)
+biodiv_result
 
 
-# CONT: before doing that below, investigate if we can automatically stack levels in
-# columns if not found in index. Then unstack and drop the not_bridged afterwards.
-# CONT: drop_not_bridged=False must be default, to make it workable with regions etc
-# CONT: adjust test cases and docs accordingly
+# CONT: Explain the biodiv_result - difference between bridge and constraining column
+
+# CONT: Make test case based on biodiv above, also with two column levels
 # CONT: finalize docs for biodiv
+# CONT: start working on convert for extensions/mrio method
 
 
 
