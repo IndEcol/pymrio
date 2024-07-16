@@ -376,7 +376,7 @@ def test_convert_rename():
         ],
     )
 
-    char_res_keep_comp = convert(to_char, rename_bridge_simple, drop_not_bridged=False)
+    char_res_keep_comp = convert(to_char, rename_bridge_simple, drop_not_bridged_index=False)
     assert all(char_res_keep_comp.columns == to_char.columns)
     assert all(
         char_res_keep_comp.index.get_level_values("compart")
@@ -400,7 +400,7 @@ def test_convert_rename():
         ),
     )
 
-    char_res_agg_comp = convert(to_char, rename_bridge_simple, drop_not_bridged=True)
+    char_res_agg_comp = convert(to_char, rename_bridge_simple, drop_not_bridged_index=True)
 
     assert all(char_res_agg_comp.columns == to_char.columns)
     assert char_res_agg_comp.sum().sum() == to_char.sum().sum()
@@ -430,7 +430,9 @@ def test_convert_rename():
         ],
     )
 
-    char_res_keep_comp_wo_factor = convert(to_char, rename_bridge_simple_wo_factor, drop_not_bridged=False)
+    char_res_keep_comp_wo_factor = convert(to_char, 
+                                           rename_bridge_simple_wo_factor, 
+                                           drop_not_bridged_index=False)
 
     pdt.assert_frame_equal(
         char_res_keep_comp_wo_factor,
@@ -475,7 +477,7 @@ def test_convert_characterize():
     exp_res1A = exp_res1A.astype(float)
     exp_res1A.sort_index(inplace=True)
 
-    res1A = convert(to_char, map_test1, drop_not_bridged=True)
+    res1A = convert(to_char, map_test1, drop_not_bridged_index=True)
 
     res1A.sort_index(inplace=True)
 
@@ -486,7 +488,9 @@ def test_convert_characterize():
 
     # TEST1B: with only impact (one index level in the result) , keep compartments as these are not dropped now
 
-    res1B = convert(to_char, map_test1, drop_not_bridged=False)
+    res1B = convert(to_char, 
+                    map_test1, 
+                    drop_not_bridged_index=False)
 
     exp_res1B = pd.DataFrame(
         columns=to_char.columns,
@@ -589,13 +593,85 @@ def test_convert_characterize():
 
     pdt.assert_frame_equal(res3, exp_res3)
 
+    # TEST 4, with one constraints in the columns 
+
+    map_test4 = pd.DataFrame(
+    columns=["Region1", "Region2", "Region3"],
+    index=["Wheat", "Maize", "Rice", "Pasture", "Forest extensive", "Forest intensive",],
+    data=[[3, 10, 1], 
+        [5, 20, 3],
+        [0, 12, 34],
+        [12, 34, 9],
+        [32, 27, 11],
+        [43, 17, 24],
+        ],
+    )
+    map_test4.index.names = ["stressor"]
+    map_test4.columns.names = ["region"]
+
+    char4 = pd.DataFrame(
+    columns=["stressor", "BioDiv__stressor", "region", "factor"],
+    data=[
+        ["Wheat|Maize", "BioImpact",  "Region1", 3],
+        ["Wheat", "BioImpact",  "Region[2,3]", 4],
+        ["Maize", "BioImpact",  "Region[2,3]", 7],
+        ["Rice", "BioImpact",  "Region1", 12],
+        ["Rice", "BioImpact",  "Region2", 12],
+        ["Rice", "BioImpact",  "Region3", 12],
+        ["Pasture", "BioImpact",  "Region[1,2,3]", 12],
+        ["Forest.*", "BioImpact",  "Region1", 2],
+        ["Forest.*", "BioImpact",  "Region2", 3],
+        ["Forest ext.*", "BioImpact",  "Region3", 1],
+        ["Forest int.*", "BioImpact",  "Region3", 3],
+        ],
+    )
+
+    expected4 = pd.DataFrame(
+        columns=["Region1", "Region2", "Region3"],
+        index=["BioImpact"],
+        data=[[
+            3*3 + 5*3 + 0*12 + 12*12 + 32*2 + 43*2,
+            10*4 + 20*7 + 12*12 + 34*12 + 27*3 + 17*3,
+            1*4 + 3*7 + 34*12 + 9*12 + 11*1 + 24*3,
+        ]])
+    expected4.columns.names = ["region"]
+    expected4.index.names = ["BioDiv"]
+
+    char4_calc_nostack = convert(map_test4, char4)
+
+    pdt.assert_frame_equal(char4_calc_nostack, expected4)
+
+    map_test4_stack = map_test4.stack(level="region")
+
+    char4_calc_stack = convert(map_test4_stack, 
+                               char4, 
+                               drop_not_bridged_index=False).unstack(level="region")[0]
+
+    pdt.assert_frame_equal(char4_calc_nostack, char4_calc_stack)
+
+    # TEST 4, with sectors in addition
+
+    map_test5 = pd.DataFrame(
+    columns=pd.MultiIndex.from_product([
+                ["Region1", "Region2", "Region3"],
+                ["SecA", "SecB"]]),
+    index=["Wheat", "Maize", "Rice", "Pasture", "Forest extensive", "Forest intensive",],
+    data=[[1.2,1.8, 7,3, 1,0], 
+        [5,0, 12,8, 1.5,1.5],
+        [0,0, 6,6, 30,4],
+        [10,2, 14,20, 6,3],
+        [30,2, 20,7, 10,1],
+        [23, 20, 7.0, 10.0, 14, 10],
+        ],
+    )
+    map_test5.index.names = ["stressor"]
+    map_test5.columns.names = ["region", "sector"]
+
+    char5_res = convert(map_test5, char4)
+    pdt.assert_frame_equal(char5_res.T.groupby(level="region").sum().T, char4_calc_nostack.astype("float"))
+
 
 def test_convert_wrong_inputs():
-    pass
-    # things to catch and implement:
-    # - bridge matrix with __ wrong name in column header
-    # - bridge matrix with row not in df_orig, should be a warning
-    # - bridge matrix with non-duplicates for the same row
 
     to_char = pd.DataFrame(
         data=5,
@@ -621,7 +697,7 @@ def test_convert_wrong_inputs():
     )
 
     with pytest.raises(ValueError):
-        res1 = convert(to_char, map_test1)
+        _res1 = convert(to_char, map_test1)
 
     # TEST2, wrong format of mapping columns
 
@@ -639,7 +715,7 @@ def test_convert_wrong_inputs():
     )
 
     with pytest.raises(ValueError):
-        res1 = convert(to_char, map_test2)
+        _res2 = convert(to_char, map_test2)
 
     # TEST3, wrong name in the bridge columns
 
@@ -657,7 +733,7 @@ def test_convert_wrong_inputs():
     )
 
     with pytest.raises(ValueError):
-        res3 = convert(to_char, map_test3)
+        _res3 = convert(to_char, map_test3)
 
     # TEST4, bridge names to not match the original names
 
@@ -675,4 +751,4 @@ def test_convert_wrong_inputs():
     )
 
     with pytest.raises(ValueError):
-        res4 = convert(to_char, map_test4)
+        _res4 = convert(to_char, map_test4)

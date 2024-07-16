@@ -273,7 +273,7 @@ data=[
       ["Rice", "BioImpact",  "Region1", 12],
       ["Rice", "BioImpact",  "Region2", 12],
       ["Rice", "BioImpact",  "Region3", 12],
-      ["Pastures", "BioImpact",  "Region[1,2,3]", 12],
+      ["Pasture", "BioImpact",  "Region[1,2,3]", 12],
       ["Forest.*", "BioImpact",  "Region1", 2],
       ["Forest.*", "BioImpact",  "Region2", 3],
       ["Forest ext.*", "BioImpact",  "Region3", 1],
@@ -282,14 +282,12 @@ data=[
 )
 landuse_characterization
 
-
 biodiv_result = pymrio.convert(land_use_result, landuse_characterization)
 biodiv_result
 
 
 # CONT: Explain the biodiv_result - difference between bridge and constraining column
 
-# CONT: Make test case based on biodiv above, also with two column levels
 # CONT: finalize docs for biodiv
 # CONT: start working on convert for extensions/mrio method
 

@@ -997,6 +997,15 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
     return _dfs_idx
 
+def check_df_map(df_orig, df_map):
+    """ Check which entries of df_map would be in effect given df_orig
+    """
+    # TODO: we need a way to check for spelling mistakes 
+    # and other hickups sneaking into df_map.
+    # In this function, we check for each line of df_map which entries
+    # would be in effect given df_orig. 
+    pass
+
 
 def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
     """Convert a DataFrame to a new classification
@@ -1104,7 +1113,7 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
     df_map = df_map.set_index(bridge_columns)
 
     stacked_columns = []
-    order_column_names = df_orig.columns.names
+    orig_column_index = df_orig.columns
     for col in df_map.columns:
         if col in ["factor", "unit"]:
             continue
@@ -1165,8 +1174,9 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
             all_result = all_result.loc[:, "FOO_CONVERT_REMOVE"]
         except KeyError:
             pass
-        if len(all_result.columns.names) > 1:
-            all_result.reorder_levels(order_column_names, axis=1)
+        if len(orig_column_index.names) > 1:
+            all_result = all_result.reorder_levels(orig_column_index.names, axis=1)
+        all_result = all_result.reindex(columns=orig_column_index)
 
     if drop_not_bridged_index:
         all_result = all_result.reset_index(level=orig_index_not_bridged, drop=True)
