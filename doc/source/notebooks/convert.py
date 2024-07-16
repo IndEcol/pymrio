@@ -95,9 +95,11 @@ data=[["Carbon Dioxide", "[A|a]ir", "CO2", "Air", 1.0],
       ["Methane", "[A|a]ir", "CH4", "Air", 1.0]
       ],
 )
+ghg_map
 
 # %% 
 ghg_new = pymrio.convert(ghg_result, ghg_map)
+ghg_new
 
 # %% [markdown]
 # Explanation: The column headers indicates that the stressor index level
@@ -106,14 +108,193 @@ ghg_new = pymrio.convert(ghg_result, ghg_map)
 # All renaming columns consider regular expressions, 
 # so that the spelling of the compartment can be fixed in one go.
 
-# TODO: No factor, implement to do without factor if not given, make test case
-# CONT: GHG characterization
+# %% [markdown]
+# For simple rename (and aggregation cases, see below) we can omit the factor column.
+# Thus we obtain the same result with the following mapping table:
+
+# %% 
+ghg_map_wo_factor = pd.DataFrame(
+columns=["stressor", "compartment", "chem_stressor__stressor", "compartment__compartment"],
+data=[["Carbon Dioxide", "[A|a]ir", "CO2", "Air"],
+      ["Methane", "[A|a]ir", "CH4", "Air"]
+      ],
+)
+ghg_map_wo_factor
+
+# %% 
+ghg_new_wo_factor = pymrio.convert(ghg_result, ghg_map_wo_factor)
+ghg_new_wo_factor
+
 
 # %% [markdown]
-# Pymrio allows these convert function either on one specific table (which not necessaryly has to be a table of the mrio system) or on the whole mrio(-extension) system.
+# ## Unit conversion
 
 # %% [markdown]
-# ## Structure of the bridge table
+# With the factor column it is easy to apply unit conversion to any result table.
+# So, to start with the same table as above, we can apply a simple unit conversion.
+# Assuming the data is in tonnes
+
+# %%
+ghg_result_ton = pd.DataFrame(
+columns=["Region1", "Region2", "Region3"],
+index=pd.MultiIndex.from_tuples(
+    [
+        ("Carbon Dioxide", "Air"),
+        ("Methane", "air"),
+    ]
+),
+data=[[5, 6, 7], [0.5, 0.6, 0.7]],
+)
+ghg_result_ton.index.names = ["stressor", "compartment"]
+ghg_result_ton.columns.names = ["region"]
+ghg_result_ton
+
+# %% [markdown]
+# We can get the data in kg by
+
+
+ghg_map_to_kg = pd.DataFrame(
+columns=["stressor", "compartment", "chem_stressor__stressor", "compartment__compartment", "factor"],
+data=[["Carbon Dioxide", "[A|a]ir", "CO2", "Air", 1000],
+      ["Methane", "[A|a]ir", "CH4", "Air", 1000]
+      ],
+)
+ghg_map_to_kg
+
+ghg_new_kg = pymrio.convert(ghg_result_ton, ghg_map_to_kg)
+ghg_new_kg
+
+# %% [markdown]
+# In case of unit conversion of pymrio satellite accounts, we can also check the unit before and set the unit after conversion:
+# TODO: unit conversion extensions
+
+
+
+# %% [markdown]
+# ## Characterization
+
+# %% [markdown]
+# The main power of the convert function is to aggregate and characterize satellite accounts.
+# If needed, region and sector specific characterizations can be applied.
+
+# %% [markdown]
+# ### Global characterization factors
+
+# %% [markdown]
+# An simple example is a conversion/aggregation based on GWP100 characterization factors.
+# Here, we continue with the unit converted and cleanup dataframe from above:
+
+# %% 
+ghg_new_kg
+
+
+# %% [markdown]
+# We define a general purpose characterization map for GHG emissions 
+# (based on 
+# [AR6 GWP100 and GWP20 factors](https://www.ipcc.ch/report/ar6/wg1/downloads/report/IPCC_AR6_WGI_Chapter07.pdf)
+# ,with some simplifications):
+
+# %%
+GWP_characterization = pd.DataFrame(
+columns=["chem_stressor", "GWP__chem_stressor", "factor"],
+data=[["CO2", "GWP100",  1],
+      ["CH4", "GWP100", 29],
+      ["NHx", "GWP100", 273],
+      ["CO2", "GWP20",  1],
+      ["CH4", "GWP20", 80],
+      ["NHx", "GWP20", 273],
+      ["CO2", "GWP500",  1],
+      ["CH4", "GWP500", 8],
+      ["NHx", "GWP500", 130],
+      ],
+)
+GWP_characterization
+
+# %%
+GWP_result = pymrio.convert(ghg_new_kg, GWP_characterization)
+GWP_result
+
+
+# %% [markdown]
+# As we can see, GWP_characterization can include factors for stressors not actually 
+# present in the data.
+# These are silently ignored in the conversion process.
+# We also did not specify the compartment and assumed the same factors apply 
+# independent of the compartment (we could pass through the compartment to
+# the new result table via passing drop_not_bridge=False to the convert function).
+
+# %%
+GWP_result_with_comp = pymrio.convert(ghg_new_kg, GWP_characterization, drop_not_bridged=False)
+GWP_result_with_comp
+
+# %% [markdown]
+# All stressors mapped to the same "impact" are first converted via the 
+# value given in the factor column
+# and then summed up (the aggregation function can be changed 
+# via the `agg_func` parameter).
+
+# %% [markdown]
+# ### Regional specific characterization factors
+
+
+# %% [markdown]
+# A more complex example is the application of regional specific characterization factors.
+# (The same principle applies to sector specific factors.)
+# For that, we assume some land use results for different regions:
+
+# %% 
+land_use_result = pd.DataFrame(
+columns=["Region1", "Region2", "Region3"],
+index=["Wheat", "Maize", "Rice", "Pasture", "Forest extensive", "Forest intensive",],
+data=[[3, 10, 1], 
+      [5, 20, 3],
+      [0, 12, 34],
+      [12, 34, 9],
+      [32, 27, 11],
+      [43, 17, 24],
+      ],
+)
+land_use_result.index.names = ["stressor"]
+land_use_result.columns.names = ["region"]
+land_use_result
+
+# %% [markdown]
+# Now we setup a pseudo characterization table for converting the land use data into
+# biodiversity impacts. We assume, that the characterization factors vary based on 
+# land use type and region.
+
+# %% [markdown]
+landuse_characterization = pd.DataFrame(
+columns=["stressor", "BioDiv__stressor", "region", "factor"],
+data=[
+      ["Wheat|Maize", "BioImpact",  "Region1", 3],
+      ["Wheat", "BioImpact",  "Region[2,3]", 4],
+      ["Maize", "BioImpact",  "Region[2,3]", 7],
+      ["Rice", "BioImpact",  "Region1", 12],
+      ["Rice", "BioImpact",  "Region2", 12],
+      ["Rice", "BioImpact",  "Region3", 12],
+      ["Pastures", "BioImpact",  "Region[1,2,3]", 12],
+      ["Forest.*", "BioImpact",  "Region1", 2],
+      ["Forest.*", "BioImpact",  "Region2", 3],
+      ["Forest ext.*", "BioImpact",  "Region3", 1],
+      ["Forest int.*", "BioImpact",  "Region3", 3],
+      ],
+)
+landuse_characterization
+
+land_use_result_stacked = pd.DataFrame(land_use_result.stack(level="region"), columns=["totals"])
+land_use_result_stacked
+
+biodiv_result = pymrio.convert(land_use_result_stacked, landuse_characterization, drop_not_bridged=False)
+biodiv_result.unstack(level="region")["totals"]
+
+
+# CONT: before doing that below, investigate if we can automatically stack levels in
+# columns if not found in index. Then unstack and drop the not_bridged afterwards.
+# CONT: drop_not_bridged=False must be default, to make it workable with regions etc
+# CONT: adjust test cases and docs accordingly
+# CONT: finalize docs for biodiv
+
 
 
 # %% [markdown]

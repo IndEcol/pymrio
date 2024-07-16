@@ -1031,24 +1031,23 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
             replacing the original compartment. No rename of column happens here,
             still row index will be renamed as given here.
 
-        the columsn with __ are called bridge columns, they are used
+        the columns with __ are called bridge columns, they are used
         to match the original index. The new dataframe with have index names
         based on the first part of the bridge column, in the order
         in which the bridge columns are given in the mapping dataframe.
 
         The structure "stressor" and "impact__stressor" is important.
 
-        Some additional columns are possible, but not necessary:
-
-        unit_orig ... the original unit (optional, for double check with an potential unit column in the original df)
-        unit_new ... the new unit to be set as the unit column in the new df
 
     agg_func : str or func
         the aggregation function to use for multiple matchings (summation by default)
 
     drop_not_bridged : bool, optional
         What to do with index levels in df_orig not appearing in the bridge columns.
-        If True, drop them (aggregation across these), if False, pass them through to the result
+        If True, drop them (aggregation across these), if False, 
+        pass them through to the result. In case some need to be dropped, and some not
+        make a bridge column for the ones to be dropped and map all to the same name. 
+        Then drop this index level after the conversion.
 
 
     Extension for extensions:
@@ -1065,6 +1064,9 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
 
     bridge_components = namedtuple("bridge_components", ["new", "orig", "raw"])
     bridges = []
+
+    if isinstance(df_orig, pd.Series):
+        df_orig = pd.DataFrame(df_orig)
 
     # some consitency checks of arguments and restructuring if everything is ok
     if len(bridge_columns) == 0:
@@ -1135,6 +1137,6 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged=True):
             ix for ix in all_result.index.names if ix not in orig_index_not_bridged
         ]
         all_result = all_result.reorder_levels(new_index + orig_index_not_bridged)
+    
+    return all_result.groupby(by=all_result.index.names).agg(agg_func)
 
-    agg_all = all_result.groupby(by=all_result.index.names).agg(agg_func)
-    return agg_all
