@@ -997,13 +997,13 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
     return _dfs_idx
 
+
 def check_df_map(df_orig, df_map):
-    """ Check which entries of df_map would be in effect given df_orig
-    """
-    # TODO: we need a way to check for spelling mistakes 
+    """Check which entries of df_map would be in effect given df_orig"""
+    # TODO: we need a way to check for spelling mistakes
     # and other hickups sneaking into df_map.
     # In this function, we check for each line of df_map which entries
-    # would be in effect given df_orig. 
+    # would be in effect given df_orig.
     pass
 
 
@@ -1013,12 +1013,12 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
     Parameters
     ----------
     df_orig : pd.DataFrame
-        The DataFrame to process. 
+        The DataFrame to process.
         The index levels need to be named (df.index.name needs to
-        be set for all levels). All index to be bridged to new 
+        be set for all levels). All index to be bridged to new
         names need to be in the index (these are columns
         indicated with two underscores '__' in the mapping dataframe, df_map).
-        Other constraining conditions (e.g. regions, sectors) can be either 
+        Other constraining conditions (e.g. regions, sectors) can be either
         in the index or columns. The values in index are preferred.
 
     df_map : pd.DataFrame
@@ -1062,13 +1062,13 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
 
     drop_not_bridged_index : bool, optional
         What to do with index levels in df_orig not appearing in the bridge columns.
-        If True, drop them (aggregation across these), if False, 
-        pass them through to the result. 
+        If True, drop them (aggregation across these), if False,
+        pass them through to the result.
 
         *Note:* Only index levels will be dropped, not columns.
 
         In case some index levels need to be dropped, and some not
-        make a bridge column for the ones to be dropped and map all to the same name. 
+        make a bridge column for the ones to be dropped and map all to the same name.
         Then drop this index level after the conversion.
 
 
@@ -1090,7 +1090,6 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
     if isinstance(df_orig, pd.Series):
         df_orig = pd.DataFrame(df_orig)
 
-
     # some consitency checks of arguments and restructuring if everything is ok
     if len(bridge_columns) == 0:
         raise ValueError("No columns with '__' in the mapping DataFrame")
@@ -1105,7 +1104,7 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
             raise ValueError(f"Column {bridge.orig} not in df_orig")
         else:
             bridges.append(bridge)
-    
+
     orig_index_not_bridged = [
         ix for ix in df_orig.index.names if ix not in [b.orig for b in bridges]
     ]
@@ -1190,6 +1189,5 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
         except TypeError:
             # case where there is only one index level
             pass
-    
-    return all_result.groupby(by=all_result.index.names).agg(agg_func)
 
+    return all_result.groupby(by=all_result.index.names).agg(agg_func)
