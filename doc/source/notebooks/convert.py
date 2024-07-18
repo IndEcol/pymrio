@@ -41,21 +41,22 @@
 
 # %% [markdown]
 # All conversion relies on a *mapping table* that maps (bridges)
-# the indices of the source data to the indices of the target data.
+# the index/columns of the source data to the indices of the target data.
 
 # %% [markdown]
-# This tables requires headers (columns) corresponding to the column headers
-# of the source data as well as bridge columns which specify the new target index.
+# This tables requires headers (columns) corresponding to the 
+# index.names and columns.names of the source data (constraining data)
+# as well as bridge data  which specify the new target index.
 # The later are indicated by "NewIndex__OldIndex" - **the important part are
-# the two underscore in the column name**. Another column named "factor" specifies
+# the two underscore in the column name**. Another (optional) 
+# column named "factor" specifies
 # the multiplication factor for the conversion.
-# Finally, additional columns can be used to indicate units and other information.
+# TODO:CHECK Finally, additional columns can be used to indicate units and other information.
 
 # %% [markdown]
-# All mapping occurs on the index of the original data.
-# Thus the data to be converted needs to be in long matrix format, at least for the index
-# levels which are considered in the conversion.
-# TODO: In case conversion happens on MRIO Extensions this conversion happens automatically.
+# Constraining data columns can either specify columns or index.
+# However, any constraining data to be bridged/mapped to a new name need to be 
+# in the index of the original data.
 
 # %% [markdown]
 # The first example below shows the simplest case of renaming a single table.
@@ -186,7 +187,8 @@ ghg_new_kg = pymrio.convert(ghg_result_ton, ghg_map_to_kg)
 ghg_new_kg
 
 # %% [markdown]
-# In case of unit conversion of pymrio satellite accounts, we can also check the unit before and set the unit after conversion:
+# In case of unit conversion of pymrio satellite accounts, 
+# we can also check the unit before and set the unit after conversion:
 # TODO: unit conversion extensions
 
 
@@ -261,8 +263,8 @@ GWP_result_with_comp
 
 
 # %% [markdown]
-# A more complex example is the application of regional specific characterization factors.
-# (The same principle applies to sector specific factors.)
+# A more complex example is the application of regional specific characterization 
+# factors (the same principle applies to sector specific factors.).
 # For that, we assume some land use results for different regions:
 
 # %%
@@ -292,7 +294,10 @@ land_use_result
 # %% [markdown]
 # Now we setup a pseudo characterization table for converting the land use data into
 # biodiversity impacts. We assume, that the characterization factors vary based on
-# land use type and region.
+# land use type and region. However, the "region" information is a pure 
+# constraining column (specifying the region for which the factor applies) without
+# any bridge column mapping it to a new name. Thus, the "region" can either be in the index
+# or in the columns of the source data - in the given case it is in the columns.
 
 # %% [markdown]
 landuse_characterization = pd.DataFrame(
@@ -313,13 +318,53 @@ landuse_characterization = pd.DataFrame(
 )
 landuse_characterization
 
+
+# %% [markdown]
+# The table shows several possibilities to specify factors which apply to several
+# regions/stressors. 
+# All of them are based on the [regular expression](https://docs.python.org/3/howto/regex.html):
+# 
+# - In the first data line we use the "or" operator "|" to specify that the
+# same factor applies to Wheat and Maize.
+# - On the next line we use the grouping capabilities of regular expressions
+# to indicate the same factor for Region 2 and 3.
+# - At the last four lines .* matches any number of characters. This 
+# allows to specify the same factor for both forest types or to abbreviate
+# the naming of the stressor (last 2 lines).
+#
+# The use of regular expression is optional, one can also use one line per factor.
+# In the example above, we indicate the factor for Rice in 3 subsequent entries.
+# This would be equivalent to ```["Rice", "BioImpact", "Region[1,2,3]", 12]```.
+
+
+# %% [markdown]
+# With that setup we can now characterize the land use data in land_use_result.
+
+# %%
 biodiv_result = pymrio.convert(land_use_result, landuse_characterization)
 biodiv_result
 
+# %% [markdown]
+# Note, that in this example the region is not in the index 
+# but in the columns. 
+# The convert function can handle both cases. 
+# The only difference is that constraints which are
+# in the columns will never be aggregated but keep the column resolution at the 
+# output. Thus the result is equivalent to 
 
-# CONT: Explain the biodiv_result - difference between bridge and constraining column
+# %%
+land_use_result_stacked = land_use_result.stack(level="region")
+biodiv_result_stacked = pymrio.convert(land_use_result_stacked, 
+                                       landuse_characterization,
+                                       drop_not_bridged_index=False)
+biodiv_result_stacked.unstack(level="region")[0]
 
-# CONT: finalize docs for biodiv
+# %% [markdown]
+# In this case we have to specify to not drop the not bridged "region" index.
+# We then unstack the result again, and have to select the first element ([0]),
+# since there where not other columns left after stacking them before the 
+# characterization.
+
 # CONT: start working on convert for extensions/mrio method
 
 
@@ -329,27 +374,3 @@ biodiv_result
 # This bridge table has to follow a specific format, depending on the table to be converted.
 
 
-# %% [markdown]
-# Lets assume a table with the following structure (the table to be converted):
-
-# %% [markdown]
-# TODO: table from the test cases
-
-# %% [markdown]
-# A potential bridge table for this table could look like this:
-
-# %% [markdown]
-# TODO: table from the test cases
-
-# %% [markdown]
-# Describe the column names, and which entries can be regular expressions
-
-# %% [markdown]
-# Once everything is set up, we can continue with the actual conversion.
-
-# %% [markdown]
-# ## Converting a single data table
-
-
-# %% [markdown]
-# ## Converting a pymrio extension

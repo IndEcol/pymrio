@@ -1014,23 +1014,36 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
     ----------
     df_orig : pd.DataFrame
         The DataFrame to process.
-        The index levels need to be named (df.index.name needs to
-        be set for all levels). All index to be bridged to new
-        names need to be in the index (these are columns
+        The index/columns levels need to be named (df.index.name 
+        and df.columns.names needs to be set for all levels). 
+        All index to be bridged to new names need to be in the index (these are columns
         indicated with two underscores '__' in the mapping dataframe, df_map).
         Other constraining conditions (e.g. regions, sectors) can be either
-        in the index or columns. The values in index are preferred.
+        in the index or columns. If the same name exists in the 
+        index and columns, the values in index are preferred.
 
     df_map : pd.DataFrame
         The DataFrame with the mapping of the old to the new classification.
         This requires a specific structure, which depends on the structure of the
-        dataframe to be characterized: one column for each index level in the dataframe
-        and one column for each new index level in the characterized result dataframe.
+        dataframe to be characterized:
+
+        - Constraining data (e.g. stressors, regions, sectors) can be 
+          either in the index or columns of df_orig. The need to have the same
+          name as the named index or column in df_orig. The algorithm searches 
+          for matching data in df_orig based on all constraining columns in df_map.
+
+        - Bridge columns are columns with '__' in the name. These are used to
+          map (bridge) some/all of the constraining columns in df_orig to the new
+          classification. 
+
+        - One column "factor", which gives the multiplication factor for the 
+          conversion. If it is missing, it is set to 1.
+
 
         This is better explained with an example.
         Assuming a original dataframe df_orig with
-        index names 'stressor' and 'compartment'
-        the characterizing dataframe would have the following structure (column names):
+        index names 'stressor' and 'compartment' and column name 'region',
+        the characterizing dataframe could have the following structure (column names):
 
         stressor ... original index name
         compartment ... original index name
@@ -1054,15 +1067,13 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
         "region" is constraining column, these can either be for the index or column
         in df_orig. In case both exist, the one in index is preferred.
 
-        The structure "stressor" and "impact__stressor" is important.
-
 
     agg_func : str or func
         the aggregation function to use for multiple matchings (summation by default)
 
     drop_not_bridged_index : bool, optional
         What to do with index levels in df_orig not appearing in the bridge columns.
-        If True, drop them (aggregation across these), if False,
+        If True, drop them after aggregation across these, if False,
         pass them through to the result.
 
         *Note:* Only index levels will be dropped, not columns.
@@ -1073,7 +1084,7 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
 
 
     Extension for extensions:
-    extensino ... extension name
+    extension ... extension name
     unit_orig ... the original unit (optional, for double check with the unit)
     unit_new ... the new unit to be set for the extension
 
