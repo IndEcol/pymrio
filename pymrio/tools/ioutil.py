@@ -723,7 +723,7 @@ def check_if_long(df, value_name=LONG_VALUE_NAME):
         return True
 
 
-def convert_to_long(df, value_name=LONG_VALUE_NAME):
+def to_long(df, value_name=LONG_VALUE_NAME):
     """Converts the pymrio matrix df format to a long format
 
     FIX: All index and columns become separate columns (not index!)
