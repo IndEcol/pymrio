@@ -2013,14 +2013,14 @@ class Extension(BaseSystem):
             # check if the units in the extensions confirm the units
             pass
         if "unit" in df_map.columns or "unit_new" in df_map.columns:
+            pass
             # set the new unit column
         else:
             pass
             # set unit to "undef" and raise warning
 
         for df in self.get_DataFrame:
-            # run convert of all dataframe and build new extension
-        pass
+            pass
 
 
 class IOSystem(BaseSystem):
