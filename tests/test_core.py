@@ -552,6 +552,41 @@ def test_characterize_extension(fix_testmrio):
         check_names=False,
     )
 
+def test_extension_convert(fix_testmrio):
+
+    df_map = pd.DataFrame(
+        columns=["stressor", "compartment", "total__stressor", "factor", "unit_orig", "unit_new"],
+        data=[
+            ["emis.*", "air|water", "total_regex", 1000, "kg", "t"],
+            ["emission_type[1|2]", ".*", "total_sum", 1E-3, "kg", "g"],
+            ["emission_type1", ".*", "air_emissions", 1000, "kg", "t"],
+        ],
+    )
+
+    pass
+
+def test_extension_convert_test_unit(fix_testmrio):
+
+    df_fail1 = pd.DataFrame(
+        columns=["stressor", "compartment", "total__stressor", "factor", "unit_orig", "unit_new"],
+        data=[
+            ["emis.*", "air|water", "total_regex", 1000, "g", "t"],
+        ],
+    )
+
+    df_fail2 = pd.DataFrame(
+        columns=["stressor", "compartment", "total__stressor", "factor", "unit_emis", "unit_new"],
+        data=[
+            ["emission_type1", "air", "total_regex", 1000, "t", "t"],
+        ],
+    )
+
+    with pytest.raises(ValueError):
+        fix_testmrio.testmrio.emissions.convert(df_fail1, extension_name="emissions_new")
+
+    with pytest.raises(ValueError):
+        fix_testmrio.testmrio.emissions.convert(df_fail2, extension_name="emissions_new", unit_column_orig="unit_emis")
+
 
 def test_reset_to_flows(fix_testmrio):
     tt = fix_testmrio.testmrio

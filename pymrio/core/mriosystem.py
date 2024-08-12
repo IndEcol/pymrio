@@ -1934,7 +1934,10 @@ class Extension(BaseSystem):
 
     def convert(self, df_map, extension_name, 
                 agg_func="sum", 
-                drop_not_bridged_index=True):
+                drop_not_bridged_index=True,
+                unit_column_orig="unit_orig",
+                unit_column_new="unit_new",
+                ignore_columns=None):
         """ Apply the convert function to all dataframes in the extension
 
         Parameters
@@ -2001,27 +2004,55 @@ class Extension(BaseSystem):
             make a bridge column for the ones to be dropped and map all to the same name.
             Then drop this index level after the conversion.
 
+        unit_column_orig : str, optional
+            Name of the column in df_map with the original unit.
+            This will be used to check if the unit matches the original unit in the extension.
+            Default is "unit_orig", if None, no check is performed.
 
+        unit_column_new : str, optional
+            Name of the column in df_map with the new unit to be assigned to the new extension.
+            Default is "unit_new", if None same unit as in df_orig TODO EXPLAIN BETTER, THINK WARNING
+
+        ignore_columns : list, optional
+            List of column names in df_map which should be ignored.
+            These could be columns with additional information, etc.
+            The unit columns given in unit_column_orig and unit_column_new 
+            are ignored by default.
+
+
+        TODO: remove after explain
         Extension for extensions:
         extension ... extension name
         unit_orig ... the original unit (optional, for double check with the unit)
         unit_new ... the new unit to be set for the extension
 
         """
-        # unit, unit_new, unit_orig
-        if "unit_orig" in df_map.columns:
-            # check if the units in the extensions confirm the units
-            pass
-        if "unit" in df_map.columns or "unit_new" in df_map.columns:
-            pass
-            # set the new unit column
-        else:
-            pass
-            # set unit to "undef" and raise warning
+        if not ignore_columns:
+            ignore_columns = []
 
-        for df in self.get_DataFrame:
-            pass
+        if unit_column_orig:
+            ignore_columns.append(unit_column_orig)
+            for entry in df_map.iterrows():
+                # need fullmatch here as the same is used in ioutil.convert
+                corresponding_rows = self.fullmatch(**entry[1].to_dict())
+                for row in corresponding_rows:
+                    if self.unit.loc[row].unit != entry[1][unit_column_orig]:
+                        raise ValueError(
+                            f"Unit in extension does not match the unit in mapping for row {row}"
+                            )
+        if unit_column_new:
+            ignore_columns.append(unit_column_new)
+                
 
+        # for df in self.get_DataFrame:
+        # CONT:
+        # 
+        # 1) run with one and check output
+        # 2) check unit aggregation if unit_column_new is not given 
+        #   - unit aggregate with str join of unique entries
+        # 3) make dict and build new extension
+        #     # run convert of all dataframe and build new extension
+        #
 
 class IOSystem(BaseSystem):
     """Class containing a whole EE MRIO System

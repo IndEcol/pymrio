@@ -1007,7 +1007,11 @@ def check_df_map(df_orig, df_map):
     pass
 
 
-def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
+def convert(df_orig, 
+            df_map, 
+            agg_func="sum", 
+            drop_not_bridged_index=True,
+            ignore_columns = None):
     """Convert a DataFrame to a new classification
 
     Parameters
@@ -1082,6 +1086,10 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
         make a bridge column for the ones to be dropped and map all to the same name.
         Then drop this index level after the conversion.
 
+    ignore_columns : list, optional
+        List of column names in df_map which should be ignored.
+        These could be columns with additional information, unit columns, etc.
+
 
     Extension for extensions:
     extension ... extension name
@@ -1097,6 +1105,9 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
 
     bridge_components = namedtuple("bridge_components", ["new", "orig", "raw"])
     bridges = []
+
+    if not ignore_columns:
+        ignore_columns = []
 
     if isinstance(df_orig, pd.Series):
         df_orig = pd.DataFrame(df_orig)
@@ -1125,7 +1136,8 @@ def convert(df_orig, df_map, agg_func="sum", drop_not_bridged_index=True):
     stacked_columns = []
     orig_column_index = df_orig.columns
     for col in df_map.columns:
-        if col in ["factor", "unit"]:
+        # TODO: other names for unit should be allowed
+        if col in (["factor"] + ignore_columns):
             continue
         if col not in df_orig.index.names:
             if col in df_orig.columns.names:
