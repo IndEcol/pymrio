@@ -1136,7 +1136,6 @@ def convert(df_orig,
     stacked_columns = []
     orig_column_index = df_orig.columns
     for col in df_map.columns:
-        # TODO: other names for unit should be allowed
         if col in (["factor"] + ignore_columns):
             continue
         if col not in df_orig.index.names:

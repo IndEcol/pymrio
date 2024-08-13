@@ -2040,19 +2040,38 @@ class Extension(BaseSystem):
                         raise ValueError(
                             f"Unit in extension does not match the unit in mapping for row {row}"
                             )
+
+        new_extension = Extension(name=extension_name)
+
         if unit_column_new:
             ignore_columns.append(unit_column_new)
-                
 
-        # for df in self.get_DataFrame:
-        # CONT:
-        # 
-        # 1) run with one and check output
-        # 2) check unit aggregation if unit_column_new is not given 
-        #   - unit aggregate with str join of unique entries
-        # 3) make dict and build new extension
-        #     # run convert of all dataframe and build new extension
-        #
+        for df_name, df in zip(self.get_DataFrame(data=False, with_unit=False),
+                               self.get_DataFrame(data=True, with_unit=False)):
+            setattr(new_extension, df_name, ioutil.convert(
+                df_orig=df, 
+                df_map=df_map, 
+                agg_func=agg_func, 
+                drop_not_bridged_index=drop_not_bridged_index, 
+                ignore_columns=ignore_columns))
+
+        if unit_column_new:
+            unit = pd.DataFrame(
+                    columns=["unit"],
+                    index=new_extension.get_rows())
+            bridge_columns = [col for col in df_map.columns if "__" in col]
+            unique_new_index = (
+                df_map.loc[:, bridge_columns].drop_duplicates().set_index(bridge_columns).index
+            )
+            unique_new_index.names = [col.split("__")[0] for col in bridge_columns]
+
+            unit.unit = df_map.set_index(bridge_columns).loc[unique_new_index].loc[:, unit_column_new]
+            new_extension.unit = unit
+        else:
+            new_extension.unit = None
+
+        return new_extension
+
 
 class IOSystem(BaseSystem):
     """Class containing a whole EE MRIO System

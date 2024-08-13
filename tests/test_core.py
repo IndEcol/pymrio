@@ -565,7 +565,20 @@ def test_extension_convert(fix_testmrio):
 
     pass
 
-def test_extension_convert_test_unit(fix_testmrio):
+
+def test_extension_convert_test_conversion(fix_testmrio):
+    df_map1 = pd.DataFrame(
+        columns=["stressor", "compartment", "total__stressor", "factor", "unit_orig", "unit_new"],
+        data=[
+            ["emis.*", "air|water", "total_regex", 1000, "kg", "t"],
+        ],
+    )
+
+    x = fix_testmrio.testmrio.emissions.convert(df_map1, extension_name="emissions_new")
+    # CONT: write test for conversion, including va, different units, etc.
+
+
+def test_extension_convert_test_unit_fail(fix_testmrio):
 
     df_fail1 = pd.DataFrame(
         columns=["stressor", "compartment", "total__stressor", "factor", "unit_orig", "unit_new"],
