@@ -552,53 +552,170 @@ def test_characterize_extension(fix_testmrio):
         check_names=False,
     )
 
+
 def test_extension_convert(fix_testmrio):
-
+    tt_pre = fix_testmrio.testmrio.copy()
     df_map = pd.DataFrame(
-        columns=["stressor", "compartment", "total__stressor", "factor", "unit_orig", "unit_new"],
+        columns=[
+            "stressor",
+            "compartment",
+            "total__stressor",
+            "factor",
+            "unit_orig",
+            "unit_new",
+        ],
         data=[
-            ["emis.*", "air|water", "total_regex", 1000, "kg", "t"],
-            ["emission_type[1|2]", ".*", "total_sum", 1E-3, "kg", "g"],
-            ["emission_type1", ".*", "air_emissions", 1000, "kg", "t"],
+            ["emis.*", "air|water", "total_sum_tonnes", 1e-3, "kg", "t"],
+            ["emission_type[1|2]", ".*", "total_sum", 1, "kg", "kg"],
+            ["emission_type1", ".*", "air_emissions", 1e-3, "kg", "t"],
+            ["emission_type2", ".*", "water_emissions", 1000, "kg", "g"],
         ],
     )
+    tt_pre.pre_calc = tt_pre.emissions.convert(
+        df_map, extension_name="emissions_new_pre_calc"
+    )
+    tt_pre.calc_all()
 
-    pass
-
-
-def test_extension_convert_test_conversion(fix_testmrio):
-    df_map1 = pd.DataFrame(
-        columns=["stressor", "compartment", "total__stressor", "factor", "unit_orig", "unit_new"],
-        data=[
-            ["emis.*", "air|water", "total_regex", 1000, "kg", "t"],
-        ],
+    pdt.assert_series_equal(
+        tt_pre.emissions.D_cba.loc["emission_type1", "air"],
+        tt_pre.pre_calc.D_cba.loc["air_emissions"] * 1000,
+        check_names=False,
+    )
+    pdt.assert_series_equal(
+        tt_pre.emissions.D_cba.loc["emission_type2", "water"],
+        tt_pre.pre_calc.D_cba.loc["water_emissions"] * 1e-3,
+        check_names=False,
     )
 
-    x = fix_testmrio.testmrio.emissions.convert(df_map1, extension_name="emissions_new")
-    # CONT: write test for conversion, including va, different units, etc.
+    npt.assert_allclose(
+        tt_pre.emissions.D_imp.sum().sum(),
+        tt_pre.pre_calc.D_imp.loc["total_sum_tonnes"].sum().sum() * 1000,
+        rtol=1e-6,
+    )
+    npt.assert_allclose(
+        tt_pre.emissions.M.sum().sum(),
+        tt_pre.pre_calc.M.loc["total_sum"].sum().sum(),
+        rtol=1e-6,
+    )
+
+    assert tt_pre.pre_calc.unit.loc["total_sum_tonnes", "unit"] == "t"
+    assert tt_pre.pre_calc.unit.loc["total_sum", "unit"] == "kg"
+    assert tt_pre.pre_calc.unit.loc["air_emissions", "unit"] == "t"
+    assert tt_pre.pre_calc.unit.loc["water_emissions", "unit"] == "g"
+
+    tt_post = fix_testmrio.testmrio.copy()
+    tt_post.calc_all()
+
+    tt_post.post_calc = tt_post.emissions.convert(
+        df_map, extension_name="emissions_new_post_calc"
+    )
+
+    pdt.assert_series_equal(
+        tt_post.emissions.D_cba.loc["emission_type1", "air"],
+        tt_post.post_calc.D_cba.loc["air_emissions"] * 1000,
+        check_names=False,
+    )
+    pdt.assert_series_equal(
+        tt_post.emissions.D_cba.loc["emission_type2", "water"],
+        tt_post.post_calc.D_cba.loc["water_emissions"] * 1e-3,
+        check_names=False,
+    )
+
+    npt.assert_allclose(
+        tt_post.emissions.D_imp.sum().sum(),
+        tt_post.post_calc.D_imp.loc["total_sum_tonnes"].sum().sum() * 1000,
+        rtol=1e-6,
+    )
+    npt.assert_allclose(
+        tt_post.emissions.M.sum().sum(),
+        tt_post.post_calc.M.loc["total_sum"].sum().sum(),
+        rtol=1e-6,
+    )
+
+    assert tt_post.post_calc.unit.loc["total_sum_tonnes", "unit"] == "t"
+    assert tt_post.post_calc.unit.loc["total_sum", "unit"] == "kg"
+    assert tt_post.post_calc.unit.loc["air_emissions", "unit"] == "t"
+    assert tt_post.post_calc.unit.loc["water_emissions", "unit"] == "g"
 
 
 def test_extension_convert_test_unit_fail(fix_testmrio):
-
     df_fail1 = pd.DataFrame(
-        columns=["stressor", "compartment", "total__stressor", "factor", "unit_orig", "unit_new"],
+        columns=[
+            "stressor",
+            "compartment",
+            "total__stressor",
+            "factor",
+            "unit_orig",
+            "unit_new",
+        ],
         data=[
             ["emis.*", "air|water", "total_regex", 1000, "g", "t"],
         ],
     )
 
     df_fail2 = pd.DataFrame(
-        columns=["stressor", "compartment", "total__stressor", "factor", "unit_emis", "unit_new"],
+        columns=[
+            "stressor",
+            "compartment",
+            "total__stressor",
+            "factor",
+            "unit_emis",
+            "unit_new",
+        ],
         data=[
-            ["emission_type1", "air", "total_regex", 1000, "t", "t"],
+            ["emission_type1", "air", "total_regex", 1, "t", "t"],
+        ],
+    )
+
+    df_wo_unit = pd.DataFrame(
+        columns=["stressor", "compartment", "total__stressor", "factor"],
+        data=[
+            ["emission_type1", "air", "total_regex", 1],
+        ],
+    )
+
+    df_new_unit = pd.DataFrame(
+        columns=["stressor", "compartment", "total__stressor", "factor", "set_unit"],
+        data=[
+            ["emission_type1", "air", "total_regex", 1e-3, "t"],
         ],
     )
 
     with pytest.raises(ValueError):
-        fix_testmrio.testmrio.emissions.convert(df_fail1, extension_name="emissions_new")
+        fix_testmrio.testmrio.emissions.convert(
+            df_fail1, extension_name="emissions_new"
+        )
 
     with pytest.raises(ValueError):
-        fix_testmrio.testmrio.emissions.convert(df_fail2, extension_name="emissions_new", unit_column_orig="unit_emis")
+        fix_testmrio.testmrio.emissions.convert(
+            df_fail2, extension_name="emissions_new", unit_column_orig="unit_emis"
+        )
+
+    with pytest.raises(ValueError):
+        fix_testmrio.testmrio.emissions.convert(
+            df_wo_unit, extension_name="emissions_new", unit_column_orig="unit_emis"
+        )
+
+    wounit = fix_testmrio.testmrio.emissions.convert(
+        df_wo_unit,
+        extension_name="emissions_new",
+        unit_column_orig=None,
+        unit_column_new=None,
+    )
+    assert wounit.unit == None
+
+    with pytest.raises(ValueError):
+        fix_testmrio.testmrio.emissions.convert(
+            df_new_unit, extension_name="emissions_new", unit_column_new="unit_new"
+        )
+
+    newunit = fix_testmrio.testmrio.emissions.convert(
+        df_new_unit,
+        extension_name="emissions_new",
+        unit_column_orig=None,
+        unit_column_new="set_unit",
+    )
+    assert newunit.unit.loc["total_regex", "unit"] == "t"
 
 
 def test_reset_to_flows(fix_testmrio):

@@ -70,9 +70,9 @@ from pymrio.tools.ioutil import (
     build_agg_matrix,
     build_agg_vec,
     convert,
-    to_long,
     index_contains,
     index_fullmatch,
     index_match,
+    to_long,
 )
 from pymrio.version import __version__

@@ -691,7 +691,6 @@ def test_convert_characterize():
 
 
 def test_convert_wrong_inputs():
-
     to_char = pd.DataFrame(
         data=5,
         index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),

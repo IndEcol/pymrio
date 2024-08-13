@@ -1932,13 +1932,17 @@ class Extension(BaseSystem):
         else:
             return ex
 
-    def convert(self, df_map, extension_name, 
-                agg_func="sum", 
-                drop_not_bridged_index=True,
-                unit_column_orig="unit_orig",
-                unit_column_new="unit_new",
-                ignore_columns=None):
-        """ Apply the convert function to all dataframes in the extension
+    def convert(
+        self,
+        df_map,
+        extension_name,
+        agg_func="sum",
+        drop_not_bridged_index=True,
+        unit_column_orig="unit_orig",
+        unit_column_new="unit_new",
+        ignore_columns=None,
+    ):
+        """Apply the convert function to all dataframes in the extension
 
         Parameters
         ----------
@@ -1947,16 +1951,16 @@ class Extension(BaseSystem):
             The DataFrame with the mapping of the old to the new classification.
             This requires a specific structure:
 
-            - Constraining data (e.g. stressors, regions, sectors) can be 
+            - Constraining data (e.g. stressors, regions, sectors) can be
             either in the index or columns of df_orig. The need to have the same
-            name as the named index or column in df_orig. The algorithm searches 
+            name as the named index or column in df_orig. The algorithm searches
             for matching data in df_orig based on all constraining columns in df_map.
 
             - Bridge columns are columns with '__' in the name. These are used to
             map (bridge) some/all of the constraining columns in df_orig to the new
-            classification. 
+            classification.
 
-            - One column "factor", which gives the multiplication factor for the 
+            - One column "factor", which gives the multiplication factor for the
             conversion. If it is missing, it is set to 1.
 
 
@@ -2016,7 +2020,7 @@ class Extension(BaseSystem):
         ignore_columns : list, optional
             List of column names in df_map which should be ignored.
             These could be columns with additional information, etc.
-            The unit columns given in unit_column_orig and unit_column_new 
+            The unit columns given in unit_column_orig and unit_column_new
             are ignored by default.
 
 
@@ -2031,6 +2035,10 @@ class Extension(BaseSystem):
             ignore_columns = []
 
         if unit_column_orig:
+            if unit_column_orig not in df_map.columns:
+                raise ValueError(
+                    f"Unit column {unit_column_orig} not in mapping dataframe, pass None if not available"
+                )
             ignore_columns.append(unit_column_orig)
             for entry in df_map.iterrows():
                 # need fullmatch here as the same is used in ioutil.convert
@@ -2039,33 +2047,50 @@ class Extension(BaseSystem):
                     if self.unit.loc[row].unit != entry[1][unit_column_orig]:
                         raise ValueError(
                             f"Unit in extension does not match the unit in mapping for row {row}"
-                            )
+                        )
 
         new_extension = Extension(name=extension_name)
 
         if unit_column_new:
+            if unit_column_new not in df_map.columns:
+                raise ValueError(
+                    f"Unit column {unit_column_new} not in mapping dataframe, pass None if not available"
+                )
+
             ignore_columns.append(unit_column_new)
 
-        for df_name, df in zip(self.get_DataFrame(data=False, with_unit=False),
-                               self.get_DataFrame(data=True, with_unit=False)):
-            setattr(new_extension, df_name, ioutil.convert(
-                df_orig=df, 
-                df_map=df_map, 
-                agg_func=agg_func, 
-                drop_not_bridged_index=drop_not_bridged_index, 
-                ignore_columns=ignore_columns))
+        for df_name, df in zip(
+            self.get_DataFrame(data=False, with_unit=False),
+            self.get_DataFrame(data=True, with_unit=False),
+        ):
+            setattr(
+                new_extension,
+                df_name,
+                ioutil.convert(
+                    df_orig=df,
+                    df_map=df_map,
+                    agg_func=agg_func,
+                    drop_not_bridged_index=drop_not_bridged_index,
+                    ignore_columns=ignore_columns,
+                ),
+            )
 
         if unit_column_new:
-            unit = pd.DataFrame(
-                    columns=["unit"],
-                    index=new_extension.get_rows())
+            unit = pd.DataFrame(columns=["unit"], index=new_extension.get_rows())
             bridge_columns = [col for col in df_map.columns if "__" in col]
             unique_new_index = (
-                df_map.loc[:, bridge_columns].drop_duplicates().set_index(bridge_columns).index
+                df_map.loc[:, bridge_columns]
+                .drop_duplicates()
+                .set_index(bridge_columns)
+                .index
             )
             unique_new_index.names = [col.split("__")[0] for col in bridge_columns]
 
-            unit.unit = df_map.set_index(bridge_columns).loc[unique_new_index].loc[:, unit_column_new]
+            unit.unit = (
+                df_map.set_index(bridge_columns)
+                .loc[unique_new_index]
+                .loc[:, unit_column_new]
+            )
             new_extension.unit = unit
         else:
             new_extension.unit = None
@@ -3220,17 +3245,16 @@ class IOSystem(BaseSystem):
 
         return self
 
-    def convert_extensions(self, df_map, extension_name, 
-                           agg_func="sum", 
-                           drop_not_bridged_index=True):
-
-        """ Builds a new extension based on conversion of existing ones
+    def convert_extensions(
+        self, df_map, extension_name, agg_func="sum", drop_not_bridged_index=True
+    ):
+        """Builds a new extension based on conversion of existing ones
 
         Calls convert function based on data given in df_map
 
         Difference to df_map: runs across all extensions.
         Internally, this call extension_extract through all extensions
-        and then calls the convert function on the temporarily extracted 
+        and then calls the convert function on the temporarily extracted
         extension.
 
         Switch: also return the extracted raw_data
@@ -3244,6 +3268,7 @@ class IOSystem(BaseSystem):
         # build a new df_map with removing extension_name column
         # call the extension.convert function for the extension
         pass
+
 
 def concate_extension(*extensions, name):
     """Concatenate extensions
@@ -3376,4 +3401,3 @@ def concate_extension(*extensions, name):
         all_dict["name"] = name
 
     return Extension(**all_dict)
-

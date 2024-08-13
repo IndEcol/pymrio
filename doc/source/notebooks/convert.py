@@ -44,18 +44,18 @@
 # the index/columns of the source data to the indices of the target data.
 
 # %% [markdown]
-# This tables requires headers (columns) corresponding to the 
+# This tables requires headers (columns) corresponding to the
 # index.names and columns.names of the source data (constraining data)
 # as well as bridge data  which specify the new target index.
 # The later are indicated by "NewIndex__OldIndex" - **the important part are
-# the two underscore in the column name**. Another (optional) 
+# the two underscore in the column name**. Another (optional)
 # column named "factor" specifies
 # the multiplication factor for the conversion.
 # TODO:CHECK Finally, additional columns can be used to indicate units and other information.
 
 # %% [markdown]
 # Constraining data columns can either specify columns or index.
-# However, any constraining data to be bridged/mapped to a new name need to be 
+# However, any constraining data to be bridged/mapped to a new name need to be
 # in the index of the original data.
 
 # %% [markdown]
@@ -187,7 +187,7 @@ ghg_new_kg = pymrio.convert(ghg_result_ton, ghg_map_to_kg)
 ghg_new_kg
 
 # %% [markdown]
-# In case of unit conversion of pymrio satellite accounts, 
+# In case of unit conversion of pymrio satellite accounts,
 # we can also check the unit before and set the unit after conversion:
 # TODO: unit conversion extensions
 
@@ -263,7 +263,7 @@ GWP_result_with_comp
 
 
 # %% [markdown]
-# A more complex example is the application of regional specific characterization 
+# A more complex example is the application of regional specific characterization
 # factors (the same principle applies to sector specific factors.).
 # For that, we assume some land use results for different regions:
 
@@ -294,7 +294,7 @@ land_use_result
 # %% [markdown]
 # Now we setup a pseudo characterization table for converting the land use data into
 # biodiversity impacts. We assume, that the characterization factors vary based on
-# land use type and region. However, the "region" information is a pure 
+# land use type and region. However, the "region" information is a pure
 # constraining column (specifying the region for which the factor applies) without
 # any bridge column mapping it to a new name. Thus, the "region" can either be in the index
 # or in the columns of the source data - in the given case it is in the columns.
@@ -321,14 +321,14 @@ landuse_characterization
 
 # %% [markdown]
 # The table shows several possibilities to specify factors which apply to several
-# regions/stressors. 
+# regions/stressors.
 # All of them are based on the [regular expression](https://docs.python.org/3/howto/regex.html):
-# 
+#
 # - In the first data line we use the "or" operator "|" to specify that the
 # same factor applies to Wheat and Maize.
 # - On the next line we use the grouping capabilities of regular expressions
 # to indicate the same factor for Region 2 and 3.
-# - At the last four lines .* matches any number of characters. This 
+# - At the last four lines .* matches any number of characters. This
 # allows to specify the same factor for both forest types or to abbreviate
 # the naming of the stressor (last 2 lines).
 #
@@ -345,24 +345,24 @@ biodiv_result = pymrio.convert(land_use_result, landuse_characterization)
 biodiv_result
 
 # %% [markdown]
-# Note, that in this example the region is not in the index 
-# but in the columns. 
-# The convert function can handle both cases. 
+# Note, that in this example the region is not in the index
+# but in the columns.
+# The convert function can handle both cases.
 # The only difference is that constraints which are
-# in the columns will never be aggregated but keep the column resolution at the 
-# output. Thus the result is equivalent to 
+# in the columns will never be aggregated but keep the column resolution at the
+# output. Thus the result is equivalent to
 
 # %%
 land_use_result_stacked = land_use_result.stack(level="region")
-biodiv_result_stacked = pymrio.convert(land_use_result_stacked, 
-                                       landuse_characterization,
-                                       drop_not_bridged_index=False)
+biodiv_result_stacked = pymrio.convert(
+    land_use_result_stacked, landuse_characterization, drop_not_bridged_index=False
+)
 biodiv_result_stacked.unstack(level="region")[0]
 
 # %% [markdown]
 # In this case we have to specify to not drop the not bridged "region" index.
 # We then unstack the result again, and have to select the first element ([0]),
-# since there where not other columns left after stacking them before the 
+# since there where not other columns left after stacking them before the
 # characterization.
 
 # CONT: start working on convert for extensions/mrio method
@@ -372,5 +372,3 @@ biodiv_result_stacked.unstack(level="region")[0]
 # Irrespectively of the table or the mrio system, the convert function always follows the same pattern.
 # It requires a bridge table, which contains the mapping of the indicies of the source data to the indicies of the target data.
 # This bridge table has to follow a specific format, depending on the table to be converted.
-
-

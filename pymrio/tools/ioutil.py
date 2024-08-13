@@ -1007,23 +1007,21 @@ def check_df_map(df_orig, df_map):
     pass
 
 
-def convert(df_orig, 
-            df_map, 
-            agg_func="sum", 
-            drop_not_bridged_index=True,
-            ignore_columns = None):
+def convert(
+    df_orig, df_map, agg_func="sum", drop_not_bridged_index=True, ignore_columns=None
+):
     """Convert a DataFrame to a new classification
 
     Parameters
     ----------
     df_orig : pd.DataFrame
         The DataFrame to process.
-        The index/columns levels need to be named (df.index.name 
-        and df.columns.names needs to be set for all levels). 
+        The index/columns levels need to be named (df.index.name
+        and df.columns.names needs to be set for all levels).
         All index to be bridged to new names need to be in the index (these are columns
         indicated with two underscores '__' in the mapping dataframe, df_map).
         Other constraining conditions (e.g. regions, sectors) can be either
-        in the index or columns. If the same name exists in the 
+        in the index or columns. If the same name exists in the
         index and columns, the values in index are preferred.
 
     df_map : pd.DataFrame
@@ -1031,16 +1029,16 @@ def convert(df_orig,
         This requires a specific structure, which depends on the structure of the
         dataframe to be characterized:
 
-        - Constraining data (e.g. stressors, regions, sectors) can be 
+        - Constraining data (e.g. stressors, regions, sectors) can be
           either in the index or columns of df_orig. The need to have the same
-          name as the named index or column in df_orig. The algorithm searches 
+          name as the named index or column in df_orig. The algorithm searches
           for matching data in df_orig based on all constraining columns in df_map.
 
         - Bridge columns are columns with '__' in the name. These are used to
           map (bridge) some/all of the constraining columns in df_orig to the new
-          classification. 
+          classification.
 
-        - One column "factor", which gives the multiplication factor for the 
+        - One column "factor", which gives the multiplication factor for the
           conversion. If it is missing, it is set to 1.
 
 
