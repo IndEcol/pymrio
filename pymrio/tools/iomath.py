@@ -190,7 +190,9 @@ def calc_B(Z, x):
     # return np.diagflat(recix).dot(Z)
     if type(Z) is pd.DataFrame:
         return pd.DataFrame(
-            np.transpose(np.transpose(Z.values) * recix), index=Z.index, columns=Z.columns
+            np.transpose(np.transpose(Z.values) * recix),
+            index=Z.index,
+            columns=Z.columns,
         )
     else:
         return np.transpose(np.transpose(Z) * recix)
@@ -271,7 +273,9 @@ def calc_G(B, L=None, x=None):
 
         if type(L) is pd.DataFrame:
             return pd.DataFrame(
-                np.transpose(recix * np.transpose(L.values * x)), index=Z.index, columns=Z.columns
+                np.transpose(recix * np.transpose(L.values * x)),
+                index=Z.index,
+                columns=Z.columns,
             )
         else:
             # G = hat(x) *  L * hat(x)^{-1} in mathematical form hatx.dot(L.transpose()).dot(np.linalg.inv(hatx)).
@@ -280,9 +284,7 @@ def calc_G(B, L=None, x=None):
     else:  # calculation of the inverse of I-As has a high computational cost.
         I = np.eye(B.shape[0])  # noqa
         if type(B) is pd.DataFrame:
-            return pd.DataFrame(
-                np.linalg.inv(I - B), index=B.index, columns=B.columns
-            )
+            return pd.DataFrame(np.linalg.inv(I - B), index=B.index, columns=B.columns)
         else:
             return np.linalg.inv(I - B)  # G = inverse matrix of (I - B)
 
