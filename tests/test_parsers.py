@@ -138,7 +138,10 @@ def test_parse_exio_ext():
         col1, index_col=1, name="col1", sep="\t", drop_compartment=False
     )
 
-    assert np.allclose(ext5.F, ext3.F, ext2.F, ext1.F, ext5_wcmp.F)
+    assert np.allclose(ext5.F, ext3.F)
+    assert np.allclose(ext3.F, ext2.F)
+    assert np.allclose(ext2.F, ext1.F)
+    assert np.allclose(ext1.F, ext5_wcmp.F)
 
     assert ext5.F.iloc[1, 1] == 102
     assert ext5.F.iloc[-1, -1] == 148
