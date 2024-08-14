@@ -16,7 +16,7 @@ sys.path.append(os.path.join(TESTPATH, ".."))
 # the function which should be tested here
 from pymrio.tools.iomath import calc_A  # noqa
 from pymrio.tools.iomath import calc_accounts  # noqa
-from pymrio.tools.iomath import calc_As  # noqa
+from pymrio.tools.iomath import calc_B  # noqa
 from pymrio.tools.iomath import calc_e  # noqa
 from pymrio.tools.iomath import calc_F  # noqa
 from pymrio.tools.iomath import calc_F_Y  # noqa
@@ -235,21 +235,56 @@ def td_small_MRIO():
             columns=_Z_multiindex,
         )
 
-        As = pd.DataFrame(
+        B = pd.DataFrame(
             data=[
-                [0.19607843, 0.0, 0.17241379, 0.1, 0.0, 0.12820513],  # noqa
-                [0.09803922, 0.13333333, 0.05172414, 0.0, 0.19230769, 0.0],  # noqa
-                [0.01960784, 0.0, 0.34482759, 0.0, 0.01923077, 0.0],  # noqa
-                [0.11764706, 0.0, 0.06896552, 0.02, 0.0, 0.02564103],  # noqa
                 [
+                    0.19607843,
                     0.09803922,
-                    0.33333333,
-                    0.03448276,
-                    0.2,
-                    0.38461538,
-                    0.25641026,
+                    0.01960784,
+                    0.11764706,
+                    0.09803922,
+                    0.1372549
                 ],  # noqa
-                [0.1372549, 0.2, 0.0, 0.18, 0.01923077, 0.25641026],  # noqa
+                [
+                    0.0,
+                    0.13333333,
+                    0.0,
+                    0.0,
+                    0.33333333,
+                    0.2
+                ],  # noqa
+                [
+                    0.17241379,
+                    0.05172414,
+                    0.34482759,
+                    0.06896552,
+                    0.03448276,
+                    0.
+                 ],  # noqa
+                [
+                    0.1,
+                    0.0,
+                    0.0,
+                    0.02,
+                    0.2,
+                    0.18
+                ],  # noqa
+                [
+                    0.0,
+                    0.19230769,
+                    0.01923077,
+                    0.0,
+                    0.38461538,
+                    0.01923077
+                ],  # noqa
+                [
+                    0.12820513,
+                    0.0,
+                    0.0,
+                    0.02564103,
+                    0.25641026,
+                    0.25641026
+                ]
             ],
             index=_Z_multiindex,
             columns=_Z_multiindex,
@@ -314,52 +349,52 @@ def td_small_MRIO():
             data=[
                 [
                     1.33871463,
-                    0.07482651,
-                    0.38065717,
-                    0.19175489,
-                    0.04316348,
-                    0.25230906,
-                ],  # noqa
-                [
                     0.28499301,
-                    1.37164729,
-                    0.22311379,
-                    0.15732254,
-                    0.44208094,
-                    0.20700334,
-                ],  # noqa
-                [
                     0.05727924,
-                    0.02969614,
-                    1.54929428,
-                    0.02349465,
-                    0.05866155,
-                    0.03091401,
-                ],  # noqa
-                [
-                    0.1747153,
-                    0.02185805,
-                    0.15941084,
-                    1.05420074,
-                    0.01404088,
-                    0.07131676,
-                ],  # noqa
-                [
+                    0.1747153 ,
                     0.58648041,
+                    0.38121958
+                 ],  # noqa
+                 [
+                    0.07482651,
+                    1.37164729,
+                    0.02969614,
+                    0.02185805,
                     0.93542302,
-                    0.39473223,
+                    0.41222074
+                 ],  # noqa
+                 [
+                     0.38065717,
+                     0.22311379,
+                     1.54929428,
+                     0.15941084,
+                     0.39473223,
+                     0.17907022
+                 ],  # noqa
+                [
+                    0.19175489,
+                    0.15732254,
+                    0.02349465,
+                    1.05420074,
                     0.60492361,
-                    1.95452858,
-                    0.79595212,
+                    0.34854312
                 ],  # noqa
                 [
-                    0.38121958,
-                    0.41222074,
-                    0.17907022,
-                    0.34854312,
-                    0.18081884,
-                    1.48492515,
+                    0.04316348,
+                    0.44208094,
+                    0.05866155,
+                    0.01404088,
+                    1.95452858,
+                    0.18081884
                 ],  # noqa
+                [
+                    0.25230906,
+                    0.20700334,
+                    0.03091401,
+                    0.07131676,
+                    0.79595212,
+                    1.48492515
+                ]
             ],
             index=_Z_multiindex,
             columns=_Z_multiindex,
@@ -637,15 +672,15 @@ def test_calc_A_MRIO(td_small_MRIO):
     pdt.assert_frame_equal(td_small_MRIO.A, calc_A(td_small_MRIO.Z, x_Tvalues))
 
 
-def test_calc_As_MRIO(td_small_MRIO):
-    pdt.assert_frame_equal(td_small_MRIO.As, calc_As(td_small_MRIO.Z, td_small_MRIO.x))
+def test_calc_B_MRIO(td_small_MRIO):
+    pdt.assert_frame_equal(td_small_MRIO.B, calc_B(td_small_MRIO.Z, td_small_MRIO.x))
     # we also test the different methods to provide x:
     x_values = td_small_MRIO.x.values
     x_Tvalues = td_small_MRIO.x.T.values
     x_series = pd.Series(td_small_MRIO.x.iloc[:, 0])
-    pdt.assert_frame_equal(td_small_MRIO.As, calc_As(td_small_MRIO.Z, x_series))
-    pdt.assert_frame_equal(td_small_MRIO.As, calc_As(td_small_MRIO.Z, x_values))
-    pdt.assert_frame_equal(td_small_MRIO.As, calc_As(td_small_MRIO.Z, x_Tvalues))
+    pdt.assert_frame_equal(td_small_MRIO.B, calc_B(td_small_MRIO.Z, x_series))
+    pdt.assert_frame_equal(td_small_MRIO.B, calc_B(td_small_MRIO.Z, x_values))
+    pdt.assert_frame_equal(td_small_MRIO.B, calc_B(td_small_MRIO.Z, x_Tvalues))
 
 
 def test_calc_Z_MRIO(td_small_MRIO):
@@ -664,7 +699,7 @@ def test_calc_L_MRIO(td_small_MRIO):
 
 
 def test_calc_G_MRIO(td_small_MRIO):
-    pdt.assert_frame_equal(td_small_MRIO.G, calc_G(td_small_MRIO.As))
+    pdt.assert_frame_equal(td_small_MRIO.G, calc_G(td_small_MRIO.B))
 
 
 def test_calc_S_MRIO(td_small_MRIO):

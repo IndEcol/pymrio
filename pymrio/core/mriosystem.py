@@ -32,7 +32,7 @@ from pymrio.core.constants import (
 from pymrio.tools.iomath import (
     calc_A,
     calc_accounts,
-    calc_As,
+    calc_B,
     calc_F,
     calc_F_Y,
     calc_G,
@@ -1720,7 +1720,7 @@ class IOSystem(BaseSystem):
         Z=None,
         Y=None,
         A=None,
-        As=None,
+        B=None,
         x=None,
         L=None,
         G=None,
@@ -1740,7 +1740,7 @@ class IOSystem(BaseSystem):
         self.Y = Y
         self.x = x
         self.A = A
-        self.As = As
+        self.B = B
         self.L = L
         self.G = G
         self.unit = unit
@@ -1867,8 +1867,8 @@ class IOSystem(BaseSystem):
             self.A = calc_A(self.Z, self.x)
             self.meta._add_modify("Coefficient matrix A calculated")
 
-        if self.As is None:
-            self.As = calc_As(self.Z, self.x)
+        if self.B is None:
+            self.B = calc_B(self.Z, self.x)
             self.meta._add_modify("Coefficient matrix As calculated")
 
         if self.L is None:
@@ -1876,7 +1876,7 @@ class IOSystem(BaseSystem):
             self.meta._add_modify("Leontief matrix L calculated")
 
         if self.G is None:
-            self.G = calc_G(self.As)
+            self.G = calc_G(self.B)
             self.meta._add_modify("Ghosh matrix G calculated")
 
         return self
