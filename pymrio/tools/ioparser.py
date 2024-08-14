@@ -941,7 +941,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     )
 
     # remove meta data, empty rows, total column
-    wiot_data.iloc[0 : wiot_meta["end_row"], wiot_meta["col"]] = np.NaN
+    wiot_data.iloc[0 : wiot_meta["end_row"], wiot_meta["col"]] = np.nan
     wiot_data.drop(wiot_empty_top_rows, axis=0, inplace=True)
     wiot_data.drop(wiot_data.columns[wiot_marks["total_column"]], axis=1, inplace=True)
     # at this stage row and column header should have the same size but

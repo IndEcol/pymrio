@@ -181,13 +181,15 @@ Upstream and Downstream scope 3
 ------------
 
 In the context of impact analyses the factors of production are often categorized into scope 1, 2 and 3, with scope 3
+
 sub-divided into upstream and downstream.
 For a MRIO the scope 1 is the direct impact of the industries. The factors of production scope 1 associated
 with some product or service in sector 'i' of monetary value 'r' is given by :math:`S e_i r',
 where :math:`e_i' is the 'i^{th}' unit vector.
-Scope 2 is the indirect impact through directly consumed energy (mostly electricity). The precise defintion of scope 2 in an MRIO depends
- on the list of MRIO sectors that are classified as scope 2 energy suppliers. Scope 2 is therefore included in the
-upstream scope 3, which we refer to as upstream indirect impacts. The upstream multipliers are
+Scope 2 is the indirect impact through directly consumed energy (mostly electricity). The precise definition of scope 2
+in an MRIO depends on the list of MRIO sectors that are classified as scope 2 energy suppliers. Scope 2 is therefore
+included in the upstream scope 3, which we refer to as upstream indirect impacts. The upstream multipliers are
+
 .. math::
 
     \begin{equation}
@@ -201,25 +203,28 @@ The downstream attribution according to Ghosh is done by the input share matrix
 .. math::
 
     \begin{equation}
-        A^{*} = Z^{T} \hat{x}^{-1}
+        B = \hat{x}^{-1} Z
     \end{equation}
 
 Note that we have defined this matrix in analogy with :math:`A`, meaning that the factors of production coefficient
-are applied from the right-hand side. The full downstream multiplier (including scope 1) is given
-by :math:`S G` where
+are given by :math:`S G^{T}` where
 
 .. math::
 
     \begin{equation}
-        G = (\mathrm{I}- Z^{T}\hat{x}^{-1})^{-1}
+        G = (\mathrm{I}- B)^{-1} = \hat{x} L \hat{x}^{-1}
     \end{equation}
-is the transpose of the Ghosh inverse matrix.
+
+is the Ghosh inverse matrix.
 The pure downstream multiplier (excluding scope 1) is given by
 
+
 .. math::
 
     \begin{equation}
-        M_{down} = S((\mathrm{I}- Z^{T}\hat{x}^{-1})^{-1} -I) = S(G-I) = S(\hat{x}^{-1} L^{T} \hat{x} - I)
+
+        M_{down} = S(G^{T}-I)
+
     \end{equation}
 
 The sector's total impact multiplier is simply the sum of :math:`M_{up}`, :math:`S` and :math:`M_{down}`.

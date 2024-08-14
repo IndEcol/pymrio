@@ -152,10 +152,10 @@ def calc_A(Z, x):
         return Z * recix
 
 
-def calc_As(Z, x):
-    """Calculate the As matrix (coefficients) from Z and x
+def calc_B(Z, x):
+    """Calculate the B matrix (coefficients) from Z and x
 
-    As is a normalized version of the industrial flows of the transpose of Z, which quantifies the input to downstream
+    B is a normalized version of the industrial flows of the transpose of Z, which quantifies the input to downstream
     sectors.
 
     Parameters
@@ -187,13 +187,15 @@ def calc_As(Z, x):
         recix = recix.reshape((1, -1))
     # use numpy broadcasting - factor ten faster
     # Mathematical form - slow
-    # return Z.dot(np.diagflat(recix))
+    # return np.diagflat(recix).dot(Z)
     if type(Z) is pd.DataFrame:
         return pd.DataFrame(
-            np.transpose(Z.values) * recix, index=Z.index, columns=Z.columns
+            np.transpose(np.transpose(Z.values) * recix),
+            index=Z.index,
+            columns=Z.columns,
         )
     else:
-        return np.transpose(Z) * recix
+        return np.transpose(np.transpose(Z) * recix)
 
 
 def calc_L(A):
@@ -232,30 +234,26 @@ def calc_L(A):
         return np.linalg.inv(I - A)
 
 
-def calc_G(As, L=None, x=None):
-    """Calculate the Ghosh inverse matrix G either from As (high computation effor) or from Leontief matrix L and x
+def calc_G(B, L=None, x=None):
+    """Calculate the Ghosh inverse matrix G either from B (high computation effort) or from Leontief matrix L and x
     (low computation effort)
 
-    G = inverse matrix of (I - As) = hat(x)^{-1} *  L^T * hat(x)
+    G = inverse matrix of (I - B) = hat(x) *  L * hat(x)^{-1}
 
-    where I is an identity matrix of same shape as As, and hat(x) is the diagonal matrix with values of x on the
+    where I is an identity matrix of same shape as B, and hat(x) is the diagonal matrix with values of x on the
     diagonal.
-
-    Note that we define G as the transpose of the Ghosh inverse matrix, so that we can apply the factors of
-    production intensities from the left-hand-side for both Leontief and Ghosh attribution. In this way the
-    multipliers have the same (vector) dimensions and can be added.
 
     Parameters
     ----------
-    As : pandas.DataFrame or numpy.array
+    B : pandas.DataFrame or numpy.array
         Symmetric input output table (coefficients)
 
     Returns
     -------
     pandas.DataFrame or numpy.array
         Ghosh input output table G
-        The type is determined by the type of As.
-        If DataFrame index/columns as As
+        The type is determined by the type of B.
+        If DataFrame index/columns as B
 
     """
     # if L has already been calculated, then G can be derived from it with low computational cost.
@@ -275,20 +273,20 @@ def calc_G(As, L=None, x=None):
 
         if type(L) is pd.DataFrame:
             return pd.DataFrame(
-                recix * np.transpose(L.values * x), index=Z.index, columns=Z.columns
+                np.transpose(recix * np.transpose(L.values * x)),
+                index=Z.index,
+                columns=Z.columns,
             )
         else:
-            # G = hat(x)^{-1} *  L^T * hat(x) in mathematical form np.linalg.inv(hatx).dot(L.transpose()).dot(hatx).
+            # G = hat(x) *  L * hat(x)^{-1} in mathematical form hatx.dot(L.transpose()).dot(np.linalg.inv(hatx)).
             # it is computationally much faster to multiply element-wise because hatx is a diagonal matrix.
-            return recix * np.transpose(L * x)
+            return np.transpose(recix * np.transpose(L * x))
     else:  # calculation of the inverse of I-As has a high computational cost.
-        I = np.eye(As.shape[0])  # noqa
-        if type(As) is pd.DataFrame:
-            return pd.DataFrame(
-                np.linalg.inv(I - As), index=As.index, columns=As.columns
-            )
+        I = np.eye(B.shape[0])  # noqa
+        if type(B) is pd.DataFrame:
+            return pd.DataFrame(np.linalg.inv(I - B), index=B.index, columns=B.columns)
         else:
-            return np.linalg.inv(I - As)  # G = inverse matrix of (I - As)
+            return np.linalg.inv(I - B)  # G = inverse matrix of (I - B)
 
 
 def calc_S(F, x):
@@ -421,7 +419,7 @@ def calc_M(S, L):
 def calc_M_down(S, G):
     """Calculate downstream multipliers of the extensions
 
-    M_down = S * ( G - I )
+    M_down = S * ( G^T - I )
 
     Where I is an identity matrix of same shape as G
 
@@ -440,7 +438,7 @@ def calc_M_down(S, G):
         If DataFrame index/columns as S
 
     """
-    return S.dot(G - np.eye(G.shape[0]))
+    return S.dot(np.transpose(G) - np.eye(G.shape[0]))
 
 
 def calc_e(M, Y):
