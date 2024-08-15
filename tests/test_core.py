@@ -554,6 +554,7 @@ def test_characterize_extension(fix_testmrio):
 
 
 def test_extension_convert(fix_testmrio):
+    """Testing the convert function within extensions"""
     tt_pre = fix_testmrio.testmrio.copy()
     df_map = pd.DataFrame(
         columns=[
@@ -636,6 +637,36 @@ def test_extension_convert(fix_testmrio):
     assert tt_post.post_calc.unit.loc["total_sum", "unit"] == "kg"
     assert tt_post.post_calc.unit.loc["air_emissions", "unit"] == "t"
     assert tt_post.post_calc.unit.loc["water_emissions", "unit"] == "g"
+
+
+def test_extension_convert_full(fix_testmrio):
+    """Testing the convert function called from the full MRIO"""
+
+    tt_pre = fix_testmrio.testmrio.copy()
+
+    df_map = pd.DataFrame(
+        columns=[
+            "extension",
+            "stressor",
+            "compartment",
+            "total__stressor",
+            "factor",
+            "unit_orig",
+            "unit_new",
+        ],
+        data=[
+            ["Emissions", "emis.*", "air|water", "total_sum_tonnes", 1e-3, "kg", "t"],
+            ["emissions", "emission_type[1|2]", ".*", "total_sum", 1, "kg", "kg"],
+            ["emissions", "emission_type1", ".*", "air_emissions", 1e-3, "kg", "t"],
+            ["Emissions", "emission_type2", ".*", "water_emissions", 1000, "kg", "g"],
+        ],
+    )
+
+    x = tt_pre.extension_convert(df_map, extension_name="emissions_new_pre_calc")
+    # CONT:
+    # write test with units
+    # make a second extensions are check running over 2
+    # cleanup docstrings and write docs
 
 
 def test_extension_convert_test_unit_fail(fix_testmrio):
