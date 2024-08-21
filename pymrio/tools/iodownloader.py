@@ -742,19 +742,19 @@ def download_gloria(
             files_to_download.extend(
                 [
                     file
-                    for file in urls[f"0{int(version)}"]
+                    for file in urls[f"0{version}"]
                     if str(yr) in filename_from_url(file)
                 ]
             )
         files_to_download.extend(
             [
                 file
-                for file in urls[f"0{int(version)}"]
+                for file in urls[f"0{version}"]
                 if "ReadMe" in filename_from_url(file)
             ]
         )
     else:
-        files_to_download = urls[f"0{int(version)}"]
+        files_to_download = urls[f"0{version}"]
 
     downlog = _download_urls(
         url_list=files_to_download,
