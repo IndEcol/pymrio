@@ -722,7 +722,7 @@ def download_gloria(
     No returns
     """
 
-    if f"0{int(version)}" not in urls.keys():
+    if f"0{version}" not in urls.keys():
         raise Exception("Specified version is invalid")
 
     downlog = MRIOMetaData._make_download_log(
