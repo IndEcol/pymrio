@@ -2053,6 +2053,12 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
     else:
         raise ValueError("price should be bp or pp")
 
+    if version == "59a":
+        version = 59
+        warnings.warn(
+            "Files in version 59a and 59 have the same name, make sure to not store both in the same folder"
+        )
+
     gloria_mrio_files = {
         "T": f"_120secMother_AllCountries_002_T-Results_{str(year)}_0{str(version)}_{extension}.csv",
         "Y": f"_120secMother_AllCountries_002_Y-Results_{str(year)}_0{str(version)}_{extension}.csv",
