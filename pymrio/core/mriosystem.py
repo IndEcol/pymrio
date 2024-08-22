@@ -1935,7 +1935,7 @@ class Extension(BaseSystem):
     def convert(
         self,
         df_map,
-        extension_name,
+        new_extension_name,
         agg_func="sum",
         drop_not_bridged_index=True,
         unit_column_orig="unit_orig",
@@ -2049,7 +2049,7 @@ class Extension(BaseSystem):
                             f"Unit in extension does not match the unit in mapping for row {row}"
                         )
 
-        new_extension = Extension(name=extension_name)
+        new_extension = Extension(name=new_extension_name)
 
         if unit_column_new:
             if unit_column_new not in df_map.columns:
@@ -3230,6 +3230,7 @@ class IOSystem(BaseSystem):
             instance or of Extension.name.
             instance was found)
         """
+        # TODO: rename to extension_remove
         if type(ext) is str:
             ext = [ext]
 
@@ -3245,150 +3246,157 @@ class IOSystem(BaseSystem):
 
         return self
 
-    def extension_convert(
-        self,
-        df_map,
-        extension_name,
-        extension_col_name="extension",
-        agg_func="sum",
-        drop_not_bridged_index=True,
-        unit_column_orig="unit_orig",
-        unit_column_new="unit_new",
-        ignore_columns=None,
-    ):
-        """Apply the convert function to all extensions
+def extension_convert(
+    *extensions,
+    df_map,
+    new_extension_name,
+    extension_col_name="extension",
+    agg_func="sum",
+    drop_not_bridged_index=True,
+    unit_column_orig="unit_orig",
+    unit_column_new="unit_new",
+    ignore_columns=None,
+):
+    """Apply the convert function to a list of extensions
 
-        Internally that calls the Extension.convert function for all extensions.
+    Internally that calls the Extension.convert function for all extensions.
 
-        See the Extension.convert function for more details.
-        TODO: put all details here
-
-
-        Parameters
-        ----------
-
-        df_map : pd.DataFrame
-            The DataFrame with the mapping of the old to the new classification.
-            This requires a specific structure:
-
-            - Constraining data (e.g. stressors, regions, sectors) can be
-            either in the index or columns of df_orig. The need to have the same
-            name as the named index or column in df_orig. The algorithm searches
-            for matching data in df_orig based on all constraining columns in df_map.
-
-            - Bridge columns are columns with '__' in the name. These are used to
-            map (bridge) some/all of the constraining columns in df_orig to the new
-            classification.
-
-            - One column "factor", which gives the multiplication factor for the
-            conversion. If it is missing, it is set to 1.
+    See the Extension.convert function for more details.
+    TODO: put all details here
 
 
-            This is better explained with an example.
-            Assuming a original dataframe df_orig with
-            index names 'stressor' and 'compartment' and column name 'region',
-            the characterizing dataframe could have the following structure (column names):
+    Parameters
+    ----------
+    
+    extensions : list of extensions
+        Extensions to convert. All extensions passed must
+        have an index structure (index names)  ase described in df_map.
 
-            stressor ... original index name
-            compartment ... original index name
-            region ... original column name
-            factor ... the factor for multiplication/characterization
-                If no factor is given, the factor is assumed to be 1.
-                This can be used, to simplify renaming/aggregation mappings.
-            impact__stressor ... the new index name,
-                replacing the previous index name "stressor".
-                Thus here "stressor" will be renamed to "impact", and the row index
-                will be renamed by the entries here.
-            compartment__compartment ... the new compartment,
-                replacing the original compartment. No rename of column happens here,
-                still row index will be renamed as given here.
+    df_map : pd.DataFrame
+        The DataFrame with the mapping of the old to the new classification.
+        This requires a specific structure:
 
-            the columns with __ are called bridge columns, they are used
-            to match the original index. The new dataframe with have index names
-            based on the first part of the bridge column, in the order
-            in which the bridge columns are given in the mapping dataframe.
+        - Constraining data (e.g. stressors, regions, sectors) can be
+        either in the index or columns of df_orig. The need to have the same
+        name as the named index or column in df_orig. The algorithm searches
+        for matching data in df_orig based on all constraining columns in df_map.
 
-            "region" is constraining column, these can either be for the index or column
-            in df_orig. In case both exist, the one in index is preferred.
+        - Bridge columns are columns with '__' in the name. These are used to
+        map (bridge) some/all of the constraining columns in df_orig to the new
+        classification.
 
-        extension_name: str
-            The name of the new extension returned
-
-        extension_col_name : str, optional
-            Name of the column specifying the extension name in df_map.
-            The entry in df_map here can either be the name returned by Extension.name or the
-            name of the Extension instance.
-            Default: 'extension'
-
-        agg_func : str or func
-            the aggregation function to use for multiple matchings (summation by default)
-
-        drop_not_bridged_index : bool, optional
-            What to do with index levels in df_orig not appearing in the bridge columns.
-            If True, drop them after aggregation across these, if False,
-            pass them through to the result.
-
-            *Note:* Only index levels will be dropped, not columns.
-
-            In case some index levels need to be dropped, and some not
-            make a bridge column for the ones to be dropped and map all to the same name.
-            Then drop this index level after the conversion.
-
-        unit_column_orig : str, optional
-            Name of the column in df_map with the original unit.
-            This will be used to check if the unit matches the original unit in the extension.
-            Default is "unit_orig", if None, no check is performed.
-
-        unit_column_new : str, optional
-            Name of the column in df_map with the new unit to be assigned to the new extension.
-            Default is "unit_new", if None same unit as in df_orig TODO EXPLAIN BETTER, THINK WARNING
-
-        ignore_columns : list, optional
-            List of column names in df_map which should be ignored.
-            These could be columns with additional information, etc.
-            The unit columns given in unit_column_orig and unit_column_new
-            are ignored by default.
+        - One column "factor", which gives the multiplication factor for the
+        conversion. If it is missing, it is set to 1.
 
 
-        TODO: remove after explain
-        Extension for extensions:
-        extension ... extension name
-        unit_orig ... the original unit (optional, for double check with the unit)
-        unit_new ... the new unit to be set for the extension
+        This is better explained with an example.
+        Assuming a original dataframe df_orig with
+        index names 'stressor' and 'compartment' and column name 'region',
+        the characterizing dataframe could have the following structure (column names):
 
-        """
-        if not ignore_columns:
-            ignore_columns = []
-        ignore_columns.append(extension_col_name)
+        stressor ... original index name
+        compartment ... original index name
+        region ... original column name
+        factor ... the factor for multiplication/characterization
+            If no factor is given, the factor is assumed to be 1.
+            This can be used, to simplify renaming/aggregation mappings.
+        impact__stressor ... the new index name,
+            replacing the previous index name "stressor".
+            Thus here "stressor" will be renamed to "impact", and the row index
+            will be renamed by the entries here.
+        compartment__compartment ... the new compartment,
+            replacing the original compartment. No rename of column happens here,
+            still row index will be renamed as given here.
 
-        extensions_to_consider = df_map.loc[:, extension_col_name].unique()
+        the columns with __ are called bridge columns, they are used
+        to match the original index. The new dataframe with have index names
+        based on the first part of the bridge column, in the order
+        in which the bridge columns are given in the mapping dataframe.
 
-        gather = dict()
+        "region" is constraining column, these can either be for the index or column
+        in df_orig. In case both exist, the one in index is preferred.
 
-        for ext in extensions_to_consider:
-            gather.update(
-                self._apply_extension_method(
-                    extensions=ext,
-                    method="convert",
-                    df_map=df_map[df_map[extension_col_name] == ext],
-                    agg_func=agg_func,
-                    extension_name=extension_name,
-                    drop_not_bridged_index=drop_not_bridged_index,
-                    unit_column_orig=unit_column_orig,
-                    unit_column_new=unit_column_new,
-                    ignore_columns=ignore_columns,
-                )
+    extension_name: str
+        The name of the new extension returned
+
+    extension_col_name : str, optional
+        Name of the column specifying the extension name in df_map.
+        The entry in df_map here can either be the name returned by Extension.name or the
+        name of the Extension instance.
+        Default: 'extension'
+
+    agg_func : str or func
+        the aggregation function to use for multiple matchings (summation by default)
+
+    drop_not_bridged_index : bool, optional
+        What to do with index levels in df_orig not appearing in the bridge columns.
+        If True, drop them after aggregation across these, if False,
+        pass them through to the result.
+
+        *Note:* Only index levels will be dropped, not columns.
+
+        In case some index levels need to be dropped, and some not
+        make a bridge column for the ones to be dropped and map all to the same name.
+        Then drop this index level after the conversion.
+
+    unit_column_orig : str, optional
+        Name of the column in df_map with the original unit.
+        This will be used to check if the unit matches the original unit in the extension.
+        Default is "unit_orig", if None, no check is performed.
+
+    unit_column_new : str, optional
+        Name of the column in df_map with the new unit to be assigned to the new extension.
+        Default is "unit_new", if None same unit as in df_orig TODO EXPLAIN BETTER, THINK WARNING
+
+    ignore_columns : list, optional
+        List of column names in df_map which should be ignored.
+        These could be columns with additional information, etc.
+        The unit columns given in unit_column_orig and unit_column_new
+        are ignored by default.
+
+
+    TODO: remove after explain
+    Extension for extensions:
+    extension ... extension name
+    unit_orig ... the original unit (optional, for double check with the unit)
+    unit_new ... the new unit to be set for the extension
+
+    """
+
+    if type(extensions) is Extension:
+        extensions = [extensions]
+    elif type(extensions) is tuple:
+        extensions = list(extensions)
+
+    if not ignore_columns:
+        ignore_columns = []
+    ignore_columns.append(extension_col_name)
+
+    gather = []
+        
+    for ext in extensions:
+        gather.append(
+            ext.convert(
+                df_map=df_map[df_map[extension_col_name] == ext.name],
+                agg_func=agg_func,
+                new_extension_name=new_extension_name,
+                drop_not_bridged_index=drop_not_bridged_index,
+                unit_column_orig=unit_column_orig,
+                unit_column_new=unit_column_new,
+                ignore_columns=ignore_columns,
             )
+        )
 
-        result_ext = concate_extension(list(gather.values()), name=extension_name)
+    result_ext = concate_extension(*gather, name=new_extension_name)
 
-        return result_ext
+    
+    for df, df_name in zip(result_ext.get_DataFrame(data=True, with_unit=True), result_ext.get_DataFrame(data=False, with_unit=True)):
+        if df_name == "unit":
+            setattr(result_ext, df_name, df.groupby(level=df.index.names).agg(lambda x: ",".join(set(x))))
+        else:
+            setattr(result_ext, df_name, df.groupby(level=df.index.names).agg(agg_func))
 
-        # look for extension name in df_map
-        # make unique extension list, and call extension_extract for all
-        # build a new df_map with removing extension_name column
-        # call the extension.convert function for the extension
-        pass
+    return result_ext
 
 
 def concate_extension(*extensions, name):
@@ -3421,6 +3429,9 @@ def concate_extension(*extensions, name):
     Concatenated extension
 
     """
+    # TODO: rename to extension_concatenate and also provie method
+    # TODO: rename name to new_extension_name , make it consitent with conver function
+
     if type(extensions[0]) is tuple or type(extensions[0]) is list:
         extensions = extensions[0]
 

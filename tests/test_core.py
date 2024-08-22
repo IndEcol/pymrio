@@ -554,7 +554,7 @@ def test_characterize_extension(fix_testmrio):
 
 
 def test_extension_convert(fix_testmrio):
-    """Testing the convert function within extensions"""
+    """Testing the convert function within extensions object"""
     tt_pre = fix_testmrio.testmrio.copy()
     df_map = pd.DataFrame(
         columns=[
@@ -639,12 +639,56 @@ def test_extension_convert(fix_testmrio):
     assert tt_post.post_calc.unit.loc["water_emissions", "unit"] == "g"
 
 
-def test_extension_convert_full(fix_testmrio):
-    """Testing the convert function called from the full MRIO"""
+def test_extension_convert_function(fix_testmrio):
+    """Testing the convert function for a list of extensions """
 
     tt_pre = fix_testmrio.testmrio.copy()
 
-    df_map = pd.DataFrame(
+    df_map_double = pd.DataFrame(
+        columns=[
+            "extension",
+            "stressor",
+            "compartment",
+            "stressor__stressor",
+            "compartment__compartment",
+            "factor",
+            "unit_orig",
+            "unit_new",
+        ],
+        data=[
+            ["Emissions", "emis.*", "air|water", "total_sum_tonnes", "total", 1e-3, "kg", "t"],
+            ["Emissions", "emission_type2", "water", "water_emissions", "water", 1000, "kg", "g"],
+        ],
+    )
+
+    # CONT: Something wrong with setting the index to a multiindex when compartment is passed
+    # Next steps: run this in interprester (with autoreload) and set breakpoint in extension_convert
+    # Seems to be in gather, but after that in the aggregation or Concatenate we get a problem
+
+    # x = tt_pre.extension_convert(df_map, extension_name="emissions_new_pre_calc")
+
+    # Doing two time the same extension
+    ext_double = pymrio.extension_convert(tt_pre.emissions, tt_pre.emissions, df_map=df_map_double, new_extension_name="emissions_new_pre_calc")
+
+    assert ext_double.unit.loc["total_sum_tonnes", "unit"] == "t"
+    assert ext_double.unit.loc["water_emissions", "unit"] == "g"
+
+    pdt.assert_series_equal(
+        ext_double.F.loc["total_sum_tonnes"],
+        tt_pre.emissions.F.sum(axis=0) * 1e-3 * 2,
+        check_names=False,
+    )
+
+    pdt.assert_series_equal(
+        ext_double.F.loc["water_emissions"],
+        tt_pre.emissions.F.loc["emission_type2",:].iloc[0,:] * 1000 * 2,
+        check_names=False,
+    )
+
+
+    tt_pre.emission_new = ext_double
+
+    df_map_add_across = pd.DataFrame(
         columns=[
             "extension",
             "stressor",
@@ -655,16 +699,14 @@ def test_extension_convert_full(fix_testmrio):
             "unit_new",
         ],
         data=[
-            ["Emissions", "emis.*", "air|water", "total_sum_tonnes", 1e-3, "kg", "t"],
-            ["emissions", "emission_type[1|2]", ".*", "total_sum", 1, "kg", "kg"],
-            ["emissions", "emission_type1", ".*", "air_emissions", 1e-3, "kg", "t"],
-            ["Emissions", "emission_type2", ".*", "water_emissions", 1000, "kg", "g"],
+            ["Emissions", "emission_type2", ".*", "water", 1, "kg", "kg"],
+            ["emission_new_pre_calc", "water_emissions", ".*", "water", 1E-3, "g", "kg"],
         ],
     )
 
-    x = tt_pre.extension_convert(df_map, extension_name="emissions_new_pre_calc")
+    ext_across = pymrio.extension_convert(tt_pre.emissions, ext_double, df_map=df_map_add_across, new_extension_name="add_across")
+
     # CONT:
-    # write test with units
     # make a second extensions are check running over 2
     # cleanup docstrings and write docs
 
