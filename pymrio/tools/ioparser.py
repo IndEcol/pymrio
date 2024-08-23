@@ -2055,9 +2055,12 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
 
     if version == "59a":
         version = 59
+        version_readme = "59a"
         warnings.warn(
             "Files in version 59a and 59 have the same name, make sure to not store both in the same folder"
         )
+    else:
+        version_readme = version
 
     gloria_mrio_files = {
         "T": f"_120secMother_AllCountries_002_T-Results_{str(year)}_0{str(version)}_{extension}.csv",
@@ -2162,7 +2165,7 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
 
     # And finally the labels
     gloria_meta_path = glob.glob(
-        os.path.join(path, f"GLORIA_ReadMe_0{str(version)}.xlsx")
+        os.path.join(path, f"GLORIA_ReadMe_0{str(version_readme)}.xlsx")
     )[0]
     regions = pd.read_excel(gloria_meta_path, sheet_name="Regions")[country_col]
     sectors = pd.read_excel(gloria_meta_path, sheet_name="Sectors")["Sector_names"]
