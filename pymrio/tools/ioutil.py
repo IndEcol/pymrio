@@ -1167,10 +1167,13 @@ def convert(
         for bridge in bridges:
             for idx_old_names in df_collected.index.names:
                 if bridge.orig in idx_old_names:
-                    df_collected.index = df_collected.index.set_names(
-                        bridge.new, level=idx_old_names
-                    )
+                    if isinstance(df_collected.index, pd.MultiIndex):
+                        df_collected.index = df_collected.index.set_names( bridge.new, level=idx_old_names)
+                    else:
+                        df_collected.index = df_collected.index.set_names( bridge.new, level=None)
+
                     df_collected.reset_index(level=bridge.new, inplace=True)
+
                     for row in df_cur_map.reset_index().iterrows():
                         new_row_name = row[1][bridge.raw]
                         old_row_name = row[1][bridge.orig]
@@ -1178,11 +1181,15 @@ def convert(
                             :, bridge.new
                         ].str.replace(pat=old_row_name, repl=new_row_name, regex=True)
                     df_collected.set_index(
+                        # CONT: Make test cases for renaming/chacterization of a df without a multiindex
+                        # CONT: Make a test case/method where a matching line gets extended into more index columns
                         bridge.new, drop=True, append=True, inplace=True
                     )
 
         res_collector.append(
+
             df_collected.groupby(by=df_collected.index.names).agg(agg_func)
+
         )
 
     all_result = pd.concat(res_collector, axis=0)

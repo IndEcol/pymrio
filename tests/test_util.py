@@ -379,6 +379,7 @@ def test_convert_rename():
     char_res_keep_comp = convert(
         to_char, rename_bridge_simple, drop_not_bridged_index=False
     )
+
     assert all(char_res_keep_comp.columns == to_char.columns)
     assert all(
         char_res_keep_comp.index.get_level_values("compart")

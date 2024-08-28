@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.16.4
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -166,25 +166,25 @@ ghg_result_ton
 
 # %% [markdown]
 # We can get the data in kg by
-
-
-ghg_map_to_kg = pd.DataFrame(
-    columns=[
-        "stressor",
-        "compartment",
-        "chem_stressor__stressor",
-        "compartment__compartment",
-        "factor",
-    ],
-    data=[
-        ["Carbon Dioxide", "[A|a]ir", "CO2", "Air", 1000],
-        ["Methane", "[A|a]ir", "CH4", "Air", 1000],
-    ],
-)
-ghg_map_to_kg
-
-ghg_new_kg = pymrio.convert(ghg_result_ton, ghg_map_to_kg)
-ghg_new_kg
+#
+#
+# ghg_map_to_kg = pd.DataFrame(
+#     columns=[
+#         "stressor",
+#         "compartment",
+#         "chem_stressor__stressor",
+#         "compartment__compartment",
+#         "factor",
+#     ],
+#     data=[
+#         ["Carbon Dioxide", "[A|a]ir", "CO2", "Air", 1000],
+#         ["Methane", "[A|a]ir", "CH4", "Air", 1000],
+#     ],
+# )
+# ghg_map_to_kg
+#
+# ghg_new_kg = pymrio.convert(ghg_result_ton, ghg_map_to_kg)
+# ghg_new_kg
 
 # %% [markdown]
 # In case of unit conversion of pymrio satellite accounts,
@@ -300,23 +300,23 @@ land_use_result
 # or in the columns of the source data - in the given case it is in the columns.
 
 # %% [markdown]
-landuse_characterization = pd.DataFrame(
-    columns=["stressor", "BioDiv__stressor", "region", "factor"],
-    data=[
-        ["Wheat|Maize", "BioImpact", "Region1", 3],
-        ["Wheat", "BioImpact", "Region[2,3]", 4],
-        ["Maize", "BioImpact", "Region[2,3]", 7],
-        ["Rice", "BioImpact", "Region1", 12],
-        ["Rice", "BioImpact", "Region2", 12],
-        ["Rice", "BioImpact", "Region3", 12],
-        ["Pasture", "BioImpact", "Region[1,2,3]", 12],
-        ["Forest.*", "BioImpact", "Region1", 2],
-        ["Forest.*", "BioImpact", "Region2", 3],
-        ["Forest ext.*", "BioImpact", "Region3", 1],
-        ["Forest int.*", "BioImpact", "Region3", 3],
-    ],
-)
-landuse_characterization
+# landuse_characterization = pd.DataFrame(
+#     columns=["stressor", "BioDiv__stressor", "region", "factor"],
+#     data=[
+#         ["Wheat|Maize", "BioImpact", "Region1", 3],
+#         ["Wheat", "BioImpact", "Region[2,3]", 4],
+#         ["Maize", "BioImpact", "Region[2,3]", 7],
+#         ["Rice", "BioImpact", "Region1", 12],
+#         ["Rice", "BioImpact", "Region2", 12],
+#         ["Rice", "BioImpact", "Region3", 12],
+#         ["Pasture", "BioImpact", "Region[1,2,3]", 12],
+#         ["Forest.*", "BioImpact", "Region1", 2],
+#         ["Forest.*", "BioImpact", "Region2", 3],
+#         ["Forest ext.*", "BioImpact", "Region3", 1],
+#         ["Forest int.*", "BioImpact", "Region3", 3],
+#     ],
+# )
+# landuse_characterization
 
 
 # %% [markdown]
@@ -364,7 +364,7 @@ biodiv_result_stacked.unstack(level="region")[0]
 # We then unstack the result again, and have to select the first element ([0]),
 # since there where not other columns left after stacking them before the
 # characterization.
-
+#
 # CONT: start working on convert for extensions/mrio method
 
 
