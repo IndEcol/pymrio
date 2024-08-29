@@ -1110,7 +1110,7 @@ def convert(
     if isinstance(df_orig, pd.Series):
         df_orig = pd.DataFrame(df_orig)
 
-    # some consitency checks of arguments and restructuring if everything is ok
+    # some consistency checks of arguments and restructuring if everything is ok
     if len(bridge_columns) == 0:
         raise ValueError("No columns with '__' in the mapping DataFrame")
     for col in bridge_columns:
@@ -1149,6 +1149,7 @@ def convert(
     res_collector = []
 
     # loop over each new impact/characterized value
+    # and collect entries, multiply and rename
     for entry in unique_new_index:
         df_cur_map = df_map.loc[[entry]]
         collector = []
@@ -1164,32 +1165,59 @@ def convert(
 
         df_collected = pd.concat(collector, axis=0)
 
+        # renaming part, checks if the old name (bridge.orig) is in the current index
+        # and renames by the new one (bridge.new)
+      
+        already_renamed = dict()
         for bridge in bridges:
+            # encountering a bridge with the same orig name but which should
+            # lead to two new index levels
+            if bridge.orig in already_renamed.keys():
+                # duplicate the index level
+                df_collected.reset_index(level=already_renamed[bridge.orig].new, inplace=True)
+                df_collected[bridge.new] = df_cur_map.index.get_level_values(bridge.raw)[0]
+
+                if df_collected.index.name is None:
+                    df_collected.set_index(already_renamed[bridge.orig].new, drop=True, append=False, inplace=True)
+                else:
+                    df_collected.set_index(already_renamed[bridge.orig].new, drop=True, append=True, inplace=True)
+                df_collected.set_index(bridge.new, drop=True, append=True, inplace=True)
+                continue
+
             for idx_old_names in df_collected.index.names:
                 if bridge.orig in idx_old_names:
+                    # rename the index names
                     if isinstance(df_collected.index, pd.MultiIndex):
                         df_collected.index = df_collected.index.set_names( bridge.new, level=idx_old_names)
                     else:
                         df_collected.index = df_collected.index.set_names( bridge.new, level=None)
 
+                    # rename the actual index values
                     df_collected.reset_index(level=bridge.new, inplace=True)
-
                     for row in df_cur_map.reset_index().iterrows():
                         new_row_name = row[1][bridge.raw]
                         old_row_name = row[1][bridge.orig]
                         df_collected.loc[:, bridge.new] = df_collected.loc[
                             :, bridge.new
                         ].str.replace(pat=old_row_name, repl=new_row_name, regex=True)
-                    df_collected.set_index(
-                        # CONT: Make test cases for renaming/chacterization of a df without a multiindex
                         # CONT: Make a test case/method where a matching line gets extended into more index columns
-                        bridge.new, drop=True, append=True, inplace=True
-                    )
+                        # CONT: Ensure that the spread keeps the order as in the original mapping
+
+                    # put the index back
+                    if df_collected.index.name is None:
+                        # The case with a single index where the previous reset index
+                        # left only a numerical index
+                        df_collected.set_index(
+                            bridge.new, drop=True, append=False, inplace=True
+                        )
+                    else:
+                        df_collected.set_index(
+                            bridge.new, drop=True, append=True, inplace=True
+                        )
+                    already_renamed[bridge.orig] = bridge
 
         res_collector.append(
-
             df_collected.groupby(by=df_collected.index.names).agg(agg_func)
-
         )
 
     all_result = pd.concat(res_collector, axis=0)

@@ -354,9 +354,34 @@ def test_util_regex():
     assert len(df_none_match) == 0
     assert len(df_none_match_index) == 0
 
+def test_convert_rename_singleindex():
+    """Testing the renaming of one table with a single index"""
 
-def test_convert_rename():
-    """Testing the renaming of one table"""
+    to_char = pd.DataFrame(
+        data=99.0,
+        index=["em1", "em2", "em3"],
+        columns=["r1", "r2", "r3"]
+    )
+    to_char.index.name = "em_type"
+    to_char.columns.name = "reg"
+
+    rename_bridge_simple = pd.DataFrame(
+        columns=["em_type", "stressor__em_type"],
+        data=[
+            ["em1", "emission1"],
+            ["em2", "emission2"],
+            ["em3", "emission3"],
+        ],
+    )
+
+    renamed = convert(to_char, rename_bridge_simple)
+    assert all(renamed.columns == renamed.columns)
+    assert all(renamed.index == rename_bridge_simple["stressor__em_type"])
+
+
+
+def test_convert_rename_multiindex():
+    """Testing the renaming of one table with a multiindex"""
 
     to_char = pd.DataFrame(
         data=99.0,
@@ -438,6 +463,47 @@ def test_convert_rename():
     )
 
     pdt.assert_frame_equal(char_res_keep_comp_wo_factor, char_res_keep_comp)
+
+
+def test_convert_rename_spread_index():
+    """Testing the renaming of one table from an index to an multiindex
+
+    This is a specific case for the EXIOBASE to GLAM conversion, 
+    where one stressor level need to be spread to multiple flows/classes
+    """
+
+    to_char = pd.DataFrame(
+        data=99.0,
+        index=["em1", "em2", "em3"],
+        columns=["r1", "r2", "r3"]
+    )
+    to_char.index.name = "stressor"
+    to_char.columns.name = "reg"
+
+    rename_bridge = pd.DataFrame(
+        columns=["stressor", "flow__stressor", "class__stressor", "class2__stressor"],
+        data=[
+            ["em1", "emission1", "to_air", "to_air (unspecified)"],
+            ["em2", "emission2", "to_air", "to_air (specified)"],
+            ["em3", "emission3", "to_water", "to_water (unpecified)"],],
+    )
+
+
+    rename_bridge = pd.DataFrame(
+        columns=["stressor", "class__stressor", "class2__stressor"],
+        data=[
+            ["em1", "to_air", "to_air (unspecified)"],
+            ["em2", "to_air", "to_air (specified)"],
+            ["em3", "to_water", "to_water (unpecified)"],],
+    )
+
+
+    renamed = convert(to_char, rename_bridge)
+
+    assert all(renamed.columns == renamed.columns)
+    assert all(renamed.index == rename_bridge_simple["stressor__em_type"])
+
+
 
 
 def test_convert_characterize():
