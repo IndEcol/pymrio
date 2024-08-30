@@ -3246,6 +3246,7 @@ class IOSystem(BaseSystem):
 
         return self
 
+
 def extension_convert(
     *extensions,
     df_map,
@@ -3267,7 +3268,7 @@ def extension_convert(
 
     Parameters
     ----------
-    
+
     extensions : list of extensions
         Extensions to convert. All extensions passed must
         have an index structure (index names)  ase described in df_map.
@@ -3373,7 +3374,7 @@ def extension_convert(
     ignore_columns.append(extension_col_name)
 
     gather = []
-        
+
     for ext in extensions:
         gather.append(
             ext.convert(
@@ -3389,10 +3390,16 @@ def extension_convert(
 
     result_ext = concate_extension(*gather, name=new_extension_name)
 
-    
-    for df, df_name in zip(result_ext.get_DataFrame(data=True, with_unit=True), result_ext.get_DataFrame(data=False, with_unit=True)):
+    for df, df_name in zip(
+        result_ext.get_DataFrame(data=True, with_unit=True),
+        result_ext.get_DataFrame(data=False, with_unit=True),
+    ):
         if df_name == "unit":
-            setattr(result_ext, df_name, df.groupby(level=df.index.names).agg(lambda x: ",".join(set(x))))
+            setattr(
+                result_ext,
+                df_name,
+                df.groupby(level=df.index.names).agg(lambda x: ",".join(set(x))),
+            )
         else:
             setattr(result_ext, df_name, df.groupby(level=df.index.names).agg(agg_func))
 

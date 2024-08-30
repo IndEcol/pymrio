@@ -354,13 +354,12 @@ def test_util_regex():
     assert len(df_none_match) == 0
     assert len(df_none_match_index) == 0
 
+
 def test_convert_rename_singleindex():
     """Testing the renaming of one table with a single index"""
 
     to_char = pd.DataFrame(
-        data=99.0,
-        index=["em1", "em2", "em3"],
-        columns=["r1", "r2", "r3"]
+        data=99.0, index=["em1", "em2", "em3"], columns=["r1", "r2", "r3"]
     )
     to_char.index.name = "em_type"
     to_char.columns.name = "reg"
@@ -377,7 +376,6 @@ def test_convert_rename_singleindex():
     renamed = convert(to_char, rename_bridge_simple)
     assert all(renamed.columns == renamed.columns)
     assert all(renamed.index == rename_bridge_simple["stressor__em_type"])
-
 
 
 def test_convert_rename_multiindex():
@@ -468,42 +466,144 @@ def test_convert_rename_multiindex():
 def test_convert_rename_spread_index():
     """Testing the renaming of one table from an index to an multiindex
 
-    This is a specific case for the EXIOBASE to GLAM conversion, 
+    This is a specific case for the EXIOBASE to GLAM conversion,
     where one stressor level need to be spread to multiple flows/classes
     """
 
+    # TEST SIMPLE CASE: SPREADING SINGLE INDEX TO MULTIINDEX
+
     to_char = pd.DataFrame(
-        data=99.0,
-        index=["em1", "em2", "em3"],
-        columns=["r1", "r2", "r3"]
+        data=99.0, index=["em1", "em2", "em3"], columns=["r1", "r2", "r3"]
     )
     to_char.index.name = "stressor"
     to_char.columns.name = "reg"
 
-    rename_bridge = pd.DataFrame(
+    rename_bridge_simple = pd.DataFrame(
         columns=["stressor", "flow__stressor", "class__stressor", "class2__stressor"],
         data=[
             ["em1", "emission1", "to_air", "to_air (unspecified)"],
             ["em2", "emission2", "to_air", "to_air (specified)"],
-            ["em3", "emission3", "to_water", "to_water (unpecified)"],],
+            ["em3", "emission3", "to_water", "to_water (unspecified)"],
+        ],
     )
 
+    renamed_simple = convert(to_char, rename_bridge_simple)
 
-    rename_bridge = pd.DataFrame(
-        columns=["stressor", "class__stressor", "class2__stressor"],
+    assert all(renamed_simple.columns == to_char.columns)
+    rename_bridge_indexed = rename_bridge_simple.set_index(
+        ["flow__stressor", "class__stressor", "class2__stressor"]
+    )
+    rename_bridge_indexed.index.names = ["flow", "class", "class2"]
+    pdt.assert_index_equal(renamed_simple.index, rename_bridge_indexed.index)
+
+    # TEST WITH REGIONAL SPECS
+
+    rename_bridge_with_reg_spec = pd.DataFrame(
+        columns=[
+            "stressor",
+            "reg",
+            "flow__stressor",
+            "class__stressor",
+            "class2__stressor",
+            "factor",
+        ],
         data=[
-            ["em1", "to_air", "to_air (unspecified)"],
-            ["em2", "to_air", "to_air (specified)"],
-            ["em3", "to_water", "to_water (unpecified)"],],
+            ["em1", "r[1,2]", "emission1", "to_air", "to_air (unspecified)", 1],
+            ["em1", "r[3]", "emission1", "to_air", "to_air (unspecified)", 2],
+            ["em2", "r[1,2,3]", "emission2", "to_air", "to_air (specified)", 1],
+            ["em3", "r[1,2,3]", "emission3", "to_water", "to_water (unspecified)", 1],
+        ],
     )
 
+    renamed_region_spec = convert(to_char, rename_bridge_with_reg_spec)
+    assert all(renamed_region_spec.columns == to_char.columns)
+    pdt.assert_index_equal(renamed_simple.index, renamed_region_spec.index)
 
-    renamed = convert(to_char, rename_bridge)
+    npt.assert_allclose(
+        renamed_region_spec.loc[("emission1", "to_air", "to_air (unspecified)"), "r1"],
+        99,
+    )
+    npt.assert_allclose(
+        renamed_region_spec.loc[("emission1", "to_air", "to_air (unspecified)"), "r3"],
+        99 * 2,
+    )
+    npt.assert_allclose(
+        renamed_region_spec.loc[
+            ("emission3", "to_water", "to_water (unspecified)"), "r3"
+        ],
+        99,
+    )
 
-    assert all(renamed.columns == renamed.columns)
-    assert all(renamed.index == rename_bridge_simple["stressor__em_type"])
+    # TEST WITH RENAME IN MUTLIINDEX
 
+    to_char_multi = pd.DataFrame(
+        data=99.0,
+        index=pd.MultiIndex.from_product([["em1", "em2", "emA"], ["air", "water"]]),
+        columns=pd.MultiIndex.from_product([["r1", "c1"], ["r2", "c2"]]),
+    )
+    to_char_multi.columns.names = ["reg", "sec"]
+    to_char_multi.index.names = ["em_type", "compart"]
 
+    rename_bridge_level1 = pd.DataFrame(
+        columns=["em_type", "stressor__em_type", "class__em_type", "factor"],
+        data=[
+            ["em1", "emission-1", "classA", 1],
+            ["em2", "emission2", "classA", 1],
+            ["emA", "emission A", "classB", 1],
+        ],
+    )
+
+    ren_multi1_comp = convert(
+        to_char_multi, rename_bridge_level1, drop_not_bridged_index=False
+    )
+
+    ren_multi1_wocomp = convert(
+        to_char_multi, rename_bridge_level1, drop_not_bridged_index=True
+    )
+
+    assert all(ren_multi1_comp.columns == to_char_multi.columns)
+    assert all(ren_multi1_wocomp.columns == to_char_multi.columns)
+
+    rename_bridge_level1_indexed = rename_bridge_level1.set_index(
+        ["stressor__em_type", "class__em_type"]
+    )
+
+    rename_bridge_level1_indexed.index.names = ["stressor", "class"]
+    pdt.assert_index_equal(
+        rename_bridge_level1_indexed.index, ren_multi1_wocomp.index, check_order=False
+    )
+
+    assert "compart" in ren_multi1_comp.index.names
+
+    rename_bridge_level2 = pd.DataFrame(
+        columns=[
+            "em_type",
+            "compart",
+            "stressor__em_type",
+            "comp__compart",
+            "class__compart",
+            "factor",
+        ],
+        data=[
+            ["em1", "air", "emission-1", "A", "class1", 1],
+            ["em1", "water", "emission-1", "B", "class1", 1],
+            ["em2", "air", "emission2", "A", "class2", 1],
+            ["em2", "water", "emission2", "B", "class2", 1],
+            ["emA", "air", "emission A", "A", "class3", 1],
+            ["emA", "water", "emission A", "B", "class3", 1],
+        ],
+    )
+
+    ren_multi2_comp = convert(to_char_multi, rename_bridge_level2)
+
+    npt.assert_allclose(ren_multi2_comp.values, to_char_multi.values)
+    rename_bridge_level2_indexed = rename_bridge_level2.set_index(
+        ["stressor__em_type", "comp__compart", "class__compart"]
+    )
+    rename_bridge_level2_indexed.index.names = ["stressor", "comp", "class"]
+    pdt.assert_index_equal(
+        rename_bridge_level2_indexed.index, ren_multi2_comp.index, check_order=False
+    )
 
 
 def test_convert_characterize():

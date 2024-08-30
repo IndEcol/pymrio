@@ -1090,6 +1090,7 @@ def convert(
 
 
     Extension for extensions:
+    # TODO: check if in the other docstring and then remove
     extension ... extension name
     unit_orig ... the original unit (optional, for double check with the unit)
     unit_new ... the new unit to be set for the extension
@@ -1120,7 +1121,9 @@ def convert(
             raise ValueError(f"Column {col} contains more then one '__'")
         if bridge.orig not in df_map.columns:
             raise ValueError(f"Column {bridge.orig} not in df_map")
-        elif bridge.orig not in df_orig.index.names:
+        elif (bridge.orig not in df_orig.index.names) and (
+            bridge.orig not in df_orig.columns.names
+        ):
             raise ValueError(f"Column {bridge.orig} not in df_orig")
         else:
             bridges.append(bridge)
@@ -1167,30 +1170,54 @@ def convert(
 
         # renaming part, checks if the old name (bridge.orig) is in the current index
         # and renames by the new one (bridge.new)
-      
+
         already_renamed = dict()
         for bridge in bridges:
             # encountering a bridge with the same orig name but which should
             # lead to two new index levels
             if bridge.orig in already_renamed.keys():
                 # duplicate the index level
-                df_collected.reset_index(level=already_renamed[bridge.orig].new, inplace=True)
-                df_collected[bridge.new] = df_cur_map.index.get_level_values(bridge.raw)[0]
-
-                if df_collected.index.name is None:
-                    df_collected.set_index(already_renamed[bridge.orig].new, drop=True, append=False, inplace=True)
+                _index_order = list(df_collected.index.names)
+                df_collected.reset_index(
+                    level=already_renamed[bridge.orig].new, inplace=True
+                )
+                df_collected[bridge.new] = df_cur_map.index.get_level_values(
+                    bridge.raw
+                )[0]
+                if (len(df_collected.index.names) == 1) and (
+                    df_collected.index.names[0] is None
+                ):
+                    df_collected.set_index(
+                        already_renamed[bridge.orig].new,
+                        drop=True,
+                        append=False,
+                        inplace=True,
+                    )
                 else:
-                    df_collected.set_index(already_renamed[bridge.orig].new, drop=True, append=True, inplace=True)
+                    df_collected.set_index(
+                        already_renamed[bridge.orig].new,
+                        drop=True,
+                        append=True,
+                        inplace=True,
+                    )
                 df_collected.set_index(bridge.new, drop=True, append=True, inplace=True)
+                df_collected.index = df_collected.index.reorder_levels(
+                    _index_order + [bridge.new]
+                )
+
                 continue
 
             for idx_old_names in df_collected.index.names:
                 if bridge.orig in idx_old_names:
                     # rename the index names
                     if isinstance(df_collected.index, pd.MultiIndex):
-                        df_collected.index = df_collected.index.set_names( bridge.new, level=idx_old_names)
+                        df_collected.index = df_collected.index.set_names(
+                            bridge.new, level=idx_old_names
+                        )
                     else:
-                        df_collected.index = df_collected.index.set_names( bridge.new, level=None)
+                        df_collected.index = df_collected.index.set_names(
+                            bridge.new, level=None
+                        )
 
                     # rename the actual index values
                     df_collected.reset_index(level=bridge.new, inplace=True)
@@ -1200,8 +1227,6 @@ def convert(
                         df_collected.loc[:, bridge.new] = df_collected.loc[
                             :, bridge.new
                         ].str.replace(pat=old_row_name, repl=new_row_name, regex=True)
-                        # CONT: Make a test case/method where a matching line gets extended into more index columns
-                        # CONT: Ensure that the spread keeps the order as in the original mapping
 
                     # put the index back
                     if df_collected.index.name is None:
@@ -1241,8 +1266,7 @@ def convert(
         ]
         try:
             all_result = all_result.reorder_levels(new_index + orig_index_not_bridged)
-        except TypeError:
-            # case where there is only one index level
+        except TypeError:  # case where there is only one index level
             pass
 
     return all_result.groupby(by=all_result.index.names).agg(agg_func)

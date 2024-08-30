@@ -38,7 +38,12 @@ import logging
 import sys
 
 from pymrio.core.fileio import *
-from pymrio.core.mriosystem import Extension, IOSystem, concate_extension, extension_convert
+from pymrio.core.mriosystem import (
+    Extension,
+    IOSystem,
+    concate_extension,
+    extension_convert,
+)
 from pymrio.tools.ioclass import ClassificationData, get_classification
 from pymrio.tools.iodownloader import (
     download_eora26,
