@@ -496,7 +496,7 @@ def test_convert_rename_spread_index():
     rename_bridge_indexed.index.names = ["flow", "class", "class2"]
     pdt.assert_index_equal(renamed_simple.index, rename_bridge_indexed.index)
 
-    # TEST WITH REGIONAL SPECS
+    # TEST WITH COLUMN SPECS
 
     rename_bridge_with_reg_spec = pd.DataFrame(
         columns=[
@@ -533,6 +533,56 @@ def test_convert_rename_spread_index():
         ],
         99,
     )
+
+
+    # TEST WITH EMPTY INDEX
+
+
+    rename_bridge_missing_string = pd.DataFrame(
+        columns=["stressor", "flow__stressor", "class__stressor", "class2__stressor"],
+        data=[
+            ["em1", "emission1", "to_air", "to_air (unspecified)"],
+            ["em2", "emission2", "to_air", "to_air (specified)"],
+            ["em3", "emission3", "to_water",],
+        ],
+    )
+
+    rename_bridge_missing_nan = pd.DataFrame(
+        columns=["stressor", "flow__stressor", "class__stressor", "class2__stressor"],
+        data=[
+            ["em1", "emission1", "to_air", "to_air (unspecified)"],
+            ["em2", "emission2", "to_air", "to_air (specified)"],
+            ["em3", "emission3", "to_water", np.nan],
+        ],
+    )
+
+    rename_bridge_missing_none = pd.DataFrame(
+        columns=["stressor", "flow__stressor", "class__stressor", "class2__stressor"],
+        data=[
+            ["em1", "emission1", "to_air", "to_air (unspecified)"],
+            ["em2", "emission2", "to_air", "to_air (specified)"],
+            ["em3", "emission3", "to_water", None],
+        ],
+    )
+
+
+    renamed_missing_string = convert(to_char, rename_bridge_missing_string)
+    renamed_missing_nan = convert(to_char, rename_bridge_missing_nan)
+    renamed_missing_none = convert(to_char, rename_bridge_missing_none)
+
+    renamed_missing_none
+
+    pdt.assert_frame_equal(renamed_missing_string, renamed_missing_nan)
+    pdt.assert_frame_equal(renamed_missing_string, renamed_missing_none)
+
+    assert all(renamed_simple.columns == to_char.columns)
+    rename_bridge_indexed = rename_bridge_simple.set_index(
+        ["flow__stressor", "class__stressor", "class2__stressor"]
+    )
+    rename_bridge_indexed.index.names = ["flow", "class", "class2"]
+    pdt.assert_index_equal(renamed_simple.index, rename_bridge_indexed.index)
+
+
 
     # TEST WITH RENAME IN MUTLIINDEX
 
@@ -856,6 +906,7 @@ def test_convert_characterize():
         char5_res.T.groupby(level="region").sum().T, char4_calc_nostack.astype("float")
     )
 
+    # TODO: test case for multindex characterization on one of teh inner levels - does not work in the GLAM example
 
 def test_convert_wrong_inputs():
     to_char = pd.DataFrame(
