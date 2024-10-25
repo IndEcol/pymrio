@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -23,7 +23,7 @@
 # - renaming the index names of results/extensions
 # - adjusting the numerical values of the data,
 #   e.g. for unit conversion or characterisation
-# - finding and extracting data based on indicies across a table or an mrio(-extension).
+# - finding and extracting data based on indices across a table or an mrio(-extension).
 #   This can be system based on name and potentially constrained by sector/region
 #   or any other specification.
 # - Aggregation/Summation of satellite accounts
@@ -166,25 +166,26 @@ ghg_result_ton
 
 # %% [markdown]
 # We can get the data in kg by
-#
-#
-# ghg_map_to_kg = pd.DataFrame(
-#     columns=[
-#         "stressor",
-#         "compartment",
-#         "chem_stressor__stressor",
-#         "compartment__compartment",
-#         "factor",
-#     ],
-#     data=[
-#         ["Carbon Dioxide", "[A|a]ir", "CO2", "Air", 1000],
-#         ["Methane", "[A|a]ir", "CH4", "Air", 1000],
-#     ],
-# )
-# ghg_map_to_kg
-#
-# ghg_new_kg = pymrio.convert(ghg_result_ton, ghg_map_to_kg)
-# ghg_new_kg
+
+# %%
+ghg_map_to_kg = pd.DataFrame(
+    columns=[
+        "stressor",
+        "compartment",
+        "chem_stressor__stressor",
+        "compartment__compartment",
+        "factor",
+    ],
+    data=[
+        ["Carbon Dioxide", "[A|a]ir", "CO2", "Air", 1000],
+        ["Methane", "[A|a]ir", "CH4", "Air", 1000],
+    ],
+)
+ghg_map_to_kg
+
+# %%
+ghg_new_kg = pymrio.convert(ghg_result_ton, ghg_map_to_kg)
+ghg_new_kg
 
 # %% [markdown]
 # In case of unit conversion of pymrio satellite accounts,
@@ -248,7 +249,7 @@ GWP_result
 
 # %%
 GWP_result_with_comp = pymrio.convert(
-    ghg_new_kg, GWP_characterization, drop_not_bridged=False
+    ghg_new_kg, GWP_characterization, drop_not_bridged_index=False
 )
 GWP_result_with_comp
 
@@ -299,24 +300,24 @@ land_use_result
 # any bridge column mapping it to a new name. Thus, the "region" can either be in the index
 # or in the columns of the source data - in the given case it is in the columns.
 
-# %% [markdown]
-# landuse_characterization = pd.DataFrame(
-#     columns=["stressor", "BioDiv__stressor", "region", "factor"],
-#     data=[
-#         ["Wheat|Maize", "BioImpact", "Region1", 3],
-#         ["Wheat", "BioImpact", "Region[2,3]", 4],
-#         ["Maize", "BioImpact", "Region[2,3]", 7],
-#         ["Rice", "BioImpact", "Region1", 12],
-#         ["Rice", "BioImpact", "Region2", 12],
-#         ["Rice", "BioImpact", "Region3", 12],
-#         ["Pasture", "BioImpact", "Region[1,2,3]", 12],
-#         ["Forest.*", "BioImpact", "Region1", 2],
-#         ["Forest.*", "BioImpact", "Region2", 3],
-#         ["Forest ext.*", "BioImpact", "Region3", 1],
-#         ["Forest int.*", "BioImpact", "Region3", 3],
-#     ],
-# )
-# landuse_characterization
+# %%
+landuse_characterization = pd.DataFrame(
+    columns=["stressor", "BioDiv__stressor", "region", "factor"],
+    data=[
+        ["Wheat|Maize", "BioImpact", "Region1", 3],
+        ["Wheat", "BioImpact", "Region[2,3]", 4],
+        ["Maize", "BioImpact", "Region[2,3]", 7],
+        ["Rice", "BioImpact", "Region1", 12],
+        ["Rice", "BioImpact", "Region2", 12],
+        ["Rice", "BioImpact", "Region3", 12],
+        ["Pasture", "BioImpact", "Region[1,2,3]", 12],
+        ["Forest.*", "BioImpact", "Region1", 2],
+        ["Forest.*", "BioImpact", "Region2", 3],
+        ["Forest ext.*", "BioImpact", "Region3", 1],
+        ["Forest int.*", "BioImpact", "Region3", 3],
+    ],
+)
+landuse_characterization
 
 
 # %% [markdown]
@@ -354,6 +355,9 @@ biodiv_result
 
 # %%
 land_use_result_stacked = land_use_result.stack(level="region")
+land_use_result_stacked
+
+# %%
 biodiv_result_stacked = pymrio.convert(
     land_use_result_stacked, landuse_characterization, drop_not_bridged_index=False
 )
@@ -370,5 +374,5 @@ biodiv_result_stacked.unstack(level="region")[0]
 
 # %% [markdown]
 # Irrespectively of the table or the mrio system, the convert function always follows the same pattern.
-# It requires a bridge table, which contains the mapping of the indicies of the source data to the indicies of the target data.
+# It requires a bridge table, which contains the mapping of the indices of the source data to the indices of the target data.
 # This bridge table has to follow a specific format, depending on the table to be converted.

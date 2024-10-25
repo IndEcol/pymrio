@@ -3246,6 +3246,11 @@ class IOSystem(BaseSystem):
 
         return self
 
+    def extension_convert():
+        raise NotImplementedError("TODO: extension convert as method")
+        # Can pass extensions a string of extensions in the IO System, get them as extensions,
+        # put it as new extension in pymrio, with a switch to remove converted extensions
+
 
 def extension_convert(
     *extensions,
@@ -3271,7 +3276,7 @@ def extension_convert(
 
     extensions : list of extensions
         Extensions to convert. All extensions passed must
-        have an index structure (index names)  ase described in df_map.
+        have an index structure (index names) as described in df_map.
 
     df_map : pd.DataFrame
         The DataFrame with the mapping of the old to the new classification.
@@ -3376,6 +3381,12 @@ def extension_convert(
     gather = []
 
     for ext in extensions:
+        if ext.name not in df_map[extension_col_name].unique():
+            warnings.warn(
+                f"Extension {ext.name} not found in df_map. Skipping extension."
+            )
+            # TODO: later go to logging
+            continue
         gather.append(
             ext.convert(
                 df_map=df_map[df_map[extension_col_name] == ext.name],

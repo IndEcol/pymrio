@@ -679,13 +679,7 @@ def test_extension_convert_function(fix_testmrio):
         ],
     )
 
-    # CONT: Something wrong with setting the index to a multiindex when compartment is passed
-    # Next steps: run this in interprester (with autoreload) and set breakpoint in extension_convert
-    # Seems to be in gather, but after that in the aggregation or Concatenate we get a problem
-
-    # x = tt_pre.extension_convert(df_map, new_extension_name="emissions_new_pre_calc")
-
-    # Doing two time the same extension
+    # CASE 1: Doing two time the same extension, must double the results
     ext_double = pymrio.extension_convert(
         tt_pre.emissions,
         tt_pre.emissions,
@@ -693,58 +687,137 @@ def test_extension_convert_function(fix_testmrio):
         new_extension_name="emissions_new_pre_calc",
     )
 
-    # TODO: check return type and update test
-    # assert ext_double.unit.loc["total_sum_tonnes", "unit"] == "t"
-    # assert ext_double.unit.loc["water_emissions", "unit"] == "g"
+    assert ext_double.unit.loc["total_sum_tonnes", "unit"].values == ["t"]
+    assert ext_double.unit.loc["water_emissions", "unit"].values == ["g"]
 
-    # pdt.assert_series_equal(
-    #     ext_double.F.loc["total_sum_tonnes"],
-    #     tt_pre.emissions.F.sum(axis=0) * 1e-3 * 2,
-    #     check_names=False,
-    # )
-    #
-    # pdt.assert_series_equal(
-    #     ext_double.F.loc["water_emissions"],
-    #     tt_pre.emissions.F.loc["emission_type2", :].iloc[0, :] * 1000 * 2,
-    #     check_names=False,
-    # )
-    #
-    # tt_pre.emission_new = ext_double
-    #
-    # df_map_add_across = pd.DataFrame(
-    #     columns=[
-    #         "extension",
-    #         "stressor",
-    #         "compartment",
-    #         "total__stressor",
-    #         "factor",
-    #         "unit_orig",
-    #         "unit_new",
-    #     ],
-    #     data=[
-    #         ["Emissions", "emission_type2", ".*", "water", 1, "kg", "kg"],
-    #         [
-    #             "emission_new_pre_calc",
-    #             "water_emissions",
-    #             ".*",
-    #             "water",
-    #             1e-3,
-    #             "g",
-    #             "kg",
-    #         ],
-    #     ],
-    # )
-    #
-    # ext_across = pymrio.extension_convert(
-    #     tt_pre.emissions,
-    #     ext_double,
-    #     df_map=df_map_add_across,
-    #     new_extension_name="add_across",
-    # )
+    pdt.assert_series_equal(
+        ext_double.F.loc[("total_sum_tonnes", "total")],
+        tt_pre.emissions.F.sum(axis=0) * 1e-3 * 2,
+        check_names=False,
+    )
 
-    # CONT:
-    # make a second extensions are check running over 2
-    # cleanup docstrings and write docs
+    pdt.assert_series_equal(
+        ext_double.F.loc[("water_emissions", "water")],
+        tt_pre.emissions.F.loc["emission_type2", :].iloc[0, :] * 1000 * 2,
+        check_names=False,
+    )
+
+    # CASE 2: convert across 2 extensions
+    tt_pre.emission_new = ext_double
+
+    df_map_add_across = pd.DataFrame(
+        columns=[
+            "extension",
+            "stressor",
+            "compartment",
+            "total__stressor",
+            "factor",
+            "unit_orig",
+            "unit_new",
+        ],
+        data=[
+            ["Emissions", "emission_type2", ".*", "water", 1, "kg", "kg"],
+            [
+                "emissions_new_pre_calc",
+                "water_emissions",
+                ".*",
+                "water",
+                1e-3,
+                "g",
+                "kg",
+            ],
+        ],
+    )
+
+    df_map_add_across_wrong_name = df_map_add_across.copy()
+
+    df_map_add_across_wrong_name.loc[:, "extension"] = df_map_add_across_wrong_name.extension.str.replace("emissions_new_pre_calc", "foo")
+
+    ext_across_correct = pymrio.extension_convert(
+        tt_pre.emissions,
+        ext_double,
+        df_map=df_map_add_across,
+        new_extension_name="add_across",
+    )
+
+    ext_across_wrong = pymrio.extension_convert(
+        tt_pre.emissions,
+        ext_double,
+        df_map=df_map_add_across_wrong_name,
+        new_extension_name="add_across",
+    )
+
+    expected_df_correct_F = tt_pre.emissions.F.loc["emission_type2", :].iloc[0, :] + ext_double.F.loc[("water_emissions", "water")] * 1e-3
+    expected_df_wrong_F = tt_pre.emissions.F.loc["emission_type2", :].iloc[0, :]
+    expected_df_correct_F_Y = tt_pre.emissions.F_Y.loc["emission_type2", :].iloc[0, :] + ext_double.F_Y.loc[("water_emissions", "water")] * 1e-3
+    expected_df_wrong_F_Y = tt_pre.emissions.F_Y.loc["emission_type2", :].iloc[0, :]
+
+    pdt.assert_series_equal(
+        ext_across_correct.F.loc[("water",)],
+        expected_df_correct_F,
+        check_names=False,
+    )
+    pdt.assert_series_equal(
+        ext_across_correct.F_Y.loc[("water",)],
+        expected_df_correct_F_Y,
+        check_names=False,
+    )
+    pdt.assert_series_equal(
+        ext_across_wrong.F.loc[("water",)],
+        expected_df_wrong_F,
+        check_names=False,
+    )
+    pdt.assert_series_equal(
+        ext_across_wrong.F_Y.loc[("water",)],
+        expected_df_wrong_F_Y,
+        check_names=False,
+    )
+
+    # CASE 3: Test for full calculated system
+    tt_post = fix_testmrio.testmrio.copy().calc_all()
+
+    # when one extensions has less calculated parts then the other, these should
+    # silently set to None
+    ext_test_missing = pymrio.extension_convert(
+        tt_post.emissions,
+        ext_double,
+        df_map=df_map_add_across,
+        new_extension_name="add_across",
+    )
+
+    assert ext_test_missing.S is None
+    assert ext_test_missing.D_cba is None
+
+    tt_post.add_across = ext_double
+    tt_post.calc_all()
+
+    ext_test_all = pymrio.extension_convert(
+        tt_post.emissions,
+        tt_post.add_across,
+        df_map=df_map_add_across,
+        new_extension_name="add_across",
+    )
+
+    expected_df_D_cba = tt_post.emissions.D_cba.loc["emission_type2", :].iloc[0, :] + tt_post.add_across.D_cba.loc[("water_emissions", "water")] * 1e-3
+    expected_df_S = tt_post.emissions.S.loc["emission_type2", :].iloc[0, :] + tt_post.add_across.S.loc[("water_emissions", "water")] * 1e-3
+    expected_df_M = tt_post.emissions.M.loc["emission_type2", :].iloc[0, :] + tt_post.add_across.M.loc[("water_emissions", "water")] * 1e-3
+
+    pdt.assert_series_equal(
+        ext_test_all.D_cba.iloc[0],
+        expected_df_D_cba,
+        check_names=False,
+    )
+    pdt.assert_series_equal(
+        ext_test_all.S.iloc[0],
+        expected_df_S,
+        check_names=False,
+    )
+    pdt.assert_series_equal(
+        ext_test_all.M.iloc[0],
+        expected_df_M,
+        check_names=False,
+    )
+
 
 
 def test_extension_convert_test_unit_fail(fix_testmrio):
