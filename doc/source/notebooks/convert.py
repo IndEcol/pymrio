@@ -269,7 +269,7 @@ GWP_result_with_comp
 # For that, we assume some land use results for different regions:
 
 # %%
-land_use_result = pd.DataFrame(
+land_use_data = pd.DataFrame(
     columns=["Region1", "Region2", "Region3"],
     index=[
         "Wheat",
@@ -288,9 +288,9 @@ land_use_result = pd.DataFrame(
         [43, 17, 24],
     ],
 )
-land_use_result.index.names = ["stressor"]
-land_use_result.columns.names = ["region"]
-land_use_result
+land_use_data.index.names = ["stressor"]
+land_use_data.columns.names = ["region"]
+land_use_data
 
 # %% [markdown]
 # Now we setup a pseudo characterization table for converting the land use data into
@@ -342,8 +342,8 @@ landuse_characterization
 # With that setup we can now characterize the land use data in land_use_result.
 
 # %%
-biodiv_result = pymrio.convert(land_use_result, landuse_characterization)
-biodiv_result
+biodiv_characterised = pymrio.convert(land_use_data, landuse_characterization)
+biodiv_characterised
 
 # %% [markdown]
 # Note, that in this example the region is not in the index
@@ -354,25 +354,93 @@ biodiv_result
 # output. Thus the result is equivalent to
 
 # %%
-land_use_result_stacked = land_use_result.stack(level="region")
-land_use_result_stacked
+land_use_data_stacked = land_use_data.stack(level="region")
+land_use_data_stacked
 
 # %%
-biodiv_result_stacked = pymrio.convert(
-    land_use_result_stacked, landuse_characterization, drop_not_bridged_index=False
+biodiv_characterised_stacked = pymrio.convert(
+    land_use_data_stacked, landuse_characterization, drop_not_bridged_index=False
 )
-biodiv_result_stacked.unstack(level="region")[0]
+biodiv_characterised_stacked.unstack(level="region")[0]
 
 # %% [markdown]
 # In this case we have to specify to not drop the not bridged "region" index.
 # We then unstack the result again, and have to select the first element ([0]),
 # since there where not other columns left after stacking them before the
 # characterization.
-#
-# CONT: start working on convert for extensions/mrio method
 
 
 # %% [markdown]
+# TODO: section perhaps needed somewhere?
 # Irrespectively of the table or the mrio system, the convert function always follows the same pattern.
 # It requires a bridge table, which contains the mapping of the indices of the source data to the indices of the target data.
 # This bridge table has to follow a specific format, depending on the table to be converted.
+
+# %% [markdown]
+## Converting pymrio Extensions
+
+# %% [markdown]
+# The same principles as for individual tables can be used for converting full pymrio type Extensions (aka satellite accounts).
+# In difference to the single tables, pymrio Extensions consist of several pandas DataFrames which can be converted in one go.
+# Almost the same bridge table structure as for single tables can be used. The main additional information needed is in regard to 
+# units. Since pymrio Extensions include a unit dataframe, information about the unit names need to be included.
+
+# %% [markdown]
+# Extensions can be converted either one at a time, but the main power of the method lies in collecting stressor data across different extensions 
+# and converting them in one go.
+
+# %% [markdown]
+# We start with a simple example for converting a single extension of a pymrio MRIO system.
+# To do so, we load the test MRIO system from pymrio.
+
+# %%
+mrio = pymrio.load_test()
+
+# %% [markdown]
+# Among others, this system has an extension "emissions" with industry and final demand emissions.
+
+
+# %%
+mrio.emissions.F
+
+# %%
+mrio.emissions.F_Y
+
+# %%
+mrio.emissions.unit
+
+# %% [markdown]
+# We now setup a bridge table for converting/characterizing these emission data 
+# to several other accounts.
+
+# %%
+emis_bridge = pd.DataFrame(
+    columns=[
+        "stressor",
+        "compartment",
+        "total__stressor",
+        "factor",
+        "unit_orig",
+        "unit_new",
+    ],
+    data=[
+        ["emis.*", "air|water", "total_sum_tonnes", 1e-3, "kg", "t"],
+        ["emission_type[1|2]", ".*", "total_sum", 1, "kg", "kg"],
+        ["emission_type1", ".*", "air_emissions", 1e-3, "kg", "t"],
+        ["emission_type2", ".*", "water_emissions", 1000, "kg", "g"],
+    ],
+)
+emis_bridge
+
+# %% [markdown]
+# This is a fully made up example showing various capabilities of the method.
+# In line
+#    - 0: find all stressors with emissions (emis.*) in either air or water (air|water) compartment, rename it to "total_sum_tonnes" (total__stressor) by multiplying with a factor 0.0001 which converts the original unit "kg" to tonnes.
+#    - 1: find emission_type1 and 2, over all compartments and sum them together without any multiplication
+#    - 2: convert emissions of type 1 to air emissions in tons
+#    - 3: convert emissions of type 2 to water emissions in g
+
+
+# %%
+mrio.emissions.convert(emis_bridge, new_extension_name="abc").F
+

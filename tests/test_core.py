@@ -556,6 +556,7 @@ def test_characterize_extension(fix_testmrio):
 def test_extension_convert(fix_testmrio):
     """Testing the convert function within extensions object"""
     tt_pre = fix_testmrio.testmrio.copy()
+
     df_map = pd.DataFrame(
         columns=[
             "stressor",
@@ -570,12 +571,18 @@ def test_extension_convert(fix_testmrio):
             ["emission_type[1|2]", ".*", "total_sum", 1, "kg", "kg"],
             ["emission_type1", ".*", "air_emissions", 1e-3, "kg", "t"],
             ["emission_type2", ".*", "water_emissions", 1000, "kg", "g"],
+            ["emission_type1", ".*", "char_emissions", 2, "kg", "kg_eq"],
+            ["emission_type2", ".*", "char_emissions", 10, "kg", "kg_eq"],
         ],
     )
+
     tt_pre.pre_calc = tt_pre.emissions.convert(
         df_map, new_extension_name="emissions_new_pre_calc"
     )
+
     tt_pre.calc_all()
+
+    # CONT: continue writing tests for characterized "char_emissions"
 
     pdt.assert_series_equal(
         tt_pre.emissions.D_cba.loc["emission_type1", "air"],
@@ -603,6 +610,7 @@ def test_extension_convert(fix_testmrio):
     assert tt_pre.pre_calc.unit.loc["total_sum", "unit"] == "kg"
     assert tt_pre.pre_calc.unit.loc["air_emissions", "unit"] == "t"
     assert tt_pre.pre_calc.unit.loc["water_emissions", "unit"] == "g"
+    assert tt_pre.pre_calc.unit.loc["char_emissions", "unit"] == "kg_eq"
 
     tt_post = fix_testmrio.testmrio.copy()
     tt_post.calc_all()

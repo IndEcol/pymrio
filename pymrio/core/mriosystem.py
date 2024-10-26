@@ -2079,15 +2079,18 @@ class Extension(BaseSystem):
             unit = pd.DataFrame(columns=["unit"], index=new_extension.get_rows())
             bridge_columns = [col for col in df_map.columns if "__" in col]
             unique_new_index = (
-                df_map.loc[:, bridge_columns]
-                .drop_duplicates()
+                df_map
+                .drop_duplicates(subset=bridge_columns)
+                .loc[:, bridge_columns]
                 .set_index(bridge_columns)
                 .index
             )
             unique_new_index.names = [col.split("__")[0] for col in bridge_columns]
 
             unit.unit = (
-                df_map.set_index(bridge_columns)
+                df_map
+                .drop_duplicates(subset=bridge_columns)
+                .set_index(bridge_columns)
                 .loc[unique_new_index]
                 .loc[:, unit_column_new]
             )
