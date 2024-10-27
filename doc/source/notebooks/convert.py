@@ -30,8 +30,11 @@
 # - Characterization of stressors to impact categories
 #
 # We will cover each of these points in the examples below.
-# We will start with applying the conversion to a single table
-# and then cover the conversion of a full MRIO extension.
+# First [we will go through the general setup](#Basic-setup) describing the structure of the bridging/mapping table.
+# We will then cover the application of the [conversion function to a single, standalone table](#Converting-standalone-table).
+# There we will show [how to rename the index/stressor names](#Renaming-the-index-of-a-single-table), do [unit conversions](#Unit-conversion),
+# and then do [global](#Global-characterization-factors) and [regional](#Regional-specific-characterization-factors) characterizations.
+# For the case of converting a full pymrio Extension, see the [Converting pymrio Extensions](#Converting-pymrio-Extensions) section.
 #
 # For the connected topic of *Aggregation of MRIOs*
 # see the [Aggregation](./aggregation_examples.ipynb) page.
@@ -63,7 +66,11 @@
 # This will make the concept of the mapping table clear.
 
 # %% [markdown]
-# ## Renaming the index of a single table
+# ## Converting standalone tables
+
+
+# %% [markdown]
+# ### Renaming the index of a single table
 
 # %% [markdown]
 # Assume we have a small MRIO result table with the following structure:
@@ -142,7 +149,7 @@ ghg_new_wo_factor
 
 
 # %% [markdown]
-# ## Unit conversion
+# ### Unit conversion
 
 # %% [markdown]
 # With the factor column it is easy to apply unit conversion to any result table.
@@ -190,11 +197,11 @@ ghg_new_kg
 # %% [markdown]
 # In case of unit conversion of pymrio satellite accounts,
 # we can also check the unit before and set the unit after conversion:
-# TODO: unit conversion extensions
+# TODO: unit conversion extensions, link to extension beow
 
 
 # %% [markdown]
-# ## Characterization
+# ### Characterization
 
 # %% [markdown]
 # The main power of the convert function is to aggregate and characterize satellite accounts.
@@ -428,6 +435,8 @@ emis_bridge = pd.DataFrame(
         ["emission_type[1|2]", ".*", "total_sum", 1, "kg", "kg"],
         ["emission_type1", ".*", "air_emissions", 1e-3, "kg", "t"],
         ["emission_type2", ".*", "water_emissions", 1000, "kg", "g"],
+        ["emission_type1", ".*", "char_emissions", 2, "kg", "kg_eq"],
+        ["emission_type2", ".*", "char_emissions", 10, "kg", "kg_eq"],
     ],
 )
 emis_bridge
@@ -439,8 +448,27 @@ emis_bridge
 #    - 1: find emission_type1 and 2, over all compartments and sum them together without any multiplication
 #    - 2: convert emissions of type 1 to air emissions in tons
 #    - 3: convert emissions of type 2 to water emissions in g
+#    - 4 and 5: two different characterization factors of 2 (type1) and 10 (type2) to convert to kg equivalent (kg_eq) of some kind and then add them together to a summary impact "char_emissions"
 
+
+# %% [markdown]
+# The new extensino can then be calculated with:
 
 # %%
-mrio.emissions.convert(emis_bridge, new_extension_name="abc").F
+mrio.new_ext = mrio.emissions.convert(emis_bridge, new_extension_name="new_ext")
+print(mrio.new_ext)
+
+# %% [markdown]
+# And then the new accounts can be calculated with
+
+# %%
+mrio.calc_all()
+print(mrio.new_ext)
+mrio.new_ext.unit
+
+# %%
+mrio.new_ext.D_cba
+
+
+# CONT: test/explain characterization across different extensions
 

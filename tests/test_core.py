@@ -582,8 +582,6 @@ def test_extension_convert(fix_testmrio):
 
     tt_pre.calc_all()
 
-    # CONT: continue writing tests for characterized "char_emissions"
-
     pdt.assert_series_equal(
         tt_pre.emissions.D_cba.loc["emission_type1", "air"],
         tt_pre.pre_calc.D_cba.loc["air_emissions"] * 1000,
@@ -592,6 +590,12 @@ def test_extension_convert(fix_testmrio):
     pdt.assert_series_equal(
         tt_pre.emissions.D_cba.loc["emission_type2", "water"],
         tt_pre.pre_calc.D_cba.loc["water_emissions"] * 1e-3,
+        check_names=False,
+    )
+
+    pdt.assert_series_equal(
+        tt_pre.emissions.D_cba.loc["emission_type1", "air"] * 2 + tt_pre.emissions.D_cba.loc["emission_type2", "water"] * 10,
+        tt_pre.pre_calc.D_cba.loc["char_emissions"],
         check_names=False,
     )
 
@@ -630,6 +634,12 @@ def test_extension_convert(fix_testmrio):
         check_names=False,
     )
 
+    pdt.assert_series_equal(
+        tt_post.emissions.D_cba.loc["emission_type1", "air"] * 2 + tt_post.emissions.D_cba.loc["emission_type2", "water"] * 10,
+        tt_post.post_calc.D_cba.loc["char_emissions"],
+        check_names=False,
+    )
+
     npt.assert_allclose(
         tt_post.emissions.D_imp.sum().sum(),
         tt_post.post_calc.D_imp.loc["total_sum_tonnes"].sum().sum() * 1000,
@@ -645,6 +655,7 @@ def test_extension_convert(fix_testmrio):
     assert tt_post.post_calc.unit.loc["total_sum", "unit"] == "kg"
     assert tt_post.post_calc.unit.loc["air_emissions", "unit"] == "t"
     assert tt_post.post_calc.unit.loc["water_emissions", "unit"] == "g"
+    assert tt_post.post_calc.unit.loc["char_emissions", "unit"] == "kg_eq"
 
 
 def test_extension_convert_function(fix_testmrio):
