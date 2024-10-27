@@ -594,7 +594,8 @@ def test_extension_convert(fix_testmrio):
     )
 
     pdt.assert_series_equal(
-        tt_pre.emissions.D_cba.loc["emission_type1", "air"] * 2 + tt_pre.emissions.D_cba.loc["emission_type2", "water"] * 10,
+        tt_pre.emissions.D_cba.loc["emission_type1", "air"] * 2
+        + tt_pre.emissions.D_cba.loc["emission_type2", "water"] * 10,
         tt_pre.pre_calc.D_cba.loc["char_emissions"],
         check_names=False,
     )
@@ -635,7 +636,8 @@ def test_extension_convert(fix_testmrio):
     )
 
     pdt.assert_series_equal(
-        tt_post.emissions.D_cba.loc["emission_type1", "air"] * 2 + tt_post.emissions.D_cba.loc["emission_type2", "water"] * 10,
+        tt_post.emissions.D_cba.loc["emission_type1", "air"] * 2
+        + tt_post.emissions.D_cba.loc["emission_type2", "water"] * 10,
         tt_post.post_calc.D_cba.loc["char_emissions"],
         check_names=False,
     )
@@ -750,7 +752,11 @@ def test_extension_convert_function(fix_testmrio):
 
     df_map_add_across_wrong_name = df_map_add_across.copy()
 
-    df_map_add_across_wrong_name.loc[:, "extension"] = df_map_add_across_wrong_name.extension.str.replace("emissions_new_pre_calc", "foo")
+    df_map_add_across_wrong_name.loc[
+        :, "extension"
+    ] = df_map_add_across_wrong_name.extension.str.replace(
+        "emissions_new_pre_calc", "foo"
+    )
 
     ext_across_correct = pymrio.extension_convert(
         tt_pre.emissions,
@@ -766,9 +772,15 @@ def test_extension_convert_function(fix_testmrio):
         new_extension_name="add_across",
     )
 
-    expected_df_correct_F = tt_pre.emissions.F.loc["emission_type2", :].iloc[0, :] + ext_double.F.loc[("water_emissions", "water")] * 1e-3
+    expected_df_correct_F = (
+        tt_pre.emissions.F.loc["emission_type2", :].iloc[0, :]
+        + ext_double.F.loc[("water_emissions", "water")] * 1e-3
+    )
     expected_df_wrong_F = tt_pre.emissions.F.loc["emission_type2", :].iloc[0, :]
-    expected_df_correct_F_Y = tt_pre.emissions.F_Y.loc["emission_type2", :].iloc[0, :] + ext_double.F_Y.loc[("water_emissions", "water")] * 1e-3
+    expected_df_correct_F_Y = (
+        tt_pre.emissions.F_Y.loc["emission_type2", :].iloc[0, :]
+        + ext_double.F_Y.loc[("water_emissions", "water")] * 1e-3
+    )
     expected_df_wrong_F_Y = tt_pre.emissions.F_Y.loc["emission_type2", :].iloc[0, :]
 
     pdt.assert_series_equal(
@@ -817,9 +829,18 @@ def test_extension_convert_function(fix_testmrio):
         new_extension_name="add_across",
     )
 
-    expected_df_D_cba = tt_post.emissions.D_cba.loc["emission_type2", :].iloc[0, :] + tt_post.add_across.D_cba.loc[("water_emissions", "water")] * 1e-3
-    expected_df_S = tt_post.emissions.S.loc["emission_type2", :].iloc[0, :] + tt_post.add_across.S.loc[("water_emissions", "water")] * 1e-3
-    expected_df_M = tt_post.emissions.M.loc["emission_type2", :].iloc[0, :] + tt_post.add_across.M.loc[("water_emissions", "water")] * 1e-3
+    expected_df_D_cba = (
+        tt_post.emissions.D_cba.loc["emission_type2", :].iloc[0, :]
+        + tt_post.add_across.D_cba.loc[("water_emissions", "water")] * 1e-3
+    )
+    expected_df_S = (
+        tt_post.emissions.S.loc["emission_type2", :].iloc[0, :]
+        + tt_post.add_across.S.loc[("water_emissions", "water")] * 1e-3
+    )
+    expected_df_M = (
+        tt_post.emissions.M.loc["emission_type2", :].iloc[0, :]
+        + tt_post.add_across.M.loc[("water_emissions", "water")] * 1e-3
+    )
 
     pdt.assert_series_equal(
         ext_test_all.D_cba.iloc[0],
@@ -836,7 +857,6 @@ def test_extension_convert_function(fix_testmrio):
         expected_df_M,
         check_names=False,
     )
-
 
 
 def test_extension_convert_test_unit_fail(fix_testmrio):

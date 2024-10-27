@@ -389,11 +389,11 @@ biodiv_characterised_stacked.unstack(level="region")[0]
 # %% [markdown]
 # The same principles as for individual tables can be used for converting full pymrio type Extensions (aka satellite accounts).
 # In difference to the single tables, pymrio Extensions consist of several pandas DataFrames which can be converted in one go.
-# Almost the same bridge table structure as for single tables can be used. The main additional information needed is in regard to 
+# Almost the same bridge table structure as for single tables can be used. The main additional information needed is in regard to
 # units. Since pymrio Extensions include a unit dataframe, information about the unit names need to be included.
 
 # %% [markdown]
-# Extensions can be converted either one at a time, but the main power of the method lies in collecting stressor data across different extensions 
+# Extensions can be converted either one at a time, but the main power of the method lies in collecting stressor data across different extensions
 # and converting them in one go.
 
 # %% [markdown]
@@ -417,7 +417,7 @@ mrio.emissions.F_Y
 mrio.emissions.unit
 
 # %% [markdown]
-# We now setup a bridge table for converting/characterizing these emission data 
+# We now setup a bridge table for converting/characterizing these emission data
 # to several other accounts.
 
 # %%
@@ -471,4 +471,3 @@ mrio.new_ext.D_cba
 
 
 # CONT: test/explain characterization across different extensions
-

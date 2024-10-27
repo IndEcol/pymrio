@@ -1099,7 +1099,7 @@ def convert(
 
     bridge_columns = [col for col in df_map.columns if "__" in col]
 
-    # groupby breaks with NaNs or None, fix it here 
+    # groupby breaks with NaNs or None, fix it here
     df_map.loc[:, bridge_columns] = df_map.loc[:, bridge_columns].fillna("")
 
     unique_new_index = (
@@ -1114,7 +1114,6 @@ def convert(
 
     if isinstance(df_orig, pd.Series):
         df_orig = pd.DataFrame(df_orig)
-
 
     # some consistency checks of arguments and restructuring if everything is ok
     if len(bridge_columns) == 0:
