@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.4
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -384,7 +384,7 @@ biodiv_characterised_stacked.unstack(level="region")[0]
 # This bridge table has to follow a specific format, depending on the table to be converted.
 
 # %% [markdown]
-## Converting pymrio Extensions
+# # Converting pymrio Extensions
 
 # %% [markdown]
 # The same principles as for individual tables can be used for converting full pymrio type Extensions (aka satellite accounts).

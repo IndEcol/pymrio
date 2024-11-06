@@ -80,4 +80,7 @@ from pymrio.tools.ioutil import (
     index_match,
     to_long,
 )
+
+from pymrio.aux.GLAM import GLAMprocessing
+
 from pymrio.version import __version__
