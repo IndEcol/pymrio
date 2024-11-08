@@ -15,4 +15,5 @@ Handling MRIO data
   notebooks/aggregation_examples
   notebooks/buildflowmatrix
   notebooks/stressor_characterization
+  notebooks/convert
   notebooks/advanced_group_stressors

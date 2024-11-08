@@ -12,7 +12,7 @@ from pandas._libs.parsers import STR_NA_VALUES
 import zipfile
 
 GLAM_CONFIG = {
-        "V2024.10": "url""https://www.lifecycleinitiative.org/wp-content/uploads/2024/10/V1.0.2024.10.zip"
+        "V2024.10": "https://www.lifecycleinitiative.org/wp-content/uploads/2024/10/V1.0.2024.10.zip"
     }
 
 def get_GLAM(storage_folder, overwrite_existing=False, version="V2024.10"):
@@ -56,7 +56,7 @@ def get_GLAM(storage_folder, overwrite_existing=False, version="V2024.10"):
     downlog.save()
     return downlog
 
-def prep_GLAM(GLAM_data, GLAM_char_table_file):
+def prep_GLAM(GLAM_data):
     """ Extract/read GLAM data and convert to valid characterization file
 
     This reads the data either from the GLAM zip archive or from the 
@@ -70,8 +70,10 @@ def prep_GLAM(GLAM_data, GLAM_char_table_file):
         Otherwise, the routing finds all xlsx files in the folder given
         in GLAM_data.
 
-    GLAM_char_table_file : Path or str
-        Path to the file where the characterization table should be stored.
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with the GLAM data in the format needed for pymrio
 
     """
     GLAM_subfolders = ["EQ", "HH", "SEA"]
@@ -188,6 +190,21 @@ def prep_GLAM(GLAM_data, GLAM_char_table_file):
     # Use the GLO value for all rest of world regions
     GLAM_res.loc[GLAM_res.region == "GLO", "region"] = "WA|WL|WE|WF|WM"
 
+    return GLAM_res
 
+def get_GLAM_EXIO3_bridge(GLAM_version="V2024.10", EXIOBASE_version="3.8.2"):
+    """ Get GLAM bridge for EXIOBASE stressors
+    """
+
+    if GLAM_version != "V2024.10":
+        raise NotImplementedError("Only the V2024.10 version is supported")
+
+    if EXIOBASE_version != "3.8.2":
+        raise NotImplementedError("Only the 3.8.2 version is supported")
+
+    # get directory of currrent file
+    # HACK: needs to be in the data folder, include in package
+    current_dir = Path(__file__).parent
+    return pd.read_csv(current_dir / "EXIO382_to_GLAM202410.tsv", sep="\t") 
 
 

@@ -14,6 +14,7 @@ Contents:
    math
    Automatic MRIO download <notebooks/autodownload>
    handling
+   linking
    notebooks/metadata
    development
    changelog
