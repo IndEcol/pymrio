@@ -39,9 +39,7 @@
 from pathlib import Path
 import pymrio
 
-import warnings
 import pandas as pd
-warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 
 # %% [markdown]
@@ -49,7 +47,9 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 
 # %%
-DATA_ROOT = Path("/tmp/glam_exio_tutorial") # set this to your data directory
+# TODO: Fix back 
+# DATA_ROOT = Path("/tmp/glam_exio_tutorial") # set this to your data directory
+DATA_ROOT = Path("/home/konstans/tmp/glam_exio_tutorial") # set this to your data directory
 
 EXIOBASE_STORAGE_FOLDER = DATA_ROOT / "exiobase"
 GLAM_STORAGE_FOLDER = DATA_ROOT / "glam"
@@ -90,6 +90,13 @@ GLAM_raw = [archive for archive in GLAM_STORAGE_FOLDER.glob("*") if archive.suff
 
 # %%
 GLAM_char = pymrio.GLAMprocessing.prep_GLAM(GLAM_data=GLAM_raw)
+
+# TODO: remove later, just for fast testing
+GLAM_char_archive = GLAM_char.copy()
+
+# TODO: remove later
+# take 10000 random samples:
+GLAM_char = GLAM_char_archive.sample(10000)
 
 # %% [markdown]
 # This results in a long table with all characterization factors from GLAM. 
@@ -159,13 +166,37 @@ exio3.satellite.F
 # We are now ready to convert these stressors to GLAM flows. To do so we use the convert function of Pymrio.
 # This function can be used for many more things and is [explained in detail in the notebook here](./convert.ipynb)
 
+# TODO: remove later, just a fast way to save and load for pymrio development
+
+EXIO3_TMP = Path(EXIOBASE_STORAGE_FOLDER / "TMP_2018")
+EXIO3_TMP.mkdir(parents=True, exist_ok=True)
+exio3.save_all(EXIO3_TMP, table_format="parquet")
+
+import pymrio
+import pyinstrument
+
+exio3 = pymrio.load_all(EXIO3_TMP)
+exio3.reset_all_full()
+
 # %%
+debug_bridge = exio_glam_bridge
+
+with pyinstrument.Profiler() as p:
+    debug_sat = exio3.satellite.convert(
+        debug_bridge, new_extension_name="GLAM flows",
+        unit_column_orig="EXIOBASE_unit",
+        unit_column_new="FLOW_unit",
+        ignore_columns=["comment"]
+    )
+debug_sat.F
+
+
 exio3.glam_flows = exio3.satellite.convert(
-    exio_glam_bridge, new_extension_name="GLAM flows",
-    unit_column_orig="EXIOBASE_unit",
-    unit_column_new="FLOW_unit",
-    ignore_columns=["comment"]
-)
+        exio_glam_bridge, new_extension_name="GLAM flows",
+        unit_column_orig="EXIOBASE_unit",
+        unit_column_new="FLOW_unit",
+        ignore_columns=["comment"]
+    )
 
 # %% [markdown]
 # This now gives us a new satellite account "glam_flows".
@@ -175,7 +206,6 @@ print(exio3.glam_flows)
 
 # %% [markdown]
 # With flow names corresponding to GLAM flows.
-# Since we already had consumption based account calculated in EXIOBASE before, we can immediately see the same for the GLAM flows.
 
 # %%
 exio3.glam_flows.D_cba
@@ -206,8 +236,10 @@ GLAM_char.loc[:, "unit_orig"] = GLAM_char["unit_orig"].str.replace("kg emitted",
 
 GLAM_char = GLAM_char.loc[GLAM_char.LCIAMethod_name__FLOW_uuid == "EQ Land use"]
 
-
+# TODO: fix region error - use GLAM_char only with land use for that
 # %%
+# when debug, only one country (200 columns) and not the full dataset in there.
+# must be as long as the full dataset, with 0 otherwise
 exio3.glam_characterized = exio3.glam_flows.convert(
     GLAM_char, new_extension_name="GLAM characterized"
 )

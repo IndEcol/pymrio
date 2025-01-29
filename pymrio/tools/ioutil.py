@@ -1006,7 +1006,9 @@ def check_df_map(df_orig, df_map):
     # would be in effect given df_orig.
     pass
 
+import line_profiler
 
+@line_profiler.profile
 def convert(
     df_orig, df_map, agg_func="sum", drop_not_bridged_index=True, ignore_columns=None
 ):
@@ -1176,74 +1178,54 @@ def convert(
         # and renames by the new one (bridge.new)
 
         already_renamed = dict()
+
         for bridge in bridges:
+
             # encountering a bridge with the same orig name but which should
             # lead to two new index levels
             if bridge.orig in already_renamed.keys():
-                # duplicate the index level
-                _index_order = list(df_collected.index.names)
-                df_collected.reset_index(
-                    level=already_renamed[bridge.orig].new, inplace=True
-                )
-                df_collected[bridge.new] = df_cur_map.index.get_level_values(
-                    bridge.raw
-                )[0]
-                if (len(df_collected.index.names) == 1) and (
-                    df_collected.index.names[0] is None
-                ):
-                    df_collected.set_index(
-                        already_renamed[bridge.orig].new,
-                        drop=True,
-                        append=False,
-                        inplace=True,
-                    )
-                else:
-                    df_collected.set_index(
-                        already_renamed[bridge.orig].new,
-                        drop=True,
-                        append=True,
-                        inplace=True,
-                    )
-                df_collected.set_index(bridge.new, drop=True, append=True, inplace=True)
-                df_collected.index = df_collected.index.reorder_levels(
-                    _index_order + [bridge.new]
-                )
+                # already renamed the index to another one previously,
+                # but we need to create more index levels for the
+                # same original index level
+                new_index_value = df_cur_map.index.get_level_values(bridge.raw)[0]
+                _old_index = df_collected.index.to_frame()
+                # as we go along in order, we add them to the end of the index
+                _old_index.insert(len(_old_index.columns), bridge.new, new_index_value)  
+                df_collected.index = pd.MultiIndex.from_frame(_old_index)
 
-                continue
 
-            for idx_old_names in df_collected.index.names:
-                if bridge.orig in idx_old_names:
-                    # rename the index names
-                    if isinstance(df_collected.index, pd.MultiIndex):
-                        df_collected.index = df_collected.index.set_names(
-                            bridge.new, level=idx_old_names
-                        )
-                    else:
-                        df_collected.index = df_collected.index.set_names(
-                            bridge.new, level=None
-                        )
+            else:
 
-                    # rename the actual index values
-                    df_collected.reset_index(level=bridge.new, inplace=True)
-                    for row in df_cur_map.reset_index().iterrows():
-                        new_row_name = row[1][bridge.raw]
-                        old_row_name = row[1][bridge.orig]
-                        df_collected.loc[:, bridge.new] = df_collected.loc[
-                            :, bridge.new
-                        ].str.replace(pat=old_row_name, repl=new_row_name, regex=True)
+                for idx_old_names in df_collected.index.names:
+                    if bridge.orig in idx_old_names:
+                        # rename the index names
+                        if isinstance(df_collected.index, pd.MultiIndex):
+                            df_collected.index = df_collected.index.set_names(
+                                bridge.new, level=idx_old_names
+                            )
+                        else:
+                            df_collected.index = df_collected.index.set_names(
+                                bridge.new, level=None
+                            )
 
-                    # put the index back
-                    if df_collected.index.name is None:
-                        # The case with a single index where the previous reset index
-                        # left only a numerical index
-                        df_collected.set_index(
-                            bridge.new, drop=True, append=False, inplace=True
-                        )
-                    else:
-                        df_collected.set_index(
-                            bridge.new, drop=True, append=True, inplace=True
-                        )
-                    already_renamed[bridge.orig] = bridge
+                        # rename the actual index values
+                        df_collected = df_collected.reset_index(level=bridge.new)
+                        for row in df_cur_map.reset_index().iterrows():
+                            new_row_name = row[1][bridge.raw]
+                            old_row_name = row[1][bridge.orig]
+                            df_collected.loc[:, bridge.new] = df_collected.loc[
+                                :, bridge.new
+                            ].str.replace(pat=old_row_name, repl=new_row_name, regex=True)
+
+                        # put the index back
+                        if df_collected.index.name is None:
+                            # The case with a single index where the previous reset index
+                            # left only a numerical index
+                            df_collected = df_collected.set_index(bridge.new, drop=True, append=False)
+                        else:
+                            df_collected = df_collected.set_index(bridge.new, drop=True, append=True)
+
+                        already_renamed[bridge.orig] = bridge
 
         res_collector.append(
             df_collected.groupby(by=df_collected.index.names).agg(agg_func)
