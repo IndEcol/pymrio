@@ -1672,23 +1672,23 @@ def parse_oecd(path, year=None):
 
         # aggregate rows
         Z.loc[co_name, :] = (
-            Z.loc[co_name, :] + Z.loc[agg_list, :].groupby(level="sector", axis=0).sum()
+            Z.loc[co_name, :] + Z.loc[agg_list, :].groupby(level="sector").sum()
         ).values
         Z = Z.drop(agg_list, axis=0)
         Y.loc[co_name, :] = (
-            Y.loc[co_name, :] + Y.loc[agg_list, :].groupby(level="sector", axis=0).sum()
+            Y.loc[co_name, :] + Y.loc[agg_list, :].groupby(level="sector").sum()
         ).values
         Y = Y.drop(agg_list, axis=0)
 
         # aggregate columns
         Z.loc[:, co_name] = (
-            Z.loc[:, co_name] + Z.loc[:, agg_list].groupby(level="sector", axis=1).sum()
+            Z.loc[:, co_name] + Z.loc[:, agg_list].T.groupby(level="sector").sum().T
         ).values
         Z = Z.drop(agg_list, axis=1)
 
         F_factor_input.loc[:, co_name] = (
             F_factor_input.loc[:, co_name]
-            + F_factor_input.loc[:, agg_list].groupby(level="sector", axis=1).sum()
+            + F_factor_input.loc[:, agg_list].T.groupby(level="sector").sum().T
         ).values
         F_factor_input = F_factor_input.drop(agg_list, axis=1)
 
