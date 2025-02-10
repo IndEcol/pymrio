@@ -897,10 +897,10 @@ class Extension(BaseSystem):
 
         if Y_agg is None:
             try:
-                Y_agg = Y.groupby(level="region", axis=1, sort=False).sum()
+                Y_agg = Y.T.groupby(level="region", sort=False).sum().T
 
             except (AssertionError, KeyError):
-                Y_agg = Y.groupby(level=0, axis=1, sort=False).sum()
+                Y_agg = Y.T.groupby(level=0, sort=False).sum().T
 
         y_vec = Y.sum(axis=0)
 
@@ -953,9 +953,9 @@ class Extension(BaseSystem):
             # F_Y_agg = ioutil.agg_columns(
             # ext['F_Y'], self.get_Y_categories().size)
             try:
-                F_Y_agg = self.F_Y.groupby(level="region", axis=1, sort=False).sum()
+                F_Y_agg = self.F_Y.T.groupby(level="region", sort=False).sum().T
             except (AssertionError, KeyError):
-                F_Y_agg = self.F_Y.groupby(level=0, axis=1, sort=False).sum()
+                F_Y_agg = self.F_Y.T.groupby(level=0, sort=False).sum().T
 
         if (
             (self.D_cba is None)
@@ -981,34 +981,34 @@ class Extension(BaseSystem):
         ):
             try:
                 self.D_cba_reg = (
-                    self.D_cba.groupby(level="region", axis=1, sort=False).sum()
+                    self.D_cba.T.groupby(level="region", sort=False).sum().T
                     + F_Y_agg
                 )
             except (AssertionError, KeyError):
                 self.D_cba_reg = (
-                    self.D_cba.groupby(level=0, axis=1, sort=False).sum() + F_Y_agg
+                    self.D_cba.T.groupby(level=0, sort=False).sum().T + F_Y_agg
                 )
             try:
                 self.D_pba_reg = (
-                    self.D_pba.groupby(level="region", axis=1, sort=False).sum()
+                    self.D_pba.T.groupby(level="region", sort=False).sum().T
                     + F_Y_agg
                 )
             except (AssertionError, KeyError):
                 self.D_pba_reg = (
-                    self.D_pba.groupby(level=0, axis=1, sort=False).sum() + F_Y_agg
+                    self.D_pba.T.groupby(level=0, sort=False).sum().T + F_Y_agg
                 )
             try:
-                self.D_imp_reg = self.D_imp.groupby(
-                    level="region", axis=1, sort=False
-                ).sum()
+                self.D_imp_reg = self.D_imp.T.groupby(
+                    level="region", sort=False
+                ).sum().T
             except (AssertionError, KeyError):
-                self.D_imp_reg = self.D_imp.groupby(level=0, axis=1, sort=False).sum()
+                self.D_imp_reg = self.D_imp.T.groupby(level=0, sort=False).sum().T
             try:
-                self.D_exp_reg = self.D_exp.groupby(
-                    level="region", axis=1, sort=False
-                ).sum()
+                self.D_exp_reg = self.D_exp.T.groupby(
+                    level="region", sort=False
+                ).sum().T
             except (AssertionError, KeyError):
-                self.D_exp_reg = self.D_exp.groupby(level=0, axis=1, sort=False).sum()
+                self.D_exp_reg = self.D_exp.T.groupby(level=0, sort=False).sum().T
 
             logging.debug("{} - Accounts D for regions calculated".format(self.name))
 
@@ -2171,13 +2171,13 @@ class IOSystem(BaseSystem):
             _index_names = df.index.names
             _columns_names = df.columns.names
             if (type(df.columns[0]) is not tuple) and df.columns[0].lower() == "unit":
-                df = df.groupby(df.index, axis=0, sort=False).first()
+                df = df.groupby(df.index, sort=False).first()
             else:
                 df = (
-                    df.groupby(df.index, axis=0, sort=False)
+                    df.groupby(df.index, sort=False)
                     .sum()
-                    .groupby(df.columns, axis=1, sort=False)
-                    .sum()
+                    .T.groupby(df.columns, sort=False)
+                    .sum().T
                 )
 
             if type(df.index[0]) is tuple:

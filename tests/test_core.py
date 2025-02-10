@@ -419,7 +419,7 @@ def test_direct_account_calc(fix_testmrio):
 
     new = orig.copy().rename_regions({"reg3": "ll", "reg4": "aa"})
 
-    Y_agg = new.Y.groupby(axis=1, level="region", sort=False).agg(sum)
+    Y_agg = new.Y.T.groupby(level="region", sort=False).agg(sum).T
 
     (D_cba, D_pba, D_imp, D_exp) = pymrio.calc_accounts(new.emissions.S, new.L, Y_agg)
 

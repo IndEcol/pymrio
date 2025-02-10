@@ -719,7 +719,7 @@ def test_calc_accounts_MRIO(td_small_MRIO):
     nD_cba, nD_pba, nD_imp, nD_exp = calc_accounts(
         td_small_MRIO.S,
         td_small_MRIO.L,
-        td_small_MRIO.Y.groupby(level="region", axis=1, sort=False).sum(),
+        td_small_MRIO.Y.T.groupby(level="region", sort=False).sum().T,
     )
     # test all
 
