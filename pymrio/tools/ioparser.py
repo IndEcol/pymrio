@@ -1602,7 +1602,7 @@ def parse_oecd(path, year=None):
 
     mon_unit = "Million USD"
 
-    oecd_totals_col = ["TOTAL"]
+    oecd_totals_col = ["OUT", "TOTAL"]
     oecd_totals_row = ["OUT", "OUTPUT"]
 
     oecd_raw.drop(oecd_totals_col, axis=1, errors="ignore", inplace=True)
