@@ -1006,9 +1006,11 @@ def check_df_map(df_orig, df_map):
     # would be in effect given df_orig.
     pass
 
-import line_profiler
+# CONT: 
+# TODO: bridge column indicator as argument (also update convert notebook)
+# TODO: new default <-> 
 
-@line_profiler.profile
+
 def convert(
     df_orig, df_map, agg_func="sum", drop_not_bridged_index=True, ignore_columns=None
 ):
@@ -1192,7 +1194,6 @@ def convert(
                 # as we go along in order, we add them to the end of the index
                 _old_index.insert(len(_old_index.columns), bridge.new, new_index_value)  
                 df_collected.index = pd.MultiIndex.from_frame(_old_index)
-
 
             else:
 

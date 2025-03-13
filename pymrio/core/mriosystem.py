@@ -54,6 +54,7 @@ def _warn_deprecation(message):  # pragma: no cover
     warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
+
 # Exceptions
 class ResetError(Exception):
     """Base class for errors while reseting the system"""
@@ -1830,30 +1831,29 @@ class Extension(BaseSystem):
 
         """
 
-        # TODO: if we get sector, we stack with sector, and with region the same
 
         name = name if name else self.name + "_characterized"
 
-        # making a dataframe with indexes (stressors) as values (with multiple
-        # columns if multiindex)
+        # Build dataframe of unique stressor names
         rows = self.get_rows()
-        if type(rows) == pd.core.indexes.multi.MultiIndex:
+        if type(rows) is pd.core.indexes.multi.MultiIndex:
             df_stressors = pd.DataFrame.from_records(list(rows), columns=rows.names)
-        elif type(rows) == pd.core.indexes.base.Index:
+        elif type(rows) is pd.core.indexes.base.Index:
             df_stressors = pd.DataFrame.from_records(
                 list([[r] for r in rows]), columns=rows.names
             )
 
-        required_columns = list(rows.names) + [
+        stack_columns = list(rows.names)
+        if "region" in factors.columns:
+            stack_columns.append("region")
+        if "sector" in factors.columns:
+            stack_columns.append("sector")
+
+        required_columns = stack_columns + [
             characterization_factors_column,
             characterized_name_column,
             characterized_unit_column,
         ]
-
-        if "region" in factors.columns:
-            required_columns.append("region")
-        if "sector" in factors.columns:
-            required_columns.append("sector")
 
         if not set(required_columns).issubset(set(factors.columns)):
             raise ValueError(
@@ -1871,7 +1871,6 @@ class Extension(BaseSystem):
             #     impacts_stressors_missing.append(charact_name)
             # else:
             #     factors_cleaned_gathered.append(fac_rest)
-            # This works since an inner merge returns a df with index present in both df
             if len(fac_rest.merge(df_stressors, how="inner")) < len(fac_rest):
                 impacts_stressors_missing.append(charact_name)
 
@@ -1891,6 +1890,9 @@ class Extension(BaseSystem):
 
         df_char = pd.concat(factors_cleaned_gathered)
 
+        # remove all stressor rows in df_char not present in the extension
+        df_char = df_char.merge(df_stressors, how="inner", on=rows.names)
+
         units = (
             df_char.loc[:, [characterized_name_column, characterized_unit_column]]
             .drop_duplicates()
@@ -1898,11 +1900,29 @@ class Extension(BaseSystem):
             .rename({characterized_unit_column: "unit"}, axis=1)
         )
 
-        calc_matrix = (
-            (
-                df_char.set_index(rows.names + [characterized_name_column])
+        __import__('pdb').set_trace()
+        # CONT: remove the reindex from the calc_matrix as we do the df_char filtering before now
+        # CONT: 1. Build the inner merge near the beginning, do it for missing stressors, regions and sectors
+        # CONT: 2. Once this is there, build a df_char with only the available data
+        # CONT: 3. Always return (a) extension, (b) matrix and (c) factor with a new column if it was used
+
+        calc_matrix = (( df_char.set_index(stack_columns + [characterized_name_column]) .loc[:, characterization_factors_column] .unstack(stack_columns) .fillna(0))).reindex(rows, axis=1)
+
+        #
+        #     .reindex(rows, axis=1)  # cases when not all stressors in factors
+        #     .fillna(value=0)
+        # )
+
+
+        x = df_char.set_index(stack_columns + [characterized_name_column]).loc[:, characterization_factors_column].unstack(stack_columns).fillna(0)
+
+
+        # END REFACTOR/TEST 
+
+        calc_matrix = ((
+                df_char.set_index(stack_columns + [characterized_name_column])
                 .loc[:, characterization_factors_column]
-                .unstack(rows.names)
+                .unstack(stack_columns)
                 .fillna(0)
             )
             .reindex(rows, axis=1)  # cases when not all stressors in factors
@@ -1952,7 +1972,7 @@ class Extension(BaseSystem):
             This requires a specific structure:
 
             - Constraining data (e.g. stressors, regions, sectors) can be
-            either in the index or columns of df_orig. The need to have the same
+            either in the index or columns of df_orig. They need to have the same
             name as the named index or column in df_orig. The algorithm searches
             for matching data in df_orig based on all constraining columns in df_map.
 
@@ -1981,10 +2001,10 @@ class Extension(BaseSystem):
                 will be renamed by the entries here.
             compartment__compartment ... the new compartment,
                 replacing the original compartment. No rename of column happens here,
-                still row index will be renamed as given here.
+                still row indicies will be renamed as given here.
 
-            the columns with __ are called bridge columns, they are used
-            to match the original index. The new dataframe with have index names
+            The columns with __ are called bridge columns, they are used
+            to match the original index. The new dataframe will have index names
             based on the first part of the bridge column, in the order
             in which the bridge columns are given in the mapping dataframe.
 

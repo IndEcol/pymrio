@@ -383,24 +383,27 @@ def test_diag_stressor(fix_testmrio):
     assert sum(dext_name.F.iloc[1:-1, 0]) == 0
 
 
-# def test_characterize_extension_reg_spec(fix_testmrio):
-#     factors = pd.read_csv(
-#         Path(
-#             PYMRIO_PATH["test_mrio"]
-#             / Path("concordance")
-#             / "emissions_charact_reg_spec.tsv"
-#         ),
-#         sep="\t",
-#     )
-#     shuffled = factors.sample(len(factors.index), random_state=666, axis=0)
-#
-#     t_uncalc = fix_testmrio.testmrio
-#     t_calc = fix_testmrio.testmrio.calc_all()
-#     uncalc_name = "emissions_charact_uncalc"
+def test_characterize_extension_reg_spec(fix_testmrio):
+    factors = pd.read_csv(
+        Path(
+            PYMRIO_PATH["test_mrio"]
+            / Path("concordance")
+            / "emissions_charact_reg_spec.tsv"
+        ),
+        sep="\t",
+    )
+
+    t_uncalc = fix_testmrio.testmrio
+    t_calc = fix_testmrio.testmrio.calc_all()
+    uncalc_name = "emissions_charact_uncalc"
 #
 #     # CONT: Until here the new procedure should work already
-#     ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name)
-#     ex_calc = t_uncalc.emissions.characterize(factors)
+# TODO: compare the original reg_spec tsv with the original unspec one - should give same result
+# TODO: double one region and see if the result change accordingly
+# TODO: test sector specific one in the same way
+    ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name)
+
+    # ex_calc = t_uncalc.emissions.characterize(factors)
 #
 #     assert ex_uncalc.name == uncalc_name
 #     assert ex_calc.name == t_calc.emissions.name + "_characterized"
