@@ -1836,18 +1836,26 @@ class Extension(BaseSystem):
 
         # Build dataframe of unique stressor names
         rows = self.get_rows()
-        if type(rows) is pd.core.indexes.multi.MultiIndex:
-            df_stressors = pd.DataFrame.from_records(list(rows), columns=rows.names)
-        elif type(rows) is pd.core.indexes.base.Index:
-            df_stressors = pd.DataFrame.from_records(
-                list([[r] for r in rows]), columns=rows.names
-            )
+        regions = self.get_regions()
+        sectors = self.get_sectors()
+
+        def build_df_from_index(indx):
+            if type(indx) is pd.core.indexes.multi.MultiIndex:
+                return pd.DataFrame.from_records(list(indx), columns=indx.names)
+            elif type(indx) is pd.core.indexes.base.Index:
+                return pd.DataFrame.from_records(
+                    list([[r] for r in indx]), columns=indx.names
+                )
+
+        df_stressors = build_df_from_index(rows)
 
         stack_columns = list(rows.names)
         if "region" in factors.columns:
             stack_columns.append("region")
+            df_regions = build_df_from_index(regions)
         if "sector" in factors.columns:
             stack_columns.append("sector")
+            df_sectors = build_df_from_index(sectors)
 
         required_columns = stack_columns + [
             characterization_factors_column,
@@ -1893,6 +1901,23 @@ class Extension(BaseSystem):
         # remove all stressor rows in df_char not present in the extension
         df_char = df_char.merge(df_stressors, how="inner", on=rows.names)
 
+        if "region" in stack_columns:
+            # check if all regions in df_char are in the extension, check which are missing
+            regions_missing = set(df_char["region"]).difference(set(regions))
+            if regions_missing:
+                logging.warning(
+                    f"Regions >{regions_missing}< not present in extension >{self.name}<"
+                )
+            df_char = df_char.merge(df_regions, how="inner", on="region")
+        if "sector" in stack_columns:
+            # check if all sectors in df_char are in the extension, check which are missing
+            sectors_missing = set(df_char["sector"]).difference(set(sectors))
+            if sectors_missing:
+                logging.warning(
+                    f"Sectors >{sectors_missing}< not present in extension >{self.name}<"
+                )
+            df_char = df_char.merge(df_sectors, how="inner", on="sector")
+
         units = (
             df_char.loc[:, [characterized_name_column, characterized_unit_column]]
             .drop_duplicates()
@@ -1901,8 +1926,11 @@ class Extension(BaseSystem):
         )
 
         __import__('pdb').set_trace()
-        # CONT: remove the reindex from the calc_matrix as we do the df_char filtering before now
+        # CONT: LAST: remove the reindex from the calc_matrix as we do the df_char filtering before now
         # CONT: 1. Build the inner merge near the beginning, do it for missing stressors, regions and sectors
+        #         - keep the df_stressors procedure
+        #         - then check for all regions/sectors not in df_char and remove these as well
+        #         - log which are missing, and return the used df_char
         # CONT: 2. Once this is there, build a df_char with only the available data
         # CONT: 3. Always return (a) extension, (b) matrix and (c) factor with a new column if it was used
 
