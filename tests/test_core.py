@@ -401,6 +401,8 @@ def test_characterize_extension_reg_spec(fix_testmrio):
 # TODO: compare the original reg_spec tsv with the original unspec one - should give same result
 # TODO: double one region and see if the result change accordingly
 # TODO: test sector specific one in the same way
+    
+    # __import__('pdb').set_trace()
     ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name)
 
     # ex_calc = t_uncalc.emissions.characterize(factors)
@@ -546,7 +548,9 @@ def test_characterize_extension(fix_testmrio):
         (factors.stressor == "emission_type1")
         & (factors.impact == "total air emissions")
     ]
+
     t_calc.short_impacts = t_calc.emissions.characterize(factors_short, name="shorty")
+
     t_calc.calc_all()
 
     pdt.assert_series_equal(
