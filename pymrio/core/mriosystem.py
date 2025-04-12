@@ -49,6 +49,7 @@ from pymrio.tools.iomath import (
 from pymrio.tools.iometadata import MRIOMetaData
 
 
+
 # internal functions
 def _warn_deprecation(message):  # pragma: no cover
     warnings.warn(message, DeprecationWarning, stacklevel=2)
@@ -1831,11 +1832,21 @@ class Extension(BaseSystem):
             - .factors: pd.DataFrame (when return_char_matrix==True)
 
         """
+        # CONT: finalize/test regional/sectoral specific characterization - see todos in tests 
+        # TODO: current procedure seems to work for non regional characterization - clean up and finalize
+        # TODO: current problem: matrix dimension for calculation not aligned for regional
+        # TODO: probably the extension matrices need to be stacked with the stacked column specs.
+        # CONT: Always return (a) extension, (b) matrix and (c) factor with a new column if it was used
+        # CONT: update documentation with the new characterization and explain "availabe_in_ext"
+        # CONT: For characterization across extensions: 
+        #   - build a temp extensions with all required stressors
+        #   - for the characterization table require a new column "extension" to specify it
+        #   - for now we leave any "undefined" extension charaterization out, there is probably no use case for that and it could be achieved via building an extension first
+
         name = name if name else self.name + "_characterized"
 
-        from IPython import embed; embed()
-
         # get index of stressors/regions/sector depending on input
+        # just taking the next available df
         _df = next(self.get_DataFrame(data=True, with_unit=False, with_population=False))
 
         if "region" in factors.columns:
@@ -1877,8 +1888,6 @@ class Extension(BaseSystem):
 
         df_char = pd.concat(factors_cleaned_gathered)
 
-
-
         units = (
             df_char.loc[:, [characterized_name_column, characterized_unit_column]]
             .drop_duplicates()
@@ -1897,6 +1906,36 @@ class Extension(BaseSystem):
                        # but check the cont from above before
             .fillna(value=0)        # and set them to zero
         )
+
+        # Workbench...
+
+        ex = Extension(
+            name=name,
+            unit=units,
+            **{
+                # TODO: for this to work, reg and/or sector needs to be stacked
+                acc: (calc_matrix @ self.__dict__[acc]).reindex(units.index)
+                for acc in set(
+                    self.get_DataFrame(data=False, with_unit=False)
+                ).difference(set(self.__coefficients__))
+            },
+        )
+
+        from IPython import embed; embed()
+
+        if _meta:
+            _meta._add_modify(
+                f"Calculated characterized accounts {name} from {self.name}"
+            )
+
+        if return_char_matrix:
+            return collections.namedtuple("characterization", ["extension", "factors"])(
+                extension=ex, factors=df_char
+            )
+        else:
+            return ex
+
+
 
 
         # OLD PROCEDURE:
@@ -1992,9 +2031,6 @@ class Extension(BaseSystem):
             .rename({characterized_unit_column: "unit"}, axis=1)
         )
 
-        # CONT: before the multiplication in the extension, stack region and/or sector to allow matrix multiplication of the
-        # accounts.
-        # CONT: LAST. Always return (a) extension, (b) matrix and (c) factor with a new column if it was used
 
         # __import__('pdb').set_trace()
 
