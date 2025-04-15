@@ -1769,7 +1769,6 @@ class Extension(BaseSystem):
         Factors can contain more characterization factors which depend on stressors not
         present in the Extension - these will be automatically removed.
 
-
         The dataframe passed for the characterization must be in a long format.
         It must contain columns with the same names as in the index of the extension.
 
@@ -1812,10 +1811,10 @@ class Extension(BaseSystem):
             if None (default): name of the current extension with suffix
             '_characterized'
 
-        return_char_matrix: boolean (optional)
-            If False (default), returns just the characterized extension.
-            If True, returns a namedtuple with extension and the actually used
-            characterization matrix.
+        drop_missing: boolean (optional)
+            If True, impacts with missing stressor/regional data will be dropped
+            If False(default), a warning is issued and missing data is assumed to be zero.
+            In that case, check for missing data in the returned .factors dataframe.
 
         _meta: MRIOMetaData, optional
             Metadata handler for logging, optional. Internal
@@ -1823,19 +1822,30 @@ class Extension(BaseSystem):
         Returns
         --------
 
-        pymrio.Extensions (when return_char_matrix==False, default)
-
-           or
-
         namedtuple with
             - .extension: pymrio.Extension
-            - .factors: pd.DataFrame (when return_char_matrix==True)
+            - .factors: pd.DataFrame: the used characterization factors, with info on stressor availability 
+            - .char_matrix: pd.DataFrame: the constructed characterization matrix
 
         """
+        # CONT: NEW PLAN - all new, including tests:
+        # fa = factors.set_index(["stressor", "compartment", "region", "impact"]).loc[:, "factor"].unstack("impact")
+        # input df of factors must contain rows index of the characterization and can contain any of the columns
+        # the extension matrix are stacked completly
+        # ext_f = self.F.stack().stack()
+        # then mutiplied, making use of broadcasting and groupby by the original stressor rows
+        # factors will contain a unit_orig and unit_new. If unit_orig is present, it will be compared and enforced
+        # unit_new will be set
+        # in fa we loop over impacts, drop nan (so the multipliation will be shorter) 
+        # if an impact has any index not present, we either drop or set to 0 and report by returning
+        # a df with missing data
+
+
+    
+        # OLD:
         # CONT: finalize/test regional/sectoral specific characterization - see todos in tests 
         # TODO: current procedure seems to work for non regional characterization - clean up and finalize
-        # CONT: Always return (a) extension, (b) matrix and (c) factor with a new column if it was used
-        # CONT: update documentation with the new characterization and explain "availabe_in_ext"
+        # CONT: update documentation with the new characterization and explain "availabe_in_ext"/"drop_missing"
         # CONT: For characterization across extensions: 
         #   - build a temp extensions with all required stressors
         #   - for the characterization table require a new column "extension" to specify it
@@ -1845,8 +1855,8 @@ class Extension(BaseSystem):
 
         name = name if name else self.name + "_characterized"
 
-        # get index of stressors/regions/sector depending on input
-        # just taking the next available df
+        # searching the next available df to get the 
+        # index of stressors/regions/sector depending on input
         _df = next(self.get_DataFrame(data=True, with_unit=False, with_population=False))
 
         calc_matrix_stack_adjust = []
@@ -1883,12 +1893,13 @@ class Extension(BaseSystem):
             if not all(_merged["available_in_ext"]):
                 if drop_missing:
                     logging.warning(f"Dropping impact >{charact_name}< - some data missing")
+                    continue
                 else:
                     logging.warning(f"Not all data for calculating impact >{charact_name}< available")
             # TODO: check if all regions/sectors are covered in factors.
             # If not: warning. This also sets the behaviour for fillna in the calc_matrix setup
             factors_cleaned_gathered.append(_merged)
-
+        
         df_char = pd.concat(factors_cleaned_gathered)
 
         units = (
@@ -1913,11 +1924,30 @@ class Extension(BaseSystem):
 
         calc_matrix = calc_matrix.stack(calc_matrix_stack_adjust)
 
+        cun = calc_matrix.unstack(calc_matrix_stack_adjust)
+
+        __import__('pdb').set_trace()
+
+        r = calc_matrix @ self.F
+
+m = cun.T
+f = self.F.stack().stack()
+
+# this works with broadcasting
+x = m.loc[:, "air water impact"] * f
+
+x.groupby(level=["region", "sector"]).sum()
+
+
+fa = factors.set_index(["stressor", "compartment", "region", "impact"]).loc[:, "factor"].unstack("impact")
+
+xx = fa.loc[:, "air water impact"] * f
+
+
         ex = Extension(
             name=name,
             unit=units,
             **{
-                # TODO: for this to work, reg and/or sector needs to be stacked
                 acc: (calc_matrix @ self.__dict__[acc]).stack(calc_matrix_stack_adjust).reindex(units.index)
                 for acc in set(
                     self.get_DataFrame(data=False, with_unit=False)
@@ -1931,12 +1961,9 @@ class Extension(BaseSystem):
                 f"Calculated characterized accounts {name} from {self.name}"
             )
 
-        if return_char_matrix:
-            return collections.namedtuple("characterization", ["extension", "factors"])(
-                extension=ex, factors=df_char
-            )
-        else:
-            return ex
+        return collections.namedtuple("characterization", ["extension", "factors", "char_matrix"])(
+            extension=ex, factors=df_char, char_matrix=calc_matrix
+        )
 
     def convert(
         self,

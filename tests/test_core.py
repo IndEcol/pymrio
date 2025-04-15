@@ -384,7 +384,7 @@ def test_diag_stressor(fix_testmrio):
 
 
 def test_characterize_extension_reg_spec(fix_testmrio):
-    factors = pd.read_csv(
+    factors_reg_spec = pd.read_csv(
         Path(
             PYMRIO_PATH["test_mrio"]
             / Path("concordance")
@@ -393,9 +393,22 @@ def test_characterize_extension_reg_spec(fix_testmrio):
         sep="\t",
     )
 
-    t_uncalc = fix_testmrio.testmrio
-    t_calc = fix_testmrio.testmrio.calc_all()
-    uncalc_name = "emissions_charact_uncalc"
+    factors_no_reg = pd.read_csv(
+        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
+        sep="\t",
+    )
+
+    tmrio = fix_testmrio.testmrio
+
+    # ex_no_reg = tmrio.emissions.characterize(factors_no_reg).extension
+    # ex_reg_spec = tmrio.emissions.characterize(factors_reg_spec).extension
+
+    x = tmrio.emissions.characterize(factors_reg_spec)
+
+
+    # t_uncalc = fix_testmrio.testmrio
+    # t_calc = fix_testmrio.testmrio.calc_all()
+    # uncalc_name = "emissions_charact_uncalc"
 #
 #     # CONT: Until here the new procedure should work already
 # TODO: compare the original reg_spec tsv with the original unspec one - should give same result
@@ -485,8 +498,8 @@ def test_characterize_extension(fix_testmrio):
     t_uncalc = fix_testmrio.testmrio
     t_calc = fix_testmrio.testmrio.calc_all()
     uncalc_name = "emissions_charact_uncalc"
-    ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name)
-    ex_calc = t_uncalc.emissions.characterize(factors)
+    ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name).extension
+    ex_calc = t_uncalc.emissions.characterize(factors).extension
 
     assert ex_uncalc.name == uncalc_name
     assert ex_calc.name == t_calc.emissions.name + "_characterized"
@@ -537,9 +550,15 @@ def test_characterize_extension(fix_testmrio):
             factors, characterization_factors_column="foo"
         )
 
-    # testing used characterization matrix
-    ret = t_uncalc.emissions.characterize(factors, return_char_matrix=True)
-    assert "emissions_type3" not in ret.factors.index
+    # test of dropping impacts with missing data
+    ret_all = t_uncalc.emissions.characterize(factors, drop_missing=False)
+    assert "emission_type3" in ret_all.factors.stressor.to_list()
+    assert "total emissions" in ret_all.factors.impact.to_list()
+    assert all(ret_all.factors.loc[ret_all.factors.stressor == "emission_type3"].loc[:, "available_in_ext"]) is False
+    assert all(ret_all.factors.loc[ret_all.factors.stressor != "emission_type3"].loc[:, "available_in_ext"])
+    ret_drop = t_uncalc.emissions.characterize(factors, drop_missing=True)
+    assert "emission_type3" not in ret_drop.factors.stressor.to_list()
+    assert "total emissions" not in ret_drop.factors.impact.to_list()
 
     # testing characterization which do not cover all stressors
     factors_short = factors[
@@ -547,8 +566,7 @@ def test_characterize_extension(fix_testmrio):
         & (factors.impact == "total air emissions")
     ]
 
-    t_calc.short_impacts = t_calc.emissions.characterize(factors_short, name="shorty")
-
+    t_calc.short_impacts = t_calc.emissions.characterize(factors_short, name="shorty").extension
     t_calc.calc_all()
 
     pdt.assert_series_equal(
