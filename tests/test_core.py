@@ -392,18 +392,22 @@ def test_characterize_extension_reg_spec(fix_testmrio):
         ),
         sep="\t",
     )
+    factors_reg_spec.loc[:, "orig_unit"] = "kg"
 
     factors_no_reg = pd.read_csv(
         Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
         sep="\t",
     )
+    factors_no_reg.loc[:, "orig_unit"] = "kg"
+
 
     tmrio = fix_testmrio.testmrio
 
-    # ex_no_reg = tmrio.emissions.characterize(factors_no_reg).extension
-    # ex_reg_spec = tmrio.emissions.characterize(factors_reg_spec).extension
+    ex_no_reg = tmrio.emissions.characterize(factors_no_reg).extension
+    ex_reg_spec = tmrio.emissions.characterize(factors_reg_spec).extension
 
-    x = tmrio.emissions.characterize(factors_reg_spec)
+    __import__('pdb').set_trace()
+
 
 
     # t_uncalc = fix_testmrio.testmrio
@@ -494,6 +498,9 @@ def test_characterize_extension(fix_testmrio):
         Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
         sep="\t",
     )
+    # TODO: put into matrix
+    factors.loc[:, "orig_unit"] = "kg"
+
 
     t_uncalc = fix_testmrio.testmrio
     t_calc = fix_testmrio.testmrio.calc_all()
@@ -554,11 +561,16 @@ def test_characterize_extension(fix_testmrio):
     ret_all = t_uncalc.emissions.characterize(factors, drop_missing=False)
     assert "emission_type3" in ret_all.factors.stressor.to_list()
     assert "total emissions" in ret_all.factors.impact.to_list()
-    assert all(ret_all.factors.loc[ret_all.factors.stressor == "emission_type3"].loc[:, "available_in_ext"]) is False
-    assert all(ret_all.factors.loc[ret_all.factors.stressor != "emission_type3"].loc[:, "available_in_ext"])
+    assert all(ret_all.factors.loc[ret_all.factors.stressor == "emission_type3"].loc[:, "error_missing_stressor"]) is True
+    assert all(ret_all.factors.loc[ret_all.factors.stressor != "emission_type3"].loc[:, "error_missing_stressor"]) is False
+    assert all(ret_all.factors.loc[ret_all.factors.impact == "total emissions"].loc[:, "dropped"]) is False
     ret_drop = t_uncalc.emissions.characterize(factors, drop_missing=True)
-    assert "emission_type3" not in ret_drop.factors.stressor.to_list()
-    assert "total emissions" not in ret_drop.factors.impact.to_list()
+    assert all(ret_drop.factors.loc[ret_drop.factors.stressor == "emission_type3"].loc[:, "error_missing_stressor"]) is True
+    assert all(ret_drop.factors.loc[ret_drop.factors.stressor == "emission_type3"].loc[:, "dropped"]) is True
+    assert all(ret_drop.factors.loc[ret_drop.factors.impact == "total emissions"].loc[:, "dropped"]) is True
+
+    assert "total emissions" not in ret_drop.extension.F.index
+    assert "total emissions" in ret_all.extension.F.index
 
     # testing characterization which do not cover all stressors
     factors_short = factors[
@@ -567,6 +579,7 @@ def test_characterize_extension(fix_testmrio):
     ]
 
     t_calc.short_impacts = t_calc.emissions.characterize(factors_short, name="shorty").extension
+
     t_calc.calc_all()
 
     pdt.assert_series_equal(
