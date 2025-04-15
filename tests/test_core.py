@@ -482,8 +482,6 @@ def test_characterize_extension(fix_testmrio):
         sep="\t",
     )
 
-    shuffled = factors.sample(len(factors.index), random_state=666, axis=0)
-
     t_uncalc = fix_testmrio.testmrio
     t_calc = fix_testmrio.testmrio.calc_all()
     uncalc_name = "emissions_charact_uncalc"

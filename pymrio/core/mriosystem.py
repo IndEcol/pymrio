@@ -1834,14 +1834,14 @@ class Extension(BaseSystem):
         """
         # CONT: finalize/test regional/sectoral specific characterization - see todos in tests 
         # TODO: current procedure seems to work for non regional characterization - clean up and finalize
-        # TODO: current problem: matrix dimension for calculation not aligned for regional
-        # TODO: probably the extension matrices need to be stacked with the stacked column specs.
         # CONT: Always return (a) extension, (b) matrix and (c) factor with a new column if it was used
         # CONT: update documentation with the new characterization and explain "availabe_in_ext"
         # CONT: For characterization across extensions: 
         #   - build a temp extensions with all required stressors
         #   - for the characterization table require a new column "extension" to specify it
         #   - for now we leave any "undefined" extension charaterization out, there is probably no use case for that and it could be achieved via building an extension first
+        # CONT: test for diagonalized stressors, guard for stressor-stressor and impact-impact characterization
+
 
         name = name if name else self.name + "_characterized"
 
@@ -1849,10 +1849,13 @@ class Extension(BaseSystem):
         # just taking the next available df
         _df = next(self.get_DataFrame(data=True, with_unit=False, with_population=False))
 
+        calc_matrix_stack_adjust = []
         if "region" in factors.columns:
             _df = _df.stack("region")
+            calc_matrix_stack_adjust.append("region")
         if "sector" in factors.columns:
             _df = _df.stack("sector")
+            calc_matrix_stack_adjust.append("sector")
         calc_index = _df.index
 
         stack_columns = calc_index.names
@@ -1907,167 +1910,21 @@ class Extension(BaseSystem):
             .fillna(value=0)        # and set them to zero
         )
 
-        # Workbench...
+
+        calc_matrix = calc_matrix.stack(calc_matrix_stack_adjust)
 
         ex = Extension(
             name=name,
             unit=units,
             **{
                 # TODO: for this to work, reg and/or sector needs to be stacked
-                acc: (calc_matrix @ self.__dict__[acc]).reindex(units.index)
+                acc: (calc_matrix @ self.__dict__[acc]).stack(calc_matrix_stack_adjust).reindex(units.index)
                 for acc in set(
                     self.get_DataFrame(data=False, with_unit=False)
                 ).difference(set(self.__coefficients__))
             },
         )
 
-        from IPython import embed; embed()
-
-        if _meta:
-            _meta._add_modify(
-                f"Calculated characterized accounts {name} from {self.name}"
-            )
-
-        if return_char_matrix:
-            return collections.namedtuple("characterization", ["extension", "factors"])(
-                extension=ex, factors=df_char
-            )
-        else:
-            return ex
-
-
-
-
-        # OLD PROCEDURE:
-
-        # Build dataframe of unique stressor names
-        rows = self.get_rows()
-        regions = self.get_regions()
-        sectors = self.get_sectors()
-
-
-        def build_df_from_index(indx):
-            if type(indx) is pd.core.indexes.multi.MultiIndex:
-                return pd.DataFrame.from_records(list(indx), columns=indx.names)
-            elif type(indx) is pd.core.indexes.base.Index:
-                return pd.DataFrame.from_records(
-                    list([[r] for r in indx]), columns=indx.names
-                )
-
-        df_stressors = build_df_from_index(rows)
-
-        stack_columns = list(rows.names)
-        if "region" in factors.columns:
-            stack_columns.append("region")
-            df_regions = build_df_from_index(regions)
-        if "sector" in factors.columns:
-            stack_columns.append("sector")
-            df_sectors = build_df_from_index(sectors)
-
-        required_columns = stack_columns + [
-            characterization_factors_column,
-            characterized_name_column,
-            characterized_unit_column,
-        ]
-
-        if not set(required_columns).issubset(set(factors.columns)):
-            raise ValueError(
-                "Not all required columns in the passed DataFrame >factors<"
-            )
-
-        impacts_stressors_missing = []
-        factors_cleaned_gathered = []
-        # Check if all stressors need for calculating the characterization are given
-        # TODO: This might need to change - case when some stressor can be characterized, but not all are necessary
-        for charact_name in factors[characterized_name_column].drop_duplicates():
-            fac_rest = factors[factors[characterized_name_column] == charact_name]
-            # This works since an inner merge returns a df with index present in both df
-            # if len(fac_rest.merge(df_stressors, how="inner")) < len(fac_rest):
-            #     impacts_stressors_missing.append(charact_name)
-            # else:
-            #     factors_cleaned_gathered.append(fac_rest)
-            if len(fac_rest.merge(df_stressors, how="inner")) < len(fac_rest):
-                impacts_stressors_missing.append(charact_name)
-
-            factors_cleaned_gathered.append(fac_rest)
-
-        # FIXME: add switch in the paramter to keep them but with NA, and to give a separate warning if just some are available
-        # for imissi in impacts_stressors_missing:
-        #     logging.warning(
-        #         f"Impact >{imissi}< removed - calculation requires stressors "
-        #         f"not present in extension >{self.name}<"
-        #     )
-        for imissi in impacts_stressors_missing:
-            logging.warning(
-                f"Not all stressors for calculating impact >{imissi}< "
-                "available in extension >{self.name}<"
-            )
-
-        df_char = pd.concat(factors_cleaned_gathered)
-        # remove all stressor rows in df_char not present in the extension
-        df_char = df_char.merge(df_stressors, how="inner", on=rows.names)
-
-        if "region" in stack_columns:
-            # check if all regions in df_char are in the extension, check which are missing
-            regions_missing = set(df_char["region"]).difference(set(regions))
-            for region in regions_missing:
-                logging.warning(
-                    f"Region >{region}< not present in extension >{self.name}<"
-                )
-            df_char = df_char.merge(df_regions, how="inner", on="region")
-        if "sector" in stack_columns:
-            # check if all sectors in df_char are in the extension, check which are missing
-            sectors_missing = set(df_char["sector"]).difference(set(sectors))
-            for sector in sectors_missing:
-                logging.warning(
-                    f"Sector >{sector}< not present in extension >{self.name}<"
-                )
-            df_char = df_char.merge(df_sectors, how="inner", on="sector")
-
-        units = (
-            df_char.loc[:, [characterized_name_column, characterized_unit_column]]
-            .drop_duplicates()
-            .set_index(characterized_name_column)
-            .rename({characterized_unit_column: "unit"}, axis=1)
-        )
-
-
-        # __import__('pdb').set_trace()
-
-        # x = df_char.set_index(stack_columns + [characterized_name_column]).loc[:, characterization_factors_column].unstack(stack_columns).fillna(0)
-
-        # END REFACTOR/TEST 
-
-        __import__('pdb').set_trace()
-        
-        x = (( df_char.set_index(stack_columns + [characterized_name_column]).loc[:, characterization_factors_column].unstack(stack_columns).fillna(0))).reindex(rows, axis=1)  # add stressor rows not in df_char
-
-        x = (( df_char.set_index(stack_columns + [characterized_name_column]).loc[:, characterization_factors_column].unstack(stack_columns).fillna(0)))
-
-
-
-        calc_matrix = ((
-                df_char.set_index(stack_columns + [characterized_name_column])
-                .loc[:, characterization_factors_column]
-                .unstack(stack_columns)
-                .fillna(0)
-            )
-            # TODO: for region specific the reindex here with rows needs to also reindex for regions/sectors
-            .reindex(rows, axis=1)  # add stressor rows not in df_char
-            .fillna(value=0)        # and set them to zero
-        )
-
-        ex = Extension(
-            name=name,
-            unit=units,
-            **{
-                # TODO: for this to work, reg and/or sector needs to be stacked
-                acc: (calc_matrix @ self.__dict__[acc]).reindex(units.index)
-                for acc in set(
-                    self.get_DataFrame(data=False, with_unit=False)
-                ).difference(set(self.__coefficients__))
-            },
-        )
 
         if _meta:
             _meta._add_modify(
