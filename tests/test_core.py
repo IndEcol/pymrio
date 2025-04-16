@@ -382,124 +382,18 @@ def test_diag_stressor(fix_testmrio):
     assert sum(dext_name.F.iloc[0, 1:-1]) == 0
     assert sum(dext_name.F.iloc[1:-1, 0]) == 0
 
+def test_characterize_extension_general(fix_testmrio):
+    """ Testing 'standard' characterisation 
 
-def test_characterize_extension_reg_spec(fix_testmrio):
-    factors_reg_spec = pd.read_csv(
-        Path(
-            PYMRIO_PATH["test_mrio"]
-            / Path("concordance")
-            / "emissions_charact_reg_spec.tsv"
-        ),
-        sep="\t",
-    )
-    factors_reg_spec.loc[:, "orig_unit"] = "kg"
+    - general (non regional specific) characterisation factors
+    - testing unit fix
+    - testing missing data
+    """
 
-    factors_no_reg = pd.read_csv(
-        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
-        sep="\t",
-    )
-    factors_no_reg.loc[:, "orig_unit"] = "kg"
-
-
-    tmrio = fix_testmrio.testmrio
-
-    ex_no_reg = tmrio.emissions.characterize(factors_no_reg).extension
-    ex_reg_spec = tmrio.emissions.characterize(factors_reg_spec).extension
-
-    __import__('pdb').set_trace()
-
-
-
-    # t_uncalc = fix_testmrio.testmrio
-    # t_calc = fix_testmrio.testmrio.calc_all()
-    # uncalc_name = "emissions_charact_uncalc"
-#
-#     # CONT: Until here the new procedure should work already
-# TODO: compare the original reg_spec tsv with the original unspec one - should give same result
-# TODO: double one region and see if the result change accordingly
-# TODO: test sector specific one in the same way
-    
-    # __import__('pdb').set_trace()
-    ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name)
-
-    # ex_calc = t_uncalc.emissions.characterize(factors)
-#
-#     assert ex_uncalc.name == uncalc_name
-#     assert ex_calc.name == t_calc.emissions.name + "_characterized"
-#
-#     # The test characterization matrix is all in t, the emissions in test are
-#     # all in kg
-#     assert ex_calc.unit.loc["total air emissions", "unit"] == "t"
-#     npt.assert_allclose(
-#         ex_uncalc.F.loc["total air emissions"].sum(),
-#         (t_calc.emissions.F.loc[("emission_type1", "air"), :] / 1000).sum(),
-#     )
-#     npt.assert_allclose(
-#         ex_calc.D_imp.loc["total air emissions"].sum(),
-#         (t_calc.emissions.D_imp.loc[("emission_type1", "air"), :] / 1000).sum(),
-#     )
-#     npt.assert_allclose(
-#         ex_calc.D_exp.loc["air water impact"].sum(),
-#         (
-#             (t_calc.emissions.D_exp.loc[("emission_type1", "air"), :] * 2 / 1000)
-#             + (t_calc.emissions.D_exp.loc[("emission_type2", "water"), :] * 1 / 1000)
-#         ).sum(),
-#     )
-#
-#     # coefficients and multipliers can not characterized directly, so these
-#     # should be removed and then recalculated
-#
-#     assert ex_calc.M is None
-#     assert ex_calc.S is None
-#     t_calc.impacts = ex_calc
-#     t_calc.calc_all()
-#     pdt.assert_series_equal(
-#         t_calc.impacts.M.loc["total air emissions", :],
-#         t_calc.emissions.M.loc[("emission_type1", "air"), :] / 1000,
-#         check_names=False,
-#     )
-#     pdt.assert_series_equal(
-#         t_calc.impacts.S.loc["total air emissions", :],
-#         t_calc.emissions.S.loc[("emission_type1", "air"), :] / 1000,
-#         check_names=False,
-#     )
-#
-#     with pytest.raises(ValueError):
-#         ex_error = t_uncalc.emissions.characterize(
-#             factors, characterization_factors_column="foo"
-#         )
-#     with pytest.raises(ValueError):
-#         ex_error = t_uncalc.factor_inputs.characterize(  # noqa: F841
-#             factors, characterization_factors_column="foo"
-#         )
-#
-#     # testing used characterization matrix
-#     ret = t_uncalc.emissions.characterize(factors, return_char_matrix=True)
-#     assert "emissions_type3" not in ret.factors.index
-#
-#     # testing characterization which do not cover all stressors
-#     factors_short = factors[
-#         (factors.stressor == "emission_type1")
-#         & (factors.impact == "total air emissions")
-#     ]
-#     t_calc.short_impacts = t_calc.emissions.characterize(factors_short, name="shorty")
-#     t_calc.calc_all()
-#
-#     pdt.assert_series_equal(
-#         t_calc.short_impacts.S.loc["total air emissions", :],
-#         t_calc.emissions.S.loc[("emission_type1", "air"), :] / 1000,
-#         check_names=False,
-#     )
-#
-
-
-def test_characterize_extension(fix_testmrio):
     factors = pd.read_csv(
         Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
         sep="\t",
     )
-    # TODO: put into matrix
-    factors.loc[:, "orig_unit"] = "kg"
 
 
     t_uncalc = fix_testmrio.testmrio
@@ -572,6 +466,38 @@ def test_characterize_extension(fix_testmrio):
     assert "total emissions" not in ret_drop.extension.F.index
     assert "total emissions" in ret_all.extension.F.index
 
+    # testing unit mismatch
+
+    fac_mod_stressor_unit = factors.copy()
+    # Changing one emission_type2 value - report error for all due to non consitent units
+    fac_mod_stressor_unit.loc[3, "stressor_unit"] = "g"
+
+    stuc = t_calc.emissions.characterize(fac_mod_stressor_unit)
+
+    assert all(stuc.factors[stuc.factors.stressor == "emission_type2"].error_unit_stressor) is True
+    assert all(stuc.factors[stuc.factors.stressor == "emission_type1"].error_unit_stressor) is False
+    assert all(stuc.factors[stuc.factors.stressor == "emission_type2"].dropped) is True
+    assert all(stuc.factors[stuc.factors.stressor == "emission_type1"].dropped) is False
+    
+    npt.assert_allclose(
+        stuc.extension.F.loc["air water impact"].sum(),
+        (
+            (t_calc.emissions.F.loc[("emission_type1", "air"), :] * 2 / 1000)
+            # since emission type 2 are dropped, they should not appear in the characterized results
+            # + (t_calc.emissions.D_exp.loc[("emission_type2", "water"), :] * 1 / 1000)
+        ).sum(),
+    )
+
+    # Changing all stressor to g - all data should get dropped due to unit stressor error or missing data
+    fac_mod_stressor_unit.loc[:, "stressor_unit"] = 'g'
+    stauc = t_calc.emissions.characterize(fac_mod_stressor_unit)
+
+    assert all(stauc.factors[stauc.factors.stressor.str.contains("1|2")].error_unit_stressor) is True
+    assert all(stauc.factors.dropped) is True
+    assert len(stauc.extension.F) == 0
+    assert len(stauc.extension.F_Y) == 0
+    assert len(stauc.extension.D_cba) == 0
+    
     # testing characterization which do not cover all stressors
     factors_short = factors[
         (factors.stressor == "emission_type1")
@@ -587,6 +513,83 @@ def test_characterize_extension(fix_testmrio):
         t_calc.emissions.S.loc[("emission_type1", "air"), :] / 1000,
         check_names=False,
     )
+
+def test_characterize_extension_reg_spec(fix_testmrio):
+    """ Additional characterization test for region specific cases
+
+    Characterisation is first benchmarked against the general 
+    test_characterize_extension_general. The characterization
+    matrix is the same, just with regional disaggregation.
+
+    After that, new results are generated by modifying regional characterization.
+    """
+    # CONT: make test for missing countries and sectors
+    factors_reg_spec = pd.read_csv(
+        Path(
+            PYMRIO_PATH["test_mrio"]
+            / Path("concordance")
+            / "emissions_charact_reg_spec.tsv"
+        ),
+        sep="\t",
+    )
+
+    factors_no_reg = pd.read_csv(
+        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
+        sep="\t",
+    )
+
+    tmrio = fix_testmrio.testmrio
+
+    ex_reg_spec = tmrio.emissions.characterize(factors_reg_spec).extension
+    ex_no_reg = tmrio.emissions.characterize(factors_no_reg).extension
+
+    pdt.assert_frame_equal(ex_no_reg.F, ex_reg_spec.F)
+    pdt.assert_frame_equal(ex_no_reg.F_Y, ex_reg_spec.F_Y)
+    pdt.assert_frame_equal(ex_no_reg.unit, ex_reg_spec.unit)
+
+    factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] = factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] * 2
+
+    double = tmrio.emissions.characterize(factors_reg_spec).extension
+
+    pdt.assert_frame_equal(double.F.reg2, ex_reg_spec.F.reg2*2)
+    pdt.assert_frame_equal(double.F_Y.reg2, ex_reg_spec.F_Y.reg2*2)
+
+    pdt.assert_frame_equal(double.F.reg6, ex_reg_spec.F.reg6)
+    pdt.assert_frame_equal(double.F_Y.reg5, ex_reg_spec.F_Y.reg5)
+
+    # testing NaN
+    factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] = pd.NA
+    nnaa = tmrio.emissions.characterize(factors_reg_spec)
+
+    assert all(nnaa.factors[nnaa.factors.region == "reg2"].dropped) is True
+    assert nnaa.extension.F.reg2.sum().sum() == 0
+    assert nnaa.extension.F_Y.reg2.sum().sum() == 0
+    pdt.assert_frame_equal(nnaa.extension.F.reg1, ex_reg_spec.F.reg1)
+    pdt.assert_frame_equal(nnaa.extension.F_Y.reg3, ex_reg_spec.F_Y.reg3)
+
+    # testing complete missing
+    fac_reg2_missing = factors_reg_spec.dropna()
+    res_reg2_missing = tmrio.emissions.characterize(fac_reg2_missing)
+
+    assert "reg2" not in res_reg2_missing.factors.region.values
+    pdt.assert_frame_equal(nnaa.extension.F, res_reg2_missing.extension.F)
+    pdt.assert_frame_equal(nnaa.extension.F_Y, res_reg2_missing.extension.F_Y)
+
+    # testing roundtrip
+    res_reg2_missing_2nd = tmrio.emissions.characterize(res_reg2_missing.factors)
+    pdt.assert_frame_equal(res_reg2_missing.extension.F, res_reg2_missing_2nd.extension.F)
+    pdt.assert_frame_equal(res_reg2_missing.extension.F_Y, res_reg2_missing_2nd.extension.F_Y)
+    pdt.assert_frame_equal(res_reg2_missing.factors, res_reg2_missing_2nd.factors)
+
+    # testing drop impacts due to missing data
+    x = tmrio.emissions.characterize(res_reg2_missing.factors, drop_missing=True)
+
+
+
+
+
+
+
 
 
 def test_extension_convert(fix_testmrio):

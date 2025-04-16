@@ -1759,63 +1759,88 @@ class Extension(BaseSystem):
         characterized_name_column="impact",
         characterization_factors_column="factor",
         characterized_unit_column="impact_unit",
-        orig_unit_column="orig_unit",
+        orig_unit_column="stressor_unit",
         drop_missing=False, 
         ):
-        """
+        """Characterize stressors
 
-        Parameters:
+        Characterizes the extension with the characterization factors given in factors.
+        The dataframe cactors can contain more characterization factors which depend on 
+        stressors not present in the Extension - these will be ignored.
+
+        Optionally, impacts effected by missing data can be completly removed (parameter
+        'drop_missing').
+
+        The dataframe passed for the characterization must be in a long format.
+        It must contain columns with the same names as in the index of the extension.
+
+        The routine can also handle region or sector specific characterization factors.
+        In that case, the passed dataframe must also include columns
+        for sector and/or region.
+        The names must be the same as the column names of the extension.
+
+        Other column names can be specified in the parameters,
+        see below for the default values.
+
+        Note
+        ----
+        Accordance of units is enforced.
+        This is done be checking the column specified in orig_unit_column with the unit
+        dataframe of the extension.
+
+        Parameters
+        -----------
+        factors: pd.DataFrame
+            A dataframe in long format with numerical index and columns named
+            index.names of the extension to be characterized and
+            'characterized_name_column', 'characterization_factors_column',
+            'characterized_unit_column', 'orig_unit_column' 
+
+        characterized_name_column: str (optional)
+            Name of the column with the names of the
+            characterized account (default: "impact")
+
+        characterization_factors_column: str (optional)
+            Name of the column with the factors for the
+            characterization (default: "factor")
+
+        characterized_unit_column: str (optional)
+            Name of the column with the units of the characterized accounts
+            characterization (default: "impact_unit")
 
         name: string (optional)
             The new name for the extension,
             if the string starts with an underscore '_' the string
             with be appended to the original name. Default: '_characterized'
 
+        drop_missing: boolean (optional)
+            If True, impacts with missing stressor/regional data will be dropped
+            If False(default), a warning is issued and missing data is assumed to be zero.
+            In that case, check for missing data in the returned .factors dataframe.
+
+        _meta: MRIOMetaData, optional
+            Metadata handler for logging, optional. Internal
+
+        Returns
+        --------
+
+        namedtuple with
+            - .extension: pymrio.Extension
+            - .factors: pd.DataFrame: the used characterization factors, with info on 
+                unit errors and dropped stressor
 
         """
-        #
-        # # DEV:
-        #
-        # import pymrio
-        #
-        # from pymrio.core.constants import PYMRIO_PATH  # noqa
-        #
-        # tt = pymrio.load_test()
-        # self = tt.emissions
-        #
-        # import pandas as pd
-        # from pathlib import Path
-        #
-        # factors = pd.read_csv(
-        #     Path(
-        #         PYMRIO_PATH["test_mrio"]
-        #         / Path("concordance")
-        #         / "emissions_charact_reg_spec.tsv"
-        #         # / "emissions_charact.tsv"
-        #     ),
-        #     sep="\t",
-        # )
-        # factors.loc[:, "orig_unit"] = "kg"
-        #
-        # characterized_name_column="impact"
-        # characterization_factors_column="factor"
-        # characterized_unit_column="impact_unit"
-        # orig_unit_column = "orig_unit"
-
-        # TODO: add orig_unit_column in tests
-        # TODO Refactor tests
-
-        # CODE:
         name = self.name + name if name[0] == "_" else name
 
         # searching the next available df to get the 
         # index of stressors/regions/sector depending on input
-
         index_col = list(self.get_rows().names)
         if "region" in factors.columns:
             index_col.append("region")
+            factors.loc[:, "error_missing_region"] = False
         if "sector" in factors.columns:
             index_col.append("sector")
+            factors.loc[:, "error_missing_sector"] = False
 
         required_columns = index_col + [
             characterization_factors_column,
@@ -1823,7 +1848,6 @@ class Extension(BaseSystem):
             characterized_unit_column,
         ]
 
-        # TODO: test
         if not set(required_columns).issubset(set(factors.columns)):
             raise ValueError(
                 "Not all required columns in the passed DataFrame >factors<"
@@ -1848,7 +1872,7 @@ class Extension(BaseSystem):
             except AttributeError:
                 # if only one element gathered
                 current_unit =  [factors.loc[row, orig_unit_column]]
-            if len(current_unit) < 1:
+            if len(current_unit) > 1:
                 logging.error(f"Unit not unique for >{row}<")
                 factors.loc[row, "error_unit_stressor"] = True
                 continue
@@ -1859,11 +1883,24 @@ class Extension(BaseSystem):
             if current_unit[0] != self.unit.loc[row].unit:
                 logging.error(f"Unit does not match extension unit for >{row}<")
                 factors.loc[row, "error_unit_stressor"] = True
+            if "region" in required_columns:
+                reg_cov = factors.loc[row, ["region", "impact"]].groupby("impact").region.apply(set)
+                for improw in reg_cov.index:
+                    if len(dd := self.get_regions().difference(reg_cov[improw]))>0:
+                        logging.warning(f"Missing region data for >{improw}<: {dd}")
+                        factors.loc[row, "error_missing_region"] = True
+            if "sector" in required_columns:
+                reg_cov = factors.loc[row, ["sector", "impact"]].groupby("impact").sector.apply(set)
+                for improw in reg_cov.index:
+                    if len(dd := self.get_sectors().difference(reg_cov[improw])) > 0:
+                        logging.warning(f"Missing sector data for >{improw}<: {dd}")
+                        factors.loc[row, "error_missing_sector"] = True
+            # CONT: remove factors with missing data if drop missing, might need a separate parameter
 
         factors = factors.reset_index()
 
         # Report the drop of wrong/missing stressors
-        factors.loc[:, "dropped"] = factors['error_unit_stressor'] | factors['error_unit_impact'] | factors['error_missing_stressor']
+        factors.loc[:, "dropped"] = factors['error_unit_stressor'] | factors['error_unit_impact'] | factors['error_missing_stressor'] | factors.factor.isnull()
 
         if drop_missing:
             # check which impacts are effected by dropped/missing data and remove them
@@ -1906,7 +1943,7 @@ class Extension(BaseSystem):
         characterized_unit_column="impact_unit",
         name=None,
         return_char_matrix=False,
-        drop_missing=False, # TODO: needs test and doc
+        drop_missing=False,
         _meta=None,
     ):
         """Characterize stressors
@@ -1974,30 +2011,6 @@ class Extension(BaseSystem):
             - .char_matrix: pd.DataFrame: the constructed characterization matrix
 
         """
-        # CONT: NEW PLAN - all new, including tests:
-        # fa = factors.set_index(["stressor", "compartment", "region", "impact"]).loc[:, "factor"].unstack("impact")
-        # input df of factors must contain rows index of the characterization and can contain any of the columns
-        # the extension matrix are stacked completly
-        # ext_f = self.F.stack().stack()
-        # then mutiplied, making use of broadcasting and groupby by the original stressor rows
-        # factors will contain a unit_orig and unit_new. If unit_orig is present, it will be compared and enforced
-        # unit_new will be set
-        # in fa we loop over impacts, drop nan (so the multipliation will be shorter) 
-        # if an impact has any index not present, we either drop or set to 0 and report by returning
-        # a df with missing data
-
-
-    
-        # OLD:
-        # CONT: finalize/test regional/sectoral specific characterization - see todos in tests 
-        # TODO: current procedure seems to work for non regional characterization - clean up and finalize
-        # CONT: update documentation with the new characterization and explain "availabe_in_ext"/"drop_missing"
-        # CONT: For characterization across extensions: 
-        #   - build a temp extensions with all required stressors
-        #   - for the characterization table require a new column "extension" to specify it
-        #   - for now we leave any "undefined" extension charaterization out, there is probably no use case for that and it could be achieved via building an extension first
-        # CONT: test for diagonalized stressors, guard for stressor-stressor and impact-impact characterization
-
 
         name = name if name else self.name + "_characterized"
 
@@ -2042,7 +2055,6 @@ class Extension(BaseSystem):
                     continue
                 else:
                     logging.warning(f"Not all data for calculating impact >{charact_name}< available")
-            # TODO: check if all regions/sectors are covered in factors.
             # If not: warning. This also sets the behaviour for fillna in the calc_matrix setup
             factors_cleaned_gathered.append(_merged)
         
@@ -2062,7 +2074,6 @@ class Extension(BaseSystem):
                 .fillna(0)
             )
             .reindex(calc_index, axis=1)  # add stressor rows not in df_char
-                    # TODO: value here needs to be 0 to fill or NaN if we should indicate missing data
                        # but check the cont from above before
             .fillna(value=0)        # and set them to zero
         )
