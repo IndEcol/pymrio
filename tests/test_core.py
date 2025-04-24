@@ -185,9 +185,7 @@ def test_get_sectors(fix_testmrio):
     assert fix_testmrio.testmrio.get_sectors("food") == [
         e if e == "food" else None for e in fix_testmrio.sectors
     ]
-    assert (
-        fix_testmrio.testmrio.get_sectors(["construction", "food", "a"])[1] == None
-    )  # noqa
+    assert fix_testmrio.testmrio.get_sectors(["construction", "food", "a"])[1] == None  # noqa
 
 
 def test_get_regions(fix_testmrio):
@@ -382,8 +380,9 @@ def test_diag_stressor(fix_testmrio):
     assert sum(dext_name.F.iloc[0, 1:-1]) == 0
     assert sum(dext_name.F.iloc[1:-1, 0]) == 0
 
+
 def test_characterize_extension_general(fix_testmrio):
-    """ Testing 'standard' characterisation 
+    """Testing 'standard' characterisation
 
     - general (non regional specific) characterisation factors
     - testing unit fix
@@ -394,7 +393,6 @@ def test_characterize_extension_general(fix_testmrio):
         Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
         sep="\t",
     )
-
 
     t_uncalc = fix_testmrio.testmrio
     t_calc = fix_testmrio.testmrio.calc_all()
@@ -455,13 +453,55 @@ def test_characterize_extension_general(fix_testmrio):
     ret_all = t_uncalc.emissions.characterize(factors, drop_missing=False)
     assert "emission_type3" in ret_all.factors.stressor.to_list()
     assert "total emissions" in ret_all.factors.impact.to_list()
-    assert all(ret_all.factors.loc[ret_all.factors.stressor == "emission_type3"].loc[:, "error_missing_stressor"]) is True
-    assert all(ret_all.factors.loc[ret_all.factors.stressor != "emission_type3"].loc[:, "error_missing_stressor"]) is False
-    assert all(ret_all.factors.loc[ret_all.factors.impact == "total emissions"].loc[:, "dropped"]) is False
+    assert (
+        all(
+            ret_all.factors.loc[ret_all.factors.stressor == "emission_type3"].loc[
+                :, "error_missing_stressor"
+            ]
+        )
+        is True
+    )
+    assert (
+        all(
+            ret_all.factors.loc[ret_all.factors.stressor != "emission_type3"].loc[
+                :, "error_missing_stressor"
+            ]
+        )
+        is False
+    )
+    assert (
+        all(
+            ret_all.factors.loc[ret_all.factors.impact == "total emissions"].loc[
+                :, "dropped"
+            ]
+        )
+        is False
+    )
     ret_drop = t_uncalc.emissions.characterize(factors, drop_missing=True)
-    assert all(ret_drop.factors.loc[ret_drop.factors.stressor == "emission_type3"].loc[:, "error_missing_stressor"]) is True
-    assert all(ret_drop.factors.loc[ret_drop.factors.stressor == "emission_type3"].loc[:, "dropped"]) is True
-    assert all(ret_drop.factors.loc[ret_drop.factors.impact == "total emissions"].loc[:, "dropped"]) is True
+    assert (
+        all(
+            ret_drop.factors.loc[ret_drop.factors.stressor == "emission_type3"].loc[
+                :, "error_missing_stressor"
+            ]
+        )
+        is True
+    )
+    assert (
+        all(
+            ret_drop.factors.loc[ret_drop.factors.stressor == "emission_type3"].loc[
+                :, "dropped"
+            ]
+        )
+        is True
+    )
+    assert (
+        all(
+            ret_drop.factors.loc[ret_drop.factors.impact == "total emissions"].loc[
+                :, "dropped"
+            ]
+        )
+        is True
+    )
 
     assert "total emissions" not in ret_drop.extension.F.index
     assert "total emissions" in ret_all.extension.F.index
@@ -474,37 +514,52 @@ def test_characterize_extension_general(fix_testmrio):
 
     stuc = t_calc.emissions.characterize(fac_mod_stressor_unit)
 
-    assert all(stuc.factors[stuc.factors.stressor == "emission_type2"].error_unit_stressor) is True
-    assert all(stuc.factors[stuc.factors.stressor == "emission_type1"].error_unit_stressor) is False
+    assert (
+        all(stuc.factors[stuc.factors.stressor == "emission_type2"].error_unit_stressor)
+        is True
+    )
+    assert (
+        all(stuc.factors[stuc.factors.stressor == "emission_type1"].error_unit_stressor)
+        is False
+    )
     assert all(stuc.factors[stuc.factors.stressor == "emission_type2"].dropped) is True
     assert all(stuc.factors[stuc.factors.stressor == "emission_type1"].dropped) is False
-    
+
     npt.assert_allclose(
         stuc.extension.F.loc["air water impact"].sum(),
         (
-            (t_calc.emissions.F.loc[("emission_type1", "air"), :] * 2 / 1000)
+            t_calc.emissions.F.loc[("emission_type1", "air"), :] * 2 / 1000
             # since emission type 2 are dropped, they should not appear in the characterized results
             # + (t_calc.emissions.D_exp.loc[("emission_type2", "water"), :] * 1 / 1000)
         ).sum(),
     )
 
     # Changing all stressor to g - all data should get dropped due to unit stressor error or missing data
-    fac_mod_stressor_unit.loc[:, "stressor_unit"] = 'g'
+    fac_mod_stressor_unit.loc[:, "stressor_unit"] = "g"
     stauc = t_calc.emissions.characterize(fac_mod_stressor_unit)
 
-    assert all(stauc.factors[stauc.factors.stressor.str.contains("1|2")].error_unit_stressor) is True
+    assert (
+        all(
+            stauc.factors[
+                stauc.factors.stressor.str.contains("1|2")
+            ].error_unit_stressor
+        )
+        is True
+    )
     assert all(stauc.factors.dropped) is True
     assert len(stauc.extension.F) == 0
     assert len(stauc.extension.F_Y) == 0
     assert len(stauc.extension.D_cba) == 0
-    
+
     # testing characterization which do not cover all stressors
     factors_short = factors[
         (factors.stressor == "emission_type1")
         & (factors.impact == "total air emissions")
     ]
 
-    t_calc.short_impacts = t_calc.emissions.characterize(factors_short, name="shorty").extension
+    t_calc.short_impacts = t_calc.emissions.characterize(
+        factors_short, name="shorty"
+    ).extension
 
     t_calc.calc_all()
 
@@ -514,10 +569,11 @@ def test_characterize_extension_general(fix_testmrio):
         check_names=False,
     )
 
-def test_characterize_extension_reg_spec(fix_testmrio):
-    """ Additional characterization test for region specific cases
 
-    Characterisation is first benchmarked against the general 
+def test_characterize_extension_reg_spec(fix_testmrio):
+    """Additional characterization test for region specific cases
+
+    Characterisation is first benchmarked against the general
     test_characterize_extension_general. The characterization
     matrix is the same, just with regional disaggregation.
 
@@ -540,6 +596,7 @@ def test_characterize_extension_reg_spec(fix_testmrio):
 
     tmrio = fix_testmrio.testmrio
 
+    # testing same result with regional specs
     ex_reg_spec = tmrio.emissions.characterize(factors_reg_spec).extension
     ex_no_reg = tmrio.emissions.characterize(factors_no_reg).extension
 
@@ -547,12 +604,15 @@ def test_characterize_extension_reg_spec(fix_testmrio):
     pdt.assert_frame_equal(ex_no_reg.F_Y, ex_reg_spec.F_Y)
     pdt.assert_frame_equal(ex_no_reg.unit, ex_reg_spec.unit)
 
-    factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] = factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] * 2
+    # testing correct doubling of one region
+    factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] = (
+        factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] * 2
+    )
 
     double = tmrio.emissions.characterize(factors_reg_spec).extension
 
-    pdt.assert_frame_equal(double.F.reg2, ex_reg_spec.F.reg2*2)
-    pdt.assert_frame_equal(double.F_Y.reg2, ex_reg_spec.F_Y.reg2*2)
+    pdt.assert_frame_equal(double.F.reg2, ex_reg_spec.F.reg2 * 2)
+    pdt.assert_frame_equal(double.F_Y.reg2, ex_reg_spec.F_Y.reg2 * 2)
 
     pdt.assert_frame_equal(double.F.reg6, ex_reg_spec.F.reg6)
     pdt.assert_frame_equal(double.F_Y.reg5, ex_reg_spec.F_Y.reg5)
@@ -577,19 +637,16 @@ def test_characterize_extension_reg_spec(fix_testmrio):
 
     # testing roundtrip
     res_reg2_missing_2nd = tmrio.emissions.characterize(res_reg2_missing.factors)
-    pdt.assert_frame_equal(res_reg2_missing.extension.F, res_reg2_missing_2nd.extension.F)
-    pdt.assert_frame_equal(res_reg2_missing.extension.F_Y, res_reg2_missing_2nd.extension.F_Y)
+    pdt.assert_frame_equal(
+        res_reg2_missing.extension.F, res_reg2_missing_2nd.extension.F
+    )
+    pdt.assert_frame_equal(
+        res_reg2_missing.extension.F_Y, res_reg2_missing_2nd.extension.F_Y
+    )
     pdt.assert_frame_equal(res_reg2_missing.factors, res_reg2_missing_2nd.factors)
 
     # testing drop impacts due to missing data
-    x = tmrio.emissions.characterize(res_reg2_missing.factors, drop_missing=True)
-
-
-
-
-
-
-
+    # x = tmrio.emissions.characterize(res_reg2_missing.factors, drop_missing=True)
 
 
 def test_extension_convert(fix_testmrio):
@@ -791,10 +848,10 @@ def test_extension_convert_function(fix_testmrio):
 
     df_map_add_across_wrong_name = df_map_add_across.copy()
 
-    df_map_add_across_wrong_name.loc[
-        :, "extension"
-    ] = df_map_add_across_wrong_name.extension.str.replace(
-        "emissions_new_pre_calc", "foo"
+    df_map_add_across_wrong_name.loc[:, "extension"] = (
+        df_map_add_across_wrong_name.extension.str.replace(
+            "emissions_new_pre_calc", "foo"
+        )
     )
 
     ext_across_correct = pymrio.extension_convert(

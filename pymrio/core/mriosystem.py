@@ -49,11 +49,9 @@ from pymrio.tools.iomath import (
 from pymrio.tools.iometadata import MRIOMetaData
 
 
-
 # internal functions
 def _warn_deprecation(message):  # pragma: no cover
     warnings.warn(message, DeprecationWarning, stacklevel=2)
-
 
 
 # Exceptions
@@ -1106,7 +1104,7 @@ class Extension(BaseSystem):
                         self.S, self.D_cba, Y=Y_agg, nr_sectors=self.get_sectors().size
                     )
                     logging.debug(
-                        "{} - M calculated based on " "D_cba and Y".format(self.name)
+                        "{} - M calculated based on D_cba and Y".format(self.name)
                     )
                 except Exception as ex:
                     logging.debug(
@@ -1760,12 +1758,12 @@ class Extension(BaseSystem):
         characterization_factors_column="factor",
         characterized_unit_column="impact_unit",
         orig_unit_column="stressor_unit",
-        drop_missing=False, 
-        ):
+        drop_missing=False,
+    ):
         """Characterize stressors
 
         Characterizes the extension with the characterization factors given in factors.
-        The dataframe cactors can contain more characterization factors which depend on 
+        The dataframe cactors can contain more characterization factors which depend on
         stressors not present in the Extension - these will be ignored.
 
         Optionally, impacts effected by missing data can be completly removed (parameter
@@ -1794,7 +1792,7 @@ class Extension(BaseSystem):
             A dataframe in long format with numerical index and columns named
             index.names of the extension to be characterized and
             'characterized_name_column', 'characterization_factors_column',
-            'characterized_unit_column', 'orig_unit_column' 
+            'characterized_unit_column', 'orig_unit_column'
 
         characterized_name_column: str (optional)
             Name of the column with the names of the
@@ -1826,13 +1824,13 @@ class Extension(BaseSystem):
 
         namedtuple with
             - .extension: pymrio.Extension
-            - .factors: pd.DataFrame: the used characterization factors, with info on 
+            - .factors: pd.DataFrame: the used characterization factors, with info on
                 unit errors and dropped stressor
 
         """
         name = self.name + name if name[0] == "_" else name
 
-        # searching the next available df to get the 
+        # searching the next available df to get the
         # index of stressors/regions/sector depending on input
         index_col = list(self.get_rows().names)
         if "region" in factors.columns:
@@ -1856,22 +1854,31 @@ class Extension(BaseSystem):
         # Unit and data coverage controls
         factors = factors.set_index(self.unit.index.names).sort_index()
 
-        factors.loc[:,"error_unit_impact"] = False
-        factors.loc[:,"error_unit_stressor"] = False
+        factors.loc[:, "error_unit_impact"] = False
+        factors.loc[:, "error_unit_stressor"] = False
         factors.loc[:, "error_missing_stressor"] = False
 
-        unique_impacts = factors.loc[:,characterized_name_column].unique()
+        unique_impacts = factors.loc[:, characterized_name_column].unique()
         for imp in unique_impacts:
-            if factors.loc[factors.loc[:,characterized_name_column] == imp,characterized_unit_column].nunique() != 1:
-                factors.loc[factors.loc[:,characterized_name_column] == imp,"error_unit_impact"] = True
+            if (
+                factors.loc[
+                    factors.loc[:, characterized_name_column] == imp,
+                    characterized_unit_column,
+                ].nunique()
+                != 1
+            ):
+                factors.loc[
+                    factors.loc[:, characterized_name_column] == imp,
+                    "error_unit_impact",
+                ] = True
                 logging.error(f"Unit not unique for >{imp}<")
- 
+
         for row in factors.index.unique():
             try:
                 current_unit = factors.loc[row, orig_unit_column].unique()
             except AttributeError:
                 # if only one element gathered
-                current_unit =  [factors.loc[row, orig_unit_column]]
+                current_unit = [factors.loc[row, orig_unit_column]]
             if len(current_unit) > 1:
                 logging.error(f"Unit not unique for >{row}<")
                 factors.loc[row, "error_unit_stressor"] = True
@@ -1884,13 +1891,21 @@ class Extension(BaseSystem):
                 logging.error(f"Unit does not match extension unit for >{row}<")
                 factors.loc[row, "error_unit_stressor"] = True
             if "region" in required_columns:
-                reg_cov = factors.loc[row, ["region", "impact"]].groupby("impact").region.apply(set)
+                reg_cov = (
+                    factors.loc[row, ["region", "impact"]]
+                    .groupby("impact")
+                    .region.apply(set)
+                )
                 for improw in reg_cov.index:
-                    if len(dd := self.get_regions().difference(reg_cov[improw]))>0:
+                    if len(dd := self.get_regions().difference(reg_cov[improw])) > 0:
                         logging.warning(f"Missing region data for >{improw}<: {dd}")
                         factors.loc[row, "error_missing_region"] = True
             if "sector" in required_columns:
-                reg_cov = factors.loc[row, ["sector", "impact"]].groupby("impact").sector.apply(set)
+                reg_cov = (
+                    factors.loc[row, ["sector", "impact"]]
+                    .groupby("impact")
+                    .sector.apply(set)
+                )
                 for improw in reg_cov.index:
                     if len(dd := self.get_sectors().difference(reg_cov[improw])) > 0:
                         logging.warning(f"Missing sector data for >{improw}<: {dd}")
@@ -1900,40 +1915,68 @@ class Extension(BaseSystem):
         factors = factors.reset_index()
 
         # Report the drop of wrong/missing stressors
-        factors.loc[:, "dropped"] = factors['error_unit_stressor'] | factors['error_unit_impact'] | factors['error_missing_stressor'] | factors.factor.isnull()
+        factors.loc[:, "dropped"] = (
+            factors["error_unit_stressor"]
+            | factors["error_unit_impact"]
+            | factors["error_missing_stressor"]
+            | factors.factor.isnull()
+        )
 
         if drop_missing:
             # check which impacts are effected by dropped/missing data and remove them
-            imp_with_missing = factors[factors.dropped].loc[:, characterized_name_column].unique()
-            factors.loc[factors.loc[:,characterized_name_column].isin(imp_with_missing), "dropped"] = True
+            imp_with_missing = (
+                factors[factors.dropped].loc[:, characterized_name_column].unique()
+            )
+            factors.loc[
+                factors.loc[:, characterized_name_column].isin(imp_with_missing),
+                "dropped",
+            ] = True
 
         # prepare factors for the multiplication
-        fac_error_free = factors[(~factors['dropped'])]
-        fac_calc = fac_error_free.set_index(index_col + [characterized_name_column]).loc[:, characterization_factors_column].unstack(characterized_name_column).fillna(0)
+        fac_error_free = factors[(~factors["dropped"])]
+        fac_calc = (
+            fac_error_free.set_index(index_col + [characterized_name_column])
+            .loc[:, characterization_factors_column]
+            .unstack(characterized_name_column)
+            .fillna(0)
+        )
 
         new_ext = Extension(name=name)
 
-        for acc_name, acc in zip(self.get_DataFrame(data=False, with_unit=False), 
-                                 self.get_DataFrame(data=True, with_unit=False)):
+        for acc_name, acc in zip(
+            self.get_DataFrame(data=False, with_unit=False),
+            self.get_DataFrame(data=True, with_unit=False),
+        ):
             if acc_name in self.__coefficients__:
                 continue
             _series = acc.stack(acc.columns.names, future_stack=True)
             # template _df_shape different for final demand accounts
             _df_shape = pd.DataFrame(index=_series.index, columns=fac_calc.columns)
-            res = _df_shape.assign(**{char_name: _series*fac_calc.loc[:,char_name] for char_name in _df_shape.columns})
+            res = _df_shape.assign(
+                **{
+                    char_name: _series * fac_calc.loc[:, char_name]
+                    for char_name in _df_shape.columns
+                }
+            )
             _group_index = res.index.names.difference(acc.index.names)
             res = res.groupby(_group_index).sum().T.reindex(columns=acc.columns)
             setattr(new_ext, acc_name, res)
 
-        setattr(new_ext, "unit",
-            fac_error_free.loc[:, [characterized_name_column, characterized_unit_column]]
+        setattr(
+            new_ext,
+            "unit",
+            fac_error_free.loc[
+                :, [characterized_name_column, characterized_unit_column]
+            ]
             .drop_duplicates()
             .set_index(characterized_name_column)
-            .rename({characterized_unit_column: "unit"}, axis=1).loc[new_ext.get_rows(),:])
+            .rename({characterized_unit_column: "unit"}, axis=1)
+            .loc[new_ext.get_rows(), :],
+        )
 
         return collections.namedtuple("characterization", ["extension", "factors"])(
-                    extension=new_ext, factors=factors)
-
+            extension=new_ext, factors=factors
+        )
 
     def old_characterize(
         self,
@@ -2007,16 +2050,18 @@ class Extension(BaseSystem):
 
         namedtuple with
             - .extension: pymrio.Extension
-            - .factors: pd.DataFrame: the used characterization factors, with info on stressor availability 
+            - .factors: pd.DataFrame: the used characterization factors, with info on stressor availability
             - .char_matrix: pd.DataFrame: the constructed characterization matrix
 
         """
 
         name = name if name else self.name + "_characterized"
 
-        # searching the next available df to get the 
+        # searching the next available df to get the
         # index of stressors/regions/sector depending on input
-        _df = next(self.get_DataFrame(data=True, with_unit=False, with_population=False))
+        _df = next(
+            self.get_DataFrame(data=True, with_unit=False, with_population=False)
+        )
 
         calc_matrix_stack_adjust = []
         if "region" in factors.columns:
@@ -2048,16 +2093,22 @@ class Extension(BaseSystem):
         for charact_name in factors[characterized_name_column].drop_duplicates():
             impact_factors = factors[factors[characterized_name_column] == charact_name]
             _merged = impact_factors.merge(calc_index_df, how="left")
-            _merged.loc[:, "available_in_ext"] = _merged.loc[:, "available_in_ext"].fillna(False)
+            _merged.loc[:, "available_in_ext"] = _merged.loc[
+                :, "available_in_ext"
+            ].fillna(False)
             if not all(_merged["available_in_ext"]):
                 if drop_missing:
-                    logging.warning(f"Dropping impact >{charact_name}< - some data missing")
+                    logging.warning(
+                        f"Dropping impact >{charact_name}< - some data missing"
+                    )
                     continue
                 else:
-                    logging.warning(f"Not all data for calculating impact >{charact_name}< available")
+                    logging.warning(
+                        f"Not all data for calculating impact >{charact_name}< available"
+                    )
             # If not: warning. This also sets the behaviour for fillna in the calc_matrix setup
             factors_cleaned_gathered.append(_merged)
-        
+
         df_char = pd.concat(factors_cleaned_gathered)
 
         units = (
@@ -2067,60 +2118,63 @@ class Extension(BaseSystem):
             .rename({characterized_unit_column: "unit"}, axis=1)
         )
 
-        calc_matrix = ((
+        calc_matrix = (
+            (
                 df_char.set_index(stack_columns + [characterized_name_column])
                 .loc[:, characterization_factors_column]
                 .unstack(stack_columns)
                 .fillna(0)
             )
             .reindex(calc_index, axis=1)  # add stressor rows not in df_char
-                       # but check the cont from above before
-            .fillna(value=0)        # and set them to zero
+            # but check the cont from above before
+            .fillna(value=0)  # and set them to zero
         )
-
 
         calc_matrix = calc_matrix.stack(calc_matrix_stack_adjust)
 
         cun = calc_matrix.unstack(calc_matrix_stack_adjust)
 
-        __import__('pdb').set_trace()
+        __import__("pdb").set_trace()
 
         r = calc_matrix @ self.F
 
         m = cun.T
         f = self.F.stack().stack()
 
-# this works with broadcasting
+        # this works with broadcasting
         x = m.loc[:, "air water impact"] * f
 
         x.groupby(level=["region", "sector"]).sum()
 
-
-        fa = factors.set_index(["stressor", "compartment", "region", "impact"]).loc[:, "factor"].unstack("impact")
+        fa = (
+            factors.set_index(["stressor", "compartment", "region", "impact"])
+            .loc[:, "factor"]
+            .unstack("impact")
+        )
 
         xx = fa.loc[:, "air water impact"] * f
-
 
         ex = Extension(
             name=name,
             unit=units,
             **{
-                acc: (calc_matrix @ self.__dict__[acc]).stack(calc_matrix_stack_adjust).reindex(units.index)
+                acc: (calc_matrix @ self.__dict__[acc])
+                .stack(calc_matrix_stack_adjust)
+                .reindex(units.index)
                 for acc in set(
                     self.get_DataFrame(data=False, with_unit=False)
                 ).difference(set(self.__coefficients__))
             },
         )
 
-
         if _meta:
             _meta._add_modify(
                 f"Calculated characterized accounts {name} from {self.name}"
             )
 
-        return collections.namedtuple("characterization", ["extension", "factors", "char_matrix"])(
-            extension=ex, factors=df_char, char_matrix=calc_matrix
-        )
+        return collections.namedtuple(
+            "characterization", ["extension", "factors", "char_matrix"]
+        )(extension=ex, factors=df_char, char_matrix=calc_matrix)
 
     def convert(
         self,
@@ -3262,16 +3316,16 @@ class IOSystem(BaseSystem):
         # Assert right shapes
         if not sector_conc.shape[1] == len(self.get_sectors()):
             raise ValueError(
-                "Sector aggregation does not " "correspond to the number of sectors."
+                "Sector aggregation does not correspond to the number of sectors."
             )
         if not region_conc.shape[1] == len(self.get_regions()):
             raise ValueError(
-                "Region aggregation does not " "correspond to the number of regions."
+                "Region aggregation does not correspond to the number of regions."
             )
         if not len(sector_names) == sector_conc.shape[0]:
-            raise ValueError("New sector names do not " "match sector aggregation.")
+            raise ValueError("New sector names do not match sector aggregation.")
         if not len(region_names) == region_conc.shape[0]:
-            raise ValueError("New region names do not " "match region aggregation.")
+            raise ValueError("New region names do not match region aggregation.")
 
         # build pandas.MultiIndex for the aggregated system
         _reg_list_for_sec = [[r] * sector_conc.shape[0] for r in region_names]

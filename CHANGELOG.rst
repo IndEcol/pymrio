@@ -9,6 +9,12 @@ v0.6dev
 Breaking changes
 ================
 
+* New implementation of the characterize function of the extension object.
+  The new method generalizes the previous method for region/sector specific characterizations.
+  It is tightly coupled to the general characterize function which allows characterization accross
+  different extensions (see point under New features).
+
+
 * get_extensions has a new signature. 
   Two new paramters, names and istance_names.
 
@@ -26,6 +32,8 @@ Breaking changes
   
 New features
 ============
+
+* New top-level characterize function (TODO implement)
 
 * added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
 
