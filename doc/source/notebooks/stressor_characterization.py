@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.16.7
+#       jupytext_version: 1.16.4
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -22,10 +22,10 @@
 # Advantages:
 
 #   - enforcing correspondence of stressors across the mrio system and characterization table
-#   - unit checks across the extension and characterization table 
+#   - unit checks across the extension and characterization table
 #   - agnostic to the order of the entries in the characterization table
 #   - allows to use characterization tables which includes characterization for stressors not present in the given satellite account. All characterizations relying on not available stressor will be automatically removed.
-#   - efficient handling of region and/or sector specific characterization factors 
+#   - efficient handling of region and/or sector specific characterization factors
 #   - enables characterization of stressors across different extensions
 
 
@@ -87,7 +87,7 @@ io.emissions.F
 char_emis = io.emissions.characterize(charact_table, name="impacts")
 
 # The parameter *name* is optional, if omitted the name will be set to
-# extension_name + _characterized. In case the passed name starts with an 
+# extension_name + _characterized. In case the passed name starts with an
 # underscore, the return name with be the name of the original extension concatenated with the passed name.
 
 # The method call returns a namedTuple with *extension* and *factors*.
@@ -99,14 +99,16 @@ print(char_emis.extension)
 
 char_emis.factors
 
-# It reports on errors encountered during the processing (all columns starting with *error_*) and if a specific stressor was dropped. In the case above, emission_type3 is not available in the extension data, and the report specifies that this stressor was not used for the calculation. 
+# It reports on errors encountered during the processing (all columns starting with *error_*) and if a specific stressor was dropped. In the case above, emission_type3 is not available in the extension data, and the report specifies that this stressor was not used for the calculation.
 
-# We can also choose to omit any impact which includes stressors not present in the extension. 
+# We can also choose to omit any impact which includes stressors not present in the extension.
 # To do so, we set *drop_missing* to True:
 
-char_emis_dropped = io.emissions.characterize(charact_table, name="impacts", drop_missing=True)
+char_emis_dropped = io.emissions.characterize(
+    charact_table, name="impacts", drop_missing=True
+)
 
-# which results in 
+# which results in
 
 char_emis_dropped.factors
 
@@ -133,11 +135,11 @@ io.impacts.D_cba
 
 # Here we use a table of regionally specific characterisation factors.
 # The actual factors contained here are the same as in the basic example and we
-# will modify them after loading. 
+# will modify them after loading.
 # We will also investigate cases with missing data or conflicting units.
 # The same principles can be used for sector specific characterization factors.
 
-# We use the same data test mrio system as before: 
+# We use the same data test mrio system as before:
 
 io = pymrio.load_test()
 
@@ -149,7 +151,7 @@ charact_table_reg = pd.read_csv(
 )
 charact_table_reg
 
-# Compared with the previous table (charact_table), this table contains an additional 
+# Compared with the previous table (charact_table), this table contains an additional
 # column *region* which contains the regional specific data.
 # Currently, the factors are actually the same as before, thus
 
@@ -159,7 +161,18 @@ char_reg.extension.F
 # gives the same result as before. To highlight regional
 # specificity, we double the total emission factors of region 3.
 
-charact_table_reg.loc[(charact_table_reg.region == "reg3") & (charact_table_reg.impact == "total emissions"), "factor"] = charact_table_reg.loc[(charact_table_reg.region == "reg3") & (charact_table_reg.impact == "total emissions"), "factor"] * 2
+charact_table_reg.loc[
+    (charact_table_reg.region == "reg3")
+    & (charact_table_reg.impact == "total emissions"),
+    "factor",
+] = (
+    charact_table_reg.loc[
+        (charact_table_reg.region == "reg3")
+        & (charact_table_reg.impact == "total emissions"),
+        "factor",
+    ]
+    * 2
+)
 
 # and calculate the new impacts
 
@@ -176,10 +189,10 @@ char_reg_dbl.factors
 
 # Next, we will look at different cases of missing data handling.
 
-### Missing data 
+# ## Missing data
 
 # This section extends on the basic missing data section from the basic example above.
-# We will use the regional characterization table again, calling it *ch* to 
+# We will use the regional characterization table again, calling it *ch* to
 # shorten the syntax.
 
 ch = pd.read_csv(
@@ -190,6 +203,9 @@ ch
 
 # And modify different rows to showcase missing/contradicting data.
 
+# TODO: Rewrite.
+# First, we handle missing regions/sector, showing that it is the same as for missing stresssors.
+# Then, cover the unit mismatch.
 # First, we will cover the case with miss-aligned units.
 # Lets set the unit of the stressor *emission_type1* to "t".
 
@@ -197,19 +213,18 @@ ch
 ch.loc[ch.stressor == "emission_type1", "stressor_unit"] = "t"
 ch
 
-# Using this table for characterization leads to multiple dropped values, with 
+# Using this table for characterization leads to multiple dropped values, with
 # the cause given in the column *error_unit_stressor*
 
 unit_miss = io.emissions.characterize(ch)
 unit_miss.factors
 
-# Note: in production ready code one can guard against such cases by simply 
+# Note: in production ready code one can guard against such cases by simply
 # asserting that the error columns are False, e.g.
 
 assert all(unit_miss.factors.error_unit_stressor is False), "Unit mismatch"
 
 # Further note, since any error leads to dropping the specific row, one can also check for any dropped data to identify any error
-
 
 
 # ### Characterizing calculated results

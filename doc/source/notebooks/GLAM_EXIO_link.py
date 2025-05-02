@@ -27,13 +27,13 @@
 # %% [markdown]
 # After the initial setup and data retrieval, the linking approach follows a two step approach. First, we translate the EXIOBASE stressor names to GLAM flow names; second, we characterise the flows with the GLAM characterization factors.
 # TODO: insert links to the headers later
-# The whole tutorial is self contained and automatically downloads all required data. The only pre-requisite is a [working installation of the latest version of Pymrio](https://pymrio.readthedocs.io/en/latest/installation.html). 
+# The whole tutorial is self contained and automatically downloads all required data. The only pre-requisite is a [working installation of the latest version of Pymrio](https://pymrio.readthedocs.io/en/latest/installation.html).
 
 # %% [markdown]
 # ## Setup, folder definitions and data gathering
 
 # %% [markdown]
-# Here we import the required Python modules and define the folders to store the data. 
+# Here we import the required Python modules and define the folders to store the data.
 
 # %%
 from pathlib import Path
@@ -47,9 +47,11 @@ import pandas as pd
 
 
 # %%
-# TODO: Fix back 
+# TODO: Fix back
 # DATA_ROOT = Path("/tmp/glam_exio_tutorial") # set this to your data directory
-DATA_ROOT = Path("/home/konstans/tmp/glam_exio_tutorial") # set this to your data directory
+DATA_ROOT = Path(
+    "/home/konstans/tmp/glam_exio_tutorial"
+)  # set this to your data directory
 
 EXIOBASE_STORAGE_FOLDER = DATA_ROOT / "exiobase"
 GLAM_STORAGE_FOLDER = DATA_ROOT / "glam"
@@ -62,7 +64,12 @@ GLAM_STORAGE_FOLDER.mkdir(parents=True, exist_ok=True)
 # Here, we use EXIOBASE 3.8.2 in the product by product (pxp) classification for the year 2018.
 
 # %%
-pymrio.download_exiobase3(storage_folder=EXIOBASE_STORAGE_FOLDER, years=[2018], system="pxp", overwrite_existing=False)
+pymrio.download_exiobase3(
+    storage_folder=EXIOBASE_STORAGE_FOLDER,
+    years=[2018],
+    system="pxp",
+    overwrite_existing=False,
+)
 
 # %% [markdown]
 # The command downloaded the EXIOBASE 3 zip archive for given year/system if the data not already exists in the given folder.
@@ -71,17 +78,21 @@ pymrio.download_exiobase3(storage_folder=EXIOBASE_STORAGE_FOLDER, years=[2018], 
 #
 
 # %% [markdown]
-# Next, we download the latest GLAM data. Again, the function checks if the data is already available. 
+# Next, we download the latest GLAM data. Again, the function checks if the data is already available.
 
 # %%
-pymrio.GLAMprocessing.get_GLAM(storage_folder=GLAM_STORAGE_FOLDER, overwrite_existing=False)
+pymrio.GLAMprocessing.get_GLAM(
+    storage_folder=GLAM_STORAGE_FOLDER, overwrite_existing=False
+)
 
 # %% [markdown]
-# The download contains one single zip archive. We can keep that compressed, but we need the 
+# The download contains one single zip archive. We can keep that compressed, but we need the
 # name for further processing.
 
 # %%
-GLAM_raw = [archive for archive in GLAM_STORAGE_FOLDER.glob("*") if archive.suffix == ".zip"][0]
+GLAM_raw = [
+    archive for archive in GLAM_STORAGE_FOLDER.glob("*") if archive.suffix == ".zip"
+][0]
 
 
 # %% [markdown]
@@ -99,7 +110,7 @@ GLAM_char_archive = GLAM_char.copy()
 GLAM_char = GLAM_char_archive.sample(10000)
 
 # %% [markdown]
-# This results in a long table with all characterization factors from GLAM. 
+# This results in a long table with all characterization factors from GLAM.
 # We can then later use this table to characterize EXIOBASE flows after renaming to GLAM flow names.
 # We can have a look at the table:
 
@@ -183,20 +194,22 @@ debug_bridge = exio_glam_bridge
 
 with pyinstrument.Profiler() as p:
     debug_sat = exio3.satellite.convert(
-        debug_bridge, new_extension_name="GLAM flows",
+        debug_bridge,
+        new_extension_name="GLAM flows",
         unit_column_orig="EXIOBASE_unit",
         unit_column_new="FLOW_unit",
-        ignore_columns=["comment"]
+        ignore_columns=["comment"],
     )
 debug_sat.F
 
 
 exio3.glam_flows = exio3.satellite.convert(
-        exio_glam_bridge, new_extension_name="GLAM flows",
-        unit_column_orig="EXIOBASE_unit",
-        unit_column_new="FLOW_unit",
-        ignore_columns=["comment"]
-    )
+    exio_glam_bridge,
+    new_extension_name="GLAM flows",
+    unit_column_orig="EXIOBASE_unit",
+    unit_column_new="FLOW_unit",
+    ignore_columns=["comment"],
+)
 
 # %% [markdown]
 # This now gives us a new satellite account "glam_flows".
@@ -223,14 +236,14 @@ exio3.glam_flows.D_cba
 # TODO: some prep in GLAM char which needs to be implmented in pymrio
 
 # drop all nan in uuid column
-# FIX: work with Flow names instead 
+# FIX: work with Flow names instead
 GLAM_char = GLAM_char.dropna(subset=["FLOW_uuid"])
 
-# FIX: work with Flow names instead 
+# FIX: work with Flow names instead
 # replace m2*y string in unit column with m2
 GLAM_char.loc[:, "unit_orig"] = GLAM_char["unit_orig"].str.replace("m2*y", "m2")
 
-# FIX: work with Flow names instead 
+# FIX: work with Flow names instead
 # replace m2*y string in unit column with m2
 GLAM_char.loc[:, "unit_orig"] = GLAM_char["unit_orig"].str.replace("kg emitted", "kg")
 

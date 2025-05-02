@@ -12,11 +12,12 @@ from pandas._libs.parsers import STR_NA_VALUES
 import zipfile
 
 GLAM_CONFIG = {
-        "V2024.10": "https://www.lifecycleinitiative.org/wp-content/uploads/2024/10/V1.0.2024.10.zip"
-    }
+    "V2024.10": "https://www.lifecycleinitiative.org/wp-content/uploads/2024/10/V1.0.2024.10.zip"
+}
+
 
 def get_GLAM(storage_folder, overwrite_existing=False, version="V2024.10"):
-    """ Download GLAM and store in the given directory
+    """Download GLAM and store in the given directory
 
     Parameters
     ----------
@@ -56,12 +57,13 @@ def get_GLAM(storage_folder, overwrite_existing=False, version="V2024.10"):
     downlog.save()
     return downlog
 
-def prep_GLAM(GLAM_data):
-    """ Extract/read GLAM data and convert to valid characterization file
 
-    This reads the data either from the GLAM zip archive or from the 
+def prep_GLAM(GLAM_data):
+    """Extract/read GLAM data and convert to valid characterization file
+
+    This reads the data either from the GLAM zip archive or from the
     extracted GLAM folder. It then merges all GLAM xlsx files and
-    renames the header to make it a valid characterization table 
+    renames the header to make it a valid characterization table
     for pymrio.
 
     GLAM_data : Path or str
@@ -110,15 +112,21 @@ def prep_GLAM(GLAM_data):
                 "Matching_CF": str,
                 "Matching_Compartment": str,
                 "LCIAMethod_type": str,
-                "LCIAMethod_name": str},
-            )
+                "LCIAMethod_name": str,
+            },
+        )
         return GLAMdata
 
     GLAM_collector = {}
 
     if GLAM_data.suffix == ".zip":
         with zipfile.ZipFile(GLAM_data, "r") as zz:
-            all_xlsx = [xlsx for xlsx in zz.namelist() for subfolder in GLAM_subfolders if subfolder in xlsx]
+            all_xlsx = [
+                xlsx
+                for xlsx in zz.namelist()
+                for subfolder in GLAM_subfolders
+                if subfolder in xlsx
+            ]
             for xlsx in all_xlsx:
                 print(f"Reading {xlsx}")
                 data_name = Path(xlsx).stem
@@ -126,7 +134,12 @@ def prep_GLAM(GLAM_data):
 
     else:
         # read all xlsx files in the folder
-        all_xlsx = [xlsx for xlsx in GLAM_data.rglob("*.xlsx") for subfolder in GLAM_subfolders if subfolder in xlsx.name]
+        all_xlsx = [
+            xlsx
+            for xlsx in GLAM_data.rglob("*.xlsx")
+            for subfolder in GLAM_subfolders
+            if subfolder in xlsx.name
+        ]
         for xlsx in all_xlsx:
             print(f"Reading {xlsx}")
             data_name = xlsx.stem
@@ -156,7 +169,6 @@ def prep_GLAM(GLAM_data):
     iso2nans = GLAM_full.loc[GLAM_full.LCIAMethod_location_ISO2.isna(), :]
     print(f"Found {iso2nans.shape[0]} rows with nan in LCIAMethod_location_ISO2")
 
-
     GLAM_res = (
         GLAM_full.loc[
             :,
@@ -180,9 +192,9 @@ def prep_GLAM(GLAM_data):
     # update the regions with the regex needed for EXIOBASE
 
     # global characterizations for Climate Change apply to all regions in EXIOBASE
-    GLAM_res.loc[GLAM_res.LCIAMethod_name__FLOW_uuid == "EQ Climate Change", "region"] = (
-        ".*"
-    )
+    GLAM_res.loc[
+        GLAM_res.LCIAMethod_name__FLOW_uuid == "EQ Climate Change", "region"
+    ] = ".*"
 
     # using China characterization factors for Taiwan as well
     GLAM_res.loc[GLAM_res.region == "CN", "region"] = "CN|TW"
@@ -192,9 +204,9 @@ def prep_GLAM(GLAM_data):
 
     return GLAM_res
 
+
 def get_GLAM_EXIO3_bridge(GLAM_version="V2024.10", EXIOBASE_version="3.8.2"):
-    """ Get GLAM bridge for EXIOBASE stressors
-    """
+    """Get GLAM bridge for EXIOBASE stressors"""
 
     if GLAM_version != "V2024.10":
         raise NotImplementedError("Only the V2024.10 version is supported")
@@ -205,6 +217,4 @@ def get_GLAM_EXIO3_bridge(GLAM_version="V2024.10", EXIOBASE_version="3.8.2"):
     # get directory of currrent file
     # HACK: needs to be in the data folder, include in package
     current_dir = Path(__file__).parent
-    return pd.read_csv(current_dir / "EXIO382_to_GLAM202410.tsv", sep="\t") 
-
-
+    return pd.read_csv(current_dir / "EXIO382_to_GLAM202410.tsv", sep="\t")

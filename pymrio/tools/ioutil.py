@@ -998,6 +998,36 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
     return _dfs_idx
 
 
+def _characterize_get_requried_col(
+    factors,
+    index_col,
+    characterized_name_column,
+    characterization_factors_column,
+    characterized_unit_column,
+    orig_unit_column,
+):
+    """Utility function to check and return a list of required columns.
+
+    For paramters naming see function characterize.
+
+    """
+    if "region" in factors.columns:
+        index_col.append("region")
+    if "sector" in factors.columns:
+        index_col.append("sector")
+
+    required_columns = index_col + [
+        characterization_factors_column,
+        characterized_name_column,
+        characterized_unit_column,
+    ]
+
+    if not set(required_columns).issubset(set(factors.columns)):
+        raise ValueError("Not all required columns in the passed DataFrame >factors<")
+
+    return required_columns
+
+
 def check_df_map(df_orig, df_map):
     """Check which entries of df_map would be in effect given df_orig"""
     # TODO: we need a way to check for spelling mistakes
@@ -1006,9 +1036,10 @@ def check_df_map(df_orig, df_map):
     # would be in effect given df_orig.
     pass
 
-# CONT: 
+
+# CONT:
 # TODO: bridge column indicator as argument (also update convert notebook)
-# TODO: new default <-> 
+# TODO: new default <->
 
 
 def convert(
@@ -1192,7 +1223,7 @@ def convert(
                 new_index_value = df_cur_map.index.get_level_values(bridge.raw)[0]
                 _old_index = df_collected.index.to_frame()
                 # as we go along in order, we add them to the end of the index
-                _old_index.insert(len(_old_index.columns), bridge.new, new_index_value)  
+                _old_index.insert(len(_old_index.columns), bridge.new, new_index_value)
                 df_collected.index = pd.MultiIndex.from_frame(_old_index)
 
             else:
@@ -1216,15 +1247,21 @@ def convert(
                             old_row_name = row[1][bridge.orig]
                             df_collected.loc[:, bridge.new] = df_collected.loc[
                                 :, bridge.new
-                            ].str.replace(pat=old_row_name, repl=new_row_name, regex=True)
+                            ].str.replace(
+                                pat=old_row_name, repl=new_row_name, regex=True
+                            )
 
                         # put the index back
                         if df_collected.index.name is None:
                             # The case with a single index where the previous reset index
                             # left only a numerical index
-                            df_collected = df_collected.set_index(bridge.new, drop=True, append=False)
+                            df_collected = df_collected.set_index(
+                                bridge.new, drop=True, append=False
+                            )
                         else:
-                            df_collected = df_collected.set_index(bridge.new, drop=True, append=True)
+                            df_collected = df_collected.set_index(
+                                bridge.new, drop=True, append=True
+                            )
 
                         already_renamed[bridge.orig] = bridge
 

@@ -105,7 +105,7 @@ GLORIA_CONFIG = {"datafiles": GLORIA_URLS}
 
 HEADERS = {
     # Standard headers for downloading files, just python requests gets blocked quite often
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/131.0'
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/131.0"
 }
 
 
@@ -159,7 +159,12 @@ def _get_url_datafiles(
 
 
 def _download_urls(
-    url_list, storage_folder, overwrite_existing, downlog_handler, access_cookie=None, headers=HEADERS,
+    url_list,
+    storage_folder,
+    overwrite_existing,
+    downlog_handler,
+    access_cookie=None,
+    headers=HEADERS,
 ):
     """Save url from url_list to storage_folder
 
@@ -196,13 +201,14 @@ def _download_urls(
 
     """
 
-
     for url in url_list:
         filename = filename_from_url(url)
         if downlog_handler.name == "Eora":
             filename = filename.split(".zip")[0] + ".zip"
         if not overwrite_existing and filename in os.listdir(storage_folder):
-            downlog_handler._add_fileio("Skip download existing file {}".format(filename))
+            downlog_handler._add_fileio(
+                "Skip download existing file {}".format(filename)
+            )
             continue
         storage_file = os.path.join(storage_folder, filename)
 
