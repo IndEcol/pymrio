@@ -1761,7 +1761,47 @@ class Extension(BaseSystem):
         characterized_unit_column="impact_unit",
         orig_unit_column="stressor_unit",
     ):
-        """Check and validates a factors sheet for characterization"""
+        """Check and validates a factors sheet for characterization
+
+        Given a factors sheet reports error in
+
+            - unit errors (impact unit consistent, stressor unit match).
+                Note: does not check if the conversion is correct!
+            - report missing stressors, regions, sectors which are in factors
+                but not in the extension
+            - if factors are specified for all regions/sectors of the extension
+
+        Besides the unit errors, factors can still be passed to the characterization
+        routine, and missing data will be assumed to be 0.
+
+        Parameters follow the convention of the characterization method:
+
+        Parameters
+        -----------
+        factors: pd.DataFrame
+            A dataframe in long format with numerical index and columns named
+            index.names of the extension to be characterized and
+            'characterized_name_column', 'characterization_factors_column',
+            'characterized_unit_column', 'orig_unit_column'
+
+        characterized_name_column: str (optional)
+            Name of the column with the names of the
+            characterized account (default: "impact")
+
+        characterization_factors_column: str (optional)
+            Name of the column with the factors for the
+            characterization (default: "factor")
+
+        characterized_unit_column: str (optional)
+            Name of the column with the units of the characterized accounts
+            characterization (default: "impact_unit")
+
+        Returns
+        --------
+        pd.DataFrame: factors sheet with additional error columns
+
+
+        """
         # searching the next available df to get the
         # index of stressors/regions/sector depending on input
         index_col = list(self.get_rows().names)
@@ -1787,6 +1827,7 @@ class Extension(BaseSystem):
             factors.loc[:, "error_missing_sector"] = False
 
         unique_impacts = factors.loc[:, characterized_name_column].unique()
+        # Check for consistent units per impact
         for imp in unique_impacts:
             if (
                 factors.loc[
@@ -1799,7 +1840,6 @@ class Extension(BaseSystem):
                     factors.loc[:, characterized_name_column] == imp,
                     "error_unit_impact",
                 ] = True
-                logging.error(f"Unit not unique for >{imp}<")
 
         for row in factors.index.unique():
             try:
@@ -1807,17 +1847,21 @@ class Extension(BaseSystem):
             except AttributeError:
                 # if only one element gathered
                 current_unit = [factors.loc[row, orig_unit_column]]
+            # Unit not consistent
             if len(current_unit) > 1:
-                logging.error(f"Unit not unique for >{row}<")
                 factors.loc[row, "error_unit_stressor"] = True
-                continue
+            # Stressor not in the extension
             if row not in self.unit.index:
-                logging.warning(f"Stressor not available in {self.name} >{row}<")
                 factors.loc[row, "error_missing_stressor"] = True
                 continue
+            # Unit not the same as in the extension
             if current_unit[0] != self.unit.loc[row].unit:
-                logging.error(f"Unit does not match extension unit for >{row}<")
                 factors.loc[row, "error_unit_stressor"] = True
+            # Checking for region/sector data
+            # This covers if not all regions present in the mrio
+            # are specified in the factors sheet.
+            # In that case, the full error_missing_region/sector for the
+            # the full region is set to True
             if "region" in required_columns:
                 reg_cov = (
                     factors.loc[row, ["region", "impact"]]
@@ -1826,8 +1870,8 @@ class Extension(BaseSystem):
                 )
                 for improw in reg_cov.index:
                     if len(dd := self.get_regions().difference(reg_cov[improw])) > 0:
-                        logging.warning(f"Missing region data for >{improw}<: {dd}")
                         factors.loc[row, "error_missing_region"] = True
+
             if "sector" in required_columns:
                 reg_cov = (
                     factors.loc[row, ["sector", "impact"]]
@@ -1836,17 +1880,19 @@ class Extension(BaseSystem):
                 )
                 for improw in reg_cov.index:
                     if len(dd := self.get_sectors().difference(reg_cov[improw])) > 0:
-                        logging.warning(f"Missing sector data for >{improw}<: {dd}")
                         factors.loc[row, "error_missing_sector"] = True
 
-        # TODO: missing region/sector:
-        # Case 1: More specified in factors then are available in the extension - give error as specified above
-        # Case 2: Regions/sectors in extension which are not in factors:
-        #   - return namedtuple
-        #   - dict with error summary
-        #   - factors with missing data
-        #   - df with extension in long form, indicate missing data in factors
-        pass
+        # check if additional region/sectors in the data
+        if "region" in required_columns:
+            for reg in factors.region.unique():
+                if reg not in self.get_regions():
+                    factors.loc[factors.region == reg, "error_missing_region"] = True
+        if "sector" in required_columns:
+            for sec in factors.sector.unique():
+                if sec not in self.get_sectors():
+                    factors.loc[factors.sector == sec, "error_missing_sector"] = True
+
+        return factors.reset_index()
 
     def characterize(
         self,
