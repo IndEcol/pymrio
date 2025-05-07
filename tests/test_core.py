@@ -484,70 +484,64 @@ def test_characterize_validation(fix_testmrio):
         sep="\t",
     )
     tmrio = fix_testmrio.testmrio
-    rep_basic = tmrio.emissions.validate_characterization_factors(factors_reg_spec)
+    rep_basic = tmrio.emissions.validate_characterization_table(factors_reg_spec)
+    
     # Case 1: original factor sheet has more stressor data, should be reported
-    assert all(
-        rep_basic[rep_basic.stressor == "emission_type3"].error_missing_stressor == True
-    )
-    assert all(
-        rep_basic[rep_basic.stressor != "emission_type3"].error_missing_stressor
-        == False
-    )
+    assert all(rep_basic[rep_basic.stressor == "emission_type3"].error_missing_stressor)
+    assert not any( rep_basic[rep_basic.stressor != "emission_type3"].error_missing_stressor )
     # rest should be fine
-    assert all(rep_basic.error_unit_impact == False)
-    assert all(rep_basic.error_unit_stressor == False)
-    assert all(rep_basic.error_missing_region == False)
+    assert not any(rep_basic.error_unit_impact)
+    assert not any(rep_basic.error_unit_stressor)
+    assert not any(rep_basic.error_missing_region)
     # Case 2: one region missing
     # removing one region from the data
     fac_mis_reg = factors_reg_spec.copy().loc[factors_reg_spec.region != "reg3"]
-    rep_reg_miss = tmrio.emissions.validate_characterization_factors(fac_mis_reg)
-    assert all(
-        rep_reg_miss[rep_reg_miss.stressor != "emission_type3"].error_missing_region
-        == True
-    )
+    rep_reg_miss = tmrio.emissions.validate_characterization_table(fac_mis_reg)
+    assert all(rep_reg_miss[rep_reg_miss.stressor != "emission_type3"].error_missing_region)
     # as stressor 3 is not present, not a region missing error
-    assert all(
-        rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_region
-        == False
-    )
+    assert not any(rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_region)
     # other error still present
-    assert all(
-        rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_stressor
-        == True
-    )
+    assert all(rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_stressor)
+
     # Case 3: one additional region
     new_data = factors_reg_spec.iloc[[0]]
-    new_data.region = "reg_new"
+    new_data.loc[:, "region"] = "reg_new"
     fac_add_reg = factors_reg_spec.merge(new_data, how="outer")
-    rep_add_reg = tmrio.emissions.validate_characterization_factors(fac_add_reg)
-    assert all(
-        rep_add_reg[rep_add_reg.region == "reg_new"].error_missing_region == True
-    )
-    assert all(
-        rep_add_reg[rep_add_reg.region != "reg_new"].error_missing_region == False
-    )
+    rep_add_reg = tmrio.emissions.validate_characterization_table(fac_add_reg)
+    assert all(rep_add_reg[rep_add_reg.region == "reg_new"].error_missing_region)
+    assert not any(rep_add_reg[rep_add_reg.region != "reg_new"].error_missing_region)
 
     # Case 4: Same error as in Case 1 in the non region specific factors file
     factors_no_reg = pd.read_csv(
         Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
         sep="\t",
     )
-    rep_basic_no_reg = tmrio.emissions.validate_characterization_factors(factors_no_reg)
+    rep_basic_no_reg = tmrio.emissions.validate_characterization_table(factors_no_reg)
     assert all(
         rep_basic_no_reg[
             rep_basic_no_reg.stressor == "emission_type3"
-        ].error_missing_stressor
-        == True
-    )
-    assert all(
+        ].error_missing_stressor)
+    assert not any(
         rep_basic_no_reg[
             rep_basic_no_reg.stressor != "emission_type3"
-        ].error_missing_stressor
-        == False
-    )
-    # rest should be fine
-    assert all(rep_basic_no_reg.error_unit_impact == False)
-    assert all(rep_basic_no_reg.error_unit_stressor == False)
+        ].error_missing_stressor)
+
+    assert not any(rep_basic_no_reg.error_unit_impact)
+    assert not any(rep_basic_no_reg.error_unit_stressor)
+
+    # case 5: check if unit errors are reported specifically to the affected row
+    fac_wrong_unit = factors_reg_spec.copy().loc[factors_reg_spec.region == "reg3"]
+    fac_wrong_unit = factors_reg_spec.copy()
+    fac_wrong_unit.loc[(fac_wrong_unit.region == "reg4") & (fac_wrong_unit.stressor == "emission_type1"), "stressor_unit"] = "s"
+
+    rep_wrong_unit = tmrio.emissions.validate_characterization_table(fac_wrong_unit)
+
+    assert all(rep_wrong_unit[rep_wrong_unit.stressor_unit == 's'].loc[:, "error_unit_stressor"])
+    assert not any(rep_wrong_unit[rep_wrong_unit.stressor_unit != 's'].loc[:, "error_unit_stressor"])
+
+    charact_table_reg = factors_reg_spec.copy()
+    charact_table_reg.loc[(charact_table_reg.region == "reg2") & (charact_table_reg.stressor == "emission_type2"), "region"] = "reg_new"
+
 
 
 def test_characterize_extension_reg_spec(fix_testmrio):
