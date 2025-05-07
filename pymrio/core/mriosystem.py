@@ -1158,8 +1158,7 @@ class Extension(BaseSystem):
         ):
             try:
                 self.D_cba_reg = (
-                    self.D_cba.T.groupby(level="region", sort=False).sum().T
-                    + F_Y_agg
+                    self.D_cba.T.groupby(level="region", sort=False).sum().T + F_Y_agg
                 )
             except (AssertionError, KeyError):
                 self.D_cba_reg = (
@@ -1167,19 +1166,22 @@ class Extension(BaseSystem):
                 )
             try:
                 self.D_pba_reg = (
-                    self.D_pba.T.groupby(level="region", sort=False).sum().T
-                    + F_Y_agg
+                    self.D_pba.T.groupby(level="region", sort=False).sum().T + F_Y_agg
                 )
             except (AssertionError, KeyError):
                 self.D_pba_reg = (
                     self.D_pba.T.groupby(level=0, sort=False).sum().T + F_Y_agg
                 )
             try:
-                self.D_imp_reg = self.D_imp.T.groupby(level="region", sort=False).sum().T
+                self.D_imp_reg = (
+                    self.D_imp.T.groupby(level="region", sort=False).sum().T
+                )
             except (AssertionError, KeyError):
                 self.D_imp_reg = self.D_imp.T.groupby(level=0, sort=False).sum().T
             try:
-                self.D_exp_reg = self.D_exp.T.groupby(level="region", sort=False).sum().T
+                self.D_exp_reg = (
+                    self.D_exp.T.groupby(level="region", sort=False).sum().T
+                )
             except (AssertionError, KeyError):
                 self.D_exp_reg = self.D_exp.T.groupby(level=0, sort=False).sum().T
 
@@ -1835,7 +1837,7 @@ class Extension(BaseSystem):
                     fac.loc[:, characterized_name_column] == imp,
                     "error_unit_impact",
                 ] = True
-       
+
         # unit per stressor check
         fac = fac.set_index(self.unit.index.names).sort_index()
         if "unit" in fac.columns:
@@ -1847,10 +1849,14 @@ class Extension(BaseSystem):
         fac = fac.reset_index()
         um = um.reset_index()
 
-        fac.error_unit_stressor = fac.error_unit_stressor.astype('object')
-        fac.loc[:, "error_unit_stressor"] = um.loc[:, orig_unit_column] != um.loc[:, ext_unit_col]
-        with pd.option_context('future.no_silent_downcasting', True):
-            fac.loc[:, "error_unit_stressor"] = fac.loc[:, "error_unit_stressor"].fillna(False)
+        fac.error_unit_stressor = fac.error_unit_stressor.astype("object")
+        fac.loc[:, "error_unit_stressor"] = (
+            um.loc[:, orig_unit_column] != um.loc[:, ext_unit_col]
+        )
+        with pd.option_context("future.no_silent_downcasting", True):
+            fac.loc[:, "error_unit_stressor"] = fac.loc[
+                :, "error_unit_stressor"
+            ].fillna(False)
         fac.error_unit_stressor = fac.error_unit_stressor.infer_objects(copy=False)
 
         fac = fac.set_index(self.unit.index.names).sort_index()
@@ -2007,9 +2013,13 @@ class Extension(BaseSystem):
 
         new_ext = Extension(name=name)
 
-        # restrict to F and S and the Y stuff, otherwise we loose 
+        # restrict to F and S and the Y stuff, otherwise we loose
         # _Y if we have multipliers etc. Also region specific not applicable to calculated results
-        acc_to_char = [d for d in self.get_DataFrame(data=False, with_unit=False) if d in ["F", "F_Y", "S_Y", "S"]]
+        acc_to_char = [
+            d
+            for d in self.get_DataFrame(data=False, with_unit=False)
+            if d in ["F", "F_Y", "S_Y", "S"]
+        ]
 
         for acc_name in acc_to_char:
             acc = getattr(self, acc_name)
@@ -2993,9 +3003,10 @@ class IOSystem(BaseSystem):
             else:
                 df = (
                     df.groupby(df.index, sort=False)
-                    .sum().T
-                    .groupby(df.columns, sort=False)
-                    .sum().T
+                    .sum()
+                    .T.groupby(df.columns, sort=False)
+                    .sum()
+                    .T
                 )
 
             if type(df.index[0]) is tuple:

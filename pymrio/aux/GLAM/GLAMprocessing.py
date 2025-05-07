@@ -2,14 +2,14 @@
 
 """
 
+import zipfile
 from pathlib import Path
-from pymrio.tools.iodownloader import _download_urls
-from pymrio.tools.iometadata import MRIOMetaData
 
 import pandas as pd
 from pandas._libs.parsers import STR_NA_VALUES
 
-import zipfile
+from pymrio.tools.iodownloader import _download_urls
+from pymrio.tools.iometadata import MRIOMetaData
 
 GLAM_CONFIG = {
     "V2024.10": "https://www.lifecycleinitiative.org/wp-content/uploads/2024/10/V1.0.2024.10.zip"

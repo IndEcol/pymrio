@@ -18,7 +18,7 @@
 
 # Stressor characterization allows the calculation of environmental and social impacts of economic activities. It transforms raw stressor data into meaningful impact indicators.
 
-# Pymrio implements an innovative string-matching approach for characterization. 
+# Pymrio implements an innovative string-matching approach for characterization.
 # This method matches stressors in the characterization table (provided in long format) with available stressors in the MRIO system. This brings the following benefits:
 
 # - Ensures stressor correspondence across the MRIO system and characterization table
@@ -197,16 +197,28 @@ report
 # We can put some more inconsistencies into the table to showcase the validation process.
 # Some unit error in the stressors:
 
-charact_table_reg.loc[(charact_table_reg.region == "reg4") & (charact_table_reg.stressor == "emission_type1"), "stressor_unit"] = "s"
+charact_table_reg.loc[
+    (charact_table_reg.region == "reg4")
+    & (charact_table_reg.stressor == "emission_type1"),
+    "stressor_unit",
+] = "s"
 
 # Some inconsistent impact units:
 
-charact_table_reg.loc[(charact_table_reg.region == "reg2") & (charact_table_reg.impact == "total emissions"), "impact_unit"] = "kt"
+charact_table_reg.loc[
+    (charact_table_reg.region == "reg2")
+    & (charact_table_reg.impact == "total emissions"),
+    "impact_unit",
+] = "kt"
 
 
 # Some spelling mistake in region 2 for some stressor:
 
-charact_table_reg.loc[(charact_table_reg.region == "reg2") & (charact_table_reg.stressor == "emission_type2"), "region"] = "reg22"
+charact_table_reg.loc[
+    (charact_table_reg.region == "reg2")
+    & (charact_table_reg.stressor == "emission_type2"),
+    "region",
+] = "reg22"
 
 # Another region data which is not available in the extension
 
@@ -229,4 +241,3 @@ report[report.stressor == "emission_type1"]
 report[report.stressor == "emission_type2"]
 
 # As always, more information can be found in the docstrings of the methods.
-

@@ -431,7 +431,6 @@ def test_characterize_extension_general(fix_testmrio):
         ).sum(),
     )
 
-
     # check removal calculated results (important later for region specific agg)
 
     assert ex_calc.M is None
@@ -485,10 +484,12 @@ def test_characterize_validation(fix_testmrio):
     )
     tmrio = fix_testmrio.testmrio
     rep_basic = tmrio.emissions.validate_characterization_table(factors_reg_spec)
-    
+
     # Case 1: original factor sheet has more stressor data, should be reported
     assert all(rep_basic[rep_basic.stressor == "emission_type3"].error_missing_stressor)
-    assert not any( rep_basic[rep_basic.stressor != "emission_type3"].error_missing_stressor )
+    assert not any(
+        rep_basic[rep_basic.stressor != "emission_type3"].error_missing_stressor
+    )
     # rest should be fine
     assert not any(rep_basic.error_unit_impact)
     assert not any(rep_basic.error_unit_stressor)
@@ -497,11 +498,17 @@ def test_characterize_validation(fix_testmrio):
     # removing one region from the data
     fac_mis_reg = factors_reg_spec.copy().loc[factors_reg_spec.region != "reg3"]
     rep_reg_miss = tmrio.emissions.validate_characterization_table(fac_mis_reg)
-    assert all(rep_reg_miss[rep_reg_miss.stressor != "emission_type3"].error_missing_region)
+    assert all(
+        rep_reg_miss[rep_reg_miss.stressor != "emission_type3"].error_missing_region
+    )
     # as stressor 3 is not present, not a region missing error
-    assert not any(rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_region)
+    assert not any(
+        rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_region
+    )
     # other error still present
-    assert all(rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_stressor)
+    assert all(
+        rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_stressor
+    )
 
     # Case 3: one additional region
     new_data = factors_reg_spec.iloc[[0]]
@@ -520,11 +527,13 @@ def test_characterize_validation(fix_testmrio):
     assert all(
         rep_basic_no_reg[
             rep_basic_no_reg.stressor == "emission_type3"
-        ].error_missing_stressor)
+        ].error_missing_stressor
+    )
     assert not any(
         rep_basic_no_reg[
             rep_basic_no_reg.stressor != "emission_type3"
-        ].error_missing_stressor)
+        ].error_missing_stressor
+    )
 
     assert not any(rep_basic_no_reg.error_unit_impact)
     assert not any(rep_basic_no_reg.error_unit_stressor)
@@ -532,16 +541,31 @@ def test_characterize_validation(fix_testmrio):
     # case 5: check if unit errors are reported specifically to the affected row
     fac_wrong_unit = factors_reg_spec.copy().loc[factors_reg_spec.region == "reg3"]
     fac_wrong_unit = factors_reg_spec.copy()
-    fac_wrong_unit.loc[(fac_wrong_unit.region == "reg4") & (fac_wrong_unit.stressor == "emission_type1"), "stressor_unit"] = "s"
+    fac_wrong_unit.loc[
+        (fac_wrong_unit.region == "reg4")
+        & (fac_wrong_unit.stressor == "emission_type1"),
+        "stressor_unit",
+    ] = "s"
 
     rep_wrong_unit = tmrio.emissions.validate_characterization_table(fac_wrong_unit)
 
-    assert all(rep_wrong_unit[rep_wrong_unit.stressor_unit == 's'].loc[:, "error_unit_stressor"])
-    assert not any(rep_wrong_unit[rep_wrong_unit.stressor_unit != 's'].loc[:, "error_unit_stressor"])
+    assert all(
+        rep_wrong_unit[rep_wrong_unit.stressor_unit == "s"].loc[
+            :, "error_unit_stressor"
+        ]
+    )
+    assert not any(
+        rep_wrong_unit[rep_wrong_unit.stressor_unit != "s"].loc[
+            :, "error_unit_stressor"
+        ]
+    )
 
     charact_table_reg = factors_reg_spec.copy()
-    charact_table_reg.loc[(charact_table_reg.region == "reg2") & (charact_table_reg.stressor == "emission_type2"), "region"] = "reg_new"
-
+    charact_table_reg.loc[
+        (charact_table_reg.region == "reg2")
+        & (charact_table_reg.stressor == "emission_type2"),
+        "region",
+    ] = "reg_new"
 
 
 def test_characterize_extension_reg_spec(fix_testmrio):

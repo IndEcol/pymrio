@@ -37,7 +37,7 @@ Dependencies:
 import logging
 import sys
 
-
+from pymrio.aux.GLAM import GLAMprocessing
 from pymrio.core.fileio import *
 from pymrio.core.mriosystem import (
     Extension,
@@ -81,7 +81,4 @@ from pymrio.tools.ioutil import (
     index_match,
     to_long,
 )
-
-from pymrio.aux.GLAM import GLAMprocessing
-
 from pymrio.version import __version__

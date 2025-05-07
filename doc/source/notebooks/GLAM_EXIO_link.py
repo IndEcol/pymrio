@@ -37,10 +37,10 @@
 
 # %%
 from pathlib import Path
-import pymrio
 
 import pandas as pd
 
+import pymrio
 
 # %% [markdown]
 # Next, we specify were data should be stored
@@ -183,8 +183,9 @@ EXIO3_TMP = Path(EXIOBASE_STORAGE_FOLDER / "TMP_2018")
 EXIO3_TMP.mkdir(parents=True, exist_ok=True)
 exio3.save_all(EXIO3_TMP, table_format="parquet")
 
-import pymrio
 import pyinstrument
+
+import pymrio
 
 exio3 = pymrio.load_all(EXIO3_TMP)
 exio3.reset_all_full()
