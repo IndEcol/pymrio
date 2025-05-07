@@ -413,27 +413,35 @@ def test_characterize_extension_general(fix_testmrio):
         (t_calc.emissions.F.loc[("emission_type1", "air"), :] / 1000).sum(),
     )
     npt.assert_allclose(
-        ex_calc.D_imp.loc["total air emissions"].sum(),
-        (t_calc.emissions.D_imp.loc[("emission_type1", "air"), :] / 1000).sum(),
+        ex_calc.S.loc["total air emissions"].sum(),
+        (t_calc.emissions.S.loc[("emission_type1", "air"), :] / 1000).sum(),
     )
     npt.assert_allclose(
-        ex_calc.D_exp.loc["air water impact"].sum(),
+        ex_calc.F_Y.loc["air water impact"].sum(),
         (
-            (t_calc.emissions.D_exp.loc[("emission_type1", "air"), :] * 2 / 1000)
-            + (t_calc.emissions.D_exp.loc[("emission_type2", "water"), :] * 1 / 1000)
+            (t_calc.emissions.F_Y.loc[("emission_type1", "air"), :] * 2 / 1000)
+            + (t_calc.emissions.F_Y.loc[("emission_type2", "water"), :] * 1 / 1000)
+        ).sum(),
+    )
+    npt.assert_allclose(
+        ex_calc.S_Y.loc["air water impact"].sum(),
+        (
+            (t_calc.emissions.S_Y.loc[("emission_type1", "air"), :] * 2 / 1000)
+            + (t_calc.emissions.S_Y.loc[("emission_type2", "water"), :] * 1 / 1000)
         ).sum(),
     )
 
-    # coefficients and multipliers can not characterized directly, so these
-    # should be removed and then recalculated
+
+    # check removal calculated results (important later for region specific agg)
 
     assert ex_calc.M is None
-    assert ex_calc.S is None
+    assert ex_calc.D_cba is None
+    assert ex_calc.D_imp is None
     t_calc.impacts = ex_calc
     t_calc.calc_all()
     pdt.assert_series_equal(
-        t_calc.impacts.M.loc["total air emissions", :],
-        t_calc.emissions.M.loc[("emission_type1", "air"), :] / 1000,
+        t_calc.impacts.F.loc["total air emissions", :],
+        t_calc.emissions.F.loc[("emission_type1", "air"), :] / 1000,
         check_names=False,
     )
     pdt.assert_series_equal(

@@ -2009,12 +2009,12 @@ class Extension(BaseSystem):
 
         new_ext = Extension(name=name)
 
-        for acc_name, acc in zip(
-            self.get_DataFrame(data=False, with_unit=False),
-            self.get_DataFrame(data=True, with_unit=False),
-        ):
-            if acc_name in self.__coefficients__:
-                continue
+        # restrict to F and S and the Y stuff, otherwise we loose 
+        # _Y if we have multipliers etc. Also region specific not applicable to calculated results
+        acc_to_char = [d for d in self.get_DataFrame(data=False, with_unit=False) if d in ["F", "F_Y", "S_Y", "S"]]
+
+        for acc_name in acc_to_char:
+            acc = getattr(self, acc_name)
             _series = acc.stack(acc.columns.names, future_stack=True)
             # template _df_shape different for final demand accounts
             _df_shape = pd.DataFrame(index=_series.index, columns=fac_calc.columns)
