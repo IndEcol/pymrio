@@ -1001,7 +1001,7 @@ def test_extension_convert_test_unit_fail(fix_testmrio):
         unit_column_orig=None,
         unit_column_new=None,
     )
-    assert wounit.unit == None
+    assert wounit.unit is None
 
     with pytest.raises(ValueError):
         fix_testmrio.testmrio.emissions.convert(

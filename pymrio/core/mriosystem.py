@@ -3378,7 +3378,7 @@ class IOSystem(BaseSystem):
 
         return self
 
-    def extension_convert():
+    def extension_convert(*args, **kwargs):
         raise NotImplementedError("TODO: extension convert as method")
         # Can pass extensions a string of extensions in the IO System, get them as extensions,
         # put it as new extension in pymrio, with a switch to remove converted extensions

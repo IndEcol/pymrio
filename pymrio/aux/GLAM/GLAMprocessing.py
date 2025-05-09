@@ -205,16 +205,16 @@ def prep_GLAM(GLAM_data):
     return GLAM_res
 
 
-def get_GLAM_EXIO3_bridge(GLAM_version="V2024.10", EXIOBASE_version="3.8.2"):
+def get_GLAM_EXIO3_bridge(GLAM_version="V2024.10", EXIOBASE_version="3.9"):
     """Get GLAM bridge for EXIOBASE stressors"""
 
     if GLAM_version != "V2024.10":
         raise NotImplementedError("Only the V2024.10 version is supported")
 
-    if EXIOBASE_version != "3.8.2":
-        raise NotImplementedError("Only the 3.8.2 version is supported")
+    if EXIOBASE_version[:3] != "3.9":
+        raise NotImplementedError("Only the 3.9 versions are supported")
 
     # get directory of currrent file
     # HACK: needs to be in the data folder, include in package
     current_dir = Path(__file__).parent
-    return pd.read_csv(current_dir / "EXIO382_to_GLAM202410.tsv", sep="\t")
+    return pd.read_csv(current_dir / "EXIO39_to_GLAM202410.tsv", sep="\t")

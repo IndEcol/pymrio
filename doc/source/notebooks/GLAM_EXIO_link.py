@@ -22,7 +22,8 @@
 # The tutorial was tested with the latest version of both datasets:
 #
 # - [GLAM V1.0.2024.10](https://www.lifecycleinitiative.org/activities/life-cycle-assessment-data-and-methods/global-guidance-for-life-cycle-impact-assessment-indicators-and-methods-glam/)
-# - [EXIOBASE 3.8.2](https://doi.org/10.5281/zenodo.5589597)
+# - [EXIOBASE 3.9.5](https://doi/10.5281/zenodo.14869924)
+
 
 # %% [markdown]
 # After the initial setup and data retrieval, the linking approach follows a two step approach. First, we translate the EXIOBASE stressor names to GLAM flow names; second, we characterise the flows with the GLAM characterization factors.
@@ -37,9 +38,7 @@
 
 # %%
 from pathlib import Path
-
 import pandas as pd
-
 import pymrio
 
 # %% [markdown]
@@ -66,7 +65,7 @@ GLAM_STORAGE_FOLDER.mkdir(parents=True, exist_ok=True)
 # %%
 pymrio.download_exiobase3(
     storage_folder=EXIOBASE_STORAGE_FOLDER,
-    years=[2018],
+    years=[2020],
     system="pxp",
     overwrite_existing=False,
 )
@@ -134,8 +133,7 @@ exio_glam_bridge = pymrio.GLAMprocessing.get_GLAM_EXIO3_bridge()
 
 # %% [markdown]
 # This bride links the EXIOBASE stressors to the GLAM flow names and UUIDs.
-# EXIOBASE stressors are linked via [regular expressions](https://docs.python.org/3/library/re.html)
-# TODO: function for showing the link without regular expressions
+# EXIOBASE stressors are linked via [regular expressions](https://docs.python.org/3/library/re.html) using the [convert function of Pymrio](./convert.ipynb).
 
 # %%
 exio_glam_bridge
@@ -145,7 +143,7 @@ exio_glam_bridge
 # To do so, we first load the EXIOBASE 3 data we downloaded previously into memory:
 
 # %%
-exio3 = pymrio.parse_exiobase3(EXIOBASE_STORAGE_FOLDER / "IOT_2018_pxp.zip")
+exio3 = pymrio.parse_exiobase3(EXIOBASE_STORAGE_FOLDER / "IOT_2020_pxp.zip")
 
 # %% [markdown]
 # To get a clean state, we reset any pre-calculated data from the MRIO system.
@@ -154,24 +152,29 @@ exio3 = pymrio.parse_exiobase3(EXIOBASE_STORAGE_FOLDER / "IOT_2018_pxp.zip")
 # %%
 exio3.reset_full()
 
-# %% [markdown]
-# We also do not need the "impact" satellite account, so we can remove that
-
-# %%
-del exio3.impacts
 
 # %% [markdown]
-# We remain with one satellite account "satellite", lets have a look:
+# Since version 3.9.0, EXIOBASE extensions are separated into different domains:
 
 # %%
-print(exio3.satellite)
+all_ext = list(exio3.get_extensions())
+print(all_ext)
+total_ext = []
+for ext in exio3.get_extensions(data=True):
+    total_ext = total_ext + ext.get_rows().tolist()
+    print(ext.F.head())
 
 # %% [markdown]
-# With over 1000 stressor names:
+# With around 700 stresors:
+
+# %% 
+print(len(total_ext))
+
+# %% [markdown]
+# However, many of them are differentiated by source activity, for example for CH4:
 
 # %%
-exio3.satellite.F
-
+[acc for acc in total_ext if "CH4" in acc]
 
 # %% [markdown]
 # We are now ready to convert these stressors to GLAM flows. To do so we use the convert function of Pymrio.
@@ -179,38 +182,27 @@ exio3.satellite.F
 
 # TODO: remove later, just a fast way to save and load for pymrio development
 
-EXIO3_TMP = Path(EXIOBASE_STORAGE_FOLDER / "TMP_2018")
+EXIO3_TMP = Path(EXIOBASE_STORAGE_FOLDER / "TMP_2020")
+
 EXIO3_TMP.mkdir(parents=True, exist_ok=True)
 exio3.save_all(EXIO3_TMP, table_format="parquet")
 
-import pyinstrument
-
-import pymrio
 
 exio3 = pymrio.load_all(EXIO3_TMP)
+
 exio3.reset_all_full()
 
-# %%
-debug_bridge = exio_glam_bridge
+ext = exio3.get_extensions(data=True)
 
-with pyinstrument.Profiler() as p:
-    debug_sat = exio3.satellite.convert(
-        debug_bridge,
-        new_extension_name="GLAM flows",
-        unit_column_orig="EXIOBASE_unit",
-        unit_column_new="FLOW_unit",
-        ignore_columns=["comment"],
-    )
-debug_sat.F
-
-
-exio3.glam_flows = exio3.satellite.convert(
-    exio_glam_bridge,
+exio3.glam_flows = pymrio.extension_convert(
+    *exio3.get_extensions(data=True),
+    df_map=exio_glam_bridge,
     new_extension_name="GLAM flows",
     unit_column_orig="EXIOBASE_unit",
     unit_column_new="FLOW_unit",
     ignore_columns=["comment"],
 )
+
 
 # %% [markdown]
 # This now gives us a new satellite account "glam_flows".

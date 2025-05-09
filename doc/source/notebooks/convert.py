@@ -13,31 +13,30 @@
 # ---
 
 # %% [markdown]
-# # Convert and Characterize MRIO satellite accounts and results
+# # Convert MRIO satellite raws
 
 # %% [markdown]
-# Here we discuss the possibilities for converting MRIO satellite accounts (Extensions)
-# and results.
+# Here we discuss the possibilities for converting entries in MRIO satellite accounts (Extensions).
 # The term *convert* is used very broadly here, it includes the following tasks:
 #
 # - renaming the index names of results/extensions
 # - adjusting the numerical values of the data,
-#   e.g. for unit conversion or characterisation
+#   e.g. for unit conversion
 # - finding and extracting data based on indices across a table or an mrio(-extension).
 #   This can be system based on name and potentially constrained by sector/region
 #   or any other specification.
 # - Aggregation/Summation of satellite accounts
-# - Characterization of stressors to impact categories
+# - Characterization of stressors to impact categories (with low performance, see [the Notebook on stressor characterization](./stressor_characterization.ipynb) for a faster method).
 #
 # We will cover each of these points in the examples below.
 # First [we will go through the general setup](#Basic-setup) describing the structure of the bridging/mapping table.
 # We will then cover the application of the [conversion function to a single, standalone table](#Converting-standalone-table).
 # There we will show [how to rename the index/stressor names](#Renaming-the-index-of-a-single-table), do [unit conversions](#Unit-conversion),
 # and then do [global](#Global-characterization-factors) and [regional](#Regional-specific-characterization-factors) characterizations.
-# For the case of converting a full pymrio Extension, see the [Converting pymrio Extensions](#Converting-pymrio-Extensions) section.
+# For the case of converting a full pymrio Extension, see the [converting pymrio extensions](#Converting-pymrio-Extensions) section.
 #
-# For the connected topic of *Aggregation of MRIOs*
-# see the [Aggregation](./aggregation_examples.ipynb) page.
+# For the connected topics of *Aggregation of MRIOs*
+# see the [Aggregation](./aggregation_examples.ipynb) page and for *Characterization of Stressors* see [the Notebook on stressor characterization](./stressor_characterization.ipynb).
 
 # %% [markdown]
 # ## Basic setup
@@ -54,7 +53,7 @@
 # the two underscore in the column name**. Another (optional)
 # column named "factor" specifies
 # the multiplication factor for the conversion.
-# TODO:CHECK Finally, additional columns can be used to indicate units and other information.
+# Finally, additional columns can be used to indicate units and other information. However, for the basic conversion this information will not be used. This becomes important later for the [converting Pymrio extensions](#Converting-pymrio-Extensions).
 
 # %% [markdown]
 # Constraining data columns can either specify columns or index.
@@ -70,7 +69,7 @@
 
 
 # %% [markdown]
-# ### Renaming the index of a single table
+# ### Renaming the index entries of a single table
 
 # %% [markdown]
 # Assume we have a small MRIO result table with the following structure:
@@ -471,3 +470,5 @@ mrio.new_ext.D_cba
 
 
 # CONT: test/explain characterization across different extensions
+
+# %%
