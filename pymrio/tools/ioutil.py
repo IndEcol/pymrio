@@ -1028,6 +1028,92 @@ def _characterize_get_requried_col(
     return required_columns
 
 
+def extend_rows(df, **kwargs):
+    """ Given a df, duplicate rows by spreading one columns
+
+    This function takes a dataframe (e.g. a bridge or characterization specs),
+    and spreads rows based on the input given in the keyword arguments.
+
+    Each keyword can be a column header, with the argument being a dict with the 
+    values to be spread.
+
+    Example
+    -------
+    >>> df = pd.DataFrame(
+    ...     {
+    ...         "region": ["GLO", "GLO", "GLO"],
+    ...         "sector": ["A", "B", "C"],
+    ...         "value": [1, 2, 3],
+    ...     }
+    ... )
+    >>> extend_rows(df, region={"GLO": ["reg1", "reg2", "reg3"]},
+    ...             sector={"B": ["b1", "b2"]})
+       region sector  value
+    0    reg1      A      1
+    1    reg1      C      3
+    2    reg2      A      1
+    3    reg2      C      3
+    4    reg3      A      1
+    5    reg3      C      3
+    6    reg1     b1      2
+    7    reg2     b1      2
+    8    reg3     b1      2
+    9    reg1     b2      2
+    10   reg2     b2      2
+    11   reg3     b2      2
+ 
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The DataFrame to extend with rows. Must have a numerical index.
+    **kwargs : dict
+        Column names as keys and dictionaries as values. Each dictionary maps
+        original values in the column to lists of new values that will replace
+        the original value in the new rows.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A new DataFrame with rows spread according to the mapping in kwargs,
+        sorted by the columns specified in kwargs.
+
+    Raises
+    ------
+    ValueError
+        If the DataFrame index is not a RangeIndex (numerical)
+        If a specified column in kwargs is not in the DataFrame
+        If no rows are found to spread for a value specified in the mapping
+
+
+    """
+
+    if not isinstance(df.index, pd.RangeIndex):
+        raise ValueError("DataFrame index must be a RangeIndex (numerica)")
+
+    result = df.copy()
+
+    for column, mapping in kwargs.items():
+        if column not in result.columns:
+            raise ValueError(f"Column {column} not in DataFrame")
+        new_dfs = []
+        for original_value, new_values in mapping.items():
+            # Select rows with the original value in the specified column
+            rows_to_spread = result[result[column] == original_value]
+            if rows_to_spread.empty:
+                raise ValueError(f"No rows found to spread for value: {original_value}")
+            # Create new dataframes with the new values
+            for new_value in new_values:
+                new_df = rows_to_spread.copy()
+                new_df[column] = new_value
+                new_dfs.append(new_df)
+            # Remove the original rows that have been spread
+            if new_dfs:
+                result = result[result[column] != original_value]
+                result = pd.concat([result] + new_dfs, ignore_index=True)
+
+    return result.sort_values(by=list(kwargs.keys()))
+
+
 def check_df_map(df_orig, df_map):
     """Check which entries of df_map would be in effect given df_orig"""
     # TODO: we need a way to check for spelling mistakes

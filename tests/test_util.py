@@ -16,7 +16,6 @@ from faker import Faker
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
 
-from pymrio.tools.ioutil import diagonalize_columns_to_sectors  # noqa
 from pymrio.tools.ioutil import (  # noqa
     build_agg_matrix,
     build_agg_vec,
@@ -29,6 +28,8 @@ from pymrio.tools.ioutil import (  # noqa
     index_match,
     set_block,
     sniff_csv_format,
+    diagonalize_columns_to_sectors,
+    extend_rows
 )
 
 
@@ -988,3 +989,71 @@ def test_convert_wrong_inputs():
 
     with pytest.raises(ValueError):
         _res4 = convert(to_char, map_test4)
+
+
+def test_extend_rows():
+    # Test basic functionality with string values
+    df = pd.DataFrame({
+        "region": ["GLO", "GLO", "GLO"],
+        "sector": ["A", "B", "C"],
+        "value": [1, 2, 3],
+    })
+    
+    result = extend_rows(df, region={"GLO": ["reg1", "reg2"]})
+    assert len(result) == 6
+    assert set(result["region"].unique()) == {"reg1", "reg2"}
+    
+    # Test spreading two columns
+    df = pd.DataFrame({
+        "region": ["GLO", "GLO", "GLO"],
+        "sector": ["A", "B", "C"],
+        "value": [1, 2, 3],
+    })
+    
+    result = extend_rows(df, 
+                       region={"GLO": ["reg1", "reg2"]}, 
+                       sector={"B": ["b1", "b2"]})
+    assert len(result) == 8  # 2 regions * (2 sectors from B + 2 original sectors)
+    assert set(result["region"].unique()) == {"reg1", "reg2"}
+    assert set(result["sector"].unique()) == {"A", "C", "b1", "b2"}
+    
+    # Test with numerical values
+    df = pd.DataFrame({
+        "year": [2020, 2020, 2020],
+        "id": [1, 2, 3],
+        "value": [10, 20, 30],
+    })
+    
+    result = extend_rows(df, year={2020: [2021, 2022]})
+    assert len(result) == 6
+    assert set(result["year"].unique()) == {2021, 2022}
+    assert result["value"].sum() == 2 * (10 + 20 + 30)
+    
+    # Test ValueError for non-RangeIndex DataFrame
+    df_with_custom_index = pd.DataFrame({
+        "region": ["GLO", "GLO"],
+        "value": [1, 2],
+    }, index=["a", "b"])
+    
+    with pytest.raises(ValueError, match="DataFrame index must be a RangeIndex"):
+        extend_rows(df_with_custom_index, region={"GLO": ["reg1"]})
+    
+    # Test ValueError for non-existent column
+    with pytest.raises(ValueError, match="Column nonexistent not in DataFrame"):
+        extend_rows(df, nonexistent={"val": ["new"]})
+    
+    # Test ValueError for non-existent value to spread
+    with pytest.raises(ValueError, match="No rows found to spread for value"):
+        extend_rows(df, year={1999: ["new"]})
+    
+    # Test with empty new_values list (shouldn't change the original rows)
+    df = pd.DataFrame({
+        "region": ["GLO", "EU"],
+        "value": [1, 2],
+    })
+    
+    result = extend_rows(df, region={"GLO": []})
+
+    assert len(result) == 2
+    assert set(result["region"].unique()) == {"GLO", "EU"}
+

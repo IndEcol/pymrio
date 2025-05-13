@@ -80,5 +80,6 @@ from pymrio.tools.ioutil import (
     index_fullmatch,
     index_match,
     to_long,
+    extend_rows,
 )
 from pymrio.version import __version__
