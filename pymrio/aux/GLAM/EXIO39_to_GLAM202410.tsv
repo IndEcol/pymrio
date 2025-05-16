@@ -42,7 +42,7 @@ nutrients	P.* -.*- water	Phosphorus	Emissions	Emissions to water	Emissions to wa
 land	Cropland.*	arable	Land use	Land occupation		b88d3b6d-229e-477e-bce1-e16376f75c7b	km2	m2	1000000	
 land	Forest	forest	Land use	Land occupation		641d3aa1-93d3-4fb2-9bd8-17600536c3c0	km2	m2	1000000	
 land	Other land Use.*	unspecified	Land use	Land occupation		be7cc1fe-c49e-4cce-9549-3d547f10c189	km2	m2	1000000	
-land	Permanent pastures.*	pasture/meadow	Land use	Land occupation		07937495-00a4-4676-8ef7-1161ee7a9f28	km2	m2	1000000	
+land	Permanent pastures.*	grassland/pasture/meadow	Land use	Land occupation		bc2fb99a-c9b4-4473-9870-089bcef3054f	km2	m2	1000000	Matching to the factor including “grassland” as EXIOBASE contains natural growing pastures in there? MARTIN REVIEW
 land	Infrastructure.*|Artificial.*	urban	Land use	Land occupation		d433f59a-a45d-42a4-88bc-ae8a4f29af39	km2	m2	1000000	Assumed match. There are also other potential matches (industrial/traffic area etc).
 material	.*Domestic Extraction.*Fossil Fuel.*	Crude petroleum	Resources	Resources from ground	Non-renewable energy resources from ground		kt	kg	1000	
 material	.*Domestic Extraction.*Bauxite.*	bauxite	Resources	Resources from ground	Non-renewable element resources from ground		kt	kg	1000	
