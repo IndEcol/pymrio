@@ -1003,7 +1003,7 @@ def test_extend_rows():
     assert len(result) == 6
     assert set(result["region"].unique()) == {"reg1", "reg2"}
     
-    # Test spreading two columns
+    # Test spreading two columns, one it itself and another column
     df = pd.DataFrame({
         "region": ["GLO", "GLO", "GLO"],
         "sector": ["A", "B", "C"],
@@ -1012,11 +1012,14 @@ def test_extend_rows():
     
     result = extend_rows(df, 
                        region={"GLO": ["reg1", "reg2"]}, 
-                       sector={"B": ["b1", "b2"]})
-    assert len(result) == 8  # 2 regions * (2 sectors from B + 2 original sectors)
+                       sector={"C": ["C", "D"]})
+    assert len(result) == 8  # 2 regions * (2 sectors from C + 2 original sectors)
     assert set(result["region"].unique()) == {"reg1", "reg2"}
-    assert set(result["sector"].unique()) == {"A", "C", "b1", "b2"}
-    
+    assert set(result["sector"].unique()) == {"A", "B", "C", "D"}
+    assert all(result[(result.sector == "A") & (result.region == "reg1")].value == 1)
+    assert all(result[(result.sector == "D") & (result.region == "reg1")].value == 3)
+    assert all(result[(result.sector == "C") & (result.region == "reg1")].value == 3)
+
     # Test with numerical values
     df = pd.DataFrame({
         "year": [2020, 2020, 2020],
