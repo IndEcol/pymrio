@@ -467,7 +467,7 @@ def test_convert_rename_multiindex():
 def test_convert_rename_spread_index():
     """Testing the renaming of one table from an index to an multiindex
 
-    This is a specific case for the EXIOBASE to GLAM conversion,
+    This is for example needed for the EXIOBASE stressor to GLAM conversion,
     where one stressor level need to be spread to multiple flows/classes
     """
 
