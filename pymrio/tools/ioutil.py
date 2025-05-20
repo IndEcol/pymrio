@@ -1000,7 +1000,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
 def _characterize_get_requried_col(
     factors,
-    index_col,
+    ext_index_names,
     characterized_name_column,
     characterization_factors_column,
     characterized_unit_column,
@@ -1011,12 +1011,14 @@ def _characterize_get_requried_col(
     For paramters naming see function characterize.
 
     """
-    if "region" in factors.columns:
-        index_col.append("region")
-    if "sector" in factors.columns:
-        index_col.append("sector")
+    req_index = ext_index_names.copy()
 
-    required_columns = index_col + [
+    if "region" in factors.columns:
+        req_index.append("region")
+    if "sector" in factors.columns:
+        req_index.append("sector")
+
+    required_columns = req_index + [
         characterization_factors_column,
         characterized_name_column,
         characterized_unit_column,
@@ -1024,8 +1026,10 @@ def _characterize_get_requried_col(
 
     if not set(required_columns).issubset(set(factors.columns)):
         raise ValueError("Not all required columns in the passed DataFrame >factors<")
-
-    return required_columns
+   
+    return namedtuple("ret_val", ["required_index_col", "all_required_columns"])(
+        req_index, required_columns
+    )
 
 
 def extend_rows(df, **kwargs):

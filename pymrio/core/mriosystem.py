@@ -1801,11 +1801,11 @@ class Extension(BaseSystem):
         """
         # searching the next available df to get the
         # index of stressors/regions/sector depending on input
-        index_col = list(self.get_rows().names)
 
         fac = factors.copy()
-        required_columns = ioutil._characterize_get_requried_col(
-            index_col=index_col,
+
+        req = ioutil._characterize_get_requried_col(
+            ext_index_names = list(self.get_rows().names),
             factors=fac,
             characterized_name_column=characterized_name_column,
             characterization_factors_column=characterization_factors_column,
@@ -1871,7 +1871,7 @@ class Extension(BaseSystem):
             # are specified in the factors sheet.
             # In that case, the full error_missing_region/sector for the
             # the full region is set to True
-            if "region" in required_columns:
+            if "region" in req.all_required_columns:
                 reg_cov = (
                     fac.loc[row, ["region", characterized_name_column]]
                     .groupby(characterized_name_column)
@@ -1881,7 +1881,7 @@ class Extension(BaseSystem):
                     if len(dd := self.get_regions().difference(reg_cov[improw])) > 0:
                         fac.loc[row, "error_missing_region"] = True
 
-            if "sector" in required_columns:
+            if "sector" in req.all_required_columns:
                 reg_cov = (
                     fac.loc[row, ["sector", characterized_name_column]]
                     .groupby(characterized_name_column)
@@ -1892,11 +1892,11 @@ class Extension(BaseSystem):
                         fac.loc[row, "error_missing_sector"] = True
 
         # check if additional region/sectors in the data
-        if "region" in required_columns:
+        if "region" in req.all_required_columns:
             for reg in fac.region.unique():
                 if reg not in self.get_regions():
                     fac.loc[fac.region == reg, "error_missing_region"] = True
-        if "sector" in required_columns:
+        if "sector" in req.all_required_columns:
             for sec in fac.sector.unique():
                 if sec not in self.get_sectors():
                     fac.loc[fac.sector == sec, "error_missing_sector"] = True
@@ -1968,9 +1968,16 @@ class Extension(BaseSystem):
         """
         name = self.name + name if name[0] == "_" else name
 
-        # searching the next available df to get the
-        # index of stressors/regions/sector depending on input
-        index_col = list(self.get_rows().names)
+        req = ioutil._characterize_get_requried_col(
+            ext_index_names = list(self.get_rows().names),
+            factors=factors,
+            characterized_name_column=characterized_name_column,
+            characterization_factors_column=characterization_factors_column,
+            characterized_unit_column=characterized_unit_column,
+            orig_unit_column=orig_unit_column,
+        )
+
+        index_col = req.required_index_col
 
         # Not pass through in case of unit errors...
         unique_impacts = factors.loc[:, characterized_name_column].unique()
