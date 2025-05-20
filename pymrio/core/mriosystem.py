@@ -1874,7 +1874,7 @@ class Extension(BaseSystem):
             if "region" in required_columns:
                 reg_cov = (
                     fac.loc[row, ["region", characterized_name_column]]
-                    .groupby("impact")
+                    .groupby(characterized_name_column)
                     .region.apply(set)
                 )
                 for improw in reg_cov.index:
@@ -1884,7 +1884,7 @@ class Extension(BaseSystem):
             if "sector" in required_columns:
                 reg_cov = (
                     fac.loc[row, ["sector", characterized_name_column]]
-                    .groupby("impact")
+                    .groupby(characterized_name_column)
                     .sector.apply(set)
                 )
                 for improw in reg_cov.index:
@@ -1972,15 +1972,6 @@ class Extension(BaseSystem):
         # index of stressors/regions/sector depending on input
         index_col = list(self.get_rows().names)
 
-        required_columns = ioutil._characterize_get_requried_col(
-            index_col=index_col,
-            factors=factors,
-            characterized_name_column=characterized_name_column,
-            characterization_factors_column=characterization_factors_column,
-            characterized_unit_column=characterized_unit_column,
-            orig_unit_column=orig_unit_column,
-        )
-
         # Not pass through in case of unit errors...
         unique_impacts = factors.loc[:, characterized_name_column].unique()
         for imp in unique_impacts:
@@ -1996,6 +1987,8 @@ class Extension(BaseSystem):
         factors = factors.set_index(index_col).sort_index()
 
         for unit_row in self.unit.index:
+            if unit_row not in factors.index:
+                continue
             if factors.loc[unit_row, orig_unit_column].nunique() != 1:
                 raise ValueError(f"Unit not unique for >{unit_row}<")
             unit_factors = factors.loc[unit_row, orig_unit_column].iloc[0]
@@ -2574,6 +2567,7 @@ class IOSystem(BaseSystem):
         ext_name_or_inst = [
             nn.name if isinstance(nn, Extension) else nn for nn in _pre_ext
         ]
+
 
         for name in ext_name_or_inst:
             if name in all_ext_list:
