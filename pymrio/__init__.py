@@ -75,10 +75,10 @@ from pymrio.tools.ioutil import (
     build_agg_matrix,
     build_agg_vec,
     convert,
+    extend_rows,
     index_contains,
     index_fullmatch,
     index_match,
     to_long,
-    extend_rows,
 )
 from pymrio.version import __version__

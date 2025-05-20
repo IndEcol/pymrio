@@ -1029,12 +1029,12 @@ def _characterize_get_requried_col(
 
 
 def extend_rows(df, **kwargs):
-    """ Given a df, duplicate rows by spreading one columns
+    """Given a df, duplicate rows by spreading one columns
 
     This function takes a dataframe (e.g. a bridge or characterization specs),
     and spreads rows based on the input given in the keyword arguments.
 
-    Each keyword can be a column header, with the argument being a dict with the 
+    Each keyword can be a column header, with the argument being a dict with the
     values to be spread.
 
     Example
@@ -1061,7 +1061,7 @@ def extend_rows(df, **kwargs):
     9    reg1     b2      2
     10   reg2     b2      2
     11   reg3     b2      2
- 
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -1087,8 +1087,8 @@ def extend_rows(df, **kwargs):
 
     """
 
-    if not isinstance(df.index, pd.RangeIndex):
-        raise ValueError("DataFrame index must be a RangeIndex (numerica)")
+    if not pd.api.types.is_numeric_dtype(df.index):
+        raise ValueError("DataFrame index must be numerical")
 
     result = df.copy()
 
