@@ -1099,8 +1099,8 @@ def extend_rows(df, **kwargs):
     for column, mapping in kwargs.items():
         if column not in result.columns:
             raise ValueError(f"Column {column} not in DataFrame")
-        new_dfs = []
         for original_value, new_values in mapping.items():
+            new_dfs = []
             # Select rows with the original value in the specified column
             rows_to_spread = result[result[column] == original_value]
             if rows_to_spread.empty:

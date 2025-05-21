@@ -1022,6 +1022,36 @@ def test_extend_rows():
     assert all(result[(result.sector == "D") & (result.region == "reg1")].value == 3)
     assert all(result[(result.sector == "C") & (result.region == "reg1")].value == 3)
 
+    # Tests extending rows for multiple values in the same column
+    df = pd.DataFrame(
+        {
+            "region": ["GLO", "EU", "USA"],
+            "sector": ["A", "B", "C"],
+            "value": [10, 20, 30],
+        }
+    )
+
+    result = extend_rows(df, region={
+        "GLO": ["reg1", "reg2"], 
+        "EU": ["France", "Germany", "Austria"]
+    })
+    
+    # Original had 3 rows, GLO expands to 2 new rows, EU expands to 3 new rows, + 1 USA
+    assert len(result) == 6  
+    assert set(result["region"].unique()) == {"reg1", "reg2", "France", "Germany", "USA", "Austria"}
+    assert "GLO" not in result["region"].values
+    assert "EU" not in result["region"].values
+    
+    # Check values were properly copied
+    assert all(result[result.region == "reg1"].value == 10)
+    assert all(result[result.region == "reg2"].value == 10)
+    assert all(result[result.region == "France"].value == 20)
+    assert all(result[result.region == "Germany"].value == 20)
+    assert all(result[result.region == "Austria"].value == 20)
+    assert all(result[result.region == "USA"].value == 30)
+
+
+
     # Test with numerical values
     df = pd.DataFrame(
         {
@@ -1036,7 +1066,7 @@ def test_extend_rows():
     assert set(result["year"].unique()) == {2021, 2022}
     assert result["value"].sum() == 2 * (10 + 20 + 30)
 
-    # Test ValueError for non-RangeIndex DataFrame
+    # Test ValueError for non-numerical DataFrame
     df_with_custom_index = pd.DataFrame(
         {
             "region": ["GLO", "GLO"],
