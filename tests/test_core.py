@@ -383,6 +383,29 @@ def test_diag_stressor(fix_testmrio):
     assert sum(dext_name.F.iloc[1:-1, 0]) == 0
 
 
+def test_characterize_extension_over_extensions(fix_testmrio):
+    """Testing characterisation over multiple extensions
+
+    - general (non regional specific) characterisation factors
+    - testing unit fix
+    - testing missing data
+    """
+
+    f_wo_ext = pd.read_csv(
+        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
+        sep="\t",)
+    f_with_ext = f_wo_ext.copy()
+    f_with_ext.loc[:,"extension"] = "Emissions"
+
+    tt = fix_testmrio.testmrio
+    ex_wo_ext = tt.emissions.characterize(f_wo_ext, name="new_wo")
+    ex_with_ext = pymrio.extension_characterize(tt.emissions, factors=f_with_ext, extension_name="new_with")
+
+    pd.assert_frame_equal(ex_wo_ext.F, ex_with_ext.F)
+
+
+
+
 def test_characterize_extension_general(fix_testmrio):
     """Testing 'standard' characterisation
 

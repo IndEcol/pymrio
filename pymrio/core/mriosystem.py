@@ -3385,6 +3385,184 @@ class IOSystem(BaseSystem):
         # put it as new extension in pymrio, with a switch to remove converted extensions
 
 
+def extension_characterize(
+    *extensions,
+    factors,
+    extension_name = "impacts",
+    extension_col_name="extension",
+    characterized_name_column="impact",
+    characterization_factors_column="factor",
+    characterized_unit_column="impact_unit",
+    orig_unit_column="stressor_unit",
+    ):
+    """ Characterize stressors across different extensions
+
+    This works similar to the characterize method of a specific 
+    extension.
+
+    The factors dataframe must include an columns "extension"
+    which specifies the 'name' of the extension in which the stressor is
+    present. The 'name' is the str returned by ext.name
+
+    For more information on the structure of the factors dataframe 
+    see the Extension.characterize docstring.
+
+
+    Parameters
+    -----------
+    extensions : list of extensions
+        Extensions to convert. All extensions passed must have the same index names/format.
+
+    factors: pd.DataFrame
+        A dataframe in long format with numerical index and columns named
+        index.names of the extension to be characterized and 'extension',
+        'characterized_name_column', 'characterization_factors_column',
+        'characterized_unit_column', 'orig_unit_column'
+
+    extension_name: str
+        The name of the new extension returned
+
+    extension_col_name : str, optional
+        Name of the column specifying the extension name in df_map.
+        The entry in df_map here can either be the name returned by Extension.name or the
+        name of the Extension instance.
+        Default: 'extension'
+
+    characterized_name_column: str (optional)
+        Name of the column with the names of the
+        characterized account (default: "impact")
+
+    characterization_factors_column: str (optional)
+        Name of the column with the factors for the
+        characterization (default: "factor")
+
+    characterized_unit_column: str (optional)
+        Name of the column with the units of the characterized accounts
+        characterization (default: "impact_unit")
+
+    name: string (optional)
+        The new name for the extension,
+        if the string starts with an underscore '_' the string
+        with be appended to the original name. Default: '_characterized'
+
+
+    Returns
+    --------
+    pymrio.Extension
+
+
+    """
+
+    if extension_col_name not in factors.columns:
+        raise ValueError("The factors dataframe must include the column 'extension'")
+
+    if type(extensions) is Extension:
+        extensions = [extensions]
+    elif type(extensions) is tuple:
+        extensions = list(extensions)
+
+    given_ext_names = [ext.name for ext in extensions]
+    spec_ext_names = factors.loc[:, extension_col_name].unique()
+
+    for spec_name in spec_ext_names:
+        if spec_name not in given_ext_names:
+            raise ValueError(
+                f"Extension {spec_name} not found in the passed extensions."
+            )
+
+    used_ext = [ext for ext in extensions if ext.name in spec_ext_names]
+
+    ext_specs = pd.DataFrame(
+                index = spec_ext_names,
+                columns = ["F", "F_Y", "S_Y", "S", "unit", "index_names"],
+                data=None
+                )
+
+    for ext in used_ext:
+        for df_name in ext.get_DataFrame(data=False):
+            ext_specs.loc[ext.name, df_name] = True
+            ext_specs.loc[ext.name, "index_names"] = str(ext.get_rows().names)
+
+    if len(ext_specs.loc[:, "index_names"].unique()) > 1:
+        raise ValueError(
+            "All extensions must have the same index names/format."
+        )
+
+    merge_type = "none"
+    if all(ext_specs.loc[:, "F"]):
+        merge_type = "F"
+    elif all(ext_specs.loc[:, "S"]):
+        merge_type = "S"
+    else:
+        raise ValueError(
+            "All extensions must have either F or S."
+        )
+
+    faci = factors.set_index(list(merge_df.index.names) + [extension_col_name])
+    faci = faci[~faci.index.duplicated(keep="first")]
+    faci = faci.reset_index(extension_col_name)
+
+    if any(faci.index.duplicated()):
+        raise NotImplementedError("Case with same stressor names in different extensions not implemented yet")
+
+    merge = []
+    merge_Y = []
+    merge_unit = []
+    for ext in used_ext:
+        ext_df = getattr(ext, merge_type)
+        req_rows = faci[faci.loc[:, extension_col_name] == ext.name].index
+        avail_rows = ext_df.index
+        used_rows = req_rows.intersection(avail_rows)
+        merge.append(ext_df.loc[used_rows])
+        merge_unit.append(ext.unit.loc[used_rows])
+        try:
+            ext_df_Y = getattr(ext, merge_type + "_Y")
+            merge_Y.append(ext_df_Y.loc[used_rows])
+        except AttributeError:
+            pass
+
+    new_ext = Extension(
+        name="temp",
+        unit= pd.concat(merge_unit, axis=0),
+        )
+    setattr(new_ext, merge_type, pd.concat(merge, axis=0))
+    if len(merge_Y) > 0:
+        setattr(new_ext, merge_type + "_Y",pd.concat(merge_Y, axis=0))
+
+    char = new_ext.characterize(
+        factors=factors.drop(extension_col_name, axis=1),
+        name=extension_name,
+        characterized_name_column=characterized_name_column,
+        characterization_factors_column=characterization_factors_column,
+        characterized_unit_column=chracterized_unit_column,
+        orig_unit_column=org_unit_column,
+    )
+    return char
+
+                
+
+    # DEV:
+    # Delete for release
+    # import pymrio
+    # import pandas as pd
+    # from pathlib import Path
+    # from pymrio.core.constants import PYMRIO_PATH  # noqa
+
+    # tt = pymrio.load_test()
+    #
+    # factors = pd.read_csv(
+    #     Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
+    #     sep="\t",)
+    # factors.loc[:,"extension"] = "Emissions"
+    # extensions = list(tt.get_extensions(data=True))
+    # name="_characterized"
+    # extension_col_name="extension"
+    # characterized_name_column="impact"
+    # characterization_factors_column="factor"
+    # characterized_unit_column="impact_unit"
+    # orig_unit_column="stressor_unit"
+
+
 def extension_convert(
     *extensions,
     df_map,
