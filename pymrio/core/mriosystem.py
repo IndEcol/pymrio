@@ -2781,7 +2781,7 @@ class IOSystem(BaseSystem):
                         del extracts[ext]
 
         if ext_name:
-            return concate_extension(*extracts.values(), name=ext_name)
+            return extension_concate(*extracts.values(), new_extension_name=ext_name)
         else:
             return extracts
 
@@ -3383,11 +3383,38 @@ class IOSystem(BaseSystem):
         # Can pass extensions a string of extensions in the IO System, get them as extensions,
         # put it as new extension in pymrio, with a switch to remove converted extensions
 
+    def extension_concate(self, new_extension_name):
+        """ Concates all extension of the mrio object
+
+        This method combines all satellite accounts into a single extension.
+
+        The method assumes that the first index is the name of the
+        stressor/impact/input type. To provide a consistent naming this is renamed
+        to 'indicator' if they differ. All other index names ('compartments', ...)
+        are added to the concatenated extensions and set to NaN for missing values.
+
+        If only a subset of extensions should/can be merge, use 
+        the pymrio.extension_concate function.
+        
+    
+        Parameters
+        ----------
+        new_extension_name : str
+            Name for the new extension
+            
+        Returns
+        -------
+        pymrio.Extension
+            
+
+        """
+        return extension_concate(list(self.get_extensions(data=True)), 
+                                 new_extension_name=new_extension_name)
 
 def extension_characterize(
     *extensions,
     factors,
-    extension_name="impacts",
+    new_extension_name="impacts",
     extension_col_name="extension",
     characterized_name_column="impact",
     characterization_factors_column="factor",
@@ -3529,35 +3556,13 @@ def extension_characterize(
 
     char = new_ext.characterize(
         factors=factors.drop(extension_col_name, axis=1),
-        name=extension_name,
+        name=new_extension_name,
         characterized_name_column=characterized_name_column,
         characterization_factors_column=characterization_factors_column,
         characterized_unit_column=characterized_unit_column,
         orig_unit_column=orig_unit_column,
     )
     return char
-
-    # DEV:
-    # Delete for release
-    # import pymrio
-    # import pandas as pd
-    # from pathlib import Path
-    # from pymrio.core.constants import PYMRIO_PATH  # noqa
-
-    # tt = pymrio.load_test()
-    #
-    # factors = pd.read_csv(
-    #     Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
-    #     sep="\t",)
-    # factors.loc[:,"extension"] = "Emissions"
-    # extensions = list(tt.get_extensions(data=True))
-    # name="_characterized"
-    # extension_col_name="extension"
-    # characterized_name_column="impact"
-    # characterization_factors_column="factor"
-    # characterized_unit_column="impact_unit"
-    # orig_unit_column="stressor_unit"
-
 
 def extension_convert(
     *extensions,
@@ -3706,7 +3711,7 @@ def extension_convert(
             )
         )
 
-    result_ext = concate_extension(*gather, name=new_extension_name)
+    result_ext = extension_concate(*gather, new_extension_name=new_extension_name)
 
     for df, df_name in zip(
         result_ext.get_DataFrame(data=True, with_unit=True),
@@ -3728,7 +3733,7 @@ def extension_convert(
     return result_ext
 
 
-def concate_extension(*extensions, name):
+def extension_concate(*extensions, new_extension_name):
     """Concatenate extensions
 
     Notes
@@ -3749,7 +3754,7 @@ def concate_extension(*extensions, name):
     extensions : Extensions
         The Extensions to concatenate as multiple parameters
 
-    name : string
+    new_extension_name : string
         Name of the new extension
 
     Returns
@@ -3758,8 +3763,6 @@ def concate_extension(*extensions, name):
     Concatenated extension
 
     """
-    # TODO: rename to extension_concatenate and also provie method
-    # TODO: rename name to new_extension_name , make it consitent with conver function
 
     if type(extensions[0]) is tuple or type(extensions[0]) is list:
         extensions = extensions[0]
@@ -3863,6 +3866,6 @@ def concate_extension(*extensions, name):
         first_run = False
 
         all_dict = dict(list(attr_dict.items()) + list(df_dict.items()))
-        all_dict["name"] = name
+        all_dict["name"] = new_extension_name
 
     return Extension(**all_dict)

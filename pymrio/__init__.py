@@ -25,8 +25,6 @@ Dependencies:
 - scipy
 - pandas
 - matplotlib
-- docutils (only for IOSystem.report* if format is html and tex - not
-            imported otherwise)
 
 :Authors: Konstantin Stadler
 
@@ -34,14 +32,11 @@ Dependencies:
 
 """
 
-import logging
-import sys
-
 from pymrio.core.fileio import *
 from pymrio.core.mriosystem import (
     Extension,
     IOSystem,
-    concate_extension,
+    extension_concate,
     extension_characterize,
     extension_convert,
 )

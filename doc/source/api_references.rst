@@ -252,7 +252,9 @@ Changing extensions
    :toctree: api_doc/
 
    IOSystem.remove_extension
-   concate_extension
+   extension_concate
+   extension_characterize
+   extension_convert
    parse_exio12_ext
 
 Adjusting and Renaming

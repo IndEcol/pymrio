@@ -383,91 +383,6 @@ def test_diag_stressor(fix_testmrio):
     assert sum(dext_name.F.iloc[1:-1, 0]) == 0
 
 
-def test_characterize_extension_over_extensions(fix_testmrio):
-    """Testing characterisation over multiple extensions
-
-    - general (non regional specific) characterisation factors
-    - testing unit fix
-    - testing missing data
-    """
-
-    f_wo_ext = pd.read_csv(
-        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
-        sep="\t",
-    )
-    f_with_ext = f_wo_ext.copy()
-    f_with_ext.loc[:, "extension"] = "Emissions"
-
-    tt = fix_testmrio.testmrio
-
-    # Test with same extension
-    ex_wo_ext = tt.emissions.characterize(f_wo_ext, name="new_wo")
-    ex_with_ext = pymrio.extension_characterize(
-        tt.emissions, factors=f_with_ext, extension_name="new_with"
-    )
-
-    pdt.assert_frame_equal(ex_wo_ext.F, ex_with_ext.F)
-    pdt.assert_frame_equal(ex_wo_ext.F_Y, ex_with_ext.F_Y)
-
-    # Test for different classifications in extensions
-    with pytest.raises(ValueError):
-        f_with_fac = f_with_ext.copy()
-        f_with_fac.loc[0, "extension"] = "Factor Inputs"
-        _tmp_fail = pymrio.extension_characterize(
-            tt.emissions,
-            tt.factor_inputs,
-            factors=f_with_fac,
-            extension_name="_should_raise",
-        )
-    # But it should work if the extension is not needed
-    _tmp_work = pymrio.extension_characterize(
-        tt.emissions,
-        tt.factor_inputs,
-        factors=f_with_ext,
-        extension_name="_should_work",
-    )
-    pdt.assert_frame_equal(_tmp_work.F, ex_with_ext.F)
-    pdt.assert_frame_equal(_tmp_work.F_Y, ex_with_ext.F_Y)
-
-    # Test with two extensions and region differentiations
-    tt.water = tt.emissions.copy("water")
-    tt.air = tt.emissions.copy("air")
-
-    tt.air.F = tt.air.F.loc[[("emission_type1", "air")], :]
-    tt.air.F_Y = tt.air.F_Y.loc[[("emission_type1", "air")], :]
-    tt.water.F = tt.water.F.loc[[("emission_type2", "water")], :]
-    tt.water.F_Y = tt.water.F_Y.loc[[("emission_type2", "water")], :]
-
-    factors_reg_spec = pd.read_csv(
-        Path(
-            PYMRIO_PATH["test_mrio"]
-            / Path("concordance")
-            / "emissions_charact_reg_spec.tsv"
-        ),
-        sep="\t",
-    )
-
-    # Throw in some doubling for the testing
-    factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] = (
-        factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] * 2
-    )
-
-    factors_reg_ext = factors_reg_spec.copy()
-
-    factors_reg_ext.loc[:, "extension"] = factors_reg_ext.loc[:, "compartment"]
-    factors_reg_ext = factors_reg_ext[factors_reg_ext.compartment != "land"]
-
-    ex_reg_one = tt.emissions.characterize(factors_reg_spec, name="one")
-    ex_reg_multi = pymrio.extension_characterize(
-        *list(tt.get_extensions(data=True)),
-        factors=factors_reg_ext,
-        extension_name="multi"
-    )
-
-    pdt.assert_frame_equal(ex_reg_one.F, ex_reg_multi.F)
-    pdt.assert_frame_equal(ex_reg_one.F_Y, ex_reg_multi.F_Y)
-    pdt.assert_frame_equal(ex_reg_one.unit, ex_reg_multi.unit)
-
 
 def test_characterize_extension_general(fix_testmrio):
     """Testing 'standard' characterisation
@@ -715,6 +630,74 @@ def test_characterize_extension_reg_spec(fix_testmrio):
 
     pdt.assert_frame_equal(nnaa.F, res_reg2_missing.F)
     pdt.assert_frame_equal(nnaa.F_Y, res_reg2_missing.F_Y)
+
+def test_characterize_extension_over_extensions(fix_testmrio):
+    """Testing characterisation over multiple extensions
+    """
+
+    f_wo_ext = pd.read_csv(
+        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
+        sep="\t",)
+    f_with_ext = f_wo_ext.copy()
+    f_with_ext.loc[:,"extension"] = "Emissions"
+
+    tt = fix_testmrio.testmrio
+
+    # Test with same extension
+    ex_wo_ext = tt.emissions.characterize(f_wo_ext, name="new_wo")
+    ex_with_ext = pymrio.extension_characterize(tt.emissions, 
+                                                factors=f_with_ext, 
+                                                new_extension_name="new_with")
+
+    pdt.assert_frame_equal(ex_wo_ext.F, ex_with_ext.F)
+    pdt.assert_frame_equal(ex_wo_ext.F_Y, ex_with_ext.F_Y)
+
+    # Test for different classifications in extensions
+    with pytest.raises(ValueError):
+        f_with_fac = f_with_ext.copy()
+        f_with_fac.loc[0, "extension"] = "Factor Inputs"
+        _tmp_fail = pymrio.extension_characterize(tt.emissions, tt.factor_inputs, factors=f_with_fac, 
+                                                  new_extension_name="_should_raise")
+    # But it should work if the extension is not needed
+    _tmp_work = pymrio.extension_characterize(tt.emissions, tt.factor_inputs, factors=f_with_ext, new_extension_name="_should_work")
+    pdt.assert_frame_equal(_tmp_work.F, ex_with_ext.F)
+    pdt.assert_frame_equal(_tmp_work.F_Y, ex_with_ext.F_Y)
+
+    # Test with two extensions and region differentiations
+    tt.water = tt.emissions.copy("water")
+    tt.air = tt.emissions.copy("air")
+
+    tt.air.F = tt.air.F.loc[[("emission_type1", "air")],:]
+    tt.air.F_Y = tt.air.F_Y.loc[[("emission_type1", "air")],:]
+    tt.water.F = tt.water.F.loc[[("emission_type2", "water")],:]
+    tt.water.F_Y = tt.water.F_Y.loc[[("emission_type2", "water")],:]
+
+    factors_reg_spec = pd.read_csv(
+        Path(
+            PYMRIO_PATH["test_mrio"]
+            / Path("concordance")
+            / "emissions_charact_reg_spec.tsv"
+        ),
+        sep="\t",
+    )
+
+    # Throw in some doubling for the testing
+    factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] = (
+        factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] * 2
+    )
+
+    factors_reg_ext = factors_reg_spec.copy()
+
+    factors_reg_ext.loc[:, "extension"] = factors_reg_ext.loc[:, "compartment"]
+    factors_reg_ext = factors_reg_ext[factors_reg_ext.compartment != "land"]
+
+    ex_reg_one = tt.emissions.characterize(factors_reg_spec, name="one")
+    ex_reg_multi = pymrio.extension_characterize(*list(tt.get_extensions(data=True)), 
+                                                 factors=factors_reg_ext, new_extension_name="multi")
+
+    pdt.assert_frame_equal(ex_reg_one.F, ex_reg_multi.F)
+    pdt.assert_frame_equal(ex_reg_one.F_Y, ex_reg_multi.F_Y)
+    pdt.assert_frame_equal(ex_reg_one.unit, ex_reg_multi.unit)
 
 
 def test_extension_convert_simple(fix_testmrio):
@@ -1328,3 +1311,31 @@ def test_extension_reset_with_rename(fix_testmrio):
     pdt.assert_frame_equal(
         orig.emissions.D_cba["reg4"], new_rename.emissions.D_cba["ab"]
     )
+
+def test_concate_extensions(fix_testmrio):
+    """ Test concating extensions """
+    tt = fix_testmrio.testmrio
+    
+    added_diff = pymrio.extension_concate(*[tt.emissions, tt.factor_inputs], new_extension_name="diff")
+    added_same = pymrio.extension_concate(*[tt.emissions, tt.emissions], new_extension_name="same")
+
+    assert added_same.get_rows().names == ["stressor", "compartment"]
+    # When names differ, indicator is used
+    assert added_diff.get_rows().names == ["indicator", "compartment"]
+
+    assert len(added_same.F) == len(tt.emissions.F) * 2 
+    assert len(added_same.F_Y) == len(tt.emissions.F) * 2 
+    assert len(added_diff.F) == len(tt.emissions.F) + len(tt.factor_inputs.F)
+    assert len(added_diff.F_Y) == len(tt.emissions.F) + len(tt.factor_inputs.F)
+
+    testF = added_diff.F.reset_index("compartment")
+    assert all(testF.loc["Value Added", "compartment"].isna())
+
+    added_meth = tt.extension_concate(new_extension_name="method")
+    pdt.assert_frame_equal(
+        added_meth.F, added_diff.F, check_like=True, check_names=True
+    )
+    pdt.assert_frame_equal(
+        added_meth.F_Y, added_diff.F_Y, check_like=True, check_names=True
+    )
+
