@@ -3378,13 +3378,198 @@ class IOSystem(BaseSystem):
 
         return self
 
-    def extension_convert():
-        raise NotImplementedError("TODO: extension convert as method")
-        # Can pass extensions a string of extensions in the IO System, get them as extensions,
-        # put it as new extension in pymrio, with a switch to remove converted extensions
+    def extension_convert(
+        self,
+        df_map,
+        new_extension_name,
+        extension_col_name="extension",
+        agg_func="sum",
+        drop_not_bridged_index=True,
+        unit_column_orig="unit_orig",
+        unit_column_new="unit_new",
+        ignore_columns=None,
+    ):
+        """Apply the convert function to a extensions of the mrio object
+
+        Internally that calls the Extension.convert function for all extensions.
+
+        If only a subset of extensions should/can be converted, use
+        the pymrio.extension_convert function.
+
+        Parameters
+        ----------
+
+        df_map : pd.DataFrame
+            The DataFrame with the mapping of the old to the new classification.
+            This requires a specific structure:
+
+            - Constraining data (e.g. stressors, regions, sectors) can be
+            either in the index or columns of df_orig. The need to have the same
+            name as the named index or column in df_orig. The algorithm searches
+            for matching data in df_orig based on all constraining columns in df_map.
+
+            - Bridge columns are columns with '__' in the name. These are used to
+            map (bridge) some/all of the constraining columns in df_orig to the new
+            classification.
+
+            - One column "factor", which gives the multiplication factor for the
+            conversion. If it is missing, it is set to 1.
+
+
+            This is better explained with an example.
+            Assuming a original dataframe df_orig with
+            index names 'stressor' and 'compartment' and column name 'region',
+            the characterizing dataframe could have the following structure (column names):
+
+            stressor ... original index name
+            compartment ... original index name
+            region ... original column name
+            factor ... the factor for multiplication/characterization
+                If no factor is given, the factor is assumed to be 1.
+                This can be used, to simplify renaming/aggregation mappings.
+            impact__stressor ... the new index name,
+                replacing the previous index name "stressor".
+                Thus here "stressor" will be renamed to "impact", and the row index
+                will be renamed by the entries here.
+            compartment__compartment ... the new compartment,
+                replacing the original compartment. No rename of column happens here,
+                still row index will be renamed as given here.
+
+            the columns with __ are called bridge columns, they are used
+            to match the original index. The new dataframe with have index names
+            based on the first part of the bridge column, in the order
+            in which the bridge columns are given in the mapping dataframe.
+
+            "region" is constraining column, these can either be for the index or column
+            in df_orig. In case both exist, the one in index is preferred.
+
+        extension_name: str
+            The name of the new extension returned
+
+        extension_col_name : str, optional
+            Name of the column specifying the extension name in df_map.
+            The entry in df_map here can either be the name returned by Extension.name or the
+            name of the Extension instance.
+            Default: 'extension'
+
+        agg_func : str or func
+            the aggregation function to use for multiple matchings (summation by default)
+
+        drop_not_bridged_index : bool, optional
+            What to do with index levels in df_orig not appearing in the bridge columns.
+            If True, drop them after aggregation across these, if False,
+            pass them through to the result.
+
+            *Note:* Only index levels will be dropped, not columns.
+
+            In case some index levels need to be dropped, and some not
+            make a bridge column for the ones to be dropped and map all to the same name.
+            Then drop this index level after the conversion.
+
+        unit_column_orig : str, optional
+            Name of the column in df_map with the original unit.
+            This will be used to check if the unit matches the original unit in the extension.
+            Default is "unit_orig", if None, no check is performed.
+
+        unit_column_new : str, optional
+            Name of the column in df_map with the new unit to be assigned to the new extension.
+            Default is "unit_new", if None same unit as in df_orig TODO EXPLAIN BETTER, THINK WARNING
+
+        ignore_columns : list, optional
+            List of column names in df_map which should be ignored.
+            These could be columns with additional information, etc.
+            The unit columns given in unit_column_orig and unit_column_new
+            are ignored by default.
+
+        """
+        return extension_convert(
+            *list(self.get_extensions(data=True)),
+            df_map=df_map,
+            new_extension_name=new_extension_name,
+            extension_col_name=extension_col_name,
+            agg_func=agg_func,
+            drop_not_bridged_index=drop_not_bridged_index,
+            unit_column_orig=unit_column_orig,
+            unit_column_new=unit_column_new,
+            ignore_columns=ignore_columns,
+        )
+
+    def extension_characterize(
+        self,
+        factors,
+        new_extension_name="impacts",
+        extension_col_name="extension",
+        characterized_name_column="impact",
+        characterization_factors_column="factor",
+        characterized_unit_column="impact_unit",
+        orig_unit_column="stressor_unit",
+    ):
+        """Characterize stressors across all extensions of the mrio object.
+
+        If only a subset of extensions should be considered, use
+        the pymrio.extension_characterize function.
+
+        The factors dataframe must include an columns "extension"
+        which specifies the 'name' of the extension in which the stressor is
+        present. The 'name' is the str returned by ext.name
+
+        For more information on the structure of the factors dataframe
+        see the Extension.characterize docstring.
+
+        Parameters
+        -----------
+        factors: pd.DataFrame
+            A dataframe in long format with numerical index and columns named
+            index.names of the extension to be characterized and 'extension',
+            'characterized_name_column', 'characterization_factors_column',
+            'characterized_unit_column', 'orig_unit_column'
+
+        extension_name: str
+            The name of the new extension returned
+
+        extension_col_name : str, optional
+            Name of the column specifying the extension name in df_map.
+            The entry in df_map here can either be the name returned by Extension.name or the
+            name of the Extension instance.
+            Default: 'extension'
+
+        characterized_name_column: str (optional)
+            Name of the column with the names of the
+            characterized account (default: "impact")
+
+        characterization_factors_column: str (optional)
+            Name of the column with the factors for the
+            characterization (default: "factor")
+
+        characterized_unit_column: str (optional)
+            Name of the column with the units of the characterized accounts
+            characterization (default: "impact_unit")
+
+        name: string (optional)
+            The new name for the extension,
+            if the string starts with an underscore '_' the string
+            with be appended to the original name. Default: '_characterized'
+
+
+        Returns
+        --------
+        pymrio.Extension
+
+
+        """
+        return extension_characterize(
+            *list(self.get_extensions(data=True)),
+            factors=factors,
+            new_extension_name=new_extension_name,
+            extension_col_name=extension_col_name,
+            characterized_name_column=characterized_name_column,
+            characterization_factors_column=characterization_factors_column,
+            characterized_unit_column=characterized_unit_column,
+            orig_unit_column=orig_unit_column,
+        )
 
     def extension_concate(self, new_extension_name):
-        """ Concates all extension of the mrio object
+        """Concates all extension of the mrio object
 
         This method combines all satellite accounts into a single extension.
 
@@ -3393,23 +3578,25 @@ class IOSystem(BaseSystem):
         to 'indicator' if they differ. All other index names ('compartments', ...)
         are added to the concatenated extensions and set to NaN for missing values.
 
-        If only a subset of extensions should/can be merge, use 
+        If only a subset of extensions should/can be merge, use
         the pymrio.extension_concate function.
-        
-    
+
+
         Parameters
         ----------
         new_extension_name : str
             Name for the new extension
-            
+
         Returns
         -------
         pymrio.Extension
-            
+
 
         """
-        return extension_concate(list(self.get_extensions(data=True)), 
-                                 new_extension_name=new_extension_name)
+        return extension_concate(
+            *list(self.get_extensions(data=True)), new_extension_name=new_extension_name
+        )
+
 
 def extension_characterize(
     *extensions,
@@ -3564,6 +3751,7 @@ def extension_characterize(
     )
     return char
 
+
 def extension_convert(
     *extensions,
     df_map,
@@ -3578,9 +3766,6 @@ def extension_convert(
     """Apply the convert function to a list of extensions
 
     Internally that calls the Extension.convert function for all extensions.
-
-    See the Extension.convert function for more details.
-    TODO: put all details here
 
 
     Parameters
@@ -3671,13 +3856,6 @@ def extension_convert(
         These could be columns with additional information, etc.
         The unit columns given in unit_column_orig and unit_column_new
         are ignored by default.
-
-
-    TODO: remove after explain
-    Extension for extensions:
-    extension ... extension name
-    unit_orig ... the original unit (optional, for double check with the unit)
-    unit_new ... the new unit to be set for the extension
 
     """
 

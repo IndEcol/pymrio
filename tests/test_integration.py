@@ -59,8 +59,9 @@ def test_all(td_testmrio):
         mr.factor_inputs.D_imp_reg.values,
         rtol=1e-5,
     )
-    sat_new = pymrio.extension_concate(mr.emissions, mr.factor_inputs, 
-                                       new_extension_name="sat_new")
+    sat_new = pymrio.extension_concate(
+        mr.emissions, mr.factor_inputs, new_extension_name="sat_new"
+    )
 
     assert len(sat_new.D_cba) == 3
     assert mr.emissions.F.index[0] in sat_new.F.index

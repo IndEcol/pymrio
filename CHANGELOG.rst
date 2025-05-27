@@ -29,11 +29,17 @@ Breaking changes
   Previous all extensions got removed when no name was given.
   This has changed. Now all extensions are kept when no name is given (TypeError is raised).
   To remove all extensions, use mrio.remove_extension(mrio.get_extensions())
-  
+
+* concate_extension renamed to extension_concate to make it consistent with extension_convert and _characterize
+
+* concate_extension argument "name" renamed to "new_extension_name"
+
 New features
 ============
 
 * New top-level characterize function (TODO implement)
+
+* Extension concatenation function also available as method of an mrio object.
 
 * added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
 
