@@ -58,7 +58,7 @@ groups = wiod09.mat.get_index(
 groups
 
 # %% [markdown]
-# Note, that the grouping contains the rows which do not match any of the specified groups. 
+# Note, that the grouping contains the rows which do not match any of the specified groups.
 # This allows to easily aggregates only parts of a specific stressor set. To actually omit these groups
 # include them in the matching pattern and provide None as value.
 #
@@ -94,8 +94,8 @@ wiod09.mat_agg.unit
 
 # %% [markdown]
 # The same regular expression grouping can be used to aggregate stressor data which is given per compartment.
-# To do so, the matching dict needs to consist of tuples corresponding to a valid index value in the DataFrames. 
-# Each position in the tuple is interprested as a regular expression. 
+# To do so, the matching dict needs to consist of tuples corresponding to a valid index value in the DataFrames.
+# Each position in the tuple is interprested as a regular expression.
 # Using the get_index method gives a good indication how a valid grouping dict should look like:
 
 # %%

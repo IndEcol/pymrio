@@ -1805,7 +1805,7 @@ class Extension(BaseSystem):
         fac = factors.copy()
 
         req = ioutil._characterize_get_requried_col(
-            ext_index_names = list(self.get_rows().names),
+            ext_index_names=list(self.get_rows().names),
             factors=fac,
             characterized_name_column=characterized_name_column,
             characterization_factors_column=characterization_factors_column,
@@ -1969,7 +1969,7 @@ class Extension(BaseSystem):
         name = self.name + name if name[0] == "_" else name
 
         req = ioutil._characterize_get_requried_col(
-            ext_index_names = list(self.get_rows().names),
+            ext_index_names=list(self.get_rows().names),
             factors=factors,
             characterized_name_column=characterized_name_column,
             characterization_factors_column=characterization_factors_column,
@@ -2574,7 +2574,6 @@ class IOSystem(BaseSystem):
         ext_name_or_inst = [
             nn.name if isinstance(nn, Extension) else nn for nn in _pre_ext
         ]
-
 
         for name in ext_name_or_inst:
             if name in all_ext_list:
@@ -3388,23 +3387,23 @@ class IOSystem(BaseSystem):
 def extension_characterize(
     *extensions,
     factors,
-    extension_name = "impacts",
+    extension_name="impacts",
     extension_col_name="extension",
     characterized_name_column="impact",
     characterization_factors_column="factor",
     characterized_unit_column="impact_unit",
     orig_unit_column="stressor_unit",
-    ):
-    """ Characterize stressors across different extensions
+):
+    """Characterize stressors across different extensions
 
-    This works similar to the characterize method of a specific 
+    This works similar to the characterize method of a specific
     extension.
 
     The factors dataframe must include an columns "extension"
     which specifies the 'name' of the extension in which the stressor is
     present. The 'name' is the str returned by ext.name
 
-    For more information on the structure of the factors dataframe 
+    For more information on the structure of the factors dataframe
     see the Extension.characterize docstring.
 
 
@@ -3473,20 +3472,19 @@ def extension_characterize(
     used_ext = [ext for ext in extensions if ext.name in spec_ext_names]
 
     ext_specs = pd.DataFrame(
-                index = spec_ext_names,
-                columns = ["F", "F_Y", "S_Y", "S", "unit", "index_names"],
-                data=None
-                )
+        index=spec_ext_names,
+        columns=["F", "F_Y", "S_Y", "S", "unit", "index_names"],
+        data=None,
+    )
 
     for ext in used_ext:
         for df_name in ext.get_DataFrame(data=False):
             ext_specs.loc[ext.name, df_name] = True
             ext_specs.loc[ext.name, "index_names"] = str(ext.get_rows().names)
+            ext_index_names = list(ext.get_rows().names)
 
     if len(ext_specs.loc[:, "index_names"].unique()) > 1:
-        raise ValueError(
-            "All extensions must have the same index names/format."
-        )
+        raise ValueError("All extensions must have the same index names/format.")
 
     merge_type = "none"
     if all(ext_specs.loc[:, "F"]):
@@ -3494,16 +3492,16 @@ def extension_characterize(
     elif all(ext_specs.loc[:, "S"]):
         merge_type = "S"
     else:
-        raise ValueError(
-            "All extensions must have either F or S."
-        )
+        raise ValueError("All extensions must have either F or S.")
 
-    faci = factors.set_index(list(merge_df.index.names) + [extension_col_name])
+    faci = factors.set_index(ext_index_names + [extension_col_name])
     faci = faci[~faci.index.duplicated(keep="first")]
     faci = faci.reset_index(extension_col_name)
 
     if any(faci.index.duplicated()):
-        raise NotImplementedError("Case with same stressor names in different extensions not implemented yet")
+        raise NotImplementedError(
+            "Case with same stressor names in different extensions not implemented yet"
+        )
 
     merge = []
     merge_Y = []
@@ -3523,23 +3521,21 @@ def extension_characterize(
 
     new_ext = Extension(
         name="temp",
-        unit= pd.concat(merge_unit, axis=0),
-        )
+        unit=pd.concat(merge_unit, axis=0),
+    )
     setattr(new_ext, merge_type, pd.concat(merge, axis=0))
     if len(merge_Y) > 0:
-        setattr(new_ext, merge_type + "_Y",pd.concat(merge_Y, axis=0))
+        setattr(new_ext, merge_type + "_Y", pd.concat(merge_Y, axis=0))
 
     char = new_ext.characterize(
         factors=factors.drop(extension_col_name, axis=1),
         name=extension_name,
         characterized_name_column=characterized_name_column,
         characterization_factors_column=characterization_factors_column,
-        characterized_unit_column=chracterized_unit_column,
-        orig_unit_column=org_unit_column,
+        characterized_unit_column=characterized_unit_column,
+        orig_unit_column=orig_unit_column,
     )
     return char
-
-                
 
     # DEV:
     # Delete for release

@@ -1026,7 +1026,7 @@ def _characterize_get_requried_col(
 
     if not set(required_columns).issubset(set(factors.columns)):
         raise ValueError("Not all required columns in the passed DataFrame >factors<")
-   
+
     return namedtuple("ret_val", ["required_index_col", "all_required_columns"])(
         req_index, required_columns
     )

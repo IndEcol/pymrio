@@ -42,8 +42,8 @@ from pymrio.core.mriosystem import (
     Extension,
     IOSystem,
     concate_extension,
-    extension_convert,
     extension_characterize,
+    extension_convert,
 )
 from pymrio.tools.ioclass import ClassificationData, get_classification
 from pymrio.tools.iodownloader import (

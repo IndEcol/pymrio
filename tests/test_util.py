@@ -1031,17 +1031,23 @@ def test_extend_rows():
         }
     )
 
-    result = extend_rows(df, region={
-        "GLO": ["reg1", "reg2"], 
-        "EU": ["France", "Germany", "Austria"]
-    })
-    
+    result = extend_rows(
+        df, region={"GLO": ["reg1", "reg2"], "EU": ["France", "Germany", "Austria"]}
+    )
+
     # Original had 3 rows, GLO expands to 2 new rows, EU expands to 3 new rows, + 1 USA
-    assert len(result) == 6  
-    assert set(result["region"].unique()) == {"reg1", "reg2", "France", "Germany", "USA", "Austria"}
+    assert len(result) == 6
+    assert set(result["region"].unique()) == {
+        "reg1",
+        "reg2",
+        "France",
+        "Germany",
+        "USA",
+        "Austria",
+    }
     assert "GLO" not in result["region"].values
     assert "EU" not in result["region"].values
-    
+
     # Check values were properly copied
     assert all(result[result.region == "reg1"].value == 10)
     assert all(result[result.region == "reg2"].value == 10)
@@ -1049,8 +1055,6 @@ def test_extend_rows():
     assert all(result[result.region == "Germany"].value == 20)
     assert all(result[result.region == "Austria"].value == 20)
     assert all(result[result.region == "USA"].value == 30)
-
-
 
     # Test with numerical values
     df = pd.DataFrame(
