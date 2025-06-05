@@ -14,7 +14,6 @@ Breaking changes
   It is tightly coupled to the general characterize function which allows characterization accross
   different extensions (see point under New features).
 
-
 * get_extensions has a new signature. 
   Two new paramters, names and istance_names.
 
@@ -37,7 +36,7 @@ Breaking changes
 New features
 ============
 
-* New top-level characterize function (TODO implement)
+* New top-level characterize function
 
 * Extension concatenation function also available as method of an mrio object.
 
@@ -60,10 +59,12 @@ Depracted
   The method get_row_data() is deprecated and will be removed in v0.6.0. 
   Use extension.extract() instead.
 
+
 Misceallaneous
 ==============
 
 * Updated and restructuring of the documentation
+* Fixed multiple warnings due to deprecation in pandas
 
 ***************************
 v0.5.4 - 20240412

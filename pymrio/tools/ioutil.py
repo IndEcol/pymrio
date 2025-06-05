@@ -1004,7 +1004,6 @@ def _characterize_get_requried_col(
     characterized_name_column,
     characterization_factors_column,
     characterized_unit_column,
-    orig_unit_column,
 ):
     """Utility function to check and return a list of required columns.
 
@@ -1030,6 +1029,164 @@ def _characterize_get_requried_col(
     return namedtuple("ret_val", ["required_index_col", "all_required_columns"])(
         req_index, required_columns
     )
+
+def _validate_characterization_table(
+    factors,
+    all_required_col,
+    regions,
+    sectors,
+    ext_unit,
+    characterized_name_column="impact",
+    characterized_unit_column="impact_unit",
+    orig_unit_column="stressor_unit",
+):
+    """ Internal untility for checking a factors sheet for characterization
+
+    This should not be called directly, use characterize with only_validation instead.
+
+    Given a factors sheet reports error in
+
+        - unit errors (impact unit consistent, stressor unit match).
+            Note: does not check if the conversion is correct!
+        - report missing stressors, regions, sectors which are in factors
+            but not in the extension
+        - if factors are specified for all regions/sectors of the extension
+
+    Besides the unit errors, factors can still be passed to the characterization
+    routine, and missing data will be assumed to be 0.
+
+    Parameters follow the convention of the characterization method:
+
+    Parameters
+    -----------
+    factors: pd.DataFrame
+        A dataframe in long format with numerical index and columns named
+        index.names of the extension to be characterized and
+        'characterized_name_column', 'characterization_factors_column',
+        'characterized_unit_column', 'orig_unit_column'
+
+    regions: Index
+        Regions in the mrio object (from get_regions())
+
+    sectors: Index
+        Sectors in the mrio object (from get_sectors())
+
+    ext_unit: pd.DataFrame
+        The mrio.unit dataframe
+
+    characterized_name_column: str (optional)
+        Name of the column with the names of the
+        characterized account (default: "impact")
+
+    characterization_factors_column: str (optional)
+        Name of the column with the factors for the
+        characterization (default: "factor")
+
+    characterized_unit_column: str (optional)
+        Name of the column with the units of the characterized accounts
+        characterization (default: "impact_unit")
+
+    Returns
+    --------
+    pd.DataFrame: factors sheet with additional error columns
+
+    """
+    # searching the next available df to get the
+    # index of stressors/regions/sector depending on input
+
+    fac = factors.copy()
+
+    fac.loc[:, "error_unit_impact"] = False
+    fac.loc[:, "error_unit_stressor"] = False
+    fac.loc[:, "error_missing_stressor"] = False
+
+    if "region" in fac.columns:
+        fac.loc[:, "error_missing_region"] = False
+    if "sector" in fac.columns:
+        fac.loc[:, "error_missing_sector"] = False
+
+    unique_impacts = fac.loc[:, characterized_name_column].unique()
+
+    # Check for consistent units per impact
+    for imp in unique_impacts:
+        if (
+            fac.loc[
+                fac.loc[:, characterized_name_column] == imp,
+                characterized_unit_column,
+            ].nunique()
+            != 1
+        ):
+            fac.loc[
+                fac.loc[:, characterized_name_column] == imp,
+                "error_unit_impact",
+            ] = True
+
+    # unit per stressor check
+    fac = fac.set_index(ext_unit.index.names).sort_index()
+    if "unit" in fac.columns:
+        um = fac.join(ext_unit, how="inner", rsuffix="_ext_orig")
+        ext_unit_col = "unit_ext_orig"
+    else:
+        um = fac.join(ext_unit, how="inner")
+        ext_unit_col = "unit"
+    fac = fac.reset_index()
+    um = um.reset_index()
+
+    fac.error_unit_stressor = fac.error_unit_stressor.astype("object")
+    fac.loc[:, "error_unit_stressor"] = (
+        um.loc[:, orig_unit_column] != um.loc[:, ext_unit_col]
+    )
+    with pd.option_context("future.no_silent_downcasting", True):
+        fac.loc[:, "error_unit_stressor"] = fac.loc[
+            :, "error_unit_stressor"
+        ].fillna(False)
+    fac.error_unit_stressor = fac.error_unit_stressor.infer_objects(copy=False)
+
+    fac = fac.set_index(ext_unit.index.names).sort_index()
+    for row in fac.index.unique():
+        # Stressor not in the extension
+        if row not in ext_unit.index:
+            fac.loc[row, "error_missing_stressor"] = True
+            continue
+
+        # Checking for region/sector data
+        # This covers if not all regions present in the mrio
+        # are specified in the factors sheet.
+        # In that case, the full error_missing_region/sector for the
+        # the full region is set to True
+        if "region" in all_required_col:
+            reg_cov = (
+                fac.loc[row, ["region", characterized_name_column]]
+                .groupby(characterized_name_column)
+                .region.apply(set)
+            )
+            for improw in reg_cov.index:
+                if len(dd := regions.difference(reg_cov[improw])) > 0:
+                    fac.loc[row, "error_missing_region"] = True
+
+        if "sector" in all_required_col:
+            reg_cov = (
+                fac.loc[row, ["sector", characterized_name_column]]
+                .groupby(characterized_name_column)
+                .sector.apply(set)
+            )
+            for improw in reg_cov.index:
+                if len(dd := sectors.difference(reg_cov[improw])) > 0:
+                    fac.loc[row, "error_missing_sector"] = True
+
+    # check if additional region/sectors in the data
+    if "region" in all_required_col:
+        for reg in fac.region.unique():
+            if reg not in regions:
+                fac.loc[fac.region == reg, "error_missing_region"] = True
+    if "sector" in all_required_col:
+        for sec in fac.sector.unique():
+            if sec not in sectors:
+                fac.loc[fac.sector == sec, "error_missing_sector"] = True
+
+    return fac.reset_index()
+
+
 
 
 def extend_rows(df, **kwargs):

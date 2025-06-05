@@ -276,7 +276,7 @@ def test_copy_and_extensions(fix_testmrio):
     tcnew.remove_extension(tcnew.get_extensions())
     assert len(list(tcnew.get_extensions())) == 0
 
-
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_extract(fix_testmrio):
     tt = fix_testmrio.testmrio.copy().calc_all()
 
@@ -330,7 +330,7 @@ def test_extract(fix_testmrio):
         == tt.emissions.get_rows()[0]
     )
 
-
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_extension_extract(fix_testmrio):
     tt = fix_testmrio.testmrio
 
@@ -382,7 +382,7 @@ def test_diag_stressor(fix_testmrio):
     assert sum(dext_name.F.iloc[0, 1:-1]) == 0
     assert sum(dext_name.F.iloc[1:-1, 0]) == 0
 
-
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_characterize_extension_general(fix_testmrio):
     """Testing 'standard' characterisation
 
@@ -399,8 +399,8 @@ def test_characterize_extension_general(fix_testmrio):
     t_uncalc = fix_testmrio.testmrio
     t_calc = fix_testmrio.testmrio.calc_all()
     uncalc_name = "emissions_charact_uncalc"
-    ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name)
-    ex_calc = t_uncalc.emissions.characterize(factors)
+    ex_uncalc = t_uncalc.emissions.characterize(factors, name=uncalc_name).extension
+    ex_calc = t_uncalc.emissions.characterize(factors).extension
 
     assert ex_uncalc.name == uncalc_name
     assert ex_calc.name == t_calc.emissions.name + "_characterized"
@@ -464,12 +464,16 @@ def test_characterize_extension_general(fix_testmrio):
     # Changing one emission_type2 value - report error for all due to non consitent units
     fac_mod_stressor_unit.loc[3, "stressor_unit"] = "g"
 
-    with pytest.raises(ValueError):
-        t_calc.emissions.characterize(fac_mod_stressor_unit)
+    incon_stressor_unit = t_calc.emissions.characterize(fac_mod_stressor_unit)
+    assert incon_stressor_unit.extension is None
+    assert incon_stressor_unit.validation.error_unit_stressor.any()
+
     fac_mod_stressor_unit.loc[:, "stressor_unit"] = "g"
 
-    with pytest.raises(ValueError):
-        t_calc.emissions.characterize(fac_mod_stressor_unit)
+    mis_stressor_unit = t_calc.emissions.characterize(fac_mod_stressor_unit)
+    assert mis_stressor_unit.extension is None
+    assert mis_stressor_unit.validation.error_unit_stressor.any()
+
 
 
 def test_characterize_validation(fix_testmrio):
@@ -483,7 +487,7 @@ def test_characterize_validation(fix_testmrio):
         sep="\t",
     )
     tmrio = fix_testmrio.testmrio
-    rep_basic = tmrio.emissions.validate_characterization_table(factors_reg_spec)
+    rep_basic = tmrio.emissions.characterize(factors_reg_spec, only_validation=True).validation
 
     # Case 1: original factor sheet has more stressor data, should be reported
     assert all(rep_basic[rep_basic.stressor == "emission_type3"].error_missing_stressor)
@@ -497,7 +501,7 @@ def test_characterize_validation(fix_testmrio):
     # Case 2: one region missing
     # removing one region from the data
     fac_mis_reg = factors_reg_spec.copy().loc[factors_reg_spec.region != "reg3"]
-    rep_reg_miss = tmrio.emissions.validate_characterization_table(fac_mis_reg)
+    rep_reg_miss = tmrio.emissions.characterize(fac_mis_reg, only_validation=True).validation
     assert all(
         rep_reg_miss[rep_reg_miss.stressor != "emission_type3"].error_missing_region
     )
@@ -514,7 +518,7 @@ def test_characterize_validation(fix_testmrio):
     new_data = factors_reg_spec.iloc[[0]]
     new_data.loc[:, "region"] = "reg_new"
     fac_add_reg = factors_reg_spec.merge(new_data, how="outer")
-    rep_add_reg = tmrio.emissions.validate_characterization_table(fac_add_reg)
+    rep_add_reg = tmrio.emissions.characterize(fac_add_reg, only_validation=True).validation
     assert all(rep_add_reg[rep_add_reg.region == "reg_new"].error_missing_region)
     assert not any(rep_add_reg[rep_add_reg.region != "reg_new"].error_missing_region)
 
@@ -523,7 +527,7 @@ def test_characterize_validation(fix_testmrio):
         Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
         sep="\t",
     )
-    rep_basic_no_reg = tmrio.emissions.validate_characterization_table(factors_no_reg)
+    rep_basic_no_reg = tmrio.emissions.characterize(factors_no_reg, only_validation=True).validation
     assert all(
         rep_basic_no_reg[
             rep_basic_no_reg.stressor == "emission_type3"
@@ -547,7 +551,7 @@ def test_characterize_validation(fix_testmrio):
         "stressor_unit",
     ] = "s"
 
-    rep_wrong_unit = tmrio.emissions.validate_characterization_table(fac_wrong_unit)
+    rep_wrong_unit = tmrio.emissions.characterize(fac_wrong_unit, only_validation=True).validation
 
     assert all(
         rep_wrong_unit[rep_wrong_unit.stressor_unit == "s"].loc[
@@ -567,7 +571,7 @@ def test_characterize_validation(fix_testmrio):
         "region",
     ] = "reg_new"
 
-
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_characterize_extension_reg_spec(fix_testmrio):
     """Additional characterization test for region specific cases
 
@@ -594,8 +598,8 @@ def test_characterize_extension_reg_spec(fix_testmrio):
     tmrio = fix_testmrio.testmrio
 
     # testing same result with regional specs
-    ex_reg_spec = tmrio.emissions.characterize(factors_reg_spec)
-    ex_no_reg = tmrio.emissions.characterize(factors_no_reg)
+    ex_reg_spec = tmrio.emissions.characterize(factors_reg_spec).extension
+    ex_no_reg = tmrio.emissions.characterize(factors_no_reg).extension
 
     pdt.assert_frame_equal(ex_no_reg.F, ex_reg_spec.F)
     pdt.assert_frame_equal(ex_no_reg.F_Y, ex_reg_spec.F_Y)
@@ -606,7 +610,7 @@ def test_characterize_extension_reg_spec(fix_testmrio):
         factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] * 2
     )
 
-    double = tmrio.emissions.characterize(factors_reg_spec)
+    double = tmrio.emissions.characterize(factors_reg_spec).extension
 
     pdt.assert_frame_equal(double.F.reg2, ex_reg_spec.F.reg2 * 2)
     pdt.assert_frame_equal(double.F_Y.reg2, ex_reg_spec.F_Y.reg2 * 2)
@@ -616,7 +620,7 @@ def test_characterize_extension_reg_spec(fix_testmrio):
 
     # testing that NaN are assumed 0
     factors_reg_spec.loc[factors_reg_spec.region == "reg2", "factor"] = pd.NA
-    nnaa = tmrio.emissions.characterize(factors_reg_spec)
+    nnaa = tmrio.emissions.characterize(factors_reg_spec).extension
 
     assert nnaa.F.reg2.sum().sum() == 0
     assert nnaa.F_Y.reg2.sum().sum() == 0
@@ -626,11 +630,11 @@ def test_characterize_extension_reg_spec(fix_testmrio):
     # testing complete missing are assumed 0
     fac_reg2_missing = factors_reg_spec.dropna()
     res_reg2_missing = tmrio.emissions.characterize(fac_reg2_missing)
+    assert any(res_reg2_missing.validation.error_missing_region)
+    pdt.assert_frame_equal(nnaa.F, res_reg2_missing.extension.F)
+    pdt.assert_frame_equal(nnaa.F_Y, res_reg2_missing.extension.F_Y)
 
-    pdt.assert_frame_equal(nnaa.F, res_reg2_missing.F)
-    pdt.assert_frame_equal(nnaa.F_Y, res_reg2_missing.F_Y)
-
-
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_characterize_extension_over_extensions(fix_testmrio):
     """Testing characterisation over multiple extensions"""
 
@@ -644,10 +648,17 @@ def test_characterize_extension_over_extensions(fix_testmrio):
     tt = fix_testmrio.testmrio
 
     # Test with same extension
-    ex_wo_ext = tt.emissions.characterize(f_wo_ext, name="new_wo")
-    ex_with_ext = pymrio.extension_characterize(
+    ex_wo_ext_full = tt.emissions.characterize(f_wo_ext, name="new_wo")
+    only_val = pymrio.extension_characterize(
+        tt.emissions, factors=f_with_ext, only_validation=True)
+    ex_with_ext_full = pymrio.extension_characterize(
         tt.emissions, factors=f_with_ext, new_extension_name="new_with"
     )
+
+    assert only_val.extension is None
+    pdt.assert_frame_equal(only_val.validation, ex_with_ext_full.validation)
+    ex_with_ext = ex_with_ext_full.extension
+    ex_wo_ext = ex_wo_ext_full.extension
 
     pdt.assert_frame_equal(ex_wo_ext.F, ex_with_ext.F)
     pdt.assert_frame_equal(ex_wo_ext.F_Y, ex_with_ext.F_Y)
@@ -668,7 +679,7 @@ def test_characterize_extension_over_extensions(fix_testmrio):
         tt.factor_inputs,
         factors=f_with_ext,
         new_extension_name="_should_work",
-    )
+    ).extension
     pdt.assert_frame_equal(_tmp_work.F, ex_with_ext.F)
     pdt.assert_frame_equal(_tmp_work.F_Y, ex_with_ext.F_Y)
 
@@ -700,16 +711,16 @@ def test_characterize_extension_over_extensions(fix_testmrio):
     factors_reg_ext.loc[:, "extension"] = factors_reg_ext.loc[:, "compartment"]
     factors_reg_ext = factors_reg_ext[factors_reg_ext.compartment != "land"]
 
-    ex_reg_one = tt.emissions.characterize(factors_reg_spec, name="one")
+    ex_reg_one = tt.emissions.characterize(factors_reg_spec, name="one").extension
     ex_reg_multi = pymrio.extension_characterize(
         *list(tt.get_extensions(data=True)),
         factors=factors_reg_ext,
         new_extension_name="multi"
-    )
+    ).extension
 
     ex_reg_method = tt.extension_characterize(
         factors=factors_reg_ext, new_extension_name="multi"
-    )
+    ).extension
 
     pdt.assert_frame_equal(ex_reg_one.F, ex_reg_multi.F)
     pdt.assert_frame_equal(ex_reg_one.F_Y, ex_reg_multi.F_Y)

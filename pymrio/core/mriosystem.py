@@ -18,6 +18,7 @@ import warnings
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from more_itertools.more import only
 import numpy as np
 import pandas as pd
 
@@ -288,7 +289,7 @@ class BaseSystem:
                 else:
                     return ind
         else:  # pragma: no cover
-            logging.warn("No attributes available to get Y categories")
+            warnings.warn("No attributes available to get Y categories")
             return None
 
     def get_index(self, as_dict=False, grouping_pattern=None):
@@ -308,7 +309,6 @@ class BaseSystem:
             multiindex, with a valid regex expression at each position.
             Otherwise, the keys need to be strings.
             Only relevant if as_dict is True.
-            NOTE: This is broken if index is multiindex
 
         """
 
@@ -339,7 +339,7 @@ class BaseSystem:
                 orig_idx = getattr(self, df).index
                 break
         else:  # pragma: no cover
-            logging.warn("No attributes available to get index")
+            warnings.warn("No attributes available to get index")
             return None
 
         if as_dict:
@@ -350,7 +350,7 @@ class BaseSystem:
                         dd.update(
                             {
                                 k: new_group
-                                for k, v in dd.items()
+                                for k in dd.keys()
                                 if re.match(pattern, k)
                             }
                         )
@@ -358,7 +358,7 @@ class BaseSystem:
                         dd.update(
                             {
                                 k: new_group
-                                for k, v in dd.items()
+                                for k in dd.keys()
                                 if all(
                                     [
                                         re.match(pat, k[nr])
@@ -429,7 +429,7 @@ class BaseSystem:
                 else:
                     return ind
         else:  # pragma: no cover
-            logging.warn("No attributes available to get regions")
+            warnings.warn("No attributes available to get regions")
             return None
 
     def get_sectors(self, entries=None):
@@ -481,7 +481,7 @@ class BaseSystem:
                 else:
                     return ind
         else:  # pragma: no cover
-            logging.warn("No attributes available to get sectors")
+            warnings.warn("No attributes available to get sectors")
             return None
 
     def get_DataFrame(self, data=False, with_unit=True, with_population=True):
@@ -587,7 +587,7 @@ class BaseSystem:
             file_para["systemtype"] = GENERIC_NAMES["ext"]
             file_para["name"] = self.name
         else:
-            logging.warn(
+            warnings.warn(
                 'Unknown system type {} - set to "undef"'.format(str(type(self)))
             )
             file_para["systemtype"] = "undef"
@@ -1350,7 +1350,7 @@ class Extension(BaseSystem):
                                 population.columns.tolist()
                                 != self.D_cba_reg.columns.tolist()
                             ):
-                                logging.warning(
+                                warnings.warn(
                                     "Population regions are inconsistent "
                                     "with IO regions"
                                 )
@@ -1550,7 +1550,7 @@ class Extension(BaseSystem):
                         )
 
                 except:  # pragma: no cover
-                    logging.warn("Module docutils not available - write rst instead")
+                    warnings.warn("Module docutils not available - write rst instead")
                     format = "rst"
             format_str = {
                 "latex": "tex",
@@ -1595,7 +1595,7 @@ class Extension(BaseSystem):
             if (df in self.__dict__) and (getattr(self, df) is not None):
                 return getattr(self, df).index
         else:
-            logging.warn("No attributes available to get row names")
+            warnings.warn("No attributes available to get row names")
             return None
 
     def get_row_data(self, row, name=None):
@@ -1668,7 +1668,7 @@ class Extension(BaseSystem):
             dataframes = self.get_DataFrame()
         else:
             if not all(elem in self.get_DataFrame() for elem in dataframes):
-                logging.warning(
+                warnings.warn(
                     f"Not all requested dataframes are available in {self.name}"
                 )
             dataframes = [elem for elem in dataframes if elem in self.get_DataFrame()]
@@ -1751,166 +1751,16 @@ class Extension(BaseSystem):
 
         return ext_diag
 
-    def validate_characterization_table(
-        self,
-        factors,
-        characterized_name_column="impact",
-        characterization_factors_column="factor",
-        characterized_unit_column="impact_unit",
-        orig_unit_column="stressor_unit",
-    ):
-        """Check and validates a factors sheet for characterization
-
-        Given a factors sheet reports error in
-
-            - unit errors (impact unit consistent, stressor unit match).
-                Note: does not check if the conversion is correct!
-            - report missing stressors, regions, sectors which are in factors
-                but not in the extension
-            - if factors are specified for all regions/sectors of the extension
-
-        Besides the unit errors, factors can still be passed to the characterization
-        routine, and missing data will be assumed to be 0.
-
-        Parameters follow the convention of the characterization method:
-
-        Parameters
-        -----------
-        factors: pd.DataFrame
-            A dataframe in long format with numerical index and columns named
-            index.names of the extension to be characterized and
-            'characterized_name_column', 'characterization_factors_column',
-            'characterized_unit_column', 'orig_unit_column'
-
-        characterized_name_column: str (optional)
-            Name of the column with the names of the
-            characterized account (default: "impact")
-
-        characterization_factors_column: str (optional)
-            Name of the column with the factors for the
-            characterization (default: "factor")
-
-        characterized_unit_column: str (optional)
-            Name of the column with the units of the characterized accounts
-            characterization (default: "impact_unit")
-
-        Returns
-        --------
-        pd.DataFrame: factors sheet with additional error columns
-
-        """
-        # searching the next available df to get the
-        # index of stressors/regions/sector depending on input
-
-        fac = factors.copy()
-
-        req = ioutil._characterize_get_requried_col(
-            ext_index_names=list(self.get_rows().names),
-            factors=fac,
-            characterized_name_column=characterized_name_column,
-            characterization_factors_column=characterization_factors_column,
-            characterized_unit_column=characterized_unit_column,
-            orig_unit_column=orig_unit_column,
-        )
-
-        fac.loc[:, "error_unit_impact"] = False
-        fac.loc[:, "error_unit_stressor"] = False
-        fac.loc[:, "error_missing_stressor"] = False
-
-        if "region" in fac.columns:
-            fac.loc[:, "error_missing_region"] = False
-        if "sector" in fac.columns:
-            fac.loc[:, "error_missing_sector"] = False
-
-        unique_impacts = fac.loc[:, characterized_name_column].unique()
-
-        # Check for consistent units per impact
-        for imp in unique_impacts:
-            if (
-                fac.loc[
-                    fac.loc[:, characterized_name_column] == imp,
-                    characterized_unit_column,
-                ].nunique()
-                != 1
-            ):
-                fac.loc[
-                    fac.loc[:, characterized_name_column] == imp,
-                    "error_unit_impact",
-                ] = True
-
-        # unit per stressor check
-        fac = fac.set_index(self.unit.index.names).sort_index()
-        if "unit" in fac.columns:
-            um = fac.join(self.unit, how="inner", rsuffix="_ext_orig")
-            ext_unit_col = "unit_ext_orig"
-        else:
-            um = fac.join(self.unit, how="inner")
-            ext_unit_col = "unit"
-        fac = fac.reset_index()
-        um = um.reset_index()
-
-        fac.error_unit_stressor = fac.error_unit_stressor.astype("object")
-        fac.loc[:, "error_unit_stressor"] = (
-            um.loc[:, orig_unit_column] != um.loc[:, ext_unit_col]
-        )
-        with pd.option_context("future.no_silent_downcasting", True):
-            fac.loc[:, "error_unit_stressor"] = fac.loc[
-                :, "error_unit_stressor"
-            ].fillna(False)
-        fac.error_unit_stressor = fac.error_unit_stressor.infer_objects(copy=False)
-
-        fac = fac.set_index(self.unit.index.names).sort_index()
-        for row in fac.index.unique():
-            # Stressor not in the extension
-            if row not in self.unit.index:
-                fac.loc[row, "error_missing_stressor"] = True
-                continue
-
-            # Checking for region/sector data
-            # This covers if not all regions present in the mrio
-            # are specified in the factors sheet.
-            # In that case, the full error_missing_region/sector for the
-            # the full region is set to True
-            if "region" in req.all_required_columns:
-                reg_cov = (
-                    fac.loc[row, ["region", characterized_name_column]]
-                    .groupby(characterized_name_column)
-                    .region.apply(set)
-                )
-                for improw in reg_cov.index:
-                    if len(dd := self.get_regions().difference(reg_cov[improw])) > 0:
-                        fac.loc[row, "error_missing_region"] = True
-
-            if "sector" in req.all_required_columns:
-                reg_cov = (
-                    fac.loc[row, ["sector", characterized_name_column]]
-                    .groupby(characterized_name_column)
-                    .sector.apply(set)
-                )
-                for improw in reg_cov.index:
-                    if len(dd := self.get_sectors().difference(reg_cov[improw])) > 0:
-                        fac.loc[row, "error_missing_sector"] = True
-
-        # check if additional region/sectors in the data
-        if "region" in req.all_required_columns:
-            for reg in fac.region.unique():
-                if reg not in self.get_regions():
-                    fac.loc[fac.region == reg, "error_missing_region"] = True
-        if "sector" in req.all_required_columns:
-            for sec in fac.sector.unique():
-                if sec not in self.get_sectors():
-                    fac.loc[fac.sector == sec, "error_missing_sector"] = True
-
-        return fac.reset_index()
 
     def characterize(
         self,
         factors,
-        name="_characterized",
         characterized_name_column="impact",
         characterization_factors_column="factor",
         characterized_unit_column="impact_unit",
         orig_unit_column="stressor_unit",
+        only_validation=False,  
+        name="_characterized",
     ):
         """Characterize stressors
 
@@ -1928,6 +1778,17 @@ class Extension(BaseSystem):
 
         Other column names can be specified in the parameters,
         see below for the default values.
+
+        The routine also performs a validation of the input factors DataFrame and reports
+
+            - unit errors (impact unit consistent, stressor unit match).
+                Note: does not check if the conversion is correct!
+            - report missing stressors, regions, sectors which are in factors
+                but not in the extension
+            - if factors are specified for all regions/sectors of the extension
+
+        Besides the unit errors, the characterization routine works with missing data.
+        Any missing data is assumed to be 0.
 
         Note
         ----
@@ -1963,7 +1824,11 @@ class Extension(BaseSystem):
 
         Returns
         --------
-        pymrio.Extension
+        namedtuple with the following attributes:
+            validation: pd.DataFrame
+            extension: pymrio.Extension
+
+        Extension is set to None when "only_validation" is set to True.
 
         """
         name = self.name + name if name[0] == "_" else name
@@ -1974,37 +1839,38 @@ class Extension(BaseSystem):
             characterized_name_column=characterized_name_column,
             characterization_factors_column=characterization_factors_column,
             characterized_unit_column=characterized_unit_column,
+        )
+
+        validation = ioutil._validate_characterization_table(
+            factors=factors,
+            regions=self.get_regions(),
+            sectors=self.get_sectors(),
+            ext_unit=self.unit,
+            all_required_col=req.all_required_columns,
+            characterized_name_column=characterized_name_column,
+            characterized_unit_column=characterized_unit_column,
             orig_unit_column=orig_unit_column,
         )
 
+        ret_value = collections.namedtuple(
+                "characterization_result", ["validation", "extension"]
+                        )
+
+        if only_validation:
+            return ret_value(validation=validation, extension=None)
+
         index_col = req.required_index_col
 
-        # Not pass through in case of unit errors...
-        unique_impacts = factors.loc[:, characterized_name_column].unique()
-        for imp in unique_impacts:
-            if (
-                factors.loc[
-                    factors.loc[:, characterized_name_column] == imp,
-                    characterized_unit_column,
-                ].nunique()
-                != 1
-            ):
-                raise ValueError(f"Impact unit not unique for >{imp}<")
+        if any(validation.error_unit_impact):
+            warnings.warn("Inconsistent impact units found in factors - check validation")
+            return ret_value(validation=validation, extension=None)
 
-        factors = factors.set_index(index_col).sort_index()
+        if any(validation.error_unit_stressor):
+            warnings.warn("Unit errors/inconsistencies between passed units and extension units - check validation")
+            return ret_value(validation=validation, extension=None)
 
-        for unit_row in self.unit.index:
-            if unit_row not in factors.index:
-                continue
-            if factors.loc[unit_row, orig_unit_column].nunique() != 1:
-                raise ValueError(f"Unit not unique for >{unit_row}<")
-            unit_factors = factors.loc[unit_row, orig_unit_column].iloc[0]
-            if self.unit.loc[unit_row].unit != unit_factors:
-                raise ValueError(f"Unit does not match extension unit for >{unit_row}<")
-
-        # prepare factors for the multiplication
         fac_calc = (
-            factors.reset_index()
+            factors
             .set_index(index_col + [characterized_name_column])
             .loc[:, characterization_factors_column]
             .unstack(characterized_name_column)
@@ -2046,7 +1912,10 @@ class Extension(BaseSystem):
             .loc[new_ext.get_rows(), :],
         )
 
-        return new_ext
+        return ret_value(
+                validation=validation,
+                extension=new_ext,
+                        )
 
     def convert(
         self,
@@ -3503,6 +3372,7 @@ class IOSystem(BaseSystem):
         characterization_factors_column="factor",
         characterized_unit_column="impact_unit",
         orig_unit_column="stressor_unit",
+        only_validation=False,
     ):
         """Characterize stressors across all extensions of the mrio object.
 
@@ -3515,6 +3385,10 @@ class IOSystem(BaseSystem):
 
         For more information on the structure of the factors dataframe
         see the Extension.characterize docstring.
+
+        Validation behaviour is consistent with Extension.characterize and
+        the validation is applied to a temporary merged extension with all
+        stressors.
 
         Parameters
         -----------
@@ -3566,6 +3440,7 @@ class IOSystem(BaseSystem):
             characterization_factors_column=characterization_factors_column,
             characterized_unit_column=characterized_unit_column,
             orig_unit_column=orig_unit_column,
+            only_validation=only_validation,
         )
 
     def extension_concate(self, new_extension_name):
@@ -3598,6 +3473,7 @@ class IOSystem(BaseSystem):
         )
 
 
+
 def extension_characterize(
     *extensions,
     factors,
@@ -3606,6 +3482,7 @@ def extension_characterize(
     characterized_name_column="impact",
     characterization_factors_column="factor",
     characterized_unit_column="impact_unit",
+    only_validation=False,
     orig_unit_column="stressor_unit",
 ):
     """Characterize stressors across different extensions
@@ -3619,6 +3496,11 @@ def extension_characterize(
 
     For more information on the structure of the factors dataframe
     see the Extension.characterize docstring.
+
+    Validation behaviour is consistent with Extension.characterize and
+    the validation is applied to a temporary merged extension with all
+    stressors.
+
 
 
     Parameters
@@ -3744,6 +3626,7 @@ def extension_characterize(
     char = new_ext.characterize(
         factors=factors.drop(extension_col_name, axis=1),
         name=new_extension_name,
+        only_validation=only_validation,
         characterized_name_column=characterized_name_column,
         characterization_factors_column=characterization_factors_column,
         characterized_unit_column=characterized_unit_column,
