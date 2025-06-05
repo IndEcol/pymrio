@@ -41,9 +41,7 @@
 
 
 from pathlib import Path
-
 import pandas as pd
-
 import pymrio
 from pymrio.core.constants import PYMRIO_PATH  # noqa
 
@@ -79,11 +77,6 @@ io.emissions.F
 #
 
 
-# Note, that the *charact_table* contains a characterization called 'total
-# emissions', for which the calculation requires a stressor not present in the
-# satellite account. For all impacts containing the stressor it is assumed to be 0.
-# Once can check for missing specification like this one by validating the characterization table
-# before. See TODO: - link to below
 
 # To calculate the characterization we use
 
@@ -93,13 +86,39 @@ char_emis = io.emissions.characterize(charact_table, name="impacts")
 # extension_name + _characterized. In case the passed name starts with an
 # underscore, the return name with be the name of the original extension concatenated with the passed name.
 
-# The return value is a pymrio.Extension object, which contains the characterized impacts.
+# The return value is a named tuple with the *validation* and *extension* as attriubtes.
 
-print(char_emis)
+print(char_emis.extension)
 
-# Any/all of the extensions can be attached to the mrio system
 
-io.impacts = char_emis
+char_emis.validation
+
+# Checking the validation table is a recommended step that ensures accuracy and completeness before impact calculations. The validation process helps identify potential issues such as:
+#
+# - Missing characterization factors for specific region/sector/stressor combinations
+# - Spelling mistakes or inconsistencies in stressor, sector, or region names
+# - Unit mismatches between the MRIO system and characterization factors
+# - Incomplete coverage that could affect impact assessment results
+#
+# By systematically checking these elements, users can avoid calculation errors and ensure their impact assessment captures all relevant environmental and social dimensions with the proper characterization factors.
+#
+
+# In the current case, the *charact_table* contains a characterization called 'total
+# emissions', for which the calculation requires a stressor not present in the
+# satellite account. This is indicated in the validation table in the *error_missing_stressor* column.
+# The calculation can proceed, but for all impacts containing the stressor it is assumed to be 0.
+
+# It is possible, to just the verification before doing any calculation with
+
+only_val = io.emissions.characterize(charact_table, only_validation=True)
+only_val.validation
+
+# In that case the extension attribute is set to None.
+# The same applies if a characterization needs to be aborted due to unit inconsistencies. 
+
+# Anyways, in case everything works as expected, the extension can be attached to the MRIO object.
+
+io.impacts = char_emis.extension
 
 # and used for subsequent calculations:
 
@@ -107,13 +126,18 @@ io.calc_all()
 io.impacts.D_cba
 
 # Note that units are checked against the unit specification of the extension.
-# Thus, any mismatch of units will raise an error. For example:
+# Thus, any mismatch of units will abort the calculation. The validation table
+# helps to identify the issue.
 
-try:
-    charact_table.loc[charact_table.stressor == "emission_type1", "stressor_unit"] = "t"
-    io.emissions.characterize(charact_table)
-except ValueError as e:
-    print(f"Error: {e}")
+charact_table.loc[charact_table.stressor == "emission_type1", "stressor_unit"] = "t"
+
+ret_error = io.emissions.characterize(charact_table)
+
+ret_error.extension
+
+ret_error.validation
+
+# The error_unit_impact column indicate the stressor with the unit mismatch.
 
 # ## Regional specific characterization factors
 
@@ -140,7 +164,14 @@ charact_table_reg
 # Currently, the factors are actually the same as before, thus
 
 char_reg = io.emissions.characterize(charact_table_reg)
-char_reg.F
+
+# For regional specific characterization, the validation table contains information per region
+
+char_reg.validation
+
+# The extension is again available in the extension attribute
+
+char_reg.extension.F
 
 # gives the same result as before. To highlight regional
 # specificity, we double the total emission factors of region 3.
@@ -160,39 +191,15 @@ charact_table_reg.loc[
 
 # and calculate the new impacts
 
-char_reg_dbl = io.emissions.characterize(charact_table_reg)
+char_reg_dbl = io.emissions.characterize(charact_table_reg).extension
 char_reg_dbl.F.loc["total emissions"]
 
 # compared to
 
-char_reg.F.loc["total emissions"]
+char_reg.extension.F.loc["total emissions"]
 
-# ## Validating characterization tables
+# ## Some more notes on validation
 
-# Validation of characterization tables is a recommended step that ensures accuracy and completeness before impact calculations. The validation process helps identify potential issues such as:
-#
-# - Missing characterization factors for specific region/sector/stressor combinations
-# - Spelling mistakes or inconsistencies in stressor, sector, or region names
-# - Unit mismatches between the MRIO system and characterization factors
-# - Incomplete coverage that could affect impact assessment results
-#
-# By systematically checking these elements, users can avoid calculation errors and ensure their impact assessment captures all relevant environmental and social dimensions with the proper characterization factors.
-#
-
-
-# The signature of the method is similar to the characterization method with the same default parameter.
-# Thus, to validate the characterization table from before, we can just use
-
-charact_table_reg = pd.read_csv(
-    (PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact_reg_spec.tsv"),
-    sep="\t",
-)
-
-report = io.emissions.validate_characterization_table(charact_table_reg)
-report
-
-# The report covers contains the table passed, with an extension of several *error_* columns reporting on various potential errors.
-# In the original table, it indicates that *emission_type3" is not present in the stressor matrix.
 
 # We can put some more inconsistencies into the table to showcase the validation process.
 # Some unit error in the stressors:
@@ -227,7 +234,7 @@ new_data.loc[:, "region"] = "reg_additional"
 charact_table_reg = charact_table_reg.merge(new_data, how="outer")
 
 
-report = io.emissions.validate_characterization_table(charact_table_reg)
+report = io.emissions.characterize(charact_table_reg, only_validation=True).validation
 
 # The unit errors are reported for each row, and the one additional region not present in the extension is report under *error_missing_region*.
 # The column *error_unit_impact* indicates the impact with inconsistent units
@@ -240,4 +247,102 @@ report[report.stressor == "emission_type1"]
 
 report[report.stressor == "emission_type2"]
 
-# As always, more information can be found in the docstrings of the methods.
+# ## Characterization across multiple extensions
+
+# In addition to characterizing a single extension, pymrio also offers functionality 
+# to apply characterization across multiple extensions simultaneously. This is useful 
+# when your impacts depend on stressors that are distributed across different satellite accounts.
+
+# Let's demonstrate this using our test MRIO system:
+
+io = pymrio.load_test()
+
+# First, let's create multiple extensions from our emissions data to better showcase this functionality:
+
+# Create copies of the emissions extension with different names and data subsets
+io.water = io.emissions.copy("water")
+io.air = io.emissions.copy("air")
+
+# Keep only water emissions in the water extension
+io.water.F = io.water.F.loc[[("emission_type2", "water")], :]
+io.water.F_Y = io.water.F_Y.loc[[("emission_type2", "water")], :]
+
+# Keep only air emissions in the air extension
+io.air.F = io.air.F.loc[[("emission_type1", "air")], :]
+io.air.F_Y = io.air.F_Y.loc[[("emission_type1", "air")], :]
+
+# Examining the extensions:
+
+io.air.F
+
+
+io.water.F
+
+# To characterize across multiple extensions, we need a characterization table that includes
+# an 'extension' column specifying which extension each stressor belongs to:
+
+# Start with our regional characterization table
+factors_reg_spec = pd.read_csv(
+    (PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact_reg_spec.tsv"),
+    sep="\t",
+)
+
+# Create a copy and add an extension column based on compartment
+factors_reg_ext = factors_reg_spec.copy()
+factors_reg_ext.loc[:, "extension"] = factors_reg_ext.loc[:, "compartment"]
+
+# Filter out any entries that don't correspond to our extensions
+factors_reg_ext = factors_reg_ext[factors_reg_ext.compartment.isin(["air", "water"])]
+
+# Examine our multi-extension characterization table:
+factors_reg_ext.head(10)
+
+# There are two ways to characterize across multiple extensions:
+
+# 1. Using the top-level function with specific extensions:
+ex_reg_multi = pymrio.extension_characterize(
+    io.air, io.water,  # List the extensions you want to include
+    factors=factors_reg_ext,
+    new_extension_name="multi_top_level"
+).extension
+
+# 2. Using the MRIO object's method which automatically includes all available extensions:
+ex_reg_mrio = io.extension_characterize(
+    factors=factors_reg_ext,
+    new_extension_name="multi_mrio_method"
+).extension
+
+# Both approaches produce the same result when the same extensions are involved:
+print("Are the characterized F matrices equal?", ex_reg_multi.F.equals(ex_reg_mrio.F))
+
+# Add the extension to our MRIO and calculate results:
+io.multi = ex_reg_multi
+io.calc_all()
+io.multi.D_cba
+
+# As with single extension characterization, validation is crucial:
+validation_report = pymrio.extension_characterize(
+    io.air, io.water,
+    factors=factors_reg_ext,
+    only_validation=True
+).validation
+
+print("Validation report:")
+validation_report
+
+# The validation process helps identify issues such as:
+# - Missing stressors or extensions
+# - Unit inconsistencies
+# - Missing regions or sectors
+# - Extension name mismatches
+
+# Important considerations for multi-extension characterization:
+#
+# 1. The 'extension' column in your characterization table must match the extension names in your MRIO
+# 2. All extensions must have compatible region and sector classifications
+# 3. Units must be consistent across extensions and characterization factors
+# 4. If a characterization table references an extension that doesn't exist, 
+#    it will be noted in the validation report
+
+
+
