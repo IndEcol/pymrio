@@ -15,6 +15,17 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v3
 
+    - name: Cache conda
+      uses: actions/cache@v2
+      env:
+        # Increase this value to reset cache if etc/example-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key:
+          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
+          hashFiles('environment.yml') }}
+
     - uses: mamba-org/setup-micromamba@v2
       env:
         ACTIONS_STEP_DEBUG: true
@@ -39,8 +50,8 @@ jobs:
          isort --project pymrio --profile black --check-only .
          coverage run --source=pymrio -m pytest -vv
 
-    - name: Coveralls upload
-      uses: coverallsapp/github-action@v2
+    - name: Coveralls analysis
+      run: COVERALLS_REPO_TOKEN=hCmKdeZ5j9ao62VSpZWWUyBrAh1dmlQ coveralls
 
 
  test_production:
