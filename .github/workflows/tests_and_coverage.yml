@@ -15,11 +15,11 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v3
 
-    - uses: mamba-org/setup-micromamba@v1
+    - uses: mamba-org/setup-micromamba@v2
       env:
         ACTIONS_STEP_DEBUG: true
       with:
-          micromamba-version: '1.3.1-0'
+          micromamba-version: '2.2.0-0'
           environment-file: environment.yml
           init-shell: >-
             bash
@@ -37,7 +37,7 @@ jobs:
     - name: Run tests
       run: |
          isort --project pymrio --profile black --check-only .
-         coverage run --source=pymrio -m pytest --black -vv
+         coverage run --source=pymrio -m pytest -vv
 
     - name: Coveralls upload
       uses: coverallsapp/github-action@v2
