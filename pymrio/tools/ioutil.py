@@ -229,7 +229,7 @@ def build_agg_matrix(agg_vector, pos_dict=None):
     if isinstance(agg_vector, np.ndarray):
         agg_vector = agg_vector.flatten().tolist()
 
-    if type(agg_vector[0]) == str:
+    if type(list(agg_vector)[0]) is str:
         str_vector = agg_vector
         agg_vector = np.zeros(len(str_vector))
         if pos_dict:
@@ -1270,7 +1270,7 @@ def convert(
             continue
         if col not in df_orig.index.names:
             if col in df_orig.columns.names:
-                df_orig = df_orig.stack(col)
+                df_orig = df_orig.stack(col, future_stack=True)
                 stacked_columns.append(col)
                 if isinstance(df_orig, pd.Series):
                     df_orig.name = "FOO_CONVERT_REMOVE"

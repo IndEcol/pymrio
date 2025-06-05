@@ -826,6 +826,8 @@ def test_extension_convert_simple(fix_testmrio):
     assert tt_post.post_calc.unit.loc["char_emissions", "unit"] == "kg_eq"
 
 
+# Filter UserWarning as these are thrown by missing an extensions
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_extension_convert_function(fix_testmrio):
     """Testing the convert function for a list of extensions"""
 
@@ -1304,7 +1306,7 @@ def test_direct_account_calc(fix_testmrio):
 
     new = orig.copy().rename_regions({"reg3": "ll", "reg4": "aa"})
 
-    Y_agg = new.Y.groupby(axis=1, level="region", sort=False).agg(sum)
+    Y_agg = new.Y.T.groupby(level="region", sort=False).agg("sum").T
 
     (D_cba, D_pba, D_imp, D_exp) = pymrio.calc_accounts(new.emissions.S, new.L, Y_agg)
 

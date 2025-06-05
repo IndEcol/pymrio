@@ -3179,7 +3179,7 @@ class IOSystem(BaseSystem):
         if (not _same_regions) and (not region_names):
             if isinstance(region_agg, np.ndarray):
                 region_agg = region_agg.flatten().tolist()
-            if type(region_agg[0]) is str:
+            if type(list(region_agg)[0]) is str:
                 region_names = ioutil.unique_element(region_agg)
             else:
                 # rows in the concordance matrix give the new number of
@@ -3192,7 +3192,7 @@ class IOSystem(BaseSystem):
         if (not _same_sectors) and (not sector_names):
             if isinstance(sector_agg, np.ndarray):
                 sector_agg = sector_agg.flatten().tolist()
-            if type(sector_agg[0]) is str:
+            if type(list(sector_agg)[0]) is str:
                 sector_names = ioutil.unique_element(sector_agg)
             else:
                 sector_names = [

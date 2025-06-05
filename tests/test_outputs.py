@@ -79,7 +79,7 @@ def test_graphs_population_sector(fix_testmrio_calc):
     # (cba, pba, imp, exp) for each region
     sec_reg1_pop = (
         tt.emissions.D_cba.loc[stressor, ("reg1", sector)] / tt.population.reg1
-    )[0]
+    ).iloc[0]
 
     assert ax.patches[0].get_height() == sec_reg1_pop
 
