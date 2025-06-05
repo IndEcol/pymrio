@@ -41,7 +41,9 @@
 
 
 from pathlib import Path
+
 import pandas as pd
+
 import pymrio
 from pymrio.core.constants import PYMRIO_PATH  # noqa
 
@@ -75,7 +77,6 @@ io.emissions.F
 # Alternative names can be passed through the parameters
 # *characterized_name_column*, *characterization_factors_column*, *characterized_unit_column* and *orig_unit_column*
 #
-
 
 
 # To calculate the characterization we use
@@ -114,7 +115,7 @@ only_val = io.emissions.characterize(charact_table, only_validation=True)
 only_val.validation
 
 # In that case the extension attribute is set to None.
-# The same applies if a characterization needs to be aborted due to unit inconsistencies. 
+# The same applies if a characterization needs to be aborted due to unit inconsistencies.
 
 # Anyways, in case everything works as expected, the extension can be attached to the MRIO object.
 
@@ -249,8 +250,8 @@ report[report.stressor == "emission_type2"]
 
 # ## Characterization across multiple extensions
 
-# In addition to characterizing a single extension, pymrio also offers functionality 
-# to apply characterization across multiple extensions simultaneously. This is useful 
+# In addition to characterizing a single extension, pymrio also offers functionality
+# to apply characterization across multiple extensions simultaneously. This is useful
 # when your impacts depend on stressors that are distributed across different satellite accounts.
 
 # Let's demonstrate this using our test MRIO system:
@@ -301,15 +302,15 @@ factors_reg_ext.head(10)
 
 # 1. Using the top-level function with specific extensions:
 ex_reg_multi = pymrio.extension_characterize(
-    io.air, io.water,  # List the extensions you want to include
+    io.air,
+    io.water,  # List the extensions you want to include
     factors=factors_reg_ext,
-    new_extension_name="multi_top_level"
+    new_extension_name="multi_top_level",
 ).extension
 
 # 2. Using the MRIO object's method which automatically includes all available extensions:
 ex_reg_mrio = io.extension_characterize(
-    factors=factors_reg_ext,
-    new_extension_name="multi_mrio_method"
+    factors=factors_reg_ext, new_extension_name="multi_mrio_method"
 ).extension
 
 # Both approaches produce the same result when the same extensions are involved:
@@ -322,9 +323,7 @@ io.multi.D_cba
 
 # As with single extension characterization, validation is crucial:
 validation_report = pymrio.extension_characterize(
-    io.air, io.water,
-    factors=factors_reg_ext,
-    only_validation=True
+    io.air, io.water, factors=factors_reg_ext, only_validation=True
 ).validation
 
 print("Validation report:")
@@ -341,8 +340,5 @@ validation_report
 # 1. The 'extension' column in your characterization table must match the extension names in your MRIO
 # 2. All extensions must have compatible region and sector classifications
 # 3. Units must be consistent across extensions and characterization factors
-# 4. If a characterization table references an extension that doesn't exist, 
+# 4. If a characterization table references an extension that doesn't exist,
 #    it will be noted in the validation report
-
-
-

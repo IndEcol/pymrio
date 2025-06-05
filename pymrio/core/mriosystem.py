@@ -18,9 +18,9 @@ import warnings
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from more_itertools.more import only
 import numpy as np
 import pandas as pd
+from more_itertools.more import only
 
 import pymrio.tools.ioutil as ioutil
 from pymrio.core.constants import (
@@ -348,11 +348,7 @@ class BaseSystem:
                 for pattern, new_group in grouping_pattern.items():
                     if type(pattern) is str:
                         dd.update(
-                            {
-                                k: new_group
-                                for k in dd.keys()
-                                if re.match(pattern, k)
-                            }
+                            {k: new_group for k in dd.keys() if re.match(pattern, k)}
                         )
                     else:
                         dd.update(
@@ -1751,7 +1747,6 @@ class Extension(BaseSystem):
 
         return ext_diag
 
-
     def characterize(
         self,
         factors,
@@ -1759,7 +1754,7 @@ class Extension(BaseSystem):
         characterization_factors_column="factor",
         characterized_unit_column="impact_unit",
         orig_unit_column="stressor_unit",
-        only_validation=False,  
+        only_validation=False,
         name="_characterized",
     ):
         """Characterize stressors
@@ -1853,8 +1848,8 @@ class Extension(BaseSystem):
         )
 
         ret_value = collections.namedtuple(
-                "characterization_result", ["validation", "extension"]
-                        )
+            "characterization_result", ["validation", "extension"]
+        )
 
         if only_validation:
             return ret_value(validation=validation, extension=None)
@@ -1862,16 +1857,19 @@ class Extension(BaseSystem):
         index_col = req.required_index_col
 
         if any(validation.error_unit_impact):
-            warnings.warn("Inconsistent impact units found in factors - check validation")
+            warnings.warn(
+                "Inconsistent impact units found in factors - check validation"
+            )
             return ret_value(validation=validation, extension=None)
 
         if any(validation.error_unit_stressor):
-            warnings.warn("Unit errors/inconsistencies between passed units and extension units - check validation")
+            warnings.warn(
+                "Unit errors/inconsistencies between passed units and extension units - check validation"
+            )
             return ret_value(validation=validation, extension=None)
 
         fac_calc = (
-            factors
-            .set_index(index_col + [characterized_name_column])
+            factors.set_index(index_col + [characterized_name_column])
             .loc[:, characterization_factors_column]
             .unstack(characterized_name_column)
             .fillna(0)
@@ -1913,9 +1911,9 @@ class Extension(BaseSystem):
         )
 
         return ret_value(
-                validation=validation,
-                extension=new_ext,
-                        )
+            validation=validation,
+            extension=new_ext,
+        )
 
     def convert(
         self,
@@ -3471,7 +3469,6 @@ class IOSystem(BaseSystem):
         return extension_concate(
             *list(self.get_extensions(data=True)), new_extension_name=new_extension_name
         )
-
 
 
 def extension_characterize(

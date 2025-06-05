@@ -1030,6 +1030,7 @@ def _characterize_get_requried_col(
         req_index, required_columns
     )
 
+
 def _validate_characterization_table(
     factors,
     all_required_col,
@@ -1040,7 +1041,7 @@ def _validate_characterization_table(
     characterized_unit_column="impact_unit",
     orig_unit_column="stressor_unit",
 ):
-    """ Internal untility for checking a factors sheet for characterization
+    """Internal untility for checking a factors sheet for characterization
 
     This should not be called directly, use characterize with only_validation instead.
 
@@ -1137,9 +1138,9 @@ def _validate_characterization_table(
         um.loc[:, orig_unit_column] != um.loc[:, ext_unit_col]
     )
     with pd.option_context("future.no_silent_downcasting", True):
-        fac.loc[:, "error_unit_stressor"] = fac.loc[
-            :, "error_unit_stressor"
-        ].fillna(False)
+        fac.loc[:, "error_unit_stressor"] = fac.loc[:, "error_unit_stressor"].fillna(
+            False
+        )
     fac.error_unit_stressor = fac.error_unit_stressor.infer_objects(copy=False)
 
     fac = fac.set_index(ext_unit.index.names).sort_index()
@@ -1185,8 +1186,6 @@ def _validate_characterization_table(
                 fac.loc[fac.sector == sec, "error_missing_sector"] = True
 
     return fac.reset_index()
-
-
 
 
 def extend_rows(df, **kwargs):
