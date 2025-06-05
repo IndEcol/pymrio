@@ -72,7 +72,7 @@ packages = ["pymrio"]
 version = {attr = "pymrio.__version__"}
 
 [tool.setuptools.package-data]
-"" = ["*.txt", "*.dat", "*.doc", "*.rst", "*.json", "*.tsv"]
+"pymrio" = ["*.txt", "*.dat", "*.doc", "*.rst", "*.json", "*.tsv"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -82,10 +82,8 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-source = ["pymrio"]  # replace with your package name
+source = ["pymrio"]  
 relative_files = true
-
-[tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
