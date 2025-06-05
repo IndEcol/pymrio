@@ -50,8 +50,16 @@ jobs:
          isort --project pymrio --profile black --check-only .
          coverage run --source=pymrio -m pytest -vv
 
-    - name: Coveralls analysis
-      run: COVERALLS_REPO_TOKEN=hCmKdeZ5j9ao62VSpZWWUyBrAh1dmlQ coveralls
+    # - name: Coveralls analysis
+    #   run: COVERALLS_REPO_TOKEN=hCmKdeZ5j9ao62VSpZWWUyBrAh1dmlQ coveralls
+
+    - name: Upload coverage to Coveralls
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Optionally, if you get 422, try setting:
+        # COVERALLS_SERVICE_NAME: github-actions
+      run: |
+        coveralls
 
 
  test_production:

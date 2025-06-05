@@ -52,6 +52,7 @@ lint = [
 ]
 test = [
   "coveralls",
+  "coverage[toml]",
   "pytest >=5.4.0",
   "pytest-black",
   "pytest-cov >=2.7.0",
@@ -80,4 +81,20 @@ filterwarnings = [
     "ignore:Using or importing the ABCs from:DeprecationWarning"
 ]
 
+[tool.coverage.run]
+source = ["pymrio"]  # replace with your package name
+relative_files = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise NotImplementedError",
+    "_load_ini_based_io",
+    "if __name__ == .__main__.:"
+]
+omit = [
+    "*tools/iodownloader.py"
+]
 
