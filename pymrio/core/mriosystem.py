@@ -17,8 +17,8 @@ import typing
 import warnings
 from pathlib import Path
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
+from more_itertools.more import only
 import numpy as np
 import pandas as pd
 
@@ -289,7 +289,7 @@ class BaseSystem:
                 else:
                     return ind
         else:  # pragma: no cover
-            logging.warn("No attributes available to get Y categories")
+            warnings.warn("No attributes available to get Y categories")
             return None
 
     def get_index(self, as_dict=False, grouping_pattern=None):
@@ -339,7 +339,7 @@ class BaseSystem:
                 orig_idx = getattr(self, df).index
                 break
         else:  # pragma: no cover
-            logging.warn("No attributes available to get index")
+            warnings.warn("No attributes available to get index")
             return None
 
         if as_dict:
@@ -350,7 +350,7 @@ class BaseSystem:
                         dd.update(
                             {
                                 k: new_group
-                                for k, v in dd.items()
+                                for k in dd.keys()
                                 if re.match(pattern, k)
                             }
                         )
@@ -358,7 +358,7 @@ class BaseSystem:
                         dd.update(
                             {
                                 k: new_group
-                                for k, v in dd.items()
+                                for k in dd.keys()
                                 if all(
                                     [
                                         re.match(pat, k[nr])
@@ -429,7 +429,7 @@ class BaseSystem:
                 else:
                     return ind
         else:  # pragma: no cover
-            logging.warn("No attributes available to get regions")
+            warnings.warn("No attributes available to get regions")
             return None
 
     def get_sectors(self, entries=None):
@@ -481,7 +481,7 @@ class BaseSystem:
                 else:
                     return ind
         else:  # pragma: no cover
-            logging.warn("No attributes available to get sectors")
+            warnings.warn("No attributes available to get sectors")
             return None
 
     def get_DataFrame(self, data=False, with_unit=True, with_population=True):
@@ -523,6 +523,15 @@ class BaseSystem:
                     yield getattr(self, key)
                 else:
                     yield key
+
+    @property
+    def empty(self):
+        """True, if all dataframes of the system are empty"""
+        for df in self.get_DataFrame(data=True):
+            if len(df) > 0:
+                return False
+        else:
+            return True
 
     def save(self, path, table_format="txt", sep="\t", float_format="%.12g"):
         """Saving the system to path
@@ -578,7 +587,7 @@ class BaseSystem:
             file_para["systemtype"] = GENERIC_NAMES["ext"]
             file_para["name"] = self.name
         else:
-            logging.warn(
+            warnings.warn(
                 'Unknown system type {} - set to "undef"'.format(str(type(self)))
             )
             file_para["systemtype"] = "undef"
@@ -646,7 +655,7 @@ class BaseSystem:
             for ext in self.get_extensions(data=True):
                 for df in ext.get_DataFrame(data=True):
                     df.rename(index=regions, columns=regions, inplace=True)
-        except:
+        except:  # noqa: E722
             pass
 
         self.meta._add_modify("Changed country names")
@@ -710,6 +719,170 @@ class BaseSystem:
 
         self.meta._add_modify("Changed Y category names")
         return self
+
+    def find(self, term):
+        """Looks for term in index, sectors, regions, Y_categories
+
+        Mostly useful for a quick check if entry is present.
+
+        Internally that uses pd.str.contains as implemented
+        in ioutil.index_contains
+
+        For a multiindex, all levels of the multiindex are searched.
+
+        Parameters
+        ----------
+        term : string
+            String to search for
+
+        Returns
+        -------
+        dict of (multi)index
+            With keys 'index', 'region', 'sector', 'Y_category' and
+            values the found index entries.
+            Empty keys are ommited.
+            The values can be used directly on one of the DataFrames with .loc
+        """
+        res_dict = dict()
+        try:
+            index_find = ioutil.index_contains(
+                self.get_index(as_dict=False), find_all=term
+            )
+            if len(index_find) > 0:
+                res_dict["index"] = index_find
+        except:  # noqa: E722
+            pass
+        try:
+            reg_find = ioutil.index_contains(self.get_regions(), find_all=term)
+            if len(reg_find) > 0:
+                res_dict["regions"] = reg_find
+        except:  # noqa: E722
+            pass
+        try:
+            sector_find = ioutil.index_contains(self.get_sectors(), find_all=term)
+            if len(sector_find) > 0:
+                res_dict["sectors"] = sector_find
+        except:  # noqa: E722
+            pass
+        try:
+            Y_find = ioutil.index_contains(self.get_Y_categories(), find_all=term)
+            if len(Y_find) > 0:
+                res_dict["Y_categories"] = Y_find
+        except:  # noqa: E722
+            pass
+        try:
+            for ext in self.get_extensions(data=False, instance_names=True):
+                ext_index_find = ioutil.index_contains(
+                    getattr(self, ext).get_index(as_dict=False), find_all=term
+                )
+                if len(ext_index_find) > 0:
+                    res_dict[ext + "_index"] = ext_index_find
+        except:  # noqa: E722
+            pass
+
+        return res_dict
+
+    def contains(self, find_all=None, **kwargs):
+        """Check if index of the system contains the regex pattern
+
+        Similar to pandas str.contains, thus the index
+        string must contain the regex pattern. Uses ioutil.index_contains
+
+        The index levels need to be named (df.index.name needs to
+        be set for all levels).
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+        Parameters
+        ----------
+        find_all : None or str
+            If str (regex pattern) search in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        kwargs : dict
+            The regex which should be contained. The keys are the index names,
+            the values are the regex.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        pd.Index or pd.MultiIndex
+            The matched rows/index
+
+        """
+        return ioutil.index_contains(self.get_index(as_dict=False), find_all, **kwargs)
+
+    def match(self, find_all=None, **kwargs):
+        """Check if index of the system match the regex pattern
+
+        Similar to pandas str.match, thus the start of the index string must match.
+        Uses ioutil.index_match
+
+        The index levels need to be named (df.index.name needs to
+        be set for all levels).
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+        Parameters
+        ----------
+        find_all : None or str
+            If str (regex pattern) search for all matches in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        kwargs : dict
+            The regex to match. The keys are the index names,
+            the values are the regex to match.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        pd.Index or pd.MultiIndex
+            The matched rows/index
+
+        """
+        return ioutil.index_match(self.get_index(as_dict=False), find_all, **kwargs)
+
+    def fullmatch(self, find_all=None, **kwargs):
+        """Check if a index row of the system is a full match to the regex pattern
+
+        Similar to pandas str.fullmatch, thus the whole
+        string of the index must match. Uses ioutil.index_fullmatch
+
+        The index levels need to be named (df.index.name needs to
+        be set for all levels).
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+        Parameters
+        ----------
+        find_all : None or str
+            If str (regex pattern) search for all matches in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        kwargs : dict
+            The regex to match. The keys are the index names,
+            the values are the regex to match.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        pd.Index or pd.MultiIndex
+            The matched rows/index
+
+        """
+        return ioutil.index_fullmatch(self.get_index(as_dict=False), find_all, **kwargs)
 
 
 # API classes
@@ -892,15 +1065,16 @@ class Extension(BaseSystem):
             Row vector with population per region
         """
 
-        # TODO: This should only be used for calculating the full system.
-        # TODO There needs to be a new method for calculating the system for a different demand vector
+        # TODO This should only be used for calculating the full system.
+        # TODO There needs to be a new method for calculating the system
+        # for a different demand vector in here
 
         if Y_agg is None:
             try:
-                Y_agg = Y.groupby(level="region", axis=1, sort=False).sum()
+                Y_agg = Y.T.groupby(level="region", sort=False).sum().T
 
             except (AssertionError, KeyError):
-                Y_agg = Y.groupby(level=0, axis=1, sort=False).sum()
+                Y_agg = Y.T.groupby(level=0, sort=False).sum().T
 
         y_vec = Y.sum(axis=0)
 
@@ -927,10 +1101,13 @@ class Extension(BaseSystem):
             else:
                 try:
                     self.M = recalc_M(
-                        self.S, self.D_cba, Y=Y_agg, nr_sectors=self.get_sectors().size
+                        self.S,
+                        self.D_cba,
+                        Y=Y_agg,
+                        nr_sectors=self.get_sectors().size,
                     )
                     logging.debug(
-                        "{} - M calculated based on " "D_cba and Y".format(self.name)
+                        "{} - M calculated based on D_cba and Y".format(self.name)
                     )
                 except Exception as ex:
                     logging.debug(
@@ -953,9 +1130,9 @@ class Extension(BaseSystem):
             # F_Y_agg = ioutil.agg_columns(
             # ext['F_Y'], self.get_Y_categories().size)
             try:
-                F_Y_agg = self.F_Y.groupby(level="region", axis=1, sort=False).sum()
+                F_Y_agg = self.F_Y.T.groupby(level="region", sort=False).sum().T
             except (AssertionError, KeyError):
-                F_Y_agg = self.F_Y.groupby(level=0, axis=1, sort=False).sum()
+                F_Y_agg = self.F_Y.T.groupby(level=0, sort=False).sum().T
 
         if (
             (self.D_cba is None)
@@ -981,34 +1158,32 @@ class Extension(BaseSystem):
         ):
             try:
                 self.D_cba_reg = (
-                    self.D_cba.groupby(level="region", axis=1, sort=False).sum()
-                    + F_Y_agg
+                    self.D_cba.T.groupby(level="region", sort=False).sum().T + F_Y_agg
                 )
             except (AssertionError, KeyError):
                 self.D_cba_reg = (
-                    self.D_cba.groupby(level=0, axis=1, sort=False).sum() + F_Y_agg
+                    self.D_cba.T.groupby(level=0, sort=False).sum().T + F_Y_agg
                 )
             try:
                 self.D_pba_reg = (
-                    self.D_pba.groupby(level="region", axis=1, sort=False).sum()
-                    + F_Y_agg
+                    self.D_pba.T.groupby(level="region", sort=False).sum().T + F_Y_agg
                 )
             except (AssertionError, KeyError):
                 self.D_pba_reg = (
-                    self.D_pba.groupby(level=0, axis=1, sort=False).sum() + F_Y_agg
+                    self.D_pba.T.groupby(level=0, sort=False).sum().T + F_Y_agg
                 )
             try:
-                self.D_imp_reg = self.D_imp.groupby(
-                    level="region", axis=1, sort=False
-                ).sum()
+                self.D_imp_reg = (
+                    self.D_imp.T.groupby(level="region", sort=False).sum().T
+                )
             except (AssertionError, KeyError):
-                self.D_imp_reg = self.D_imp.groupby(level=0, axis=1, sort=False).sum()
+                self.D_imp_reg = self.D_imp.T.groupby(level=0, sort=False).sum().T
             try:
-                self.D_exp_reg = self.D_exp.groupby(
-                    level="region", axis=1, sort=False
-                ).sum()
+                self.D_exp_reg = (
+                    self.D_exp.T.groupby(level="region", sort=False).sum().T
+                )
             except (AssertionError, KeyError):
-                self.D_exp_reg = self.D_exp.groupby(level=0, axis=1, sort=False).sum()
+                self.D_exp_reg = self.D_exp.T.groupby(level=0, sort=False).sum().T
 
             logging.debug("{} - Accounts D for regions calculated".format(self.name))
 
@@ -1175,7 +1350,7 @@ class Extension(BaseSystem):
                                 population.columns.tolist()
                                 != self.D_cba_reg.columns.tolist()
                             ):
-                                logging.warning(
+                                warnings.warn(
                                     "Population regions are inconsistent "
                                     "with IO regions"
                                 )
@@ -1375,7 +1550,7 @@ class Extension(BaseSystem):
                         )
 
                 except:  # pragma: no cover
-                    logging.warn("Module docutils not available - write rst instead")
+                    warnings.warn("Module docutils not available - write rst instead")
                     format = "rst"
             format_str = {
                 "latex": "tex",
@@ -1420,15 +1595,17 @@ class Extension(BaseSystem):
             if (df in self.__dict__) and (getattr(self, df) is not None):
                 return getattr(self, df).index
         else:
-            logging.warn("No attributes available to get row names")
+            warnings.warn("No attributes available to get row names")
             return None
 
     def get_row_data(self, row, name=None):
-        """Returns a dict with all available data for a row in the extension
+        """Returns a dict with all available data for a row in the extension.
+
+        If you need a new extension, see the extract method.
 
         Parameters
         ----------
-        row : tuple, list, string
+        row : index, tuple, list, string
             A valid index for the extension DataFrames
         name : string, optional
             If given, adds a key 'name' with the given value to the dict. In
@@ -1437,14 +1614,76 @@ class Extension(BaseSystem):
 
         Returns
         -------
-        dict object with the data (pandas DataFrame)for the specific rows
+        dict object with the data (pandas DataFrame) for the specific rows
         """
+        # depraction warning
+
+        warnings.warn(
+            "This method will be removed in future versions. "
+            "Use extract method instead",
+            DeprecationWarning,
+        )
+
         retdict = {}
         for rowname, data in zip(self.get_DataFrame(), self.get_DataFrame(data=True)):
             retdict[rowname] = pd.DataFrame(data.loc[row])
         if name:
             retdict["name"] = name
         return retdict
+
+    def extract(self, index, dataframes=None, return_type="dataframes"):
+        """Returns a dict with all available data for a row in the extension.
+
+
+        Parameters
+        ----------
+        index : valid row index or dict
+            A valid index for the extension DataFrames.
+            Alternatively, a dict with the extension name as key and the valid index
+            as value can be passed.
+        dataframes : list, optional
+            The dataframes which should be extracted. If None (default),
+            all available dataframes are extracted. If the list contains
+            dataframes which are not available, a warning is issued and
+            the missing dataframes are ignored.
+        return_type: str, optional
+            If 'dataframe' or 'df' (also with 's' plural, default), the returned dict contains dataframes.
+            If 'extension' or 'ext' (also with 's' plural) an Extension object is returned (named like the original with _extracted appended).
+            Any other string: an Extension object is returned, with the name set to the passed string.
+
+
+        Returns
+        -------
+        dict object with the data (pandas DataFrame) for the specific rows
+        or an Extension object (based on return_type)
+
+        """
+        if isinstance(index, dict):
+            index = index.get(self.name, None)
+        if type(index) in (str, tuple):
+            index = [index]
+
+        retdict = {}
+        if dataframes is None:
+            dataframes = self.get_DataFrame()
+        else:
+            if not all(elem in self.get_DataFrame() for elem in dataframes):
+                warnings.warn(
+                    f"Not all requested dataframes are available in {self.name}"
+                )
+            dataframes = [elem for elem in dataframes if elem in self.get_DataFrame()]
+
+        for dfname in dataframes:
+            data = getattr(self, dfname)
+            retdict[dfname] = data.loc[index, :]
+
+        if return_type.lower() in ["dataframes", "dataframe", "dfs", "df"]:
+            return retdict
+        elif return_type.lower() in ["extensions", "extension", "ext", "exts"]:
+            ext_name = self.name + "_extracted"
+        else:
+            ext_name = return_type
+        return Extension(name=ext_name, **retdict)
 
     def diag_stressor(self, stressor, name=None, _meta=None):
         """Diagonalize one row of the stressor matrix for a flow analysis.
@@ -1512,27 +1751,50 @@ class Extension(BaseSystem):
 
         return ext_diag
 
+
     def characterize(
         self,
         factors,
         characterized_name_column="impact",
         characterization_factors_column="factor",
         characterized_unit_column="impact_unit",
-        name=None,
-        return_char_matrix=False,
-        _meta=None,
+        orig_unit_column="stressor_unit",
+        only_validation=False,  
+        name="_characterized",
     ):
         """Characterize stressors
 
         Characterizes the extension with the characterization factors given in factors.
-        Factors can contain more characterization factors which depend on stressors not
-        present in the Extension - these will be automatically removed.
+
+        The dataframe factors can contain characterization factors which depend on
+        stressors not present in the Extension - these will be ignored (set to 0).
+
+        The dataframe passed for the characterization must be in a long format.
+        It must contain columns with the same names as in the index of the extension.
+
+        The routine can also handle region or sector specific characterization factors.
+        In that case, the passed dataframe must also include columns for sector and/or region.
+        The names must be the same as the column names of the extension.
+
+        Other column names can be specified in the parameters,
+        see below for the default values.
+
+        The routine also performs a validation of the input factors DataFrame and reports
+
+            - unit errors (impact unit consistent, stressor unit match).
+                Note: does not check if the conversion is correct!
+            - report missing stressors, regions, sectors which are in factors
+                but not in the extension
+            - if factors are specified for all regions/sectors of the extension
+
+        Besides the unit errors, the characterization routine works with missing data.
+        Any missing data is assumed to be 0.
 
         Note
         ----
-        Accordance of units is not checked - you must ensure that the
-        characterization factors correspond to the units of the extension to be
-        characterized.
+        Accordance of units is enforced.
+        This is done be checking the column specified in orig_unit_column with the unit
+        dataframe of the extension.
 
         Parameters
         -----------
@@ -1540,7 +1802,7 @@ class Extension(BaseSystem):
             A dataframe in long format with numerical index and columns named
             index.names of the extension to be characterized and
             'characterized_name_column', 'characterization_factors_column',
-            'characterized_unit_column'
+            'characterized_unit_column', 'orig_unit_column'
 
         characterized_name_column: str (optional)
             Name of the column with the names of the
@@ -1556,105 +1818,270 @@ class Extension(BaseSystem):
 
         name: string (optional)
             The new name for the extension,
-            if None (default): name of the current extension with suffix
-            '_characterized'
+            if the string starts with an underscore '_' the string
+            with be appended to the original name. Default: '_characterized'
 
-        return_char_matrix: boolean (optional)
-            If False (default), returns just the characterized extension.
-            If True, returns a namedtuple with extension and the actually used
-            characterization matrix.
-
-        _meta: MRIOMetaData, optional
-            Metadata handler for logging, optional. Internal
 
         Returns
         --------
+        namedtuple with the following attributes:
+            validation: pd.DataFrame
+            extension: pymrio.Extension
 
-        pymrio.Extensions (when return_char_matrix==False, default)
-
-           or
-
-        namedtuple with .extension: pymrio.Extension .factors: pd.DataFrame (when return_char_matrix==True)
+        Extension is set to None when "only_validation" is set to True.
 
         """
+        name = self.name + name if name[0] == "_" else name
 
-        name = name if name else self.name + "_characterized"
+        req = ioutil._characterize_get_requried_col(
+            ext_index_names=list(self.get_rows().names),
+            factors=factors,
+            characterized_name_column=characterized_name_column,
+            characterization_factors_column=characterization_factors_column,
+            characterized_unit_column=characterized_unit_column,
+        )
 
-        # making a dataframe with indexes (stressors) as values (with multiple
-        # columns if multiindex)
-        rows = self.get_rows()
-        if type(rows) == pd.core.indexes.multi.MultiIndex:
-            df_stressors = pd.DataFrame.from_records(list(rows), columns=rows.names)
-        elif type(rows) == pd.core.indexes.base.Index:
-            df_stressors = pd.DataFrame.from_records(
-                list([[r] for r in rows]), columns=rows.names
-            )
+        validation = ioutil._validate_characterization_table(
+            factors=factors,
+            regions=self.get_regions(),
+            sectors=self.get_sectors(),
+            ext_unit=self.unit,
+            all_required_col=req.all_required_columns,
+            characterized_name_column=characterized_name_column,
+            characterized_unit_column=characterized_unit_column,
+            orig_unit_column=orig_unit_column,
+        )
 
-        required_columns = rows.names + [
-            characterization_factors_column,
-            characterized_name_column,
-            characterized_unit_column,
+        ret_value = collections.namedtuple(
+                "characterization_result", ["validation", "extension"]
+                        )
+
+        if only_validation:
+            return ret_value(validation=validation, extension=None)
+
+        index_col = req.required_index_col
+
+        if any(validation.error_unit_impact):
+            warnings.warn("Inconsistent impact units found in factors - check validation")
+            return ret_value(validation=validation, extension=None)
+
+        if any(validation.error_unit_stressor):
+            warnings.warn("Unit errors/inconsistencies between passed units and extension units - check validation")
+            return ret_value(validation=validation, extension=None)
+
+        fac_calc = (
+            factors
+            .set_index(index_col + [characterized_name_column])
+            .loc[:, characterization_factors_column]
+            .unstack(characterized_name_column)
+            .fillna(0)
+        )
+
+        new_ext = Extension(name=name)
+
+        # restrict to F and S and the Y stuff, otherwise we loose
+        # _Y if we have multipliers etc. Also region specific not applicable to calculated results
+        acc_to_char = [
+            d
+            for d in self.get_DataFrame(data=False, with_unit=False)
+            if d in ["F", "F_Y", "S_Y", "S"]
         ]
 
-        assert set(required_columns).issubset(
-            set(factors.columns)
-        ), "Not all required columns in the passed DataFrame >factors<"
-
-        impacts_stressors_missing = []
-        factors_cleaned_gathered = []
-        for charact_name in factors[characterized_name_column].drop_duplicates():
-            fac_rest = factors[factors[characterized_name_column] == charact_name]
-            # This works since an inner merge returns a df with index present in both df
-            if len(fac_rest.merge(df_stressors, how="inner")) < len(fac_rest):
-                impacts_stressors_missing.append(charact_name)
-            else:
-                factors_cleaned_gathered.append(fac_rest)
-
-        for imissi in impacts_stressors_missing:
-            logging.warning(
-                f"Impact >{imissi}< removed - calculation requires stressors "
-                f"not present in extension >{self.name}<"
+        for acc_name in acc_to_char:
+            acc = getattr(self, acc_name)
+            _series = acc.stack(acc.columns.names, future_stack=True)
+            # template _df_shape different for final demand accounts
+            _df_shape = pd.DataFrame(index=_series.index, columns=fac_calc.columns)
+            res = _df_shape.assign(
+                **{
+                    char_name: _series * fac_calc.loc[:, char_name]
+                    for char_name in _df_shape.columns
+                }
             )
-        df_char = pd.concat(factors_cleaned_gathered)
-        units = (
-            df_char.loc[:, [characterized_name_column, characterized_unit_column]]
+            _group_index = res.index.names.difference(acc.index.names)
+            res = res.groupby(_group_index).sum().T.reindex(columns=acc.columns)
+            setattr(new_ext, acc_name, res)
+
+        setattr(
+            new_ext,
+            "unit",
+            factors.loc[:, [characterized_name_column, characterized_unit_column]]
             .drop_duplicates()
             .set_index(characterized_name_column)
             .rename({characterized_unit_column: "unit"}, axis=1)
-        )
-        calc_matrix = (
-            (
-                df_char.set_index(rows.names + [characterized_name_column])
-                .loc[:, characterization_factors_column]
-                .unstack(rows.names)
-                .fillna(0)
-            )
-            .reindex(rows, axis=1)  # cases when not all stressors in factors
-            .fillna(value=0)
+            .loc[new_ext.get_rows(), :],
         )
 
-        ex = Extension(
-            name=name,
-            unit=units,
-            **{
-                acc: (calc_matrix @ self.__dict__[acc]).reindex(units.index)
-                for acc in set(
-                    self.get_DataFrame(data=False, with_unit=False)
-                ).difference(set(self.__coefficients__))
-            },
-        )
+        return ret_value(
+                validation=validation,
+                extension=new_ext,
+                        )
 
-        if _meta:
-            _meta._add_modify(
-                f"Calculated characterized accounts {name} from  {self.name}"
+    def convert(
+        self,
+        df_map,
+        new_extension_name,
+        agg_func="sum",
+        drop_not_bridged_index=True,
+        unit_column_orig="unit_orig",
+        unit_column_new="unit_new",
+        ignore_columns=None,
+    ):
+        """Apply the convert function to all dataframes in the extension
+
+        Parameters
+        ----------
+
+        df_map : pd.DataFrame
+            The DataFrame with the mapping of the old to the new classification.
+            This requires a specific structure:
+
+            - Constraining data (e.g. stressors, regions, sectors) can be
+            either in the index or columns of df_orig. They need to have the same
+            name as the named index or column in df_orig. The algorithm searches
+            for matching data in df_orig based on all constraining columns in df_map.
+
+            - Bridge columns are columns with '__' in the name. These are used to
+            map (bridge) some/all of the constraining columns in df_orig to the new
+            classification.
+
+            - One column "factor", which gives the multiplication factor for the
+            conversion. If it is missing, it is set to 1.
+
+
+            This is better explained with an example.
+            Assuming a original dataframe df_orig with
+            index names 'stressor' and 'compartment' and column name 'region',
+            the characterizing dataframe could have the following structure (column names):
+
+            stressor ... original index name
+            compartment ... original index name
+            region ... original column name
+            factor ... the factor for multiplication/characterization
+                If no factor is given, the factor is assumed to be 1.
+                This can be used, to simplify renaming/aggregation mappings.
+            impact__stressor ... the new index name,
+                replacing the previous index name "stressor".
+                Thus here "stressor" will be renamed to "impact", and the row index
+                will be renamed by the entries here.
+            compartment__compartment ... the new compartment,
+                replacing the original compartment. No rename of column happens here,
+                still row indicies will be renamed as given here.
+
+            The columns with __ are called bridge columns, they are used
+            to match the original index. The new dataframe will have index names
+            based on the first part of the bridge column, in the order
+            in which the bridge columns are given in the mapping dataframe.
+
+            "region" is constraining column, these can either be for the index or column
+            in df_orig. In case both exist, the one in index is preferred.
+
+        extension_name: str
+            The name of the new extension returned
+
+        agg_func : str or func
+            the aggregation function to use for multiple matchings (summation by default)
+
+        drop_not_bridged_index : bool, optional
+            What to do with index levels in df_orig not appearing in the bridge columns.
+            If True, drop them after aggregation across these, if False,
+            pass them through to the result.
+
+            *Note:* Only index levels will be dropped, not columns.
+
+            In case some index levels need to be dropped, and some not
+            make a bridge column for the ones to be dropped and map all to the same name.
+            Then drop this index level after the conversion.
+
+        unit_column_orig : str, optional
+            Name of the column in df_map with the original unit.
+            This will be used to check if the unit matches the original unit in the extension.
+            Default is "unit_orig", if None, no check is performed.
+
+        unit_column_new : str, optional
+            Name of the column in df_map with the new unit to be assigned to the new extension.
+            Default is "unit_new", if None same unit as in df_orig TODO EXPLAIN BETTER, THINK WARNING
+
+        ignore_columns : list, optional
+            List of column names in df_map which should be ignored.
+            These could be columns with additional information, etc.
+            The unit columns given in unit_column_orig and unit_column_new
+            are ignored by default.
+
+
+        TODO: remove after explain
+        Extension for extensions:
+        extension ... extension name
+        unit_orig ... the original unit (optional, for double check with the unit)
+        unit_new ... the new unit to be set for the extension
+
+        """
+        if not ignore_columns:
+            ignore_columns = []
+
+        if unit_column_orig:
+            if unit_column_orig not in df_map.columns:
+                raise ValueError(
+                    f"Unit column {unit_column_orig} not in mapping dataframe, pass None if not available"
+                )
+            ignore_columns.append(unit_column_orig)
+            for entry in df_map.iterrows():
+                # need fullmatch here as the same is used in ioutil.convert
+                corresponding_rows = self.fullmatch(**entry[1].to_dict())
+                for row in corresponding_rows:
+                    if self.unit.loc[row].unit != entry[1][unit_column_orig]:
+                        raise ValueError(
+                            f"Unit in extension does not match the unit in mapping for row {row}"
+                        )
+
+        new_extension = Extension(name=new_extension_name)
+
+        if unit_column_new:
+            if unit_column_new not in df_map.columns:
+                raise ValueError(
+                    f"Unit column {unit_column_new} not in mapping dataframe, pass None if not available"
+                )
+
+            ignore_columns.append(unit_column_new)
+
+        for df_name, df in zip(
+            self.get_DataFrame(data=False, with_unit=False),
+            self.get_DataFrame(data=True, with_unit=False),
+        ):
+            setattr(
+                new_extension,
+                df_name,
+                ioutil.convert(
+                    df_orig=df,
+                    df_map=df_map,
+                    agg_func=agg_func,
+                    drop_not_bridged_index=drop_not_bridged_index,
+                    ignore_columns=ignore_columns,
+                ),
             )
 
-        if return_char_matrix:
-            return collections.namedtuple("characterization", ["extension", "factors"])(
-                extension=ex, factors=df_char
+        if unit_column_new:
+            unit = pd.DataFrame(columns=["unit"], index=new_extension.get_rows())
+            bridge_columns = [col for col in df_map.columns if "__" in col]
+            unique_new_index = (
+                df_map.drop_duplicates(subset=bridge_columns)
+                .loc[:, bridge_columns]
+                .set_index(bridge_columns)
+                .index
             )
+            unique_new_index.names = [col.split("__")[0] for col in bridge_columns]
+
+            unit.unit = (
+                df_map.drop_duplicates(subset=bridge_columns)
+                .set_index(bridge_columns)
+                .loc[unique_new_index]
+                .loc[:, unit_column_new]
+            )
+            new_extension.unit = unit
         else:
-            return ex
+            new_extension.unit = None
+
+        return new_extension
 
 
 class IOSystem(BaseSystem):
@@ -1756,7 +2183,10 @@ class IOSystem(BaseSystem):
             self.meta.change_meta("description", description)
         else:
             self.meta = MRIOMetaData(
-                description=description, name=name, system=system, version=version
+                description=description,
+                name=name,
+                system=system,
+                version=version,
             )
 
         if not getattr(self.meta, "name", None):
@@ -1776,8 +2206,8 @@ class IOSystem(BaseSystem):
 
     def __eq__(self, other):
         """Only the dataframes are compared."""
-        self_ext = set(self.get_extensions(data=False))
-        other_ext = set(other.get_extensions(data=False))
+        self_ext = set(self.get_extensions(data=False, instance_names=True))
+        other_ext = set(other.get_extensions(data=False, instance_names=True))
         if len(self_ext.difference(other_ext)) < 0:
             return False
 
@@ -1899,7 +2329,7 @@ class IOSystem(BaseSystem):
             (e.g. households). Default: y is aggregated over all categories
         """
 
-        ext_list = list(self.get_extensions(data=False))
+        ext_list = list(self.get_extensions(data=False, instance_names=True))
         extensions = extensions or ext_list
         if type(extensions) == str:
             extensions = [extensions]
@@ -1974,15 +2404,27 @@ class IOSystem(BaseSystem):
                 **kwargs,
             )
 
-    def get_extensions(self, data=False):
+    def get_extensions(self, names=None, data=False, instance_names=True):
         """Yields the extensions or their names
 
         Parameters
         ----------
+        names = str or list like, optional
+           Extension names to yield. If None (default), all extensions are
+           yielded. This can be used to convert from set names to instance names
+           and vice versa or to harmonize a list of extensions.
+
         data : boolean, optional
            If True, returns a generator which yields the extensions.
            If False, returns a generator which yields the names of
            the extensions (default)
+
+        instance_names : boolean, optional
+            If True, returns the name of the instance, otherwise
+            the set (custom) name of the extension. (default: True)
+            For example, the test mrio has a extension named
+            'Factor Inputs' (get it with mrio.factor_inputs.name),
+            and an instance name 'factor_inputs'.
 
         Returns
         -------
@@ -1990,14 +2432,266 @@ class IOSystem(BaseSystem):
 
         """
 
-        ext_list = [
-            key for key in self.__dict__ if type(self.__dict__[key]) is Extension
+        all_ext_list = [
+            key for key in self.__dict__ if isinstance(self.__dict__[key], Extension)
         ]
-        for key in ext_list:
-            if data:
-                yield getattr(self, key)
+        all_name_list = [getattr(self, key).name for key in all_ext_list]
+
+        if isinstance(names, str):
+            names = [names]
+        _pre_ext = names if names else all_ext_list
+        ext_name_or_inst = [
+            nn.name if isinstance(nn, Extension) else nn for nn in _pre_ext
+        ]
+
+        for name in ext_name_or_inst:
+            if name in all_ext_list:
+                inst_name = name
+                ext_name = all_name_list[all_ext_list.index(name)]
+            elif name in all_name_list:
+                inst_name = all_ext_list[all_name_list.index(name)]
+                ext_name = name
             else:
-                yield key
+                raise ValueError(f"Extension {name} not present in the system.")
+
+            if data:
+                yield getattr(self, inst_name)
+            else:
+                if instance_names:
+                    yield inst_name
+                else:
+                    yield ext_name
+
+    def extension_fullmatch(self, find_all=None, extensions=None, **kwargs):
+        """Get a dict of extension index dicts with full match of a search pattern.
+
+        This calls the extension.fullmatch for all extensions.
+
+        Similar to pandas str.fullmatch, thus the start of the index string must match.
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+
+        Parameters
+        ----------
+        find_all : None or str
+            If str (regex pattern) search in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        extensions: str, list of str, list of extensions, None
+            Which extensions to consider, default (None): all extensions
+        kwargs : dict
+            The regex which should be contained. The keys are the index names,
+            the values are the regex.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        dict
+            A dict with the extension names as keys and an Index/MultiIndex of
+            the matched rows as values
+        """
+        return self._apply_extension_method(
+            extensions, method="match", find_all=find_all, **kwargs
+        )
+
+    def extension_match(self, find_all=None, extensions=None, **kwargs):
+        """Get a dict of extension index dicts which match a search pattern
+
+        This calls the extension.match for all extensions.
+
+        Similar to pandas str.match, thus the start of the index string must match.
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+
+        Parameters
+        ----------
+        find_all : None or str
+            If str (regex pattern) search in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        extensions: str, list of str, list of extensions, None
+            Which extensions to consider, default (None): all extensions
+        kwargs : dict
+            The regex which should be contained. The keys are the index names,
+            the values are the regex.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        dict
+            A dict with the extension names as keys and an Index/MultiIndex of
+            the matched rows as values
+        """
+        return self._apply_extension_method(
+            extensions, method="match", find_all=find_all, **kwargs
+        )
+
+    def extension_contains(self, find_all=None, extensions=None, **kwargs):
+        """Get a dict of extension index dicts which contains a search pattern
+
+        This calls the extension.contains for all extensions.
+
+        Similar to pandas str.contains, thus the index
+        string must contain the regex pattern.
+
+        Note
+        -----
+        Arguments are set to case=True, flags=0, na=False, regex=True.
+        For case insensitive matching, use (?i) at the beginning of the pattern.
+
+        See the pandas/python.re documentation for more details.
+
+
+        Parameters
+        ----------
+        find_all : None or str
+            If str (regex pattern) search in all index levels.
+            All matching rows are returned. The remaining kwargs are ignored.
+        extensions: str, list of str, list of extensions, None
+            Which extensions to consider, default (None): all extensions
+        kwargs : dict
+            The regex which should be contained. The keys are the index names,
+            the values are the regex.
+            If the entry is not in index name, it is ignored silently.
+
+        Returns
+        -------
+        dict
+            A dict with the extension names as keys and an Index/MultiIndex of
+            the matched rows as values
+        """
+        return self._apply_extension_method(
+            extensions, method="contains", find_all=find_all, **kwargs
+        )
+
+    def extension_extract(
+        self,
+        index_dict,
+        dataframes=None,
+        include_empty=False,
+        return_type="dataframes",
+    ):
+        """Extract extension data accross all extensions.
+
+        This calls the extension.extract for all extensions.
+
+        Parameters
+        ----------
+        index_dict : dict
+            A dict with the extension names as keys and the values as the
+            corresponding index values. The values can be a single value or a
+            list of values.
+
+        dataframes : list, optional
+            The dataframes which should be extracted. If None (default),
+            all available dataframes are extracted.
+
+        include_empty: boolean, optional
+            If True, the returned dict contains keys for all extensions,
+            even if no match was found. If False (default), only the
+            extensions with non-empty extracted data are returned.
+
+        return_type: str, optional
+            If 'dataframe' or 'df' (also with 's' plural, default), the returned dict contains dataframes.
+            If 'extensions' or 'ext', the returned dict contains Extension instances.
+            Any other string: Return one merged extension with the name set to the
+            passed string (this will automatically exclude empty extensions).
+
+
+        Returns
+        -------
+        dict
+            A dict with the extension names as keys and an Index/MultiIndex of
+            the matched rows as values
+
+        """
+        if return_type.lower() in ["dataframes", "dataframe", "dfs", "df"]:
+            return_as_extension = False
+            ext_name = None
+        elif return_type.lower() in ["extensions", "extension", "ext", "exts"]:
+            return_as_extension = True
+            ext_name = None
+        else:
+            return_as_extension = True
+            ext_name = return_type
+
+        extracts = self._apply_extension_method(
+            extensions=None,
+            method="extract",
+            index=index_dict,
+            dataframes=dataframes,
+            return_type=return_type,
+        )
+
+        if (not include_empty) or ext_name:
+            if return_as_extension:
+                for ext in list(extracts.keys()):
+                    if extracts[ext].empty:
+                        del extracts[ext]
+            else:
+                # first remove empty dataframes
+                for ext in list(extracts.keys()):
+                    for df in list(extracts[ext].keys()):
+                        if extracts[ext][df].empty:
+                            del extracts[ext][df]
+                # second round remove empty extension keys
+                for ext in list(extracts.keys()):
+                    if not extracts[ext]:
+                        del extracts[ext]
+
+        if ext_name:
+            return extension_concate(*extracts.values(), new_extension_name=ext_name)
+        else:
+            return extracts
+
+    def _apply_extension_method(self, extensions, method, *args, **kwargs):
+        """Apply a method to a list of extensions
+
+        Parameters
+        ----------
+        extensions: str, list of str, list of extensions, or None
+            Specifies which extensions to consider. Use None to consider all extensions.
+        method: str
+            Specifies the method to apply.
+        args: list
+            Specifies the arguments to pass to the method.
+        kwargs: dict
+            Specifies the keyword arguments to pass to the method.
+
+        Returns
+        -------
+        dict
+            A dict with the extension names as keys and the return values of the
+            method as values. The keys are the same as in 'extensions', thus
+            convert these to the set names or instance names before (using
+            mrio.get_extensions)
+
+        """
+        if extensions is None:
+            extensions = list(self.get_extensions(data=False, instance_names=False))
+        if isinstance(extensions, (Extension, str)):
+            extensions = [extensions]
+
+        instance_names = self.get_extensions(
+            names=extensions, data=False, instance_names=True
+        )
+        ext_data = self.get_extensions(names=extensions, data=True)
+
+        result = {}
+        for ext_name, inst_name, ext in zip(extensions, instance_names, ext_data):
+            method_fun = getattr(ext, method)
+            result[ext_name] = method_fun(*args, **kwargs)
+        return result
 
     def reset_full(self, force=False):
         """Remove all accounts which can be recalculated based on Z, Y, F, F_Y
@@ -2123,7 +2817,10 @@ class IOSystem(BaseSystem):
             float_format=float_format,
         )
 
-        for ext, ext_name in zip(self.get_extensions(data=True), self.get_extensions()):
+        for ext, ext_name in zip(
+            self.get_extensions(data=True),
+            self.get_extensions(instance_names=True),
+        ):
             ext_path = path / ext_name
 
             ext.save(
@@ -2171,13 +2868,14 @@ class IOSystem(BaseSystem):
             _index_names = df.index.names
             _columns_names = df.columns.names
             if (type(df.columns[0]) is not tuple) and df.columns[0].lower() == "unit":
-                df = df.groupby(df.index, axis=0, sort=False).first()
+                df = df.groupby(df.index, sort=False).first()
             else:
                 df = (
-                    df.groupby(df.index, axis=0, sort=False)
+                    df.groupby(df.index, sort=False)
                     .sum()
-                    .groupby(df.columns, axis=1, sort=False)
+                    .T.groupby(df.columns, sort=False)
                     .sum()
+                    .T
                 )
 
             if type(df.index[0]) is tuple:
@@ -2188,7 +2886,11 @@ class IOSystem(BaseSystem):
 
         for df_to_agg_name in self.get_DataFrame(data=False, with_unit=True):
             self.meta._add_modify(f"Aggregate economic core - {df_to_agg_name}")
-            setattr(self, df_to_agg_name, agg_routine(df=getattr(self, df_to_agg_name)))
+            setattr(
+                self,
+                df_to_agg_name,
+                agg_routine(df=getattr(self, df_to_agg_name)),
+            )
 
         # Aggregate extension
         for ext in self.get_extensions(data=True):
@@ -2197,7 +2899,9 @@ class IOSystem(BaseSystem):
                     f"Aggregate extension {ext.name} - {df_to_agg_name}"
                 )
                 setattr(
-                    ext, df_to_agg_name, agg_routine(df=getattr(ext, df_to_agg_name))
+                    ext,
+                    df_to_agg_name,
+                    agg_routine(df=getattr(ext, df_to_agg_name)),
                 )
 
         if not inplace:
@@ -2344,7 +3048,7 @@ class IOSystem(BaseSystem):
         if (not _same_regions) and (not region_names):
             if isinstance(region_agg, np.ndarray):
                 region_agg = region_agg.flatten().tolist()
-            if type(region_agg[0]) is str:
+            if type(list(region_agg)[0]) is str:
                 region_names = ioutil.unique_element(region_agg)
             else:
                 # rows in the concordance matrix give the new number of
@@ -2357,7 +3061,7 @@ class IOSystem(BaseSystem):
         if (not _same_sectors) and (not sector_names):
             if isinstance(sector_agg, np.ndarray):
                 sector_agg = sector_agg.flatten().tolist()
-            if type(sector_agg[0]) is str:
+            if type(list(sector_agg)[0]) is str:
                 sector_names = ioutil.unique_element(sector_agg)
             else:
                 sector_names = [
@@ -2368,16 +3072,16 @@ class IOSystem(BaseSystem):
         # Assert right shapes
         if not sector_conc.shape[1] == len(self.get_sectors()):
             raise ValueError(
-                "Sector aggregation does not " "correspond to the number of sectors."
+                "Sector aggregation does not correspond to the number of sectors."
             )
         if not region_conc.shape[1] == len(self.get_regions()):
             raise ValueError(
-                "Region aggregation does not " "correspond to the number of regions."
+                "Region aggregation does not correspond to the number of regions."
             )
         if not len(sector_names) == sector_conc.shape[0]:
-            raise ValueError("New sector names do not " "match sector aggregation.")
+            raise ValueError("New sector names do not match sector aggregation.")
         if not len(region_names) == region_conc.shape[0]:
-            raise ValueError("New region names do not " "match region aggregation.")
+            raise ValueError("New region names do not match region aggregation.")
 
         # build pandas.MultiIndex for the aggregated system
         _reg_list_for_sec = [[r] * sector_conc.shape[0] for r in region_names]
@@ -2514,7 +3218,7 @@ class IOSystem(BaseSystem):
         self.calc_extensions()
         return self
 
-    def remove_extension(self, ext=None):
+    def remove_extension(self, ext):
         """Remove extension from IOSystem
 
         For single Extensions the same can be achieved with del
@@ -2524,31 +3228,573 @@ class IOSystem(BaseSystem):
         ----------
         ext : string or list, optional
             The extension to remove, this can be given as the name of the
-            instance or of Extension.name (the latter will be checked if no
+            instance or of Extension.name.
             instance was found)
-            If ext is None (default) all Extensions will be removed
         """
-        if ext is None:
-            ext = list(self.get_extensions())
+        # TODO: rename to extension_remove
         if type(ext) is str:
             ext = [ext]
 
         for ee in ext:
             try:
                 del self.__dict__[ee]
-            except KeyError:
-                for exinstancename, exdata in zip(
-                    self.get_extensions(data=False), self.get_extensions(data=True)
-                ):
-                    if exdata.name == ee:
-                        del self.__dict__[exinstancename]
-            finally:
                 self.meta._add_modify("Removed extension {}".format(ee))
+            except KeyError:
+                ext_instance = self.get_extensions(ee, instance_names=True)
+                for x in ext_instance:
+                    del self.__dict__[x]
+                    self.meta._add_modify("Removed extension {}".format(x))
 
         return self
 
+    def extension_convert(
+        self,
+        df_map,
+        new_extension_name,
+        extension_col_name="extension",
+        agg_func="sum",
+        drop_not_bridged_index=True,
+        unit_column_orig="unit_orig",
+        unit_column_new="unit_new",
+        ignore_columns=None,
+    ):
+        """Apply the convert function to a extensions of the mrio object
 
-def concate_extension(*extensions, name):
+        Internally that calls the Extension.convert function for all extensions.
+
+        If only a subset of extensions should/can be converted, use
+        the pymrio.extension_convert function.
+
+        Parameters
+        ----------
+
+        df_map : pd.DataFrame
+            The DataFrame with the mapping of the old to the new classification.
+            This requires a specific structure:
+
+            - Constraining data (e.g. stressors, regions, sectors) can be
+            either in the index or columns of df_orig. The need to have the same
+            name as the named index or column in df_orig. The algorithm searches
+            for matching data in df_orig based on all constraining columns in df_map.
+
+            - Bridge columns are columns with '__' in the name. These are used to
+            map (bridge) some/all of the constraining columns in df_orig to the new
+            classification.
+
+            - One column "factor", which gives the multiplication factor for the
+            conversion. If it is missing, it is set to 1.
+
+
+            This is better explained with an example.
+            Assuming a original dataframe df_orig with
+            index names 'stressor' and 'compartment' and column name 'region',
+            the characterizing dataframe could have the following structure (column names):
+
+            stressor ... original index name
+            compartment ... original index name
+            region ... original column name
+            factor ... the factor for multiplication/characterization
+                If no factor is given, the factor is assumed to be 1.
+                This can be used, to simplify renaming/aggregation mappings.
+            impact__stressor ... the new index name,
+                replacing the previous index name "stressor".
+                Thus here "stressor" will be renamed to "impact", and the row index
+                will be renamed by the entries here.
+            compartment__compartment ... the new compartment,
+                replacing the original compartment. No rename of column happens here,
+                still row index will be renamed as given here.
+
+            the columns with __ are called bridge columns, they are used
+            to match the original index. The new dataframe with have index names
+            based on the first part of the bridge column, in the order
+            in which the bridge columns are given in the mapping dataframe.
+
+            "region" is constraining column, these can either be for the index or column
+            in df_orig. In case both exist, the one in index is preferred.
+
+        extension_name: str
+            The name of the new extension returned
+
+        extension_col_name : str, optional
+            Name of the column specifying the extension name in df_map.
+            The entry in df_map here can either be the name returned by Extension.name or the
+            name of the Extension instance.
+            Default: 'extension'
+
+        agg_func : str or func
+            the aggregation function to use for multiple matchings (summation by default)
+
+        drop_not_bridged_index : bool, optional
+            What to do with index levels in df_orig not appearing in the bridge columns.
+            If True, drop them after aggregation across these, if False,
+            pass them through to the result.
+
+            *Note:* Only index levels will be dropped, not columns.
+
+            In case some index levels need to be dropped, and some not
+            make a bridge column for the ones to be dropped and map all to the same name.
+            Then drop this index level after the conversion.
+
+        unit_column_orig : str, optional
+            Name of the column in df_map with the original unit.
+            This will be used to check if the unit matches the original unit in the extension.
+            Default is "unit_orig", if None, no check is performed.
+
+        unit_column_new : str, optional
+            Name of the column in df_map with the new unit to be assigned to the new extension.
+            Default is "unit_new", if None same unit as in df_orig TODO EXPLAIN BETTER, THINK WARNING
+
+        ignore_columns : list, optional
+            List of column names in df_map which should be ignored.
+            These could be columns with additional information, etc.
+            The unit columns given in unit_column_orig and unit_column_new
+            are ignored by default.
+
+        """
+        return extension_convert(
+            *list(self.get_extensions(data=True)),
+            df_map=df_map,
+            new_extension_name=new_extension_name,
+            extension_col_name=extension_col_name,
+            agg_func=agg_func,
+            drop_not_bridged_index=drop_not_bridged_index,
+            unit_column_orig=unit_column_orig,
+            unit_column_new=unit_column_new,
+            ignore_columns=ignore_columns,
+        )
+
+    def extension_characterize(
+        self,
+        factors,
+        new_extension_name="impacts",
+        extension_col_name="extension",
+        characterized_name_column="impact",
+        characterization_factors_column="factor",
+        characterized_unit_column="impact_unit",
+        orig_unit_column="stressor_unit",
+        only_validation=False,
+    ):
+        """Characterize stressors across all extensions of the mrio object.
+
+        If only a subset of extensions should be considered, use
+        the pymrio.extension_characterize function.
+
+        The factors dataframe must include an columns "extension"
+        which specifies the 'name' of the extension in which the stressor is
+        present. The 'name' is the str returned by ext.name
+
+        For more information on the structure of the factors dataframe
+        see the Extension.characterize docstring.
+
+        Validation behaviour is consistent with Extension.characterize and
+        the validation is applied to a temporary merged extension with all
+        stressors.
+
+        Parameters
+        -----------
+        factors: pd.DataFrame
+            A dataframe in long format with numerical index and columns named
+            index.names of the extension to be characterized and 'extension',
+            'characterized_name_column', 'characterization_factors_column',
+            'characterized_unit_column', 'orig_unit_column'
+
+        extension_name: str
+            The name of the new extension returned
+
+        extension_col_name : str, optional
+            Name of the column specifying the extension name in df_map.
+            The entry in df_map here can either be the name returned by Extension.name or the
+            name of the Extension instance.
+            Default: 'extension'
+
+        characterized_name_column: str (optional)
+            Name of the column with the names of the
+            characterized account (default: "impact")
+
+        characterization_factors_column: str (optional)
+            Name of the column with the factors for the
+            characterization (default: "factor")
+
+        characterized_unit_column: str (optional)
+            Name of the column with the units of the characterized accounts
+            characterization (default: "impact_unit")
+
+        name: string (optional)
+            The new name for the extension,
+            if the string starts with an underscore '_' the string
+            with be appended to the original name. Default: '_characterized'
+
+
+        Returns
+        --------
+        pymrio.Extension
+
+
+        """
+        return extension_characterize(
+            *list(self.get_extensions(data=True)),
+            factors=factors,
+            new_extension_name=new_extension_name,
+            extension_col_name=extension_col_name,
+            characterized_name_column=characterized_name_column,
+            characterization_factors_column=characterization_factors_column,
+            characterized_unit_column=characterized_unit_column,
+            orig_unit_column=orig_unit_column,
+            only_validation=only_validation,
+        )
+
+    def extension_concate(self, new_extension_name):
+        """Concates all extension of the mrio object
+
+        This method combines all satellite accounts into a single extension.
+
+        The method assumes that the first index is the name of the
+        stressor/impact/input type. To provide a consistent naming this is renamed
+        to 'indicator' if they differ. All other index names ('compartments', ...)
+        are added to the concatenated extensions and set to NaN for missing values.
+
+        If only a subset of extensions should/can be merge, use
+        the pymrio.extension_concate function.
+
+
+        Parameters
+        ----------
+        new_extension_name : str
+            Name for the new extension
+
+        Returns
+        -------
+        pymrio.Extension
+
+
+        """
+        return extension_concate(
+            *list(self.get_extensions(data=True)), new_extension_name=new_extension_name
+        )
+
+
+
+def extension_characterize(
+    *extensions,
+    factors,
+    new_extension_name="impacts",
+    extension_col_name="extension",
+    characterized_name_column="impact",
+    characterization_factors_column="factor",
+    characterized_unit_column="impact_unit",
+    only_validation=False,
+    orig_unit_column="stressor_unit",
+):
+    """Characterize stressors across different extensions
+
+    This works similar to the characterize method of a specific
+    extension.
+
+    The factors dataframe must include an columns "extension"
+    which specifies the 'name' of the extension in which the stressor is
+    present. The 'name' is the str returned by ext.name
+
+    For more information on the structure of the factors dataframe
+    see the Extension.characterize docstring.
+
+    Validation behaviour is consistent with Extension.characterize and
+    the validation is applied to a temporary merged extension with all
+    stressors.
+
+
+
+    Parameters
+    -----------
+    extensions : list of extensions
+        Extensions to convert. All extensions passed must have the same index names/format.
+
+    factors: pd.DataFrame
+        A dataframe in long format with numerical index and columns named
+        index.names of the extension to be characterized and 'extension',
+        'characterized_name_column', 'characterization_factors_column',
+        'characterized_unit_column', 'orig_unit_column'
+
+    extension_name: str
+        The name of the new extension returned
+
+    extension_col_name : str, optional
+        Name of the column specifying the extension name in df_map.
+        The entry in df_map here can either be the name returned by Extension.name or the
+        name of the Extension instance.
+        Default: 'extension'
+
+    characterized_name_column: str (optional)
+        Name of the column with the names of the
+        characterized account (default: "impact")
+
+    characterization_factors_column: str (optional)
+        Name of the column with the factors for the
+        characterization (default: "factor")
+
+    characterized_unit_column: str (optional)
+        Name of the column with the units of the characterized accounts
+        characterization (default: "impact_unit")
+
+    name: string (optional)
+        The new name for the extension,
+        if the string starts with an underscore '_' the string
+        with be appended to the original name. Default: '_characterized'
+
+
+    Returns
+    --------
+    pymrio.Extension
+
+
+    """
+
+    if extension_col_name not in factors.columns:
+        raise ValueError("The factors dataframe must include the column 'extension'")
+
+    if type(extensions) is Extension:
+        extensions = [extensions]
+    elif type(extensions) is tuple:
+        extensions = list(extensions)
+
+    given_ext_names = [ext.name for ext in extensions]
+    spec_ext_names = factors.loc[:, extension_col_name].unique()
+
+    for spec_name in spec_ext_names:
+        if spec_name not in given_ext_names:
+            raise ValueError(
+                f"Extension {spec_name} not found in the passed extensions."
+            )
+
+    used_ext = [ext for ext in extensions if ext.name in spec_ext_names]
+
+    ext_specs = pd.DataFrame(
+        index=spec_ext_names,
+        columns=["F", "F_Y", "S_Y", "S", "unit", "index_names"],
+        data=None,
+    )
+
+    for ext in used_ext:
+        for df_name in ext.get_DataFrame(data=False):
+            ext_specs.loc[ext.name, df_name] = True
+            ext_specs.loc[ext.name, "index_names"] = str(ext.get_rows().names)
+            ext_index_names = list(ext.get_rows().names)
+
+    if len(ext_specs.loc[:, "index_names"].unique()) > 1:
+        raise ValueError("All extensions must have the same index names/format.")
+
+    merge_type = "none"
+    if all(ext_specs.loc[:, "F"]):
+        merge_type = "F"
+    elif all(ext_specs.loc[:, "S"]):
+        merge_type = "S"
+    else:
+        raise ValueError("All extensions must have either F or S.")
+
+    faci = factors.set_index(ext_index_names + [extension_col_name])
+    faci = faci[~faci.index.duplicated(keep="first")]
+    faci = faci.reset_index(extension_col_name)
+
+    if any(faci.index.duplicated()):
+        raise NotImplementedError(
+            "Case with same stressor names in different extensions not implemented yet"
+        )
+
+    merge = []
+    merge_Y = []
+    merge_unit = []
+    for ext in used_ext:
+        ext_df = getattr(ext, merge_type)
+        req_rows = faci[faci.loc[:, extension_col_name] == ext.name].index
+        avail_rows = ext_df.index
+        used_rows = req_rows.intersection(avail_rows)
+        merge.append(ext_df.loc[used_rows])
+        merge_unit.append(ext.unit.loc[used_rows])
+        try:
+            ext_df_Y = getattr(ext, merge_type + "_Y")
+            merge_Y.append(ext_df_Y.loc[used_rows])
+        except AttributeError:
+            pass
+
+    new_ext = Extension(
+        name="temp",
+        unit=pd.concat(merge_unit, axis=0),
+    )
+    setattr(new_ext, merge_type, pd.concat(merge, axis=0))
+    if len(merge_Y) > 0:
+        setattr(new_ext, merge_type + "_Y", pd.concat(merge_Y, axis=0))
+
+    char = new_ext.characterize(
+        factors=factors.drop(extension_col_name, axis=1),
+        name=new_extension_name,
+        only_validation=only_validation,
+        characterized_name_column=characterized_name_column,
+        characterization_factors_column=characterization_factors_column,
+        characterized_unit_column=characterized_unit_column,
+        orig_unit_column=orig_unit_column,
+    )
+    return char
+
+
+def extension_convert(
+    *extensions,
+    df_map,
+    new_extension_name,
+    extension_col_name="extension",
+    agg_func="sum",
+    drop_not_bridged_index=True,
+    unit_column_orig="unit_orig",
+    unit_column_new="unit_new",
+    ignore_columns=None,
+):
+    """Apply the convert function to a list of extensions
+
+    Internally that calls the Extension.convert function for all extensions.
+
+
+    Parameters
+    ----------
+
+    extensions : list of extensions
+        Extensions to convert. All extensions passed must
+        have an index structure (index names) as described in df_map.
+
+    df_map : pd.DataFrame
+        The DataFrame with the mapping of the old to the new classification.
+        This requires a specific structure:
+
+        - Constraining data (e.g. stressors, regions, sectors) can be
+        either in the index or columns of df_orig. The need to have the same
+        name as the named index or column in df_orig. The algorithm searches
+        for matching data in df_orig based on all constraining columns in df_map.
+
+        - Bridge columns are columns with '__' in the name. These are used to
+        map (bridge) some/all of the constraining columns in df_orig to the new
+        classification.
+
+        - One column "factor", which gives the multiplication factor for the
+        conversion. If it is missing, it is set to 1.
+
+
+        This is better explained with an example.
+        Assuming a original dataframe df_orig with
+        index names 'stressor' and 'compartment' and column name 'region',
+        the characterizing dataframe could have the following structure (column names):
+
+        stressor ... original index name
+        compartment ... original index name
+        region ... original column name
+        factor ... the factor for multiplication/characterization
+            If no factor is given, the factor is assumed to be 1.
+            This can be used, to simplify renaming/aggregation mappings.
+        impact__stressor ... the new index name,
+            replacing the previous index name "stressor".
+            Thus here "stressor" will be renamed to "impact", and the row index
+            will be renamed by the entries here.
+        compartment__compartment ... the new compartment,
+            replacing the original compartment. No rename of column happens here,
+            still row index will be renamed as given here.
+
+        the columns with __ are called bridge columns, they are used
+        to match the original index. The new dataframe with have index names
+        based on the first part of the bridge column, in the order
+        in which the bridge columns are given in the mapping dataframe.
+
+        "region" is constraining column, these can either be for the index or column
+        in df_orig. In case both exist, the one in index is preferred.
+
+    extension_name: str
+        The name of the new extension returned
+
+    extension_col_name : str, optional
+        Name of the column specifying the extension name in df_map.
+        The entry in df_map here can either be the name returned by Extension.name or the
+        name of the Extension instance.
+        Default: 'extension'
+
+    agg_func : str or func
+        the aggregation function to use for multiple matchings (summation by default)
+
+    drop_not_bridged_index : bool, optional
+        What to do with index levels in df_orig not appearing in the bridge columns.
+        If True, drop them after aggregation across these, if False,
+        pass them through to the result.
+
+        *Note:* Only index levels will be dropped, not columns.
+
+        In case some index levels need to be dropped, and some not
+        make a bridge column for the ones to be dropped and map all to the same name.
+        Then drop this index level after the conversion.
+
+    unit_column_orig : str, optional
+        Name of the column in df_map with the original unit.
+        This will be used to check if the unit matches the original unit in the extension.
+        Default is "unit_orig", if None, no check is performed.
+
+    unit_column_new : str, optional
+        Name of the column in df_map with the new unit to be assigned to the new extension.
+        Default is "unit_new", if None same unit as in df_orig TODO EXPLAIN BETTER, THINK WARNING
+
+    ignore_columns : list, optional
+        List of column names in df_map which should be ignored.
+        These could be columns with additional information, etc.
+        The unit columns given in unit_column_orig and unit_column_new
+        are ignored by default.
+
+    """
+
+    if type(extensions) is Extension:
+        extensions = [extensions]
+    elif type(extensions) is tuple:
+        extensions = list(extensions)
+
+    if not ignore_columns:
+        ignore_columns = []
+    ignore_columns.append(extension_col_name)
+
+    gather = []
+
+    for ext in extensions:
+        if ext.name not in df_map[extension_col_name].unique():
+            warnings.warn(
+                f"Extension {ext.name} not found in df_map. Skipping extension."
+            )
+            # TODO: later go to logging
+            continue
+        gather.append(
+            ext.convert(
+                df_map=df_map[df_map[extension_col_name] == ext.name],
+                agg_func=agg_func,
+                new_extension_name=new_extension_name,
+                drop_not_bridged_index=drop_not_bridged_index,
+                unit_column_orig=unit_column_orig,
+                unit_column_new=unit_column_new,
+                ignore_columns=ignore_columns,
+            )
+        )
+
+    result_ext = extension_concate(*gather, new_extension_name=new_extension_name)
+
+    for df, df_name in zip(
+        result_ext.get_DataFrame(data=True, with_unit=True),
+        result_ext.get_DataFrame(data=False, with_unit=True),
+    ):
+        if df_name == "unit":
+            setattr(
+                result_ext,
+                df_name,
+                df.groupby(level=df.index.names).agg(lambda x: ",".join(set(x))),
+            )
+        else:
+            setattr(
+                result_ext,
+                df_name,
+                df.groupby(level=df.index.names).agg(agg_func),
+            )
+
+    return result_ext
+
+
+def extension_concate(*extensions, new_extension_name):
     """Concatenate extensions
 
     Notes
@@ -2569,7 +3815,7 @@ def concate_extension(*extensions, name):
     extensions : Extensions
         The Extensions to concatenate as multiple parameters
 
-    name : string
+    new_extension_name : string
         Name of the new extension
 
     Returns
@@ -2578,6 +3824,7 @@ def concate_extension(*extensions, name):
     Concatenated extension
 
     """
+
     if type(extensions[0]) is tuple or type(extensions[0]) is list:
         extensions = extensions[0]
 
@@ -2658,7 +3905,9 @@ def concate_extension(*extensions, name):
                         if ind not in df_ind_names:
                             df_dict[key] = df_dict[key].set_index(
                                 pd.DataFrame(
-                                    data=None, index=df_dict[key].index, columns=[ind]
+                                    data=None,
+                                    index=df_dict[key].index,
+                                    columns=[ind],
                                 )[ind],
                                 append=True,
                             )
@@ -2666,7 +3915,9 @@ def concate_extension(*extensions, name):
                         if ind not in cur_ind_names:
                             cur_dict[key] = cur_dict[key].set_index(
                                 pd.DataFrame(
-                                    data=None, index=cur_dict[key].index, columns=[ind]
+                                    data=None,
+                                    index=cur_dict[key].index,
+                                    columns=[ind],
                                 )[ind],
                                 append=True,
                             )
@@ -2676,6 +3927,6 @@ def concate_extension(*extensions, name):
         first_run = False
 
         all_dict = dict(list(attr_dict.items()) + list(df_dict.items()))
-        all_dict["name"] = name
+        all_dict["name"] = new_extension_name
 
     return Extension(**all_dict)

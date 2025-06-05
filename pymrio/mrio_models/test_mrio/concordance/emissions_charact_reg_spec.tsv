@@ -1,0 +1,37 @@
+region	stressor	compartment	impact	factor	impact_unit	stressor_unit
+reg1	emission_type1	air	air water impact	0.002	t	kg
+reg1	emission_type2	water	air water impact	0.001	t	kg
+reg1	emission_type1	air	total emissions	1	kg	kg
+reg1	emission_type2	water	total emissions	1	kg	kg
+reg1	emission_type3	land	total emissions	1	kg	kg
+reg1	emission_type1	air	total air emissions	0.001	t	kg
+reg2	emission_type1	air	air water impact	0.002	t	kg
+reg2	emission_type2	water	air water impact	0.001	t	kg
+reg2	emission_type1	air	total emissions	1	kg	kg
+reg2	emission_type2	water	total emissions	1	kg	kg
+reg2	emission_type3	land	total emissions	1	kg	kg
+reg2	emission_type1	air	total air emissions	0.001	t	kg
+reg3	emission_type1	air	air water impact	0.002	t	kg
+reg3	emission_type2	water	air water impact	0.001	t	kg
+reg3	emission_type1	air	total emissions	1	kg	kg
+reg3	emission_type2	water	total emissions	1	kg	kg
+reg3	emission_type3	land	total emissions	1	kg	kg
+reg3	emission_type1	air	total air emissions	0.001	t	kg
+reg4	emission_type1	air	air water impact	0.002	t	kg
+reg4	emission_type2	water	air water impact	0.001	t	kg
+reg4	emission_type1	air	total emissions	1	kg	kg
+reg4	emission_type2	water	total emissions	1	kg	kg
+reg4	emission_type3	land	total emissions	1	kg	kg
+reg4	emission_type1	air	total air emissions	0.001	t	kg
+reg5	emission_type1	air	air water impact	0.002	t	kg
+reg5	emission_type2	water	air water impact	0.001	t	kg
+reg5	emission_type1	air	total emissions	1	kg	kg
+reg5	emission_type2	water	total emissions	1	kg	kg
+reg5	emission_type3	land	total emissions	1	kg	kg
+reg5	emission_type1	air	total air emissions	0.001	t	kg
+reg6	emission_type1	air	air water impact	0.002	t	kg
+reg6	emission_type2	water	air water impact	0.001	t	kg
+reg6	emission_type1	air	total emissions	1	kg	kg
+reg6	emission_type2	water	total emissions	1	kg	kg
+reg6	emission_type3	land	total emissions	1	kg	kg
+reg6	emission_type1	air	total air emissions	0.001	t	kg

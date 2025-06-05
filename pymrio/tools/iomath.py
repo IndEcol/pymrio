@@ -1,4 +1,4 @@
-""" Mathematical functions for input output calculations
+"""Mathematical functions for input output calculations
 
 All methods here should follow the functional programming paradigm
 
@@ -607,21 +607,14 @@ def calc_gross_trade(
 
     level_spec_Z = "region" if "region" in Z.columns.names else 0
     level_spec_Y = "region" if "region" in Y.columns.names else 0
-    Z_trade_agg = Z_trade_blocks.groupby(axis=1, level=level_spec_Z, sort=False).agg(
-        sum
-    )
-    Y_trade_agg = Y_trade_blocks.groupby(axis=1, level=level_spec_Y, sort=False).agg(
-        sum
-    )
+    Z_trade_agg = Z_trade_blocks.T.groupby(level=level_spec_Z, sort=False).agg("sum").T
+    Y_trade_agg = Y_trade_blocks.T.groupby(level=level_spec_Y, sort=False).agg("sum").T
 
     x_bilat = Z_trade_agg + Y_trade_agg
 
     level_spec_x = "sector" if "sector" in x_bilat.index.names else 1
     gross_imports = pd.DataFrame(
-        x_bilat.groupby(axis=0, level=level_spec_x, sort=False)
-        .agg(sum)
-        .stack()
-        .swaplevel(),
+        x_bilat.groupby(level=level_spec_x, sort=False).agg("sum").stack().swaplevel(),
         columns=["imports"],
     )
     gross_exports = pd.DataFrame(x_bilat.sum(axis=1), columns=["exports"])

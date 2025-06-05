@@ -25,8 +25,6 @@ Dependencies:
 - scipy
 - pandas
 - matplotlib
-- docutils (only for IOSystem.report* if format is html and tex - not
-            imported otherwise)
 
 :Authors: Konstantin Stadler
 
@@ -34,11 +32,14 @@ Dependencies:
 
 """
 
-import logging
-import sys
-
 from pymrio.core.fileio import *
-from pymrio.core.mriosystem import Extension, IOSystem, concate_extension
+from pymrio.core.mriosystem import (
+    Extension,
+    IOSystem,
+    extension_characterize,
+    extension_concate,
+    extension_convert,
+)
 from pymrio.tools.ioclass import ClassificationData, get_classification
 from pymrio.tools.iodownloader import (
     download_eora26,
@@ -66,5 +67,14 @@ from pymrio.tools.iomath import (
 )
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioparser import *
-from pymrio.tools.ioutil import build_agg_matrix, build_agg_vec
+from pymrio.tools.ioutil import (
+    build_agg_matrix,
+    build_agg_vec,
+    convert,
+    extend_rows,
+    index_contains,
+    index_fullmatch,
+    index_match,
+    to_long,
+)
 from pymrio.version import __version__

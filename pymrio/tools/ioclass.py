@@ -95,7 +95,7 @@ class ClassificationData(object):
         --------
             dict
         """
-        if type(orig) is not str:
+        if not isinstance(orig, str):
             for cname, cvalue in self.sectors.items():
                 if cvalue.isin(orig).all():
                     orig = cname
@@ -103,5 +103,5 @@ class ClassificationData(object):
             else:
                 raise ValueError("No fully matching sector classification found")
 
-        new = new if type(new) is str else new.name
+        new = new if isinstance(new, str) else new.name
         return self.sectors.loc[:, [orig, new]].set_index(orig).squeeze().to_dict()

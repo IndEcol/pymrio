@@ -2,6 +2,70 @@
 Changelog
 #########
 
+
+v0.6dev
+=======
+
+Breaking changes
+================
+
+* New implementation of the characterize function of the extension object.
+  The new method generalizes the previous method for region/sector specific characterizations.
+  It is tightly coupled to the general characterize function which allows characterization accross
+  different extensions (see point under New features).
+
+* get_extensions has a new signature. 
+  Two new paramters, names and istance_names.
+
+    - 'names' allows to filter the extensions by name (set names of the attribute .name
+        or the instance names, also allows to pass the extension itself). Can be used
+        to harmonize the names of an extension list.
+    - 'instance_names' can be set to False to get the "set names" of the extensions.
+
+  When using keyword arguments before, the new signature should just work.
+
+* remove_extension: 
+  Previous all extensions got removed when no name was given.
+  This has changed. Now all extensions are kept when no name is given (TypeError is raised).
+  To remove all extensions, use mrio.remove_extension(mrio.get_extensions())
+
+* concate_extension renamed to extension_concate to make it consistent with extension_convert and _characterize
+
+* concate_extension argument "name" renamed to "new_extension_name"
+
+New features
+============
+
+* New top-level characterize function
+
+* Extension concatenation function also available as method of an mrio object.
+
+* added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
+
+* Added draft Gosh implementation for downstream analysis (by @Beckebanze , #136)
+
+    - equivalent of A for Ghosh (A* in literature, called As in pymrio)
+    - the Ghosh inverse (often referred to G in literature). 
+    - downstream scope 3 multiplier, M_{down}, such the sum of the M+M_{down} is the full scope multiplier, with M the existing multiplier in pymrio that covers scope 1,2&3 upstream.
+    - a short addition to the pymrio background page that introduces the Ghosh model
+    - tests that test the functionality of the added functions
+
+
+
+Depracted
+=========
+
+* extension.get_row_data()
+  The method get_row_data() is deprecated and will be removed in v0.6.0. 
+  Use extension.extract() instead.
+
+
+Misceallaneous
+==============
+
+* Updated and restructuring of the documentation
+* Fixed multiple warnings due to deprecation in pandas
+
 ***************************
 v0.5.4 - 20240412
 ***************************
