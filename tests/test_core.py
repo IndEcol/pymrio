@@ -730,7 +730,7 @@ def test_characterize_extension_over_extensions(fix_testmrio):
     ex_reg_multi = pymrio.extension_characterize(
         *list(tt.get_extensions(data=True)),
         factors=factors_reg_ext,
-        new_extension_name="multi"
+        new_extension_name="multi",
     ).extension
 
     ex_reg_method = tt.extension_characterize(
