@@ -6,7 +6,7 @@ channels:
 dependencies: 
   # core
   - python >= 3.9
-  - pandas >= 1.5
+  - pandas >= 2.1
   - numpy
   - pyarrow >= 11
   - requests >= 2.18
