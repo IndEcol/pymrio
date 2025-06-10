@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Cache conda
       uses: actions/cache@v4
@@ -71,17 +71,17 @@ jobs:
         # removed -l as this breaks in mac-os
         shell: bash {0}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
 
     steps:
        - name: Check out repository code
-         uses: actions/checkout@v2
+         uses: actions/checkout@v4
 
        - name: Setup Python
-         uses: actions/setup-python@v2
+         uses: actions/setup-python@v5
          with:
             python-version: ${{matrix.python-version}}
 
