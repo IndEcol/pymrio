@@ -19,16 +19,6 @@ Misc
 ----
 
 Standard abbreviation for that module: mr
-Dependencies:
-
-- numpy
-- scipy
-- pandas
-- matplotlib
-
-:Authors: Konstantin Stadler
-
-:license: BSD 3-Clause License
 
 """
 

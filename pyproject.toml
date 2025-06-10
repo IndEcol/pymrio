@@ -1,10 +1,11 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pymrio"
-dynamic = ["version"]
+version = "0.6.0dev"
 description = "A python module for automating input output calculations and generating reports"
 readme = "README.rst"
 authors = [
@@ -31,6 +32,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
     "Topic :: Utilities",
 ]
+
 dependencies = [
     "pandas >= 1.5",
     "pyarrow >= 11.0",
@@ -67,9 +69,6 @@ Homepage = "https://github.com/IndEcol/pymrio"
 [tool.setuptools]
 include-package-data = true
 packages = ["pymrio"]
-
-[tool.setuptools.dynamic]
-version = {attr = "pymrio.__version__"}
 
 [tool.setuptools.package-data]
 "pymrio" = ["*.txt", "*.dat", "*.doc", "*.rst", "*.json", "*.tsv"]
