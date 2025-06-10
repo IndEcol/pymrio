@@ -33,7 +33,7 @@ Breaking changes
 
 * concate_extension argument "name" renamed to "new_extension_name"
 
-* minimal pandas version pushed to 2.1
+* minimal python version pushed to 3.9, pandas version pushed to 2.1
 
 New features
 ============

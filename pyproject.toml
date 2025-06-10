@@ -13,9 +13,8 @@ readme = "README.rst"
 authors = [
     {name = "Konstantin Stadler", email = "konstantin.stadler@ntnu.no"},
 ]
-requires-python = ">=3.8.0"
+requires-python = ">=3.9.0"
 classifiers = [
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
