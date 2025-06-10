@@ -87,8 +87,9 @@ jobs:
 
        - name: Run tests
          run: |
-            pip install . -U
-            pip install pytest
-            python setup.py sdist
+            pip install -U pip
+            pip install .[test]  
+            pip install pytest build
+            python -m build --sdist
             pytest -vv
 

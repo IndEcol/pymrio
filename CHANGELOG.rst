@@ -65,6 +65,7 @@ Misceallaneous
 
 * Updated and restructuring of the documentation
 * Fixed multiple warnings due to deprecation in pandas
+* Version definition now in pyproject.toml, version attribute set in script
 
 ***************************
 v0.5.4 - 20240412
