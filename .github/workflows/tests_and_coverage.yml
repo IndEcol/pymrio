@@ -85,11 +85,10 @@ jobs:
          with:
             python-version: ${{matrix.python-version}}
 
-       - name: Run tests
+       - name: Install dependencies
          run: |
             pip install -U pip
             pip install .[test]  
-            pip install pytest build
-            python -m build --sdist
-            pytest -vv
+       - name: Run production tests
+         run: pytest -vv
 
