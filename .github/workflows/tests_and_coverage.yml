@@ -89,6 +89,10 @@ jobs:
          run: |
             pip install -U pip
             pip install .[test]  
+
+       - name: List installed packages
+         run: pip show pymrio && pip list
+
        - name: Run production tests
          run: pytest -vv
 

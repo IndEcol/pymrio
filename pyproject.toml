@@ -68,9 +68,8 @@ test = [
 [project.urls]
 Homepage = "https://github.com/IndEcol/pymrio"
 
-[tool.setuptools]
-include-package-data = true
-packages = ["pymrio"]
+[tool.setuptools.packages.find]
+where = ["."]
 
 [tool.setuptools.package-data]
 "pymrio" = ["*.txt", "*.dat", "*.doc", "*.rst", "*.json", "*.tsv"]
