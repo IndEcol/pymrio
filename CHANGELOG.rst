@@ -42,7 +42,7 @@ New features
 
 * added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
 
-* Added Gosh implementation for downstream analysis (by @Beckebanze , #136, #146)
+* Added (optional) Gosh implementation for downstream analysis (by @Beckebanze , #136, #146)
 
     - equivalent of A for Ghosh (called B in pymrio)
     - the Ghosh inverse (often referred to G in literature). 
@@ -50,6 +50,7 @@ New features
     - a short addition to the pymrio background page that introduces the Ghosh model
     - tests that test the functionality of the added functions
 
+    To use is, pass include_gosh=True to the calc_all or calc_system calls 
 
 
 Depracted

@@ -46,14 +46,22 @@ def td_testmrio():
 
 
 def test_all(td_testmrio):
-    """Full integration test
+    """Full integration test, with and without Gosh
 
     Checks:
-    1) the cba calculation
-    2) concate extension
+    -) cba calculations
+    -) M calculations
+    -) Gosh / M_down optional calculation
+    -) concate extension
     """
-    mr = pymrio.load_test()
-    mr.calc_all()
+    mr_nog = pymrio.load_test()
+    mr_nog.calc_all()
+    __import__('pdb').set_trace()
+    assert "A" in mr_nog.__dict__.keys()
+    assert "L" in mr_nog.__dict__.keys()
+    assert "G" not in mr_nog.__dict__.keys()
+    assert "B" not in mr_nog.__dict__.keys()
+
     npt.assert_allclose(
         td_testmrio.factor_inputs.D_imp_values,
         mr.factor_inputs.D_imp_reg.values,
@@ -200,3 +208,7 @@ def test_reports(tmpdir):
 
         assert "png" in cap_pic_file_content[0]
         assert "png" in reg_pic_file_content[0]
+
+
+    
+    
