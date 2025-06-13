@@ -948,7 +948,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     )
 
     # remove meta data, empty rows, total column
-    wiot_data.iloc[0 : wiot_meta["end_row"], wiot_meta["col"]] = np.NaN
+    wiot_data.iloc[0 : wiot_meta["end_row"], wiot_meta["col"]] = np.nan
     wiot_data.drop(wiot_empty_top_rows, axis=0, inplace=True)
     wiot_data.drop(wiot_data.columns[wiot_marks["total_column"]], axis=1, inplace=True)
     # at this stage row and column header should have the same size but
@@ -995,10 +995,11 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     # Save lookup of sectors and codes - to be used at the end of the parser
     # Assuming USA is present in every WIOT year
     wiot_sector_lookup = (
-        wiot_data[wiot_data[wiot_header["region"]] == "USA"]
-        .iloc[:, 0 : max(index_wiot_headers) + 1]
-        .applymap(str)
-    )
+        wiot_data[wiot_data[wiot_header["region"]] == "USA"].iloc[
+            :, 0 : max(index_wiot_headers) + 1
+        ]
+    ).astype("str")
+
     wiot_sector_lookup.columns = [
         entry[1] for entry in sorted(zip(wiot_header.values(), wiot_header.keys()))
     ]
@@ -1012,7 +1013,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
             wiot_header["c_code"],
         ],
     ]
-    wiot_fd_lookup = _Y[_Y.iloc[:, wiot_header["region"]] == "USA"].applymap(str)
+    wiot_fd_lookup = _Y[_Y.iloc[:, wiot_header["region"]] == "USA"].astype("str")
     wiot_fd_lookup.columns = [
         entry[1] for entry in sorted(zip(wiot_header.values(), wiot_header.keys()))
     ]
@@ -1172,7 +1173,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
             _F_Y.columns = pd.MultiIndex.from_product(
                 [_F_Y.columns, [_ss_F_Y_pressure_column]]
             )
-            _F_Y = pd.concat([_F_Y_template, _F_Y])
+            _F_Y = pd.concat([_F_Y_template.astype("float"), _F_Y]).astype("float")
             _F_Y.fillna(0, inplace=True)
             _F_Y.index.names = _dl_ex["F"].index.names
             _F_Y.columns.names = _F_Y_template.columns.names
@@ -1334,7 +1335,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
             )
             return None
 
-        if not df_env.index.is_numeric():
+        if not pd.api.types.is_numeric_dtype(df_env.index):
             # upper case letter extensions gets parsed with multiindex, not
             # quite sure why...
             df_env.reset_index(inplace=True)
@@ -1356,10 +1357,12 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         df_env = df_env[df_env.iloc[:, 0] != "total"]
         df_env = df_env[df_env.iloc[:, 0] != "secTOT"]
         df_env = df_env[df_env.iloc[:, 0] != "secQ"]
-        df_env.iloc[:, 0] = df_env.iloc[:, 0].astype(str)
-        df_env.iloc[:, 0].replace(to_replace="sec", value="", regex=True, inplace=True)
-
-        df_env.set_index([df_env.columns[0]], inplace=True)
+        df_env.iloc[:, 0] = (
+            df_env.iloc[:, 0]
+            .astype(str)
+            .replace(to_replace="sec", value="", regex=True)
+        )
+        df_env = df_env.set_index([df_env.columns[0]])
         df_env.index.names = ["sector"]
         df_env = df_env.T
 
@@ -1609,7 +1612,7 @@ def parse_oecd(path, year=None):
 
     mon_unit = "Million USD"
 
-    oecd_totals_col = ["TOTAL"]
+    oecd_totals_col = ["OUT", "TOTAL"]
     oecd_totals_row = ["OUT", "OUTPUT"]
 
     oecd_raw.drop(oecd_totals_col, axis=1, errors="ignore", inplace=True)
@@ -1626,12 +1629,14 @@ def parse_oecd(path, year=None):
     Z = oecd_raw.loc[
         oecd_raw.index.difference(factor_input.index),
         oecd_raw.columns.difference(final_demand.columns),
-    ]
+    ].astype("float")
     F_factor_input = factor_input.loc[
         :, factor_input.columns.difference(final_demand.columns)
-    ]
-    F_Y_factor_input = factor_input.loc[:, final_demand.columns]
-    Y = final_demand.loc[final_demand.index.difference(F_factor_input.index), :]
+    ].astype("float")
+    F_Y_factor_input = factor_input.loc[:, final_demand.columns].astype("float")
+    Y = final_demand.loc[final_demand.index.difference(F_factor_input.index), :].astype(
+        "float"
+    )
 
     Z_index = pd.MultiIndex.from_tuples(
         tuple(ll) for ll in Z.index.map(lambda x: x.split("_", maxsplit=1))
@@ -1679,23 +1684,23 @@ def parse_oecd(path, year=None):
 
         # aggregate rows
         Z.loc[co_name, :] = (
-            Z.loc[co_name, :] + Z.loc[agg_list, :].groupby(level="sector", axis=0).sum()
+            Z.loc[co_name, :] + Z.loc[agg_list, :].groupby(level="sector").sum()
         ).values
         Z = Z.drop(agg_list, axis=0)
         Y.loc[co_name, :] = (
-            Y.loc[co_name, :] + Y.loc[agg_list, :].groupby(level="sector", axis=0).sum()
+            Y.loc[co_name, :] + Y.loc[agg_list, :].groupby(level="sector").sum()
         ).values
         Y = Y.drop(agg_list, axis=0)
 
         # aggregate columns
         Z.loc[:, co_name] = (
-            Z.loc[:, co_name] + Z.loc[:, agg_list].groupby(level="sector", axis=1).sum()
+            Z.loc[:, co_name] + Z.loc[:, agg_list].T.groupby(level="sector").sum().T
         ).values
         Z = Z.drop(agg_list, axis=1)
 
         F_factor_input.loc[:, co_name] = (
             F_factor_input.loc[:, co_name]
-            + F_factor_input.loc[:, agg_list].groupby(level="sector", axis=1).sum()
+            + F_factor_input.loc[:, agg_list].T.groupby(level="sector").sum().T
         ).values
         F_factor_input = F_factor_input.drop(agg_list, axis=1)
 

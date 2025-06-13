@@ -4,6 +4,7 @@ Handling MRIO data
 .. toctree::
   :maxdepth: 2
 
+  notebooks/explore
   notebooks/pymrio_directly_assign_attributes
   notebooks/working_with_wiod
   notebooks/working_with_exiobase
@@ -14,4 +15,5 @@ Handling MRIO data
   notebooks/aggregation_examples
   notebooks/buildflowmatrix
   notebooks/stressor_characterization
+  notebooks/convert
   notebooks/advanced_group_stressors

@@ -1,5 +1,4 @@
-""" Utility functions for automatic downloading of public MRIO databases
-"""
+"""Utility functions for automatic downloading of public MRIO databases"""
 
 import getpass
 import itertools
@@ -104,12 +103,18 @@ OECD_CONFIG = {
 
 GLORIA_CONFIG = {"datafiles": GLORIA_URLS}
 
+HEADERS = {
+    # Standard headers for downloading files, just python requests gets blocked quite often
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/131.0"
+}
+
 
 def _get_url_datafiles(
     url_db_view,
     url_db_content,
     mrio_regex,
     access_cookie=None,
+    headers=HEADERS,
     requests_func=requests.post,
 ):
     """Urls of mrio files by parsing url content for mrio_regex
@@ -130,9 +135,13 @@ def _get_url_datafiles(
     access_cookie: dict, optional
         If needed, cookie to access the database
 
+    headers: dict, optional
+        Header to be passed to the request_func function fetching the data
+
     requests_func: function
         Function to use for retrieving the url content.
         Can be requests.get or requests.post
+
 
     Returns
     -------
@@ -144,13 +153,18 @@ def _get_url_datafiles(
     # Use post here - NB: get could be necessary for some other pages
     # but currently works for wiod and eora
     returnvalue = namedtuple("url_content", ["raw_text", "data_urls"])
-    url_text = requests_func(url_db_view, cookies=access_cookie).text
+    url_text = requests_func(url_db_view, cookies=access_cookie, headers=headers).text
     data_urls = [url_db_content + ff for ff in re.findall(mrio_regex, url_text)]
     return returnvalue(raw_text=url_text, data_urls=data_urls)
 
 
 def _download_urls(
-    url_list, storage_folder, overwrite_existing, downlog_handler, access_cookie=None
+    url_list,
+    storage_folder,
+    overwrite_existing,
+    downlog_handler,
+    access_cookie=None,
+    headers=HEADERS,
 ):
     """Save url from url_list to storage_folder
 
@@ -175,6 +189,10 @@ def _download_urls(
     access_cookie: cookie, optional
         Cookie to be passed to the requests.post function fetching the data
 
+    headers: dict, optional
+        Header to be passed to the requests.get function fetching the data
+        Be default a Firefox, set in the HEADER variable
+
 
     Returns
     -------
@@ -182,18 +200,26 @@ def _download_urls(
     The downlog_handler is passed back
 
     """
+
     for url in url_list:
         filename = filename_from_url(url)
         if downlog_handler.name == "Eora":
             filename = filename.split(".zip")[0] + ".zip"
         if not overwrite_existing and filename in os.listdir(storage_folder):
+            downlog_handler._add_fileio(
+                "Skip download existing file {}".format(filename)
+            )
             continue
         storage_file = os.path.join(storage_folder, filename)
 
         # Using requests here - tried with aiohttp but was actually slower
         # Also don’t use shutil.copyfileobj - corrupts zips from Eora
         # req = requests.post(url, stream=True, cookies=access_cookie)
-        req = requests.get(url, stream=True, cookies=access_cookie)
+        req = requests.get(url, stream=True, cookies=access_cookie, headers=headers)
+        if req.status_code != 200:
+            raise requests.exceptions.HTTPError(
+                "HTTP Error {} for {}".format(req.status_code, url)
+            )
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)

@@ -1,0 +1,2 @@
+# Pair ipynb notebooks to py:percent text notebooks
+formats = "ipynb,py:percent"
