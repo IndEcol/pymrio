@@ -682,7 +682,7 @@ def filename_from_url(url):
         The extracted file name
 
     """
-    name = re.search("[^/\\&?]+\.\w{2,7}(?=([?&].*$|$))", url)
+    name = re.search(r"[^/\\&?]+\.\w{2,7}(?=([?&].*$|$))", url)
     return name.group()
 
 
