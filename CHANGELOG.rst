@@ -33,8 +33,6 @@ Breaking changes
 
 * concate_extension argument "name" renamed to "new_extension_name"
 
-* minimal python version pushed to 3.9, pandas version pushed to 2.1
-
 New features
 ============
 
@@ -44,9 +42,9 @@ New features
 
 * added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
 
-* Added draft Gosh implementation for downstream analysis (by @Beckebanze , #136)
+* Added Gosh implementation for downstream analysis (by @Beckebanze , #136, #146)
 
-    - equivalent of A for Ghosh (A* in literature, called As in pymrio)
+    - equivalent of A for Ghosh (called B in pymrio)
     - the Ghosh inverse (often referred to G in literature). 
     - downstream scope 3 multiplier, M_{down}, such the sum of the M+M_{down} is the full scope multiplier, with M the existing multiplier in pymrio that covers scope 1,2&3 upstream.
     - a short addition to the pymrio background page that introduces the Ghosh model
@@ -67,7 +65,8 @@ Misceallaneous
 
 * Updated and restructuring of the documentation
 * Fixed multiple warnings due to deprecation in pandas
-* Version definition now in pyproject.toml, version attribute set in script
+* Adopted OECD ICIO MRIO column rename to out (by @spjuhel, #160)
+* Fix warning about regex characters (by @pcorpet, #155)
 
 ***************************
 v0.5.4 - 20240412
@@ -139,6 +138,7 @@ New features
 ============
 
 * Autodownloader for GLORIA MRIO (by @hazimhussein)
+* Parsing GLORIA (by @francis-barre, #139)
 * Support of parquet format for load and save function 
 
 
