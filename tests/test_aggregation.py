@@ -1,4 +1,4 @@
-""" Tests the aggregation functionality in pymrio
+"""Tests the aggregation functionality in pymrio
 
 This only test the top-level aggregation function.
 For the low-level function 'build_agg_vec' and 'build_agg_matrix'
@@ -211,7 +211,9 @@ def test_wrong_inputs():
     with pytest.raises(ValueError) as VA_region_name:
         reg_agg = range(len(io.get_regions()))
         _ = io.aggregate(
-            region_agg=reg_agg, region_names=["a", "b"], inplace=False  # noqa
+            region_agg=reg_agg,
+            region_names=["a", "b"],
+            inplace=False,  # noqa
         )
     assert "region aggregation" in str(VA_region_name.value).lower()
 
