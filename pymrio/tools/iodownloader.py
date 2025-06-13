@@ -748,7 +748,7 @@ def download_gloria(
     No returns
     """
 
-    if f"0{int(version)}" not in urls.keys():
+    if f"0{version}" not in urls.keys():
         raise Exception("Specified version is invalid")
 
     downlog = MRIOMetaData._make_download_log(
@@ -768,12 +768,19 @@ def download_gloria(
             files_to_download.extend(
                 [
                     file
-                    for file in urls[f"0{int(version)}"]
+                    for file in urls[f"0{version}"]
                     if str(yr) in filename_from_url(file)
                 ]
             )
+        files_to_download.extend(
+            [
+                file
+                for file in urls[f"0{version}"]
+                if "ReadMe" in filename_from_url(file)
+            ]
+        )
     else:
-        files_to_download = urls[f"0{int(version)}"]
+        files_to_download = urls[f"0{version}"]
 
     downlog = _download_urls(
         url_list=files_to_download,

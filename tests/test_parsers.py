@@ -2,6 +2,7 @@
 
 import os
 import sys
+import warnings
 
 import numpy as np
 import pandas.testing as pdt
@@ -272,5 +273,26 @@ def test_parse_eora26(fix_testmrio_calc):
         _ = pymrio.parse_eora26(eora_mockpath, year=2010, country_names="bogus")
 
 
+def test_parse_gloria():
+    gloria_mockpath = os.path.join(testpath, "mock_mrios", "gloria_mock")
+
+    prices = ["bp", "pp"]
+    country_names = ["gloria", "full"]
+    constructs = ["A", "B", "C", "D"]
+
+    for country_name in country_names:
+        for price in prices:
+            for construct in constructs:
+                with warnings.catch_warnings():
+                    warnings.simplefilter(action="ignore", category=FutureWarning)
+                    gloria = pymrio.parse_gloria(
+                        gloria_mockpath,
+                        price=price,
+                        country_names=country_name,
+                        construct=construct,
+                    )
+                    gloria.calc_all()
+
+
 if __name__ == "__main__":
-    test_oecd_2016()
+    test_parse_gloria()
