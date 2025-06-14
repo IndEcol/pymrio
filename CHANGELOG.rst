@@ -6,68 +6,65 @@ Changelog
 v0.6dev
 =======
 
-Breaking changes
+Breaking Changes
 ================
 
-* New implementation of the characterize function of the extension object.
-  The new method generalizes the previous method for region/sector specific characterizations.
-  It is tightly coupled to the general characterize function which allows characterization accross
-  different extensions (see point under New features).
+* The `characterize` function of the extension object has been reimplemented. 
+  The updated method generalises the previous approach for region- and sector-specific characterisations. 
+  It is closely integrated with the general `characterize` function, enabling characterisation across 
+  different extensions (refer to the section under New Features).
 
-* get_extensions has a new signature. 
-  Two new paramters, names and istance_names.
+* The `get_extensions` function has a revised signature, introducing two new parameters: `names` and `instance_names`.
 
-    - 'names' allows to filter the extensions by name (set names of the attribute .name
-        or the instance names, also allows to pass the extension itself). Can be used
-        to harmonize the names of an extension list.
-    - 'instance_names' can be set to False to get the "set names" of the extensions.
+    - `names`: Enables filtering of extensions by name (either the `.name` attribute or instance names). 
+      It also allows passing the extension itself and can be used to harmonise the names within an extension list.
+    - `instance_names`: When set to `False`, retrieves the "set names" of the extensions.
 
-  When using keyword arguments before, the new signature should just work.
+    Existing keyword arguments should continue to function with the new signature.
 
-* remove_extension: 
-  Previous all extensions got removed when no name was given.
-  This has changed. Now all extensions are kept when no name is given (TypeError is raised).
-  To remove all extensions, use mrio.remove_extension(mrio.get_extensions())
+* The behaviour of `remove_extension` has been modified. Previously, all extensions were removed if no name was provided. 
+  Now, all extensions are retained when no name is specified, and a `TypeError` is raised. 
+  To remove all extensions, use `mrio.remove_extension(mrio.get_extensions())`.
 
-* concate_extension renamed to extension_concate to make it consistent with extension_convert and _characterize
+* The `concate_extension` function has been renamed to `extension_concate` for consistency with `extension_convert` and `_characterize`.
 
-* concate_extension argument "name" renamed to "new_extension_name"
+* The `concate_extension` argument `name` has been renamed to `new_extension_name`.
 
-New features
+New Features
 ============
 
-* New top-level characterize function
+* A new top-level `characterize` function has been introduced.
 
-* Extension concatenation function also available as method of an mrio object.
+* Extension concatenation functionality is now available as a method of an `mrio` object.
 
-* added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
+* Added functionality to download and parse the 2023 release of OECD IO tables (contributed by @jaimeoliver1, #132).
 
-* Added (optional) Gosh implementation for downstream analysis (by @Beckebanze , #136, #146)
+* Optional Ghosh implementation for downstream analysis has been added (contributed by @Beckebanze, #136, #146).
 
-    - equivalent of A for Ghosh (called B in pymrio)
-    - the Ghosh inverse (often referred to G in literature). 
-    - downstream scope 3 multiplier, M_{down}, such the sum of the M+M_{down} is the full scope multiplier, with M the existing multiplier in pymrio that covers scope 1,2&3 upstream.
-    - a short addition to the pymrio background page that introduces the Ghosh model
-    - tests that test the functionality of the added functions
+    - Equivalent of matrix `A` for Ghosh (referred to as `B` in pymrio).
+    - The Ghosh inverse (commonly referred to as `G` in literature).
+    - Downstream scope 3 multiplier, `M_{down}`, such that the sum of `M + M_{down}` represents the full scope multiplier. 
+      Here, `M` is the existing multiplier in pymrio, covering scopes 1, 2, and 3 upstream.
+    - A brief addition to the pymrio background documentation introducing the Ghosh model.
+    - Tests verifying the functionality of the added features.
 
-    To use is, pass include_gosh=True to the calc_all or calc_system calls 
+    To utilise this feature, pass `include_gosh=True` to the `calc_all` or `calc_system` calls.
 
+Deprecated
+==========
 
-Depracted
-=========
+* `extension.get_row_data()`: This method is deprecated and will be removed in a future version. Use `extension.extract()` as an alternative.
 
-* extension.get_row_data()
-  The method get_row_data() is deprecated and will be removed in v0.6.0. 
-  Use extension.extract() instead.
+Miscellaneous
+=============
 
+* Documentation has been updated and restructured.
 
-Misceallaneous
-==============
+* Multiple warnings related to deprecation in pandas have been resolved.
 
-* Updated and restructuring of the documentation
-* Fixed multiple warnings due to deprecation in pandas
-* Adopted OECD ICIO MRIO column rename to out (by @spjuhel, #160)
-* Fix warning about regex characters (by @pcorpet, #155)
+* Adopted OECD ICIO MRIO column rename to `out` (contributed by @spjuhel, #160).
+
+* Fixed warnings regarding regex characters (contributed by @pcorpet, #155).
 
 ***************************
 v0.5.4 - 20240412

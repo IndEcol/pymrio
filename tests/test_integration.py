@@ -55,8 +55,10 @@ def test_all(td_testmrio):
     -) concate extension
     """
     mr_nog = pymrio.load_test()
-    mr_nog.calc_all()
+    mr_nog.calc_all(include_gosh=False)
     __import__('pdb').set_trace()
+
+    # TODO next step: deal with G present but None
     assert "A" in mr_nog.__dict__.keys()
     assert "L" in mr_nog.__dict__.keys()
     assert "G" not in mr_nog.__dict__.keys()
