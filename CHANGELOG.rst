@@ -50,6 +50,16 @@ New Features
 
     To utilise this feature, pass `include_ghosh=True` to the `calc_all` or `calc_system` calls.
 
+* Some convenience functions have been added to the MRIO object.
+    - sectors ... shortand for `mrio.get_sectors()`
+    - regions ... shorthand for `mrio.get_regions()`
+    - Y_categories ... shorthand for `mrio.get_Y_categories()`
+    - rows ... shorthand for `mrio.extension.get_rows()`
+    - extensions ... shorthand for `mrio.get_extensions(instance_names=False)`
+    - extensions_instance_names ... shorthand for `mrio.get_extensions(instance_names=True)`
+    - DataFrame ... shorthand for `mrio.get_dataframe()`
+
+
 Deprecated
 ==========
 

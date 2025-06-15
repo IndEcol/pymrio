@@ -13,18 +13,17 @@
 # ---
 
 # %% [markdown]
-# # Comprehensive Pymrio Tutorial: Complete Guide to Multi-Regional Input-Output Analysis
+# # Pymrio Tutorial
 #
 # A complete tutorial covering all top-level functions of pymrio, using the test MRIO system.
 
 # %% [markdown]
 # ## Setup and Installation
 #
-# Before beginning this tutorial, ensure pymrio is installed:
+# Before starting this tutorial, make sure you've got pymrio installed. You can grab it from conda-forge or PyPi.
+# Use pip, mamba, conda, or whatever package manager you prefer to get it sorted. For example
 
 # %%
-# !pip install pymrio --upgrade
-# or
 # !conda install -c conda-forge pymrio
 
 # %% [markdown]
@@ -34,18 +33,18 @@
 
 # %%
 import pymrio
-import pandas as pd
-import numpy as np
 
 # Load the test MRIO system
 test_mrio = pymrio.load_test()
 
 # Display basic information about the system
+print(test_mrio)
 print("Type of object:", type(test_mrio))
-print("Available extensions:", list(test_mrio.get_extensions()))
+print("Available extensions:", test_mrio.extensions)
 
 # %% [markdown]
-# Note that any other MRIO database can be used with the same functions demonstrated here. The test system serves as a representative example for larger, real-world datasets.
+# Note that any other MRIO database can be used with the same functions demonstrated here. 
+# The test system serves only as a representative example for larger, real-world datasets. See the notebooks on [EXIOBASE](working_with_exiobase.py) and [Eora26](working_with_eora26.ipynb) for more details.
 
 # %% [markdown]
 # ## 2. Exploring System Information
@@ -57,28 +56,28 @@ print("Available extensions:", list(test_mrio.get_extensions()))
 
 # %%
 # Get regions and sectors
-regions = test_mrio.get_regions()
-sectors = test_mrio.get_sectors()
-y_categories = test_mrio.get_Y_categories()
-
-print("Regions:", regions)
-print("Sectors:", sectors)
-print("Final demand categories:", y_categories)
+print("Regions:", test_mrio.regions)
+print("Sectors:", test_mrio.sectors)
+print("Final demand categories:", test_mrio.Y_categories)
 
 # %% [markdown]
 # ### 2.2 Search Functionality
 #
-# Pymrio offers comprehensive search capabilities to find specific accounts, regions, or sectors:
+# Pymrio offers comprehensive search capabilities to find specific accounts, regions, sectors, stressors, and impacts:
+# The terms are the same as the pandas regex method names and work in the same way. 
+# For more details, check out the [explore notebook](explore.ipynb) and the [pandas regex documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/text.html#working-with-regular-expressions).
 
 # %%
 # Search for specific terms across the system
 search_results = test_mrio.find("food")
 print("Search results for 'food':", search_results)
 
+# %%
 # More specific search methods
 contains_results = test_mrio.contains("electricity")
 print("Contains 'electricity':", contains_results)
 
+# %%
 # Search within extensions
 extension_search = test_mrio.extension_contains("emission")
 print("Extension search for 'emission':", extension_search)
@@ -88,54 +87,89 @@ match_results = test_mrio.match("reg1")
 print("Full match for 'reg1':", match_results)
 
 # %% [markdown]
+# **Tip**
+#
+# Use the find method to get a quick overview where you find a specific term, in particular for mrio systems with multiple extensions.
+# For example, the following finds "air" in the compartment information of one extension.
+
+# %%
+print("Search for occurance of >air< in the whole system:", test_mrio.find("air"))
+
+
+# %% [markdown]
 # ## 3. Core Calculations with calc_all
 #
 # The `calc_all` method is fundamental to pymrio analysis. It automatically identifies missing tables and calculates all necessary accounts:
 
-# %%
-# Before calculation, some tables are missing
-print("Before calc_all:")
-print("A matrix exists:", hasattr(test_mrio, 'A') and test_mrio.A is not None)
-print("L matrix exists:", hasattr(test_mrio, 'L') and test_mrio.L is not None)
 
+
+# %% [markdown]
+# Before calculation, some tables are missing
+
+# %%
+print("Before calc_all:")
+print(test_mrio.DataFrames)
+print(test_mrio.emissions.DataFrames)
+
+# %% [markdown]
 # Calculate all missing parts
+
+# %%
 test_mrio.calc_all()
 
+# %% [markdown]
 # After calculation, all tables are available
-print("\nAfter calc_all:")
-print("A matrix shape:", test_mrio.A.shape)
-print("L matrix shape:", test_mrio.L.shape)
-print("Industry output x shape:", test_mrio.x.shape)
 
-# Display calculated accounts for emissions
+# %%
+print("After calc_all:")
+print(test_mrio.DataFrames)
+
+# %% [markdown]
+# And we know also have several classical EE-MRIO results available:
+
+# %%
 print("\nEmissions accounts:")
-print("D_cba (consumption-based) shape:", test_mrio.emissions.D_cba.shape)
-print("D_pba (production-based) shape:", test_mrio.emissions.D_pba.shape)
-print("D_imp (import-based) shape:", test_mrio.emissions.D_imp.shape)
-print("D_exp (export-based) shape:", test_mrio.emissions.D_exp.shape)
+print(test_mrio.emissions.DataFrames)
+
+# For example
+print("D_cba (consumption-based):", test_mrio.emissions.D_cba)
 
 # %% [markdown]
 # ## 4. Search and Extract Functionality
 
 # %% [markdown]
 # ### 4.1 Extracting Specific Accounts
-#
-# After calculation, we can extract specific accounts and data:
+
+# %% [markdown]
+# Extract consumption-based accounts for a specific stressor
 
 # %%
-# Extract specific stressor data
-emission_type1_data = test_mrio.emissions.get_row_data('emission_type1')
-print("Available data for emission_type1:", list(emission_type1_data.keys()))
-
-# Extract consumption-based accounts for a specific stressor
-cba_emission1 = test_mrio.emissions.D_cba.loc['emission_type1']
+cba_emission1 = test_mrio.emissions.D_cba.loc[['emission_type1']]
 print("CBA emissions by region for emission_type1:")
 print(cba_emission1)
 
+# %% [markdown]
 # Extract data for specific regions
-reg1_data = test_mrio.emissions.D_cba_reg['reg1']
-print("\nTotal CBA emissions for reg1:")
+
+# %%
+reg1_data = test_mrio.emissions.D_cba_reg[['reg1', 'reg3']]
+print("\nTotal CBA emissions for the selected regions:")
 print(reg1_data)
+
+#
+# Besides the direct access to the DataFrames explained above, one can also
+# extract data into dictionaries for alternative access.:
+
+# %%
+emission_type1_data = test_mrio.emissions.get_row_data('emission_type1')
+
+
+# %% [markdown]
+# This extracts all data available for >emission_type1<
+
+# %%
+emission_type1_data.keys()
+
 
 # %% [markdown]
 # ### 4.2 Advanced Search Patterns
@@ -143,12 +177,10 @@ print(reg1_data)
 # Use regular expressions for more complex searches:
 
 # %%
-# Find all manufacturing-related sectors
-manufacturing_search = test_mrio.find("manufact.*")
-print("Manufacturing sectors:", manufacturing_search)
+emis_search = test_mrio.find("emission.*")
+print("Emission... occurances:", emis_search)
 
-# Search across all extensions for specific patterns
-all_extension_search = test_mrio.extension_contains("type")
+all_extension_search = test_mrio.extension_contains("typ+")
 print("Extensions containing 'type':", all_extension_search)
 
 # %% [markdown]
@@ -157,17 +189,18 @@ print("Extensions containing 'type':", all_extension_search)
 # When `calc_all` is executed, it can optionally calculate Ghosh inverse matrices for downstream analysis:
 
 # %%
-# Check if Ghosh calculations are available
-if hasattr(test_mrio, 'G') and test_mrio.G is not None:
-    print("Ghosh matrix G shape:", test_mrio.G.shape)
-    
-    # Check for downstream multipliers in extensions
-    if hasattr(test_mrio.emissions, 'M_down') and test_mrio.emissions.M_down is not None:
-        print("Downstream multipliers shape:", test_mrio.emissions.M_down.shape)
-        print("Downstream multipliers sample:")
-        print(test_mrio.emissions.M_down.iloc[:3, :3])
-else:
-    print("Ghosh calculations not available in this version")
+test_mrio.calc_all(include_ghosh=True)
+print(test_mrio)
+
+# %% [markdown]
+# This also calculates downstream multipliers M_down
+
+# %%
+test_mrio.emissions.M_down
+
+# %% [markdown]
+# See the math section of the documentation for further details on the Ghosh calculations.
+
 
 # %% [markdown]
 # ## 6. Using Functions from iomath
@@ -176,6 +209,7 @@ else:
 
 # %%
 from pymrio.tools import iomath
+import numpy as np
 
 # Calculate specific matrices manually
 A_manual = iomath.calc_A(test_mrio.Z, test_mrio.x)
@@ -196,21 +230,23 @@ print("Manual multiplier calculation matches:", np.allclose(M_manual, test_mrio.
 # The `calc_gross_trade` function provides insights into bilateral trade flows:
 
 # %%
-# Calculate gross trade flows
 gross_trade = test_mrio.get_gross_trade()
-print("Gross trade matrix shape:", gross_trade.shape)
-print("\nSample of gross trade flows:")
-print(gross_trade.iloc[:5, :5])
 
-# Total exports by region
-total_exports = gross_trade.sum(axis=1)
-print("\nTotal exports by region:")
-print(total_exports)
+# %% [markdown]
+# This give the total trade flows from one region/sectors to other regions
 
-# Total imports by region
-total_imports = gross_trade.sum(axis=0)
-print("\nTotal imports by region:")
-print(total_imports)
+# %%
+gross_trade.bilat_flows
+
+
+# %% [markdown]
+# As well as the totals for each region
+gross_trade.totals
+
+
+# %%
+gross_trade.bilat_flows
+
 
 # %% [markdown]
 # ## 8. Extension Methods: Concatenate, Convert, and Characterize
@@ -218,22 +254,30 @@ print(total_imports)
 # %% [markdown]
 # ### 8.1 Extension Concatenation
 #
-# The `extension_concate` method allows combining multiple extensions:
+# The `extension_concate` method allows combining multiple extensions.
 
 # %%
 # Create a copy for demonstration
-test_mrio_copy = test_mrio.copy()
+ext_emis2 = test_mrio.emissions.copy()
+# Combine two extensions with same index structure
+new_ext = pymrio.extension_concate(test_mrio.emissions, ext_emis2, new_extension_name='emissions_combined')
+new_ext.rows
 
-# Example of extension concatenation (combining emissions and factor_inputs)
-try:
-    # This would concatenate extensions if they have compatible structure
-    pymrio.extension_concate(test_mrio_copy, 
-                           test_mrio_copy.emissions, 
-                           test_mrio_copy.factor_inputs,
-                           new_extension_name='combined_extension')
-    print("Extension concatenation successful")
-except Exception as e:
-    print(f"Extension concatenation not applicable for this data structure: {e}")
+# %% [markdown]
+# Combining extensions with different indicies results in a new index called >indicator<. Any indicies not avaialable in one of the extensions is set to NaN.
+
+# %%
+all_ext = pymrio.extension_concate(test_mrio.emissions, test_mrio.factor_inputs, new_extension_name='All')
+print(all_ext)
+all_ext.rows
+
+# %% [markdown]
+# In any case, the extension can be attached to the mrio object and used alongside the others.
+
+# %%
+test_mrio.all_ext = all_ext
+print(test_mrio.extensions)
+print(test_mrio.extensions_instance_names)
 
 # %% [markdown]
 # ### 8.2 Extension Conversion

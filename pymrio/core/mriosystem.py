@@ -520,6 +520,26 @@ class BaseSystem:
                     yield key
 
     @property
+    def regions(self):
+        """Returns the regions of the system as Index"""
+        return self.get_regions()
+
+    @property
+    def sectors(self):
+        """ Returns the sectors of the MRIO system. """
+        return self.get_sectors()
+
+    @property
+    def Y_categories(self):
+        """ Returns the Y categories of the MRIO system. """
+        return self.get_Y_categories()
+
+    @property
+    def DataFrames(self):
+        """Returns the DataFrames of the system as generator"""
+        return list(self.get_DataFrame(data=False, with_unit=True, with_population=True))
+
+    @property
     def empty(self):
         """True, if all dataframes of the system are empty"""
         for df in self.get_DataFrame(data=True):
@@ -1593,6 +1613,11 @@ class Extension(BaseSystem):
             warnings.warn("No attributes available to get row names")
             return None
 
+    @property
+    def rows(self):
+        """Returns the name of the rows of the extension"""
+        return self.get_rows()
+
     def get_row_data(self, row, name=None):
         """Returns a dict with all available data for a row in the extension.
 
@@ -2220,6 +2245,16 @@ class IOSystem(BaseSystem):
             return self.meta.name
         except AttributeError:
             return "undef"
+
+    @property
+    def extensions(self):
+        """ Returns the defined extension names """
+        return list(self.get_extensions(instance_names=False))
+
+    @property
+    def extensions_instance_names(self):
+        """ Returns the instance names of the extensions """
+        return list(self.get_extensions(instance_names=True))
 
     def get_gross_trade(
         self,
