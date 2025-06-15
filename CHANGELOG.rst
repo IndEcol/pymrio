@@ -48,7 +48,7 @@ New Features
     - A brief addition to the pymrio background documentation introducing the Ghosh model.
     - Tests verifying the functionality of the added features.
 
-    To utilise this feature, pass `include_gosh=True` to the `calc_all` or `calc_system` calls.
+    To utilise this feature, pass `include_ghosh=True` to the `calc_all` or `calc_system` calls.
 
 Deprecated
 ==========
@@ -75,7 +75,7 @@ New features
 
 * added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
 
-* Added draft Gosh implementation for downstream analysis (by @Beckebanze , #136)
+* Added draft ghosh implementation for downstream analysis (by @Beckebanze , #136)
 
     - equivalent of A for Ghosh (A* in literature, called As in pymrio)
     - the Ghosh inverse (often referred to G in literature). 
