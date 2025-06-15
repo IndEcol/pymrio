@@ -19,6 +19,7 @@ dependencies:
   - pdbpp
   - country_converter >= 0.8.0
   - pytest >= 5.4.3
+  - pytest-black
   - isort >= 5.6.0
   - nbval
   - black >= 22.8

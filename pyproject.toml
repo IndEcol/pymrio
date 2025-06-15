@@ -83,6 +83,8 @@ filterwarnings = [
 [tool.coverage.run]
 source = ["pymrio"]  
 relative_files = true
+
+[tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -94,4 +96,5 @@ exclude_lines = [
 omit = [
     "pymrio/tools/iodownloader.py"
 ]
+
 

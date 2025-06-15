@@ -1027,8 +1027,8 @@ class Extension(BaseSystem):
         Calculates:
 
         - for each sector and country:
-            S, S_Y (if F_Y available), M, M_down, 
-            D_cba, 
+            S, S_Y (if F_Y available), M, M_down,
+            D_cba,
         - for each region:
             D_cba_reg, D_pba_reg, D_imp_reg, D_exp_reg,
         - for each region (if population vector is given):
@@ -2252,7 +2252,7 @@ class IOSystem(BaseSystem):
         Parameters
         ----------
         include_ghosh : bool, optional
-            If True, includes ghosh calculations in the system and extensions. 
+            If True, includes ghosh calculations in the system and extensions.
             Default is False.
 
         Returns
@@ -2276,7 +2276,7 @@ class IOSystem(BaseSystem):
             2)      A, x        Z, L
             3)      A, Y        L, x, Z
 
-        ghosh will be calculated if include_ghosh is True, after the cases above are 
+        ghosh will be calculated if include_ghosh is True, after the cases above are
         dealt with. The ghosh calculation rely on Z
 
         Parameters
@@ -2284,7 +2284,7 @@ class IOSystem(BaseSystem):
         include_ghosh : bool, optional
             If True, includes ghosh calculations in the system and extensions.
             Default is False.
-                
+
         """
 
         # Possible cases:
