@@ -1027,8 +1027,8 @@ class Extension(BaseSystem):
         Calculates:
 
         - for each sector and country:
-            S, S_Y (if F_Y available), M, M_down, D_cba, D_pba_sector, D_imp_sector,
-            D_exp_sector
+            S, S_Y (if F_Y available), M, M_down, 
+            D_cba, 
         - for each region:
             D_cba_reg, D_pba_reg, D_imp_reg, D_exp_reg,
         - for each region (if population vector is given):
@@ -2243,18 +2243,28 @@ class IOSystem(BaseSystem):
         """
         return calc_gross_trade(Z=self.Z, Y=self.Y)
 
-    def calc_all(self):
+    def calc_all(self, include_ghosh=False):
         """
         Calculates missing parts of the IOSystem and all extensions.
 
-        This method calls calc_system and calc_extensions
+        This method calls `calc_system` and `calc_extensions` to perform the calculations.
 
+        Parameters
+        ----------
+        include_ghosh : bool, optional
+            If True, includes ghosh calculations in the system and extensions. 
+            Default is False.
+
+        Returns
+        -------
+        self : IOSystem
+            The updated IOSystem instance after performing all calculations.
         """
-        self.calc_system()
-        self.calc_extensions()
+        self.calc_system(include_ghosh=include_ghosh)
+        self.calc_extensions(include_ghosh=include_ghosh)
         return self
 
-    def calc_system(self):
+    def calc_system(self, include_ghosh=False):
         """
         Calculates the missing part of the core IOSystem
 
@@ -2265,6 +2275,16 @@ class IOSystem(BaseSystem):
             1)      Z           A, x, L
             2)      A, x        Z, L
             3)      A, Y        L, x, Z
+
+        ghosh will be calculated if include_ghosh is True, after the cases above are 
+        dealt with. The ghosh calculation rely on Z
+
+        Parameters
+        -----------
+        include_ghosh : bool, optional
+            If True, includes ghosh calculations in the system and extensions.
+            Default is False.
+                
         """
 
         # Possible cases:
@@ -2294,21 +2314,23 @@ class IOSystem(BaseSystem):
             self.A = calc_A(self.Z, self.x)
             self.meta._add_modify("Coefficient matrix A calculated")
 
-        if self.B is None:
-            self.B = calc_B(self.Z, self.x)
-            self.meta._add_modify("Coefficient matrix As calculated")
-
         if self.L is None:
             self.L = calc_L(self.A)
             self.meta._add_modify("Leontief matrix L calculated")
 
-        if self.G is None:
-            self.G = calc_G(self.B)
-            self.meta._add_modify("Ghosh matrix G calculated")
+        if include_ghosh:
+
+            if self.B is None:
+                self.B = calc_B(self.Z, self.x)
+                self.meta._add_modify("Normalized industrial flow matrix B calculated")
+
+            if self.G is None:
+                self.G = calc_G(self.B)
+                self.meta._add_modify("Ghosh matrix G calculated")
 
         return self
 
-    def calc_extensions(self, extensions=None, Y_agg=None):
+    def calc_extensions(self, extensions=None, Y_agg=None, include_ghosh=False):
         """Calculates the extension and their accounts
 
         For the calculation, y is aggregated across specified y categories
@@ -2324,6 +2346,10 @@ class IOSystem(BaseSystem):
             The final demand aggregated (one category per country).  Can be
             used to restrict the calculation of CBA of a specific category
             (e.g. households). Default: y is aggregated over all categories
+        include_ghosh : bool, optional
+            If True, includes ghosh calculations in the system and extensions.
+            Default is False.
+
         """
 
         ext_list = list(self.get_extensions(data=False, instance_names=True))

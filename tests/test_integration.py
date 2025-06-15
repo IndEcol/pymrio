@@ -41,33 +41,119 @@ def td_testmrio():
                     ]  # noqa
                 ]
             )
+            M_values = np.array([[
+                0.53905275, 0.56458194, 0.00522754, 0.61727649, 0.01795329,
+                0.00576   , 0.00901308, 0.03437755, 0.00190124, 0.65405409,
+                0.00217839, 0.00183373, 0.01318255, 0.00542445, 0.0124986 ,
+                0.01269937, 0.00225489, 0.00578084, 0.00764994, 0.606239  ,
+                0.06309964, 0.06737699, 0.03933411, 0.17613704, 0.0278522 ,
+                0.47281653, 0.00532731, 0.00304105, 0.33222835, 0.00719231,
+                0.00238421, 0.01539324, 0.57624233, 0.67447196, 0.0054573 ,
+                0.0026126 , 0.50032504, 0.00493196, 0.03067217, 0.02587723,
+                0.00820916, 0.81204114, 0.0060531 , 0.7988727 , 0.16796353,
+                0.05810137, 0.00916826, 0.01801689]])
+            M_down_values = np.array(
+                [[5.63682037e-02, 1.58826114e-01, 2.77181617e-04, 1.24260752e-01,
+                  4.73781802e-04, 1.47221885e-04, 5.08842766e-04, 8.27157324e-04,
+                  2.58260444e-05, 1.40935038e-01, 7.28719271e-05, 5.55187475e-05,
+                  1.31414529e-04, 7.63356055e-05, 3.93032602e-04, 1.59470188e-04,
+                  5.44620512e-05, 1.92986549e-03, 6.09150229e-04, 8.16103355e-02,
+                  3.49016453e-03, 2.79285723e-03, 3.85380897e-03, 1.23089234e-02,
+                  5.14123958e-04, 6.05570091e-02, 7.60911713e-04, 3.07985491e-04,
+                  3.42198855e-03, 4.20922429e-04, 2.13360046e-04, 4.40940379e-04,
+                  8.09987164e-02, 6.75547762e-02, 7.37546870e-04, 3.23573339e-04,
+                  4.90632930e-02, 3.56147875e-04, 3.02290799e-03, 9.35063455e-04,
+                  1.90276590e-04, 1.87421503e-01, 4.46892122e-04, 7.31872326e-02,
+                  3.39365262e-03, 7.98904286e-04, 7.76958438e-04, 4.99082254e-04]])
+
 
     return results
 
 
-def test_all(td_testmrio):
-    """Full integration test
+def test_all_wo_ghosh(td_testmrio):
+    """Full integration test, without ghosh
 
     Checks:
-    1) the cba calculation
-    2) concate extension
+    -) cba calculations
+    -) M calculations
+    -) concate extension
     """
-    mr = pymrio.load_test()
-    mr.calc_all()
+    mr_nog = pymrio.load_test()
+    mr_nog.calc_all(include_ghosh=False)
+
+    assert "A" in mr_nog.get_DataFrame()
+    assert "L" in mr_nog.get_DataFrame()
+    assert "G" not in mr_nog.get_DataFrame()
+    assert "B" not in mr_nog.get_DataFrame()
+
     npt.assert_allclose(
         td_testmrio.factor_inputs.D_imp_values,
-        mr.factor_inputs.D_imp_reg.values,
+        mr_nog.factor_inputs.D_imp_reg.values,
         rtol=1e-5,
     )
+    npt.assert_allclose(
+        td_testmrio.factor_inputs.M_values,
+        mr_nog.factor_inputs.M.values,
+        rtol=1e-5,
+    )
+
     sat_new = pymrio.extension_concate(
-        mr.emissions, mr.factor_inputs, new_extension_name="sat_new"
+        mr_nog.emissions, mr_nog.factor_inputs, new_extension_name="sat_new"
     )
 
     assert len(sat_new.D_cba) == 3
-    assert mr.emissions.F.index[0] in sat_new.F.index
-    assert mr.factor_inputs.F.index[0] in sat_new.F_Y.index
-    assert all(mr.emissions.get_regions() == sat_new.get_regions())
-    assert all(mr.emissions.get_sectors() == sat_new.get_sectors())
+    assert mr_nog.emissions.F.index[0] in sat_new.F.index
+    assert mr_nog.factor_inputs.F.index[0] in sat_new.F_Y.index
+    assert all(mr_nog.emissions.get_regions() == sat_new.get_regions())
+    assert all(mr_nog.emissions.get_sectors() == sat_new.get_sectors())
+    assert "M" in sat_new.get_DataFrame()
+    assert "M_down" not in sat_new.get_DataFrame()
+
+def test_all_with_ghosh(td_testmrio):
+    """Full integration test, with ghosh calcualtion
+
+    Checks:
+    -) cba calculations
+    -) M calculations
+    -) concate extension
+    """
+
+    mr_wig = pymrio.load_test()
+    mr_wig.calc_all(include_ghosh=True)
+
+    assert "A" in mr_wig.get_DataFrame()
+    assert "L" in mr_wig.get_DataFrame()
+    assert "G" in mr_wig.get_DataFrame()
+    assert "B" in mr_wig.get_DataFrame()
+
+    npt.assert_allclose(
+        td_testmrio.factor_inputs.D_imp_values,
+        mr_wig.factor_inputs.D_imp_reg.values,
+        rtol=1e-5,
+    )
+    npt.assert_allclose(
+        td_testmrio.factor_inputs.M_values,
+        mr_wig.factor_inputs.M.values,
+        rtol=1e-5,
+    )
+    npt.assert_allclose(
+        td_testmrio.factor_inputs.M_down_values,
+        mr_wig.factor_inputs.M_down.values,
+        rtol=1e-5,
+    )
+
+    sat_new = pymrio.extension_concate(
+        mr_wig.emissions, mr_wig.factor_inputs, new_extension_name="sat_new"
+    )
+
+    assert len(sat_new.D_cba) == 3
+    assert mr_wig.emissions.F.index[0] in sat_new.F.index
+    assert mr_wig.factor_inputs.F.index[0] in sat_new.F_Y.index
+    assert all(mr_wig.emissions.get_regions() == sat_new.get_regions())
+    assert all(mr_wig.emissions.get_sectors() == sat_new.get_sectors())
+    assert "M" in sat_new.get_DataFrame()
+    assert "M_down" in sat_new.get_DataFrame()
+
 
 
 def test_txt_zip_fileio(tmpdir):
@@ -200,3 +286,7 @@ def test_reports(tmpdir):
 
         assert "png" in cap_pic_file_content[0]
         assert "png" in reg_pic_file_content[0]
+
+
+    
+    
