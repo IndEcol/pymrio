@@ -526,18 +526,20 @@ class BaseSystem:
 
     @property
     def sectors(self):
-        """ Returns the sectors of the MRIO system. """
+        """Returns the sectors of the MRIO system."""
         return self.get_sectors()
 
     @property
     def Y_categories(self):
-        """ Returns the Y categories of the MRIO system. """
+        """Returns the Y categories of the MRIO system."""
         return self.get_Y_categories()
 
     @property
     def DataFrames(self):
         """Returns the DataFrames of the system as generator"""
-        return list(self.get_DataFrame(data=False, with_unit=True, with_population=True))
+        return list(
+            self.get_DataFrame(data=False, with_unit=True, with_population=True)
+        )
 
     @property
     def empty(self):
@@ -2248,12 +2250,12 @@ class IOSystem(BaseSystem):
 
     @property
     def extensions(self):
-        """ Returns the defined extension names """
+        """Returns the defined extension names"""
         return list(self.get_extensions(instance_names=False))
 
     @property
     def extensions_instance_names(self):
-        """ Returns the instance names of the extensions """
+        """Returns the instance names of the extensions"""
         return list(self.get_extensions(instance_names=True))
 
     def get_gross_trade(

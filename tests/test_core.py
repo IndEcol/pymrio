@@ -167,6 +167,7 @@ def test_set_index(fix_testmrio):
     assert tt.emissions.get_index()[0] == new_index[0]
     assert tt.emissions.get_index()[1] == new_index[1]
 
+
 def test_properties(fix_testmrio):
     """
     Test the convinience properties of the MRIO system.
@@ -180,9 +181,13 @@ def test_properties(fix_testmrio):
     assert all(tt.emissions.Y_categories == tt.get_Y_categories())
     assert all(tt.emissions.rows == tt.emissions.get_rows())
     assert tt.DataFrames == list(tt.get_DataFrame(data=False))
-    assert tt.factor_inputs.DataFrames == list(tt.factor_inputs.get_DataFrame(data=False))
+    assert tt.factor_inputs.DataFrames == list(
+        tt.factor_inputs.get_DataFrame(data=False)
+    )
     assert tt.extensions == list(tt.get_extensions(data=False, instance_names=False))
-    assert tt.extensions_instance_names == list(tt.get_extensions(data=False, instance_names=True))
+    assert tt.extensions_instance_names == list(
+        tt.get_extensions(data=False, instance_names=True)
+    )
 
 
 def test_get_sectors(fix_testmrio):

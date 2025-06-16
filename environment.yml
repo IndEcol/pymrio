@@ -23,6 +23,7 @@ dependencies:
   - isort >= 5.6.0
   - nbval
   - black >= 22.8
+  - black[jupyter]
   - ipython
   - jupyterlab=3.*
   - jupytext

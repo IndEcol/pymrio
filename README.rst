@@ -122,7 +122,7 @@ To visualize the accounts:
 
 .. code:: python
 
-    import matplotlib as plt
+    import matplotlib.pyplot as plt
     test_mrio.emissions.plot_account('emission_type1')
     plt.show()
 
@@ -162,26 +162,10 @@ Please check `CONTRIBUTING.rst`_ if you want to help to improve Pymrio.
 Communication, issues, bugs and enhancements
 ============================================
 
+
 Please use the issue tracker for documenting bugs, proposing enhancements and all other communication related to pymrio.
 
 You can follow me on twitter_ to get the latest news about all my open-source and research projects (and occasionally some random retweets).
-
-Research notice
-~~~~~~~~~~~~~~~
-
-Please note that this repository is participating in a study into
-sustainability of open source projects. Data will be gathered about this
-repository for approximately the next 12 months, starting from June
-2021.
-
-Data collected will include number of contributors, number of PRs, time
-taken to close/merge these PRs, and issues closed.
-
-For more information, please visit `the informational
-page <https://sustainable-open-science-and-software.github.io/>`__ or
-download the `participant information
-sheet <https://sustainable-open-science-and-software.github.io/assets/PIS_sustainable_software.pdf>`__.
-
 
 .. _twitter: https://twitter.com/kst_stadler
 
