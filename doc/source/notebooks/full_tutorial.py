@@ -465,11 +465,13 @@ print("Temporary files cleaned up")
 # We covered the main functionality of pymrio in this tutorial.
 #
 # Pymrio has many more features, including aggregation, renaming and restructuring, and analysing the source of stressors. You can explore these topics in more detail in the following example notebooks:
+#
 # - [Aggregation Examples](aggregation_examples.ipynb)
 # - [Adjusting, Renaming and Restructuring](adjusting.ipynb)
 # - [Analysing the Source of Stressors (Flow Matrix)](buildflowmatrix.ipynb)
 #
 # For working with specific MRIO databases, see for example:
+#
 # - [EXIOBASE](working_with_exiobase.ipynb)
 # - [WIOD](working_with_wiod.ipynb)
 # - [GLORIA](working_with_gloria.ipynb)
