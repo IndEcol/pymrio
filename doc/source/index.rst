@@ -10,6 +10,7 @@ Contents:
 
    intro
    installation
+   Basic Tutorial <notebooks/full_tutorial>
    terminology
    math
    Automatic MRIO download <notebooks/autodownload>

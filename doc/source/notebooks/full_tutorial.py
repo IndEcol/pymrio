@@ -143,7 +143,7 @@ print(test_mrio)
 test_mrio.emissions.M_down
 
 # %% [markdown]
-# See the [math section](Mathematical background.rst) of the documentation for further details on the Ghosh calculations.
+# See the [math section](../math.rst) of the documentation for further details on the Ghosh calculations.
 
 
 # %% [markdown]
@@ -200,8 +200,8 @@ print("Extensions containing 'type':", all_extension_search)
 # ## Using Functions from iomath
 #
 # Pymrio's `iomath` module provides low-level functions for specific calculations:
-
-import numpy as np
+#
+# import numpy as np
 
 # %%
 from pymrio.tools import iomath
@@ -407,8 +407,8 @@ characterization_result.extension.F
 # larger side.
 #
 #
-
-import os
+#
+# import os
 
 # %%
 import tempfile

@@ -3333,38 +3333,44 @@ class IOSystem(BaseSystem):
             This requires a specific structure:
 
             - Constraining data (e.g. stressors, regions, sectors) can be
-            either in the index or columns of df_orig. The need to have the same
-            name as the named index or column in df_orig. The algorithm searches
-            for matching data in df_orig based on all constraining columns in df_map.
+              either in the index or columns of df_orig. The need to have the
+              same name as the named index or column in df_orig. The algorithm
+              searches for matching data in df_orig based on all constraining
+              columns in df_map.
 
-            - Bridge columns are columns with '__' in the name. These are used to
-            map (bridge) some/all of the constraining columns in df_orig to the new
-            classification.
+            - Bridge columns are columns with '__' in the name. These are used
+              to map (bridge) some/all of the constraining columns in df_orig
+              to the new classification.
 
-            - One column "factor", which gives the multiplication factor for the
-            conversion. If it is missing, it is set to 1.
-
+            - One column "factor", which gives the multiplication factor for
+              the conversion. If it is missing, it is set to 1.
 
             This is better explained with an example.
+
             Assuming a original dataframe df_orig with
             index names 'stressor' and 'compartment' and column name 'region',
             the characterizing dataframe could have the following structure (column names):
 
-            stressor ... original index name
-            compartment ... original index name
-            region ... original column name
-            factor ... the factor for multiplication/characterization
+            - stressor: original index name
+
+            - compartment: original index name
+            
+            - region: original column name
+
+            - factor: the factor for multiplication/characterization
                 If no factor is given, the factor is assumed to be 1.
                 This can be used, to simplify renaming/aggregation mappings.
-            impact__stressor ... the new index name,
+
+            - impact__stressor: the new index name,
                 replacing the previous index name "stressor".
                 Thus here "stressor" will be renamed to "impact", and the row index
                 will be renamed by the entries here.
-            compartment__compartment ... the new compartment,
+
+            - compartment__compartment: the new compartment,
                 replacing the original compartment. No rename of column happens here,
                 still row index will be renamed as given here.
 
-            the columns with __ are called bridge columns, they are used
+            The columns with __ are called bridge columns, they are used
             to match the original index. The new dataframe with have index names
             based on the first part of the bridge column, in the order
             in which the bridge columns are given in the mapping dataframe.
@@ -3561,7 +3567,6 @@ def extension_characterize(
     stressors.
 
 
-
     Parameters
     -----------
     extensions : list of extensions
@@ -3721,18 +3726,18 @@ def extension_convert(
         The DataFrame with the mapping of the old to the new classification.
         This requires a specific structure:
 
-        - Constraining data (e.g. stressors, regions, sectors) can be
-        either in the index or columns of df_orig. The need to have the same
-        name as the named index or column in df_orig. The algorithm searches
-        for matching data in df_orig based on all constraining columns in df_map.
+        - Constraining data (e.g. stressors, regions, sectors) can be either
+          in the index or columns of df_orig. The need to have the same name
+          as the named index or column in df_orig. The algorithm searches for
+          matching data in df_orig based on all constraining columns in
+          df_map.
 
         - Bridge columns are columns with '__' in the name. These are used to
-        map (bridge) some/all of the constraining columns in df_orig to the new
-        classification.
+          map (bridge) some/all of the constraining columns in df_orig to the
+          new classification.
 
         - One column "factor", which gives the multiplication factor for the
-        conversion. If it is missing, it is set to 1.
-
+          conversion. If it is missing, it is set to 1.
 
         This is better explained with an example.
         Assuming a original dataframe df_orig with

@@ -30,8 +30,8 @@
 #
 # We will cover each of these points in the examples below.
 # First [we will go through the general setup](#Basic-setup) describing the structure of the bridging/mapping table.
-# We will then cover the application of the [conversion function to a single, standalone table](#Converting-standalone-table).
-# There we will show [how to rename the index/stressor names](#Renaming-the-index-of-a-single-table), do [unit conversions](#Unit-conversion),
+# We will then cover the application of the [conversion function to a single, standalone table](#Converting-standalone-tables).
+# There we will show how to rename the index/stressor names, do [unit conversions](#Unit-conversion),
 # and then do [global](#Global-characterization-factors) and [regional](#Regional-specific-characterization-factors) characterizations.
 # For the case of converting a full pymrio Extension, see the [converting pymrio extensions](#Converting-pymrio-Extensions) section.
 #
