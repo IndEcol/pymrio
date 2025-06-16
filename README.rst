@@ -8,10 +8,10 @@ Pymrio: Multi-Regional Input-Output Analysis in Python.
     :target: https://pypi.python.org/pypi/pymrio/
 .. image:: https://anaconda.org/conda-forge/pymrio/badges/version.svg   
     :target: https://anaconda.org/conda-forge/pymrio
-.. image:: https://github.com/konstantinstadler/pymrio/workflows/build/badge.svg
-    :target: https://github.com/konstantinstadler/pymrio/actions
-.. image:: https://coveralls.io/repos/github/konstantinstadler/pymrio/badge.svg?branch=master
-    :target: https://coveralls.io/github/konstantinstadler/pymrio
+.. image:: https://github.com/IndEcol/pymrio/workflows/build/badge.svg
+    :target: https://github.com/IndEcol/pymrio/actions
+.. image:: https://coveralls.io/repos/github/IndEcol/pymrio/badge.svg?branch=master
+    :target: https://coveralls.io/github/IndEcol/pymrio
 .. image:: https://readthedocs.org/projects/pymrio/badge/?version=latest
     :target: http://pymrio.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
@@ -44,7 +44,7 @@ Further functions include:
 Where to get it
 ===============
 
-The full source code is available on Github at: https://github.com/konstantinstadler/pymrio
+The full source code is available on Github at: https://github.com/IndEcol/pymrio
 
 Pymrio is registered at PyPI and on the Anaconda Cloud. Install it by:
 
@@ -64,14 +64,14 @@ or update to the latest version by
 
     conda update -c conda-forge pymrio
 
-The source-code of Pymrio available at the GitHub repo: https://github.com/konstantinstadler/pymrio  
+The source-code of Pymrio available at the GitHub repo: https://github.com/IndEcol/pymrio  
 
 The master branch in that repo is supposed to be ready for use and might be 
 ahead of the official releases. To install directly from the master branch use:
 
 .. code:: bash
 
-    pip install git+https://github.com/konstantinstadler/pymrio@master
+    pip install git+https://github.com/IndEcol/pymrio@master
 
 
 
@@ -122,7 +122,7 @@ To visualize the accounts:
 
 .. code:: python
 
-    import matplotlib as plt
+    import matplotlib.pyplot as plt
     test_mrio.emissions.plot_account('emission_type1')
     plt.show()
 
@@ -157,31 +157,15 @@ Contributing
 Want to contribute? Great!
 Please check `CONTRIBUTING.rst`_ if you want to help to improve Pymrio.
   
-.. _CONTRIBUTING.rst: https://github.com/konstantinstadler/pymrio/blob/master/CONTRIBUTING.rst
+.. _CONTRIBUTING.rst: https://github.com/IndEcol/pymrio/blob/master/CONTRIBUTING.rst
    
 Communication, issues, bugs and enhancements
 ============================================
 
+
 Please use the issue tracker for documenting bugs, proposing enhancements and all other communication related to pymrio.
 
 You can follow me on twitter_ to get the latest news about all my open-source and research projects (and occasionally some random retweets).
-
-Research notice
-~~~~~~~~~~~~~~~
-
-Please note that this repository is participating in a study into
-sustainability of open source projects. Data will be gathered about this
-repository for approximately the next 12 months, starting from June
-2021.
-
-Data collected will include number of contributors, number of PRs, time
-taken to close/merge these PRs, and issues closed.
-
-For more information, please visit `the informational
-page <https://sustainable-open-science-and-software.github.io/>`__ or
-download the `participant information
-sheet <https://sustainable-open-science-and-software.github.io/assets/PIS_sustainable_software.pdf>`__.
-
 
 .. _twitter: https://twitter.com/kst_stadler
 

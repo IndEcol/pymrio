@@ -10,27 +10,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+        uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.8
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python-version: 3.11
       - name: Install package
         run: |
+          python -m pip install --upgrade pip
+          pip install twine
           pip install . -U
-          python setup.py sdist
+
+       - name: List installed packages
+         run: pip show pymrio && pip list
+
+      - name: Build and check packages
+        run: |
+          python -m build
+          twine check --strict dist/*
+
       - name: Upload
         uses: pypa/gh-action-pypi-publish@master
         with:

@@ -2,8 +2,163 @@
 Changelog
 #########
 
+
+******************
+v0.6.0 - 20250616
+******************
+
+
+Breaking Changes
+================
+
+* The `characterize` function of the extension object has been reimplemented. 
+  The updated method generalises the previous approach for region- and sector-specific characterisations. 
+  It is closely integrated with the general `characterize` function, enabling characterisation across 
+  different extensions (refer to the section under New Features).
+
+* The `get_extensions` function has a revised signature, introducing two new parameters: `names` and `instance_names`.
+
+    - `names`: Enables filtering of extensions by name (either the `.name` attribute or instance names). 
+      It also allows passing the extension itself and can be used to harmonise the names within an extension list.
+    - `instance_names`: When set to `False`, retrieves the "set names" of the extensions.
+
+    Existing keyword arguments should continue to function with the new signature.
+
+* The behaviour of `remove_extension` has been modified. Previously, all extensions were removed if no name was provided. 
+  Now, all extensions are retained when no name is specified, and a `TypeError` is raised. 
+  To remove all extensions, use `mrio.remove_extension(mrio.get_extensions())`.
+
+* The `concate_extension` function has been renamed to `extension_concate` for consistency with `extension_convert` and `_characterize`.
+
+* The `concate_extension` argument `name` has been renamed to `new_extension_name`.
+
+New Features
+============
+
+* A new top-level `characterize` function has been introduced.
+
+* Extension concatenation functionality is now available as a method of an `mrio` object.
+
+* Added functionality to download and parse the 2023 release of OECD IO tables (contributed by @jaimeoliver1, #132).
+
+* Optional Ghosh implementation for downstream analysis has been added (contributed by @Beckebanze, #136, #146).
+
+    - Equivalent of matrix `A` for Ghosh (referred to as `B` in pymrio).
+    - The Ghosh inverse (commonly referred to as `G` in literature).
+    - Downstream scope 3 multiplier, `M_{down}`, such that the sum of `M + M_{down}` represents the full scope multiplier. 
+      Here, `M` is the existing multiplier in pymrio, covering scopes 1, 2, and 3 upstream.
+    - A brief addition to the pymrio background documentation introducing the Ghosh model.
+    - Tests verifying the functionality of the added features.
+
+    To utilise this feature, pass `include_ghosh=True` to the `calc_all` or `calc_system` calls.
+
+* Some convenience functions have been added to the MRIO object.
+    - sectors ... shortand for `mrio.get_sectors()`
+    - regions ... shorthand for `mrio.get_regions()`
+    - Y_categories ... shorthand for `mrio.get_Y_categories()`
+    - rows ... shorthand for `mrio.extension.get_rows()`
+    - extensions ... shorthand for `mrio.get_extensions(instance_names=False)`
+    - extensions_instance_names ... shorthand for `mrio.get_extensions(instance_names=True)`
+    - DataFrame ... shorthand for `mrio.get_dataframe()`
+
+
+Deprecated
+==========
+
+* `extension.get_row_data()`: This method is deprecated and will be removed in a future version. Use `extension.extract()` as an alternative.
+
+Miscellaneous
+=============
+
+* Documentation has been updated and restructured.
+
+* Multiple warnings related to deprecation in pandas have been resolved.
+
+* Adopted OECD ICIO MRIO column rename to `out` (contributed by @spjuhel, #160).
+
+* Fixed warnings regarding regex characters (contributed by @pcorpet, #155).
+
 ***************************
-v0.4.8
+v0.5.4 - 20240412
+***************************
+
+New features
+============
+
+* added functionality to download and parse 2023 release of OECD IO tables (by @jaimeoliver1, #132)
+
+* Added draft ghosh implementation for downstream analysis (by @Beckebanze , #136)
+
+    - equivalent of A for Ghosh (A* in literature, called As in pymrio)
+    - the Ghosh inverse (often referred to G in literature). 
+    - downstream scope 3 multiplier, M_{down}, such the sum of the M+M_{down} is the full scope multiplier, with M the existing multiplier in pymrio that covers scope 1,2&3 upstream.
+    - a short addition to the pymrio background page that introduces the Ghosh model
+    - tests that test the functionality of the added functions
+
+***************************
+v0.5.3 - 20231023
+***************************
+
+Bugfixes
+========
+
+* Fix downloader for new Zenodo API (by @hazimhussein)
+* Fix coverage report (by @konstantinstadler)
+
+***************************
+v0.5.2 - 20230815
+***************************
+
+New features
+============
+
+* OECD bundle download (by @hazimhussein) - see https://pymrio.readthedocs.io/en/latest/notebooks/autodownload.html#OECD-download
+* Fix EORA26 parsing (by @hazimhussein)
+
+Development
+===========
+
+* Switched to Micromamba in the CI 
+* Fixed readthedocs settings
+
+
+***************************
+v0.5.1 - 20230615
+***************************
+
+* small bugfix with version numbering
+
+***************************
+v0.5.0 - 20230615
+***************************
+
+Development
+===========
+
+* Move the repository to the public IndEcol organization on GitHub: https://github.com/IndEcol/pymrio
+
+Breaking changes
+================
+
+* dropped support for Python 3.7 and added 3.10 and 3.11
+* License changed to LESSER GNU GENERAL PUBLIC LICENSE v3 (LGPLv3)
+* added pyarrow as requirment
+
+New features
+============
+
+* Autodownloader for GLORIA MRIO (by @hazimhussein)
+* Parsing GLORIA (by @francis-barre, #139)
+* Support of parquet format for load and save function 
+
+
+Bugfixes
+============
+
+* Fix Eora downloader (by @hazimhussein)
+
+***************************
+v0.4.8 - 20221116
 ***************************
 
 * Added inbuild classification for 
@@ -21,13 +176,13 @@ Bugfixes
 * updated deprecated pandas methods - fix #93
 
 ***************************
-v0.4.7
+v0.4.7 - 20220428
 ***************************
 
 * Fixed OECD downloader and parser (by @jaimeoliver1)
 
 ***************************
-v0.4.6
+v0.4.6 - 20211118
 ***************************
 
 * Fixed indexing bug in calc_accounts for non-full Y 

@@ -32,8 +32,9 @@ Session.vim
 /.idea
 /**/.ipynb_checkpoints/
 tags
-
+.vscode/
 # Coverage stuff
 .coverage
 /htmlcov
 /**/htmlcov
+*.swp

@@ -13,10 +13,10 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Cache conda
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       env:
         # Increase this value to reset cache if etc/example-environment.yml has not changed
         CACHE_NUMBER: 0
@@ -26,29 +26,40 @@ jobs:
           ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
           hashFiles('environment.yml') }}
 
-    - name: Setup conda and environment
-      uses: conda-incubator/setup-miniconda@v2
+    - uses: mamba-org/setup-micromamba@v2
+      env:
+        ACTIONS_STEP_DEBUG: true
       with:
-          auto-update-conda: true
-          channels: conda-forge,defaults
-          mamba-version: "*"
-          channel-priority: true
-          activate-environment: coco-dev
+          micromamba-version: '2.2.0-0'
           environment-file: environment.yml
-          use-only-tar-bz2: true   # required for caching
+          init-shell: >-
+            bash
+            powershell
+          cache-environment: true
+          cache-downloads: true
+          post-cleanup: 'all'
+
 
     - name: List environment
       run: |
-        mamba info
-        mamba list
+        micromamba info
+        micromamba list
 
     - name: Run tests
       run: |
          isort --project pymrio --profile black --check-only .
-         coverage run --source=pymrio -m pytest --black -vv
+         coverage run --source=pymrio -m pytest -vv
 
-    - name: Coveralls analysis
-      run: COVERALLS_REPO_TOKEN=Om5uiItcP8u6aHRGWiWKjmNkZL1LKoHSB coveralls
+    # - name: Coveralls analysis
+    #   run: COVERALLS_REPO_TOKEN=hCmKdeZ5j9ao62VSpZWWUyBrAh1dmlQ coveralls
+
+    - name: Upload coverage to Coveralls
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Optionally, if you get 422, try setting:
+        # COVERALLS_SERVICE_NAME: github-actions
+      run: |
+        coveralls
 
 
  test_production:
@@ -60,24 +71,28 @@ jobs:
         # removed -l as this breaks in mac-os
         shell: bash {0}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.9, "3.10", "3.11", "3.12"]
 
     steps:
        - name: Check out repository code
-         uses: actions/checkout@v2
+         uses: actions/checkout@v4
 
        - name: Setup Python
-         uses: actions/setup-python@v2
+         uses: actions/setup-python@v5
          with:
             python-version: ${{matrix.python-version}}
 
-       - name: Run tests
+       - name: Install dependencies
          run: |
-            pip install . -U
-            pip install pytest
-            python setup.py sdist
-            pytest -vv
+            pip install -U pip
+            pip install .[test]  
+
+       - name: List installed packages
+         run: pip show pymrio && pip list
+
+       - name: Run production tests
+         run: pytest -vv
 

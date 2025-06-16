@@ -1,19 +1,18 @@
-""" Test for producing graphical outputs
+"""Test for producing graphical outputs
 
-    The report functionality is tested separately
-    in test_integration
+The report functionality is tested separately
+in test_integration
 
-    Note
-    ----
+Note
+----
 
-    Here we use the values returned from the plotted graph
-    for testing. Regression tests against plotted graphs,
-    as provided by image_comparison decorator of matplotlib,
-    are not used since this is deprecated and also not consistent
-    across different plotting engines.
+Here we use the values returned from the plotted graph
+for testing. Regression tests against plotted graphs,
+as provided by image_comparison decorator of matplotlib,
+are not used since this is deprecated and also not consistent
+across different plotting engines.
 
 """
-
 
 import os
 import sys
@@ -80,7 +79,7 @@ def test_graphs_population_sector(fix_testmrio_calc):
     # (cba, pba, imp, exp) for each region
     sec_reg1_pop = (
         tt.emissions.D_cba.loc[stressor, ("reg1", sector)] / tt.population.reg1
-    )[0]
+    ).iloc[0]
 
     assert ax.patches[0].get_height() == sec_reg1_pop
 

@@ -19,6 +19,7 @@ Test system
 
     load_test
 
+
 Download MRIO databases
 ===========================
 
@@ -108,9 +109,12 @@ for one specified row.
 
    Extension.get_row_data
 
-***********************
-Exploring the IO System
-***********************
+********************
+Exploring and Search
+********************
+
+Structure
+==========
 
 The following functions provide informations about the structure of
 the IO System and the extensions. The methods work on the IOSystem as well as
@@ -128,6 +132,24 @@ directly on the Extensions.
    IOSystem.get_gross_trade
    Extension.get_rows
 
+
+Finding accounts
+================
+
+.. autosummary::
+   :toctree: api_doc/
+
+   IOSystem.find
+   IOSystem.contains
+   IOSystem.match
+   IOSystem.fullmatch
+   Extension.contains
+   Extension.match
+   Extension.fullmatch
+   IOSystem.extension_contains
+   IOSystem.extension_fullmatch
+   IOSystem.extension_match
+   index_contains
 
 
 ************
@@ -161,10 +183,13 @@ numpy array.
    calc_x
    calc_Z
    calc_A
+   calc_B
    calc_L
+   calc_G
    calc_S
    calc_F
    calc_M
+   calc_M_down
    calc_e
    calc_accounts
 
@@ -227,7 +252,9 @@ Changing extensions
    :toctree: api_doc/
 
    IOSystem.remove_extension
-   concate_extension
+   extension_concate
+   extension_characterize
+   extension_convert
    parse_exio12_ext
 
 Adjusting and Renaming
@@ -269,6 +296,22 @@ Visualization
    :toctree: api_doc/
 
    Extension.plot_account
+
+*******
+Utility
+*******
+
+Routines developed for pymrio which can also be used independently.
+
+.. autosummary::
+   :toctree: api_doc/
+
+   index_match
+   index_contains
+   index_fullmatch
+   build_agg_matrix
+   build_agg_vec
+
 
 *************
 Miscellaneous

@@ -19,44 +19,39 @@ Misc
 ----
 
 Standard abbreviation for that module: mr
-Dependencies:
-
-- numpy
-- scipy
-- pandas
-- matplotlib
-- docutils (only for IOSystem.report* if format is html and tex - not
-            imported otherwise)
-
-:Authors: Konstantin Stadler
-
-:license: BSD 3-Clause License
 
 """
 
-import logging
-import sys
-
 from pymrio.core.fileio import *
-from pymrio.core.mriosystem import Extension, IOSystem, concate_extension
+from pymrio.core.mriosystem import (
+    Extension,
+    IOSystem,
+    extension_characterize,
+    extension_concate,
+    extension_convert,
+)
 from pymrio.tools.ioclass import ClassificationData, get_classification
 from pymrio.tools.iodownloader import (
     download_eora26,
     download_exiobase1,
     download_exiobase2,
     download_exiobase3,
+    download_gloria,
     download_oecd,
     download_wiod2013,
 )
 from pymrio.tools.iomath import (
     calc_A,
     calc_accounts,
+    calc_B,
     calc_e,
     calc_F,
     calc_F_Y,
+    calc_G,
     calc_gross_trade,
     calc_L,
     calc_M,
+    calc_M_down,
     calc_S,
     calc_S_Y,
     calc_x,
@@ -65,5 +60,14 @@ from pymrio.tools.iomath import (
 )
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioparser import *
-from pymrio.tools.ioutil import build_agg_matrix, build_agg_vec
+from pymrio.tools.ioutil import (
+    build_agg_matrix,
+    build_agg_vec,
+    convert,
+    extend_rows,
+    index_contains,
+    index_fullmatch,
+    index_match,
+    to_long,
+)
 from pymrio.version import __version__

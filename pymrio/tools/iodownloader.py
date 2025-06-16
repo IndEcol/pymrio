@@ -1,15 +1,20 @@
-""" Utility functions for automatic downloading of public MRIO databases
-"""
+"""Utility functions for automatic downloading of public MRIO databases"""
 
+import getpass
 import itertools
+import json
 import os
 import re
+import ssl
 import zipfile
 from collections import namedtuple
 
 import requests
+import urllib3
 
+from pymrio.core.constants import __ROOT, GLORIA_URLS
 from pymrio.tools.iometadata import MRIOMetaData
+from pymrio.tools.ioutil import filename_from_url, ssl_fix
 
 WIOD_CONFIG = {
     "url_db_view": "http://www.wiod.org/database/wiots13",
@@ -37,7 +42,7 @@ EXIOBASE3_CONFIG = {
     # "url_db_view": "https://doi.org/10.5281/zenodo.3583071",  # version 3.7
     # "url_db_view": "https://doi.org/10.5281/zenodo.4277368",  # version 3.8
     "url_db_content": "",
-    "mrio_regex": r"https://zenodo.org/record/\d*/files/IOT_\d\d\d\d_[p,i]x[p,i].zip",
+    "mrio_regex": r"https://zenodo.org/records/\d*/files/IOT_\d\d\d\d_[p,i]x[p,i].zip",
     "requests_func": requests.get,
 }
 
@@ -86,7 +91,21 @@ OECD_CONFIG = {
             "2010-2014": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=2c2f499f-5703-4034-9457-2f7518e8f2fc",
             "2015-2018": "https://stats.oecd.org/wbos/fileview2.aspx?IDFile=59a3d7f2-3f23-40d5-95ca-48da84c0f861",
         },
+        "v2023": {
+            "1995-2000": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=d26ad811-5b58-4f0c-a4e3-06a1469e475c",
+            "2001-2005": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=7cb93dae-e491-4cfd-ac67-889eb7016a4a",
+            "2006-2010": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=ea165bfb-3a85-4e0a-afee-6ba8e6c16052",
+            "2011-2015": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=1f791bc6-befb-45c5-8b34-668d08a1702a",
+            "2016-2020": "http://stats.oecd.org/wbos/fileview2.aspx?IDFile=d1ab2315-298c-4e93-9a81-c6f2273139fe",
+        },
     },
+}
+
+GLORIA_CONFIG = {"datafiles": GLORIA_URLS}
+
+HEADERS = {
+    # Standard headers for downloading files, just python requests gets blocked quite often
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/131.0"
 }
 
 
@@ -95,6 +114,7 @@ def _get_url_datafiles(
     url_db_content,
     mrio_regex,
     access_cookie=None,
+    headers=HEADERS,
     requests_func=requests.post,
 ):
     """Urls of mrio files by parsing url content for mrio_regex
@@ -115,9 +135,13 @@ def _get_url_datafiles(
     access_cookie: dict, optional
         If needed, cookie to access the database
 
+    headers: dict, optional
+        Header to be passed to the request_func function fetching the data
+
     requests_func: function
         Function to use for retrieving the url content.
         Can be requests.get or requests.post
+
 
     Returns
     -------
@@ -129,13 +153,18 @@ def _get_url_datafiles(
     # Use post here - NB: get could be necessary for some other pages
     # but currently works for wiod and eora
     returnvalue = namedtuple("url_content", ["raw_text", "data_urls"])
-    url_text = requests_func(url_db_view, cookies=access_cookie).text
+    url_text = requests_func(url_db_view, cookies=access_cookie, headers=headers).text
     data_urls = [url_db_content + ff for ff in re.findall(mrio_regex, url_text)]
     return returnvalue(raw_text=url_text, data_urls=data_urls)
 
 
 def _download_urls(
-    url_list, storage_folder, overwrite_existing, meta_handler, access_cookie=None
+    url_list,
+    storage_folder,
+    overwrite_existing,
+    downlog_handler,
+    access_cookie=None,
+    headers=HEADERS,
 ):
     """Save url from url_list to storage_folder
 
@@ -154,40 +183,55 @@ def _download_urls(
         the storage folder (default). Set to True to replace
         files.
 
-    meta_handler: instance of MRIOMetaData
+    downlog_handler: instance of MRIOMetaData
+        Instance of MRIOMetaData to store the download log
 
     access_cookie: cookie, optional
         Cookie to be passed to the requests.post function fetching the data
+
+    headers: dict, optional
+        Header to be passed to the requests.get function fetching the data
+        Be default a Firefox, set in the HEADER variable
 
 
     Returns
     -------
 
-    The meta_handler is passed back
+    The downlog_handler is passed back
 
     """
+
     for url in url_list:
-        filename = os.path.basename(url)
+        filename = filename_from_url(url)
+        if downlog_handler.name == "Eora":
+            filename = filename.split(".zip")[0] + ".zip"
         if not overwrite_existing and filename in os.listdir(storage_folder):
+            downlog_handler._add_fileio(
+                "Skip download existing file {}".format(filename)
+            )
             continue
         storage_file = os.path.join(storage_folder, filename)
 
         # Using requests here - tried with aiohttp but was actually slower
         # Also don’t use shutil.copyfileobj - corrupts zips from Eora
         # req = requests.post(url, stream=True, cookies=access_cookie)
-        req = requests.get(url, stream=True, cookies=access_cookie)
+        req = requests.get(url, stream=True, cookies=access_cookie, headers=headers)
+        if req.status_code != 200:
+            raise requests.exceptions.HTTPError(
+                "HTTP Error {} for {}".format(req.status_code, url)
+            )
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
 
-        meta_handler._add_fileio("Downloaded {} to {}".format(url, filename))
-        meta_handler.save()
+        downlog_handler._add_fileio("Downloaded {} to {}".format(url, filename))
+        downlog_handler.save()
 
-    return meta_handler
+    return downlog_handler
 
 
 def download_oecd(
-    storage_folder, version="v2021", years=None, overwrite_existing=False
+    storage_folder, version="v2023", years=None, overwrite_existing=False
 ):
     """Downloads the OECD ICIO tables
 
@@ -206,7 +250,10 @@ def download_oecd(
         version to be downloaded.
 
     years: list of int (4 digit) or str, optional
-        If years is given only downloads the specific years.
+        If years is given only downloads the specific years or corresponding bundles in v2021.
+        v2021 is only available in 5-years bundles 1995-1999, 2000-2004,..., 2015-2018, specific
+        bundles can be specified as str "1995-1999" otherwise the corresponding bundles for
+        the required years would be downloaded
 
     overwrite_existing: boolean, optional
         If False, skip download of file already existing in
@@ -228,30 +275,39 @@ def download_oecd(
     os.makedirs(storage_folder, exist_ok=True)
 
     if type(version) is int:
-        version = str(version)
+        version = "v" + str(version)
 
-    if ("8" in version) or ("4" in version):
-        version = "v2018"
-    elif ("3" in version) or ("6" in version):
-        version = "v2016"
-    elif "21" in version:
-        version = "v2021"
-    else:
+    if not version in ("v2016", "v2018", "v2021", "v2023"):
         raise ValueError("Version not understood")
 
     if type(years) is int or type(years) is str:
         years = [years]
+
+    if version == "v2021":
+        bundle_years = ["1995-1999", "2000-2004", "2005-2009", "2010-2014", "2015-2018"]
+    elif version == "v2023":
+        bundle_years = ["1995-2000", "2001-2005", "2006-2010", "2011-2015", "2016-2020"]
+
     if not years:
         if version == "v2018":
             years = range(2005, 2016)
         elif version == "v2021":
-            years = ["1995-1999", "2000-2004", "2005-2009", "2010-2014", "2015-2018"]
-
+            years = bundle_years.copy()
+        elif version == "v2023":
+            years = bundle_years.copy()
         else:
             years = range(1995, 2012)
+
     years = [str(yy) for yy in years]
 
-    meta = MRIOMetaData(
+    if version == "v2021" or version == "v2023":
+        for index, year in enumerate(years):
+            if year not in bundle_years:
+                for yr in bundle_years:
+                    if int(yr[:4]) <= int(year) <= int(yr[-4:]):
+                        years[index] = yr
+
+    downlog = MRIOMetaData._make_download_log(
         location=storage_folder,
         description="OECD-ICIO download",
         name="OECD-ICIO",
@@ -259,47 +315,58 @@ def download_oecd(
         version=version,
     )
 
-    oecd_webcontent = requests.get(OECD_CONFIG["url_db_view"]).text
     for yy in years:
         if yy not in OECD_CONFIG["datafiles"][version].keys():
             raise ValueError("Datafile for {} not specified or available.".format(yy))
-        if version == "v2016":
-            url_to_check = os.path.basename(OECD_CONFIG["datafiles"][version][yy])
-        elif version == "v2021":
-            url_to_check = os.path.basename(OECD_CONFIG["datafiles"][version][yy])
-        else:
-            url_to_check = OECD_CONFIG["datafiles"][version][yy]
-
-        if url_to_check not in oecd_webcontent:
-            raise ValueError(
-                "Specified datafile for {} () not found in the current"
-                "OECD ICIO webpage.\n"
-                "Perhaps filenames have been changed - update OECD_CONFIG "
-                "to the new filenames".format(yy, url_to_check)
-            )
 
         filename = "ICIO" + version.lstrip("v") + "_" + yy + ".zip"
+
+        if not overwrite_existing:
+            if version == "v2021":
+                filenames = [
+                    f"ICIO{version.lstrip('v')}_{str(yr)}.csv"
+                    for yr in range(int(yy[:4]), int(yy[-4:]) + 1)
+                ]
+                if set(filenames).issubset(os.listdir(storage_folder)):
+                    continue
+            if version == "v2023":
+                filename = "ICIO-" + yy + "-extended.zip"
+                filenames = [f"{yr}.zip" for yr in range(int(yy[:4]), int(yy[-4:]) + 1)]
+
+            elif filename in os.listdir(storage_folder):
+                continue
+
+        req = ssl_fix(OECD_CONFIG["datafiles"][version][yy], stream=True)
         storage_file = os.path.join(storage_folder, filename)
 
-        req = requests.get(OECD_CONFIG["datafiles"][version][yy], stream=True)
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
 
-        if version == "v2021":
+        if version == "v2021" or version == "v2023":
             with zipfile.ZipFile(storage_file, "r") as zip_ref:
                 zip_ref.extractall(storage_folder)
             os.remove(storage_file)
+            if version == "v2023":
+                for file in os.listdir(storage_folder):
+                    absolute_path = os.path.join(storage_folder, file)
+                    os.rename(
+                        os.path.join(storage_folder, file),
+                        os.path.join(
+                            storage_folder,
+                            "ICIO2023_" + file.replace("_SML", ""),
+                        ),
+                    )
 
-        meta._add_fileio(
+        downlog._add_fileio(
             "Downloaded {} to {}".format(
                 OECD_CONFIG["datafiles"][version][yy], filename
             )
         )
 
-    meta.save()
+    downlog.save()
 
-    return meta
+    return downlog
 
 
 def download_wiod2013(
@@ -367,7 +434,7 @@ def download_wiod2013(
         if re.search(r"(wiot)(\d\d)", os.path.basename(url)).group(2) in years
     ]
 
-    meta = MRIOMetaData(
+    downlog = MRIOMetaData._make_download_log(
         location=storage_folder,
         description="WIOD metadata file for pymrio",
         name="WIOD",
@@ -375,33 +442,128 @@ def download_wiod2013(
         version="data13",
     )
 
-    meta = _download_urls(
+    downlog = _download_urls(
         url_list=restricted_wiod_io_urls + satellite_urls,
         storage_folder=storage_folder,
         overwrite_existing=overwrite_existing,
-        meta_handler=meta,
+        downlog_handler=downlog,
     )
 
-    meta.save()
-    return meta
+    downlog.save()
+    return downlog
 
 
-def download_eora26():
-    """Downloading eora26 not implemented (registration required)"""
-    raise NotImplementedError(
-        "Eora26 3 requires registration prior to download. "
-        "Please register at http://www.worldmrio.com and download the "
-        "Eora26 files from the subdomain /simplified"
+def download_eora26(
+    storage_folder, email, password, years=None, prices=["bp"], overwrite_existing=False
+):
+    """Downloading eora26 mrios (registration required),
+    To use this function you have to have an Eora account,
+    New account registration can be done through https://worldmrio.com/login.jsp
+
+    Parameters
+    ----------
+    storage_folder: str, valid path
+        Location to store the download, folder will be created if
+        not existing. If the file is already present in the folder,
+        the download of the specific file will be skipped.
+    email: str,
+        Eora account email
+    password: str,
+        Eora account password
+    years: list of int or str, optional
+        If years is given only downloads the specific years. This
+        only applies to the IO tables because extensions are stored
+        by country and not per year.
+        The years can be given in 2 or 4 digits.
+    prices: list of str
+        If bp (default), download basic price tables.
+        If pp, download purchaser prices. ['bp', 'pp'] possible.
+    overwrite_existing: boolean, optional
+        If False, skip download of file already existing in
+        the storage folder (default). Set to True to replace
+        files.
+    """
+
+    try:
+        os.makedirs(storage_folder)
+    except FileExistsError:
+        pass
+
+    false_cred = True
+
+    while false_cred:
+        r = requests.post(
+            "https://worldmrio.com/Register2?submit=login",
+            data={
+                "email": email,
+                "pass": password,
+                "targetURL": "null",
+                "submit": "login",
+            },
+        )
+
+        if "no account found" in r.text:
+            print(
+                """Eora account with this email was not found\n
+            Please try again or register a new user at the following website:\n
+            https://worldmrio.com/login.jsp"""
+            )
+
+            email = input("Enter your Eora account email: ")
+            password = getpass.getpass(prompt="Enter your Eora account password: ")
+
+        elif "Sorry, wrong password provided" in r.text:
+            print(
+                """The password for this email account is incorrect\n
+            Please try again"""
+            )
+
+            password = getpass.getpass(prompt="Enter your Eora account password: ")
+
+        else:
+            false_cred = False
+
+    if type(years) is int or type(years) is str:
+        years = [years]
+    years = years if years else range(1990, 2017)
+    years = [str(yy).zfill(4) for yy in years]
+
+    for year in years:
+        if not 1990 <= int(year) <= 2016:
+            raise ValueError(
+                "Open data for Eora26 is only avaliable for the years 1990-2016"
+            )
+
+    if type(prices) is str:
+        prices = [prices]
+
+    restricted_eora_urls = [
+        f"https://worldmrio.com/ComputationsM/Phase199/Loop082/simplified/Eora26_{yr}_bp.zip?email={email}&pass={password}"
+        for yr in years
+    ]
+
+    restricted_eora_urls.append(
+        "https://worldmrio.com/ComputationsM/Phase199/Loop082/simplified/indices.zip"
     )
-    return None
 
-    # Development note:
-    # Eora 26 autodownload was implemented before but was
-    # removed since worldmrio does require
-    # a registration now (by summer 2018).
-    # The previous implementation can be found
-    # in the github history (e.g. at 2e61424 2018-10-09
-    # or before)
+    downlog = MRIOMetaData._make_download_log(
+        location=storage_folder,
+        description="Download log for Eora",
+        name="Eora",
+        system="ixi",
+        version="v199.82",
+    )
+
+    downlog = _download_urls(
+        url_list=restricted_eora_urls,
+        storage_folder=storage_folder,
+        overwrite_existing=overwrite_existing,
+        downlog_handler=downlog,
+    )
+
+    downlog.save()
+
+    return downlog
 
 
 def download_exiobase1():
@@ -429,9 +591,6 @@ def download_exiobase2():
         "manually (tab Data Download - EXIOBASE 2)."
     )
     return None
-
-
-# def download_exiobase3():
 
 
 def download_exiobase3(
@@ -509,9 +668,9 @@ def download_exiobase3(
     if type(system) is str:
         system = [system]
 
-    meta = MRIOMetaData(
+    downlog = MRIOMetaData._make_download_log(
         location=storage_folder,
-        description="EXIOBASE3 metadata file for pymrio",
+        description="Download log of EXIOBASE3",
         name="EXIO3",
         system=",".join(system),
         version=doi,
@@ -527,7 +686,7 @@ def download_exiobase3(
         )
 
         if not filename:
-            meta._add_fileio(
+            downlog._add_fileio(
                 "Could not find EXIOBASE 3 source file with >{}< and >{}<".format(
                     file_specs[0], file_specs[1]
                 )
@@ -537,12 +696,98 @@ def download_exiobase3(
             u for u in exio_web_content.data_urls for f in filename if f in u
         ]
 
-    meta = _download_urls(
+    downlog = _download_urls(
         url_list=requested_urls,
         storage_folder=storage_folder,
         overwrite_existing=overwrite_existing,
-        meta_handler=meta,
+        downlog_handler=downlog,
     )
 
-    meta.save()
-    return meta
+    downlog.save()
+    return downlog
+
+
+def download_gloria(
+    storage_folder,
+    urls=GLORIA_CONFIG["datafiles"],
+    year=None,
+    version=57,
+    overwrite_existing=False,
+):
+    """
+    Download Gloria databases files
+
+    Parameters
+    ----------
+
+    urls: dict, optional
+        Dictionary containing the links of gloria databases
+        for different versions, this is already fed to the function,
+        imported from urls.json file
+
+    storage_folder: str, option
+        The path where to download the file(s), if not specified
+        it/they will be downloaded to the current working directory
+
+    year: int, str or list, optional
+        The year(s) of the wanted database, if not specified
+        the databases of all available years will be downloaded
+
+    version: int or str, option
+        The wanted version of Gloria database, if not specified
+        the database of the latest version will be downloaded
+
+    overwrite_existing: boolean, optional
+        If False, skip download of file already existing in
+        the storage folder (default). Set to True to replace
+        files.
+
+    Returns
+    -------
+
+    No returns
+    """
+
+    if f"0{version}" not in urls.keys():
+        raise Exception("Specified version is invalid")
+
+    downlog = MRIOMetaData._make_download_log(
+        location=storage_folder,
+        description="Download log of Gloria",
+        name="GLORIA",
+        system="IxI",
+        version=version,
+    )
+
+    files_to_download = []
+    if type(year) is int or type(year) is str:
+        year = [year]
+
+    if year:
+        for yr in year:
+            files_to_download.extend(
+                [
+                    file
+                    for file in urls[f"0{version}"]
+                    if str(yr) in filename_from_url(file)
+                ]
+            )
+        files_to_download.extend(
+            [
+                file
+                for file in urls[f"0{version}"]
+                if "ReadMe" in filename_from_url(file)
+            ]
+        )
+    else:
+        files_to_download = urls[f"0{version}"]
+
+    downlog = _download_urls(
+        url_list=files_to_download,
+        storage_folder=storage_folder,
+        overwrite_existing=overwrite_existing,
+        downlog_handler=downlog,
+    )
+
+    downlog.save()
+    return downlog

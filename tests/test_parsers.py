@@ -1,7 +1,8 @@
-""" Tests the parsing of different MRIOs """
+"""Tests the parsing of different MRIOs"""
 
 import os
 import sys
+import warnings
 
 import numpy as np
 import pandas.testing as pdt
@@ -31,7 +32,6 @@ def fix_testmrio_calc():
 
 
 def test_parse_exio1(fix_testmrio_calc):
-
     exio1_mockpath = os.path.join(testpath, "mock_mrios", "exio1_mock")
 
     test_mrio = fix_testmrio_calc.testmrio
@@ -139,7 +139,12 @@ def test_parse_exio_ext():
         col1, index_col=1, name="col1", sep="\t", drop_compartment=False
     )
 
-    assert np.allclose(ext5.F, ext3.F, ext2.F, ext1.F, ext5_wcmp.F)
+    assert np.allclose(ext5.F, ext3.F)
+    assert np.allclose(ext3.F, ext2.F)
+    assert np.allclose(ext2.F, ext1.F)
+    assert np.allclose(ext1.F, ext5_wcmp.F)
+
+    # pdt.assert_frame_equal(ext1.F, ext5_wcmp.F.droplevel("compartment"))
 
     assert ext5.F.iloc[1, 1] == 102
     assert ext5.F.iloc[-1, -1] == 148
@@ -178,7 +183,6 @@ def test_parse_wiod():
 
 
 def test_oecd_2016():
-
     oecd_mockpath = os.path.join(testpath, "mock_mrios", "oecd_mock")
     oecd_IO_file = os.path.join(oecd_mockpath, "ICIO2016_2003.csv")
 
@@ -267,5 +271,26 @@ def test_parse_eora26(fix_testmrio_calc):
         _ = pymrio.parse_eora26(eora_mockpath, year=2010, country_names="bogus")
 
 
+def test_parse_gloria():
+    gloria_mockpath = os.path.join(testpath, "mock_mrios", "gloria_mock")
+
+    prices = ["bp", "pp"]
+    country_names = ["gloria", "full"]
+    constructs = ["A", "B", "C", "D"]
+
+    for country_name in country_names:
+        for price in prices:
+            for construct in constructs:
+                with warnings.catch_warnings():
+                    warnings.simplefilter(action="ignore", category=FutureWarning)
+                    gloria = pymrio.parse_gloria(
+                        gloria_mockpath,
+                        price=price,
+                        country_names=country_name,
+                        construct=construct,
+                    )
+                    gloria.calc_all()
+
+
 if __name__ == "__main__":
-    test_oecd_2016()
+    test_parse_gloria()

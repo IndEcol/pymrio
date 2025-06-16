@@ -10,11 +10,12 @@ Contents:
 
    intro
    installation
+   Basic Tutorial <notebooks/full_tutorial>
    terminology
    math
    Automatic MRIO download <notebooks/autodownload>
-   notebooks/metadata
    handling
+   notebooks/metadata
    development
    changelog
    api_references

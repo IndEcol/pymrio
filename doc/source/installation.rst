@@ -21,14 +21,14 @@ or update to the latest version by
     conda update -c conda-forge pymrio
 
 
-The source-code is available at the GitHub repo: https://github.com/konstantinstadler/pymrio  
+The source-code is available at the GitHub repo: https://github.com/IndEcol/pymrio  
 
 The master branch in that repo is supposed to be ready for use and might be 
 ahead of the official releases. To install directly from the master branch use:
 
 .. code:: bash
 
-    pip install git+https://github.com/konstantinstadler/pymrio@master
+    pip install git+https://github.com/IndEcol/pymrio@master
 
     
 

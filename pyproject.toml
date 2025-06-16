@@ -1,0 +1,101 @@
+[build-system]
+requires = ["setuptools>=61.0",
+            "wheel",
+            "build"
+            ]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pymrio"
+version = "0.6.0"
+description = "A python module for automating input output calculations and generating reports"
+readme = "README.rst"
+authors = [
+    {name = "Konstantin Stadler", email = "konstantin.stadler@ntnu.no"},
+]
+requires-python = ">=3.9.0"
+classifiers = [
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    "pandas >= 2.1",
+    "pyarrow >= 11.0",
+    "numpy >= 1.20",
+    "matplotlib >= 2.0.0",
+    "requests >= 2.18",
+    "xlrd > 1.1.0",
+    "openpyxl >= 3.0.6, < 3.1.1",
+    "docutils >= 0.14",
+    "faker >= 18.4.0",
+]
+
+
+[project.optional-dependencies]
+dev = ["pymrio[lint,test]"]
+lint = [
+  "black >=22.3.0",
+  "isort >=5.5.2",
+]
+test = [
+  "coveralls",
+  "coverage[toml]",
+  "black[juyter]",
+  "pytest >=5.4.0",
+  "pytest-black",
+  "pytest-cov >=2.7.0",
+  "pytest-datadir",
+  "pytest-mypy",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/IndEcol/pymrio"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+"pymrio" = ["*.txt", "*.dat", "*.doc", "*.rst", "*.json", "*.tsv"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+filterwarnings = [
+    "ignore:Using or importing the ABCs from:DeprecationWarning"
+]
+
+[tool.coverage.run]
+source = ["pymrio"]  
+relative_files = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise NotImplementedError",
+    "_load_ini_based_io",
+    "if __name__ == .__main__.:"
+]
+omit = [
+    "pymrio/tools/iodownloader.py"
+]
+
+

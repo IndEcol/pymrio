@@ -1,1 +1,6 @@
-__version__ = "0.4.8"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("pymrio")
+except PackageNotFoundError:
+    __version__ = "unknown"

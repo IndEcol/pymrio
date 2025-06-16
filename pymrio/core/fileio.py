@@ -15,7 +15,12 @@ from pathlib import Path
 
 import pandas as pd
 
-from pymrio.core.constants import DEFAULT_FILE_NAMES, GENERIC_NAMES, PYMRIO_PATH
+from pymrio.core.constants import (
+    DEFAULT_FILE_NAMES,
+    GENERIC_NAMES,
+    PYMRIO_PATH,
+    STORAGE_FORMAT,
+)
 from pymrio.core.mriosystem import Extension, IOSystem
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import get_file_para
@@ -26,6 +31,19 @@ class ReadError(Exception):
     """Base class for errors occuring while reading MRIO data"""
 
     pass
+
+
+def _get_file_format(file_name):
+    """Helper function to get the format of a stored file"""
+    # TODO: move to pathlib
+    given_extension = Path(file_name).suffix.lstrip(".")
+    for format_key, format_extension in STORAGE_FORMAT.items():
+        if given_extension.lower() in format_extension:
+            table_format = format_key
+            break
+    else:
+        raise ValueError("Unkown format of stored files")
+    return format_key
 
 
 def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
@@ -203,9 +221,9 @@ def load(path, include_core=True, path_in_arc=""):
     This function can be used to load a IOSystem or Extension specified in a
     metadata file (as defined in DEFAULT_FILE_NAMES['filepara']: metadata.json)
 
-    DataFrames (tables) are loaded from text or binary pickle files.
-    For the latter, the extension .pkl or .pickle is assumed, in all other case
-    the tables are assumed to be in .txt format.
+    The format of DataFrames (tables) are determined by the file extension.
+    Avaialble formats are defined in constant.py - STORAGE_FORMAT.
+    If using the save/save_all functionality from the mriosystem it just works.
 
     Parameters
     ----------
@@ -298,12 +316,8 @@ def load(path, include_core=True, path_in_arc=""):
             logging.info("Load data from {}".format(full_file_name))
 
             with zipfile.ZipFile(file=str(path)) as zf:
-                if (
-                    os.path.splitext(str(full_file_name))[1] == ".pkl"
-                    or os.path.splitext(str(full_file_name))[1] == ".pickle"
-                ):
-                    setattr(ret_system, key, pd.read_pickle(zf.open(full_file_name)))
-                else:
+                file_format = _get_file_format(full_file_name)
+                if file_format == "txt":
                     setattr(
                         ret_system,
                         key,
@@ -314,23 +328,34 @@ def load(path, include_core=True, path_in_arc=""):
                             sep="\t",
                         ),
                     )
+                elif file_format == "pickle":
+                    setattr(ret_system, key, pd.read_pickle(zf.open(full_file_name)))
+                elif file_format == "parquet":
+                    setattr(ret_system, key, pd.read_parquet(zf.open(full_file_name)))
+                else:
+                    ValueError("Unknown file format")
+
         else:
             full_file_name = path / file_name
             logging.info("Load data from {}".format(full_file_name))
-
-            if (
-                os.path.splitext(str(full_file_name))[1] == ".pkl"
-                or os.path.splitext(str(full_file_name))[1] == ".pickle"
-            ):
-                setattr(ret_system, key, pd.read_pickle(full_file_name))
-            else:
+            file_format = _get_file_format(full_file_name)
+            if file_format == "txt":
                 setattr(
                     ret_system,
                     key,
                     pd.read_csv(
-                        full_file_name, index_col=_index_col, header=_header, sep="\t"
+                        full_file_name,
+                        index_col=_index_col,
+                        header=_header,
+                        sep="\t",
                     ),
                 )
+            elif file_format == "pickle":
+                setattr(ret_system, key, pd.read_pickle(full_file_name))
+            elif file_format == "parquet":
+                setattr(ret_system, key, pd.read_parquet(full_file_name))
+            else:
+                ValueError("Unknown file format")
     return ret_system
 
 
