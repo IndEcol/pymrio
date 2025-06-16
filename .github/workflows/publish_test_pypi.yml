@@ -35,9 +35,9 @@ jobs:
        python -m build
        twine check --strict dist/*
 
-    - name: Publish to TestPyPI
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-      run: python -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+   - name: Publish to TestPyPI
+     env:
+       TWINE_USERNAME: __token__
+       TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+     run: python -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
