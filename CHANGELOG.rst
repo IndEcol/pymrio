@@ -61,6 +61,7 @@ New Features
     - extensions_instance_names ... shorthand for `mrio.get_extensions(instance_names=True)`
     - DataFrame ... shorthand for `mrio.get_dataframe()`
 
+* New "full" tutorial at https://pymrio.readthedocs.io/en/latest/notebooks/full_tutorial.html
 
 Deprecated
 ==========
@@ -77,6 +78,8 @@ Miscellaneous
 * Adopted OECD ICIO MRIO column rename to `out` (contributed by @spjuhel, #160).
 
 * Fixed warnings regarding regex characters (contributed by @pcorpet, #155).
+
+* Adopted the Github CI workflows to the newest versions, including (test)PyPI uploads
 
 ***************************
 v0.5.4 - 20240412

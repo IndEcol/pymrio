@@ -92,8 +92,9 @@ The test mrio consists of six regions and eight sectors:
 .. code:: python
 
 
-    print(test_mrio.get_sectors())
-    print(test_mrio.get_regions())
+    print(test_mrio.sectors)
+    print(test_mrio.regions)
+    print(test_mrio.extensions)
 
 The test mrio includes tables flow tables and some satellite accounts. 
 To show these:
@@ -172,8 +173,7 @@ You can follow me on twitter_ to get the latest news about all my open-source an
 .. _downloading: http://pymrio.readthedocs.io/en/latest/notebooks/autodownload.html
 .. _parsing: http://pymrio.readthedocs.io/en/latest/handling.html
 .. _documentation: http://pymrio.readthedocs.io/en/latest/
-.. _tutorials: http://pymrio.readthedocs.io/en/latest/handling.html
-
+.. _tutorials: https://pymrio.readthedocs.io/en/latest/notebooks/full_tutorial.html
 .. _EXIOBASE: http://www.exiobase.eu/
 .. _WIOD: http://www.wiod.org/home
 .. _OECD: https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm
