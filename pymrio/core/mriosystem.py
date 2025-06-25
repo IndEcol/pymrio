@@ -1950,7 +1950,7 @@ class Extension(BaseSystem):
         unit_column_orig="unit_orig",
         unit_column_new="unit_new",
         ignore_columns=None,
-        reindex=None
+        reindex=None,
     ):
         """Apply the convert function to all dataframes in the extension
 
@@ -2082,7 +2082,7 @@ class Extension(BaseSystem):
                     agg_func=agg_func,
                     drop_not_bridged_index=drop_not_bridged_index,
                     ignore_columns=ignore_columns,
-                    reindex=reindex
+                    reindex=reindex,
                 ),
             )
 
@@ -3437,7 +3437,7 @@ class IOSystem(BaseSystem):
             unit_column_orig=unit_column_orig,
             unit_column_new=unit_column_new,
             ignore_columns=ignore_columns,
-            reindex=reindex
+            reindex=reindex,
         )
 
     def extension_characterize(
@@ -3720,7 +3720,7 @@ def extension_convert(
     unit_column_orig="unit_orig",
     unit_column_new="unit_new",
     ignore_columns=None,
-    reindex=None
+    reindex=None,
 ):
     """Apply the convert function to a list of extensions
 
@@ -3870,17 +3870,16 @@ def extension_convert(
         result_ext.get_DataFrame(data=False, with_unit=True),
     ):
         if df_name == "unit":
-            setattr(
-                result_ext,
-                df_name,
-                df.groupby(level=df.index.names).agg(lambda x: ",".join(set(x))),
+            df_result = df.groupby(level=df.index.names, sort=False).agg(
+                lambda x: ",".join(set(x))
             )
         else:
-            setattr(
-                result_ext,
-                df_name,
-                df.groupby(level=df.index.names).agg(agg_func),
-            )
+            df_result = df.groupby(level=df.index.names, sort=False).agg(agg_func)
+        setattr(
+            result_ext,
+            df_name,
+            df_result,
+        )
 
     return result_ext
 

@@ -794,13 +794,17 @@ def test_extension_convert_simple(fix_testmrio):
     tt_pre.pre_calc = tt_pre.emissions.convert(
         df_map, new_extension_name="emissions_new_pre_calc", reindex=None
     )
-    assert list(tt_pre.pre_calc.get_rows()) == sorted(list(df_map.loc[:,"total__stressor"].unique()))
+    assert list(tt_pre.pre_calc.get_rows()) == sorted(
+        list(df_map.loc[:, "total__stressor"].unique())
+    )
 
     # check previous order
     tt_pre.pre_calc = tt_pre.emissions.convert(
         df_map, new_extension_name="emissions_new_pre_calc", reindex="total__stressor"
     )
-    assert list(tt_pre.pre_calc.get_rows()) == list(df_map.loc[:,"total__stressor"].unique())
+    assert list(tt_pre.pre_calc.get_rows()) == list(
+        df_map.loc[:, "total__stressor"].unique()
+    )
 
     tt_pre.calc_all()
 
@@ -1012,6 +1016,7 @@ def test_extension_convert_function(fix_testmrio):
         expected_df_correct_F,
         check_names=False,
     )
+
     pdt.assert_series_equal(
         ext_across_correct.F_Y.loc[("water",)],
         expected_df_correct_F_Y,
@@ -1103,6 +1108,45 @@ def test_extension_convert_function(fix_testmrio):
         expected_df_M,
         check_names=False,
     )
+
+    df_map_order_check = pd.DataFrame(
+        columns=[
+            "extension",
+            "stressor",
+            "compartment",
+            "total__stressor",
+            "factor",
+            "unit_orig",
+            "unit_new",
+        ],
+        data=[
+            ["Emissions", "emission_type2", ".*", "water", 1, "kg", "kg"],
+            ["Emissions", "emission_type2", ".*", "air", 1, "kg", "kg"],
+            [
+                "emissions_new_pre_calc",
+                "water_emissions",
+                ".*",
+                "water",
+                1e-3,
+                "g",
+                "kg",
+            ],
+        ],
+    )
+
+    ext_test_order_a = tt_post.extension_convert(
+        df_map=df_map_order_check, new_extension_name="add_across", reindex=None
+    )
+
+    assert list(ext_test_order_a.get_rows()) == ["air", "water"]
+
+    ext_test_order_c = tt_post.extension_convert(
+        df_map=df_map_order_check,
+        new_extension_name="add_across",
+        reindex="total__stressor",
+    )
+
+    assert list(ext_test_order_c.get_rows()) == ["water", "air"]
 
 
 def test_extension_convert_test_unit_fail(fix_testmrio):

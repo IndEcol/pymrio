@@ -1289,7 +1289,12 @@ def check_df_map(df_orig, df_map):
 
 
 def convert(
-    df_orig, df_map, agg_func="sum", drop_not_bridged_index=True, ignore_columns=None, reindex=None,
+    df_orig,
+    df_map,
+    agg_func="sum",
+    drop_not_bridged_index=True,
+    ignore_columns=None,
+    reindex=None,
 ):
     """Convert a DataFrame to a new classification
 
@@ -1539,14 +1544,12 @@ def convert(
             pass
 
     grouped = all_result.groupby(by=all_result.index.names).agg(agg_func)
-    
+
     if reindex is not None:
         if isinstance(reindex, str):
             df_map = df_map.reset_index()
             if reindex in bridge_columns:
-                grouped_order = grouped.reindex(
-                    index=df_map.loc[:, reindex].unique()
-                )
+                grouped_order = grouped.reindex(index=df_map.loc[:, reindex].unique())
             else:
                 raise ValueError(
                     f"Reindexing by {reindex} is not possible, "
