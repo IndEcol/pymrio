@@ -3865,16 +3865,25 @@ def extension_convert(
 
     result_ext = extension_concate(*gather, new_extension_name=new_extension_name)
 
+    # Need to reindex again, as the order might be mixed up by the
+    # order of the extensions
+    if type(reindex) is str:
+        group_order = df_map.loc[:, reindex].unique()
+    elif reindex is None:
+        group_order = None
+    else:
+        group_order = reindex
+
     for df, df_name in zip(
         result_ext.get_DataFrame(data=True, with_unit=True),
         result_ext.get_DataFrame(data=False, with_unit=True),
     ):
         if df_name == "unit":
-            df_result = df.groupby(level=df.index.names, sort=False).agg(
-                lambda x: ",".join(set(x))
-            )
+            df_result = df.groupby(level=df.index.names).agg(lambda x: ",".join(set(x)))
         else:
             df_result = df.groupby(level=df.index.names, sort=False).agg(agg_func)
+        if group_order is not None:
+            df_result = df_result.reindex(group_order)
         setattr(
             result_ext,
             df_name,
