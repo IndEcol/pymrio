@@ -790,9 +790,17 @@ def test_extension_convert_simple(fix_testmrio):
         ],
     )
 
+    # check alphabetic order
     tt_pre.pre_calc = tt_pre.emissions.convert(
-        df_map, new_extension_name="emissions_new_pre_calc"
+        df_map, new_extension_name="emissions_new_pre_calc", reindex=None
     )
+    assert list(tt_pre.pre_calc.get_rows()) == sorted(list(df_map.loc[:,"total__stressor"].unique()))
+
+    # check previous order
+    tt_pre.pre_calc = tt_pre.emissions.convert(
+        df_map, new_extension_name="emissions_new_pre_calc", reindex="total__stressor"
+    )
+    assert list(tt_pre.pre_calc.get_rows()) == list(df_map.loc[:,"total__stressor"].unique())
 
     tt_pre.calc_all()
 

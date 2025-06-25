@@ -667,7 +667,8 @@ def test_convert_characterize():
     to_char.columns.names = ["reg", "sec"]
     to_char.index.names = ["em_type", "compart"]
 
-    # TEST1A: with only impact (one index level in the result) , sum over compartments as the compartment gets dropped in the argument
+    # TEST1A: with only impact (one index level in the result) 
+    # sum over compartments as the compartment gets dropped in the argument
 
     map_test1 = pd.DataFrame(
         columns=["em_type", "compart", "total__em_type", "factor"],
@@ -694,14 +695,25 @@ def test_convert_characterize():
     exp_res1A = exp_res1A.astype(float)
     exp_res1A.sort_index(inplace=True)
 
-    res1A = convert(to_char, map_test1, drop_not_bridged_index=True)
-
-    res1A.sort_index(inplace=True)
+    res1A = convert(to_char, map_test1, drop_not_bridged_index=True, reindex=None)
 
     exp_res1A.index.names = res1A.index.names
     exp_res1A.columns.names = res1A.columns.names
 
     pdt.assert_frame_equal(res1A, exp_res1A)
+    
+    # test reordering (alphabetic already checked with passing None before)
+    res1A_co = convert(to_char, map_test1, drop_not_bridged_index=True, reindex="total__em_type")
+    exp_res1A_co = exp_res1A.reindex([ "total_regex", "total_sum", "all_air"])
+
+    pdt.assert_frame_equal(res1A_co, exp_res1A_co)
+
+    with pytest.raises(ValueError):
+        convert(to_char, map_test1, drop_not_bridged_index=True, reindex="non_existing")
+
+    res1A_co2 = convert(to_char, map_test1, drop_not_bridged_index=True, reindex=[ "total_sum", "total_regex", "all_air"])
+    exp_res1A_co2 = exp_res1A.reindex([ "total_sum", "total_regex", "all_air"])
+    pdt.assert_frame_equal(res1A_co2, exp_res1A_co2)
 
     # TEST1B: with only impact (one index level in the result) , keep compartments as these are not dropped now
 
