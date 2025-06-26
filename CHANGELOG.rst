@@ -4,6 +4,24 @@ Changelog
 
 
 ******************
+v0.6.1 - 20250626
+******************
+
+New Features
+============
+
+* `convert` functions (ioutil.convert, Extension.convert, pymrio.extension_convert) have a new argument
+  `reindex` which specifies a order of the converted dataframe/extension. It is a wrapper around pandas reindex,
+  but also allows to passing of a bridge column name to sort after the order given in the bridge table.
+* we have a logo
+
+Fixes
+======
+
+* spelling mistakes in docs
+* package data for including classification was missing
+
+******************
 v0.6.0 - 20250616
 ******************
 

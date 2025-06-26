@@ -1,8 +1,13 @@
-############
-Pymrio
-############
 
-Pymrio: Multi-Regional Input-Output Analysis in Python.
+.. image:: https://github.com/IndEcol/pymrio/blob/master/doc/source/_static/pymrio_text_logo.png
+    :target: http://pymrio.readthedocs.io/en/latest/?badge=latest
+    :alt: pymrio logo
+
+-------
+
+*******************************************************
+pymrio: Multi-Regional Input-Output Analysis in Python
+*******************************************************
 
 .. image:: https://img.shields.io/pypi/v/pymrio.svg
     :target: https://pypi.python.org/pypi/pymrio/

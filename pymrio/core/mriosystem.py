@@ -1950,6 +1950,7 @@ class Extension(BaseSystem):
         unit_column_orig="unit_orig",
         unit_column_new="unit_new",
         ignore_columns=None,
+        reindex=None,
     ):
         """Apply the convert function to all dataframes in the extension
 
@@ -2032,12 +2033,12 @@ class Extension(BaseSystem):
             The unit columns given in unit_column_orig and unit_column_new
             are ignored by default.
 
+        reindex: str, None or collection
+            Wrapper for pandas' reindex method to control return order.
+            - If None: sorts the index alphabetically.
+            - If str: uses the unique value order from the specified bridge column as the index order.
+            - For other types (e.g., collections): passes directly to pandas.reindex.
 
-        TODO: remove after explain
-        Extension for extensions:
-        extension ... extension name
-        unit_orig ... the original unit (optional, for double check with the unit)
-        unit_new ... the new unit to be set for the extension
 
         """
         if not ignore_columns:
@@ -2081,6 +2082,7 @@ class Extension(BaseSystem):
                     agg_func=agg_func,
                     drop_not_bridged_index=drop_not_bridged_index,
                     ignore_columns=ignore_columns,
+                    reindex=reindex,
                 ),
             )
 
@@ -3317,6 +3319,7 @@ class IOSystem(BaseSystem):
         unit_column_orig="unit_orig",
         unit_column_new="unit_new",
         ignore_columns=None,
+        reindex=None,
     ):
         """Apply the convert function to the extensions of the mrio object
 
@@ -3416,6 +3419,13 @@ class IOSystem(BaseSystem):
             The unit columns given in unit_column_orig and unit_column_new
             are ignored by default.
 
+        reindex: str, None or collection
+            Wrapper for pandas' reindex method to control return order.
+            - If None: sorts the index alphabetically.
+            - If str: uses the unique value order from the specified bridge column as the index order.
+            - For other types (e.g., collections): passes directly to pandas.reindex.
+
+
         """
         return extension_convert(
             *list(self.get_extensions(data=True)),
@@ -3427,6 +3437,7 @@ class IOSystem(BaseSystem):
             unit_column_orig=unit_column_orig,
             unit_column_new=unit_column_new,
             ignore_columns=ignore_columns,
+            reindex=reindex,
         )
 
     def extension_characterize(
@@ -3709,6 +3720,7 @@ def extension_convert(
     unit_column_orig="unit_orig",
     unit_column_new="unit_new",
     ignore_columns=None,
+    reindex=None,
 ):
     """Apply the convert function to a list of extensions
 
@@ -3811,6 +3823,13 @@ def extension_convert(
         The unit columns given in unit_column_orig and unit_column_new
         are ignored by default.
 
+    reindex: str, None or collection
+        Wrapper for pandas' reindex method to control return order.
+        - If None: sorts the index alphabetically.
+        - If str: uses the unique value order from the specified bridge column as the index order.
+        - For other types (e.g., collections): passes directly to pandas.reindex.
+
+
     """
 
     if type(extensions) is Extension:
@@ -3840,27 +3859,36 @@ def extension_convert(
                 unit_column_orig=unit_column_orig,
                 unit_column_new=unit_column_new,
                 ignore_columns=ignore_columns,
+                reindex=reindex,
             )
         )
 
     result_ext = extension_concate(*gather, new_extension_name=new_extension_name)
+
+    # Need to reindex again, as the order might be mixed up by the
+    # order of the extensions
+    if type(reindex) is str:
+        group_order = df_map.loc[:, reindex].unique()
+    elif reindex is None:
+        group_order = None
+    else:
+        group_order = reindex
 
     for df, df_name in zip(
         result_ext.get_DataFrame(data=True, with_unit=True),
         result_ext.get_DataFrame(data=False, with_unit=True),
     ):
         if df_name == "unit":
-            setattr(
-                result_ext,
-                df_name,
-                df.groupby(level=df.index.names).agg(lambda x: ",".join(set(x))),
-            )
+            df_result = df.groupby(level=df.index.names).agg(lambda x: ",".join(set(x)))
         else:
-            setattr(
-                result_ext,
-                df_name,
-                df.groupby(level=df.index.names).agg(agg_func),
-            )
+            df_result = df.groupby(level=df.index.names, sort=False).agg(agg_func)
+        if group_order is not None:
+            df_result = df_result.reindex(group_order)
+        setattr(
+            result_ext,
+            df_name,
+            df_result,
+        )
 
     return result_ext
 

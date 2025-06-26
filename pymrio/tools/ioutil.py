@@ -1289,7 +1289,12 @@ def check_df_map(df_orig, df_map):
 
 
 def convert(
-    df_orig, df_map, agg_func="sum", drop_not_bridged_index=True, ignore_columns=None
+    df_orig,
+    df_map,
+    agg_func="sum",
+    drop_not_bridged_index=True,
+    ignore_columns=None,
+    reindex=None,
 ):
     """Convert a DataFrame to a new classification
 
@@ -1369,12 +1374,11 @@ def convert(
         List of column names in df_map which should be ignored.
         These could be columns with additional information, unit columns, etc.
 
-
-    Extension for extensions:
-    # TODO: check if in the other docstring and then remove
-    extension ... extension name
-    unit_orig ... the original unit (optional, for double check with the unit)
-    unit_new ... the new unit to be set for the extension
+    reindex: str, None or collection
+        Wrapper for pandas' reindex method to control return order.
+        - If None: sorts the index alphabetically.
+        - If str: uses the unique value order from the specified bridge column as the index order.
+        - For other types (e.g., collections): passes directly to pandas.reindex.
 
     """
 
@@ -1539,4 +1543,21 @@ def convert(
         except TypeError:  # case where there is only one index level
             pass
 
-    return all_result.groupby(by=all_result.index.names).agg(agg_func)
+    grouped = all_result.groupby(by=all_result.index.names).agg(agg_func)
+
+    if reindex is not None:
+        if isinstance(reindex, str):
+            df_map = df_map.reset_index()
+            if reindex in bridge_columns:
+                grouped_order = grouped.reindex(index=df_map.loc[:, reindex].unique())
+            else:
+                raise ValueError(
+                    f"Reindexing by {reindex} is not possible, "
+                    "it is not a bridge column in the mapping DataFrame."
+                )
+        else:
+            grouped_order = grouped.reindex(index=reindex)
+    else:
+        grouped_order = grouped.sort_index()
+
+    return grouped_order

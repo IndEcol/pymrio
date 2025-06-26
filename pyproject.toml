@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pymrio"
-version = "0.6.0"
+version = "0.6.1"
 description = "A python module for automating input output calculations and generating reports"
 readme = "README.rst"
 authors = [
@@ -72,7 +72,7 @@ Homepage = "https://github.com/IndEcol/pymrio"
 where = ["."]
 
 [tool.setuptools.package-data]
-"pymrio" = ["*.txt", "*.dat", "*.doc", "*.rst", "*.json", "*.tsv"]
+"pymrio" = ["**/*.txt", "**/*.dat", "**/*.doc", "**/*.rst", "**/*.json", "**/*.tsv"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
