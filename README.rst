@@ -1,5 +1,5 @@
 
-.. image:: https://raw.githubusercontent.com/IndEcol/pymrio/blob/master/doc/source/_static/pymrio_text_logo.png
+.. image:: https://github.com/IndEcol/pymrio/blob/master/doc/source/_static/pymrio_text_logo.png
     :target: http://pymrio.readthedocs.io/en/latest/?badge=latest
     :alt: pymrio logo
 
