@@ -72,7 +72,7 @@ Homepage = "https://github.com/IndEcol/pymrio"
 where = ["."]
 
 [tool.setuptools.package-data]
-"pymrio" = ["*.txt", "*.dat", "*.doc", "*.rst", "*.json", "*.tsv"]
+"pymrio" = ["**/*.txt", "**/*.dat", "**/*.doc", "**/*.rst", "**/*.json", "**/*.tsv"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

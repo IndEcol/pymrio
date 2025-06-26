@@ -4,9 +4,8 @@ Changelog
 
 
 ******************
-v0.6.1 - dev
+v0.6.1 - 20250626
 ******************
-
 
 New Features
 ============
@@ -19,6 +18,7 @@ Fixes
 ======
 
 * spelling mistakes in docs
+* package data for including classification was missing
 
 ******************
 v0.6.0 - 20250616
