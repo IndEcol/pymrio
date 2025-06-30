@@ -123,6 +123,10 @@ cmd = "uv sync --all-extras"
 help = "Format all files"
 cmd = "ruff format"
 
+[tool.poe.tasks.check]
+help = "Ruff check, accept --fix and all other arguments"
+cmd  = "ruff check ${args}"
+
 [tool.poe.tasks.fulltest]
 help = "Run the full test suite"
 shell  = """
