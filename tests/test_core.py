@@ -766,9 +766,9 @@ def test_characterize_extension_over_extensions(fix_testmrio):
     factors_reg_ext.loc[:, "extension"] = factors_reg_ext.loc[:, "compartment"]
     factors_reg_ext = factors_reg_ext[factors_reg_ext.compartment != "land"]
 
-    ex_reg_one = tt.emissions.characterize(factors_reg_spec, 
-                                           name="one",
-                                           characterized_name_column=["impact"]).extension
+    ex_reg_one = tt.emissions.characterize(
+        factors_reg_spec, name="one", characterized_name_column=["impact"]
+    ).extension
     ex_reg_multi = pymrio.extension_characterize(
         *list(tt.get_extensions(data=True)),
         factors=factors_reg_ext,
