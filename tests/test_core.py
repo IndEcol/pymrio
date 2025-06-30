@@ -208,8 +208,8 @@ def test_get_sectors(fix_testmrio):
         e if e == "food" else None for e in fix_testmrio.sectors
     ]
     assert (
-        fix_testmrio.testmrio.get_sectors(["construction", "food", "a"])[1] == None # noqa
-    )  
+        fix_testmrio.testmrio.get_sectors(["construction", "food", "a"])[1] == None  # noqa
+    )
 
 
 def test_get_regions(fix_testmrio):

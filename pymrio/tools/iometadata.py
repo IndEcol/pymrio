@@ -272,7 +272,6 @@ class MRIOMetaData(object):
                 with open(str(self._metadata_file), "r") as f:
                     self._content = json.load(f, object_pairs_hook=OrderedDict)
 
-
     def note(self, entry):
         """Add the passed string as note to the history
 
@@ -371,8 +370,7 @@ class MRIOMetaData(object):
         if old_value and log:
             self._add_history(
                 entry_type="METADATA_CHANGE",
-                entry='Changed parameter "{para}" '
-                'from "{old}" to "{new}"'.format(
+                entry='Changed parameter "{para}" from "{old}" to "{new}"'.format(
                     para=para, old=old_value, new=new_value
                 ),
             )

@@ -91,7 +91,6 @@ class _BaseSystem(ABC):
     __coefficients__ = []
     name = "Abstract BaseSystem"
 
-
     def __str__(self, startstr="System with: "):
         parastr = ", ".join(
             [
@@ -116,7 +115,6 @@ class _BaseSystem(ABC):
             return True
 
         return False
-
 
     def reset_full(self, force=False, _meta=None):
         """Remove all accounts which can be recalculated based on Z, Y, F, F_Y
@@ -489,8 +487,9 @@ class _BaseSystem(ABC):
             warnings.warn("No attributes available to get sectors")
             return None
 
-    def get_DataFrame(self, data=False, with_unit=True, with_population=True) -> Iterator[Union[pd.DataFrame, str]]:
-
+    def get_DataFrame(
+        self, data=False, with_unit=True, with_population=True
+    ) -> Iterator[Union[pd.DataFrame, str]]:
         """Yields all panda.DataFrames or there names
 
         Notes
@@ -1402,7 +1401,7 @@ class Extension(_BaseSystem):
         plt.legend(loc="best")
         try:
             plt.tight_layout()
-        except Exception: 
+        except Exception:
             pass
 
         if file_name:
@@ -2406,7 +2405,6 @@ class IOSystem(_BaseSystem):
             self.meta._add_modify("Leontief matrix L calculated")
 
         if include_ghosh:
-
             if self.B is None:
                 self.B = calc_B(self.Z, self.x)
                 self.meta._add_modify("Normalized industrial flow matrix B calculated")

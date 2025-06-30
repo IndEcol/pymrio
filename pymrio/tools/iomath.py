@@ -566,9 +566,7 @@ def calc_accounts(S, L, Y):
     return (D_cba, D_pba, D_imp, D_exp)
 
 
-def calc_gross_trade(
-    Z: pd.DataFrame, Y: pd.DataFrame
-) -> typing.NamedTuple(
+def calc_gross_trade(Z: pd.DataFrame, Y: pd.DataFrame) -> typing.NamedTuple(
     "gross_trade", [("bilat_flows", pd.DataFrame), ("totals", pd.DataFrame)]
 ):
     """Calculate the gross bilateral trade flows and totals

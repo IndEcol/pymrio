@@ -131,9 +131,7 @@ def test_find_first_number():
 def test_dev_read(csv_test_files_content):
     """Tests the csv sniffer"""
     for tests in csv_test_files_content.test_contents:
-        with patch(
-            "builtins.open", mock_open(read_data=tests.text), create=False
-        ) as _:  # noqa
+        with patch("builtins.open", mock_open(read_data=tests.text), create=False) as _:  # noqa
             res = sniff_csv_format("foo")
         assert res["sep"] == tests.sep
         assert res["nr_index_col"] == tests.index_col

@@ -182,7 +182,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                 )
                 setattr(io, clean(subfolder_name), ext)
                 io.meta._add_fileio(
-                    "Added satellite account " "from {}".format(subfolder_full)
+                    "Added satellite account from {}".format(subfolder_full)
                 )
             else:
                 continue
@@ -207,7 +207,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                 ext = load(subfolder_full, include_core=include_core)
                 setattr(io, clean(subfolder_name), ext)
                 io.meta._add_fileio(
-                    "Added satellite account " "from {}".format(subfolder_full)
+                    "Added satellite account from {}".format(subfolder_full)
                 )
             else:
                 continue
@@ -703,8 +703,9 @@ def _load_ini_based_io(
 
             if systemtype == "IOSystem":
                 raise ReadError(
-                    "IOSystem found in subfolder {} - "
-                    "only extensions expected".format(subpath)
+                    "IOSystem found in subfolder {} - only extensions expected".format(
+                        subpath
+                    )
                 )
                 return None
             elif systemtype == "Extension":
@@ -735,8 +736,9 @@ def _load_ini_based_io(
 
                 if (nr_index_col is None) or (nr_header is None):
                     raise ReadError(
-                        "Index or column specification missing "
-                        "for {}".format(str(file_name))
+                        "Index or column specification missing for {}".format(
+                            str(file_name)
+                        )
                     )
                     return None
 

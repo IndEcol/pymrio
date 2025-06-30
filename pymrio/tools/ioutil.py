@@ -410,7 +410,7 @@ def set_block(arr, arr_block):
         )
     if nr_row / nr_row_block != nr_col / nr_col_block:
         raise ValueError(
-            "Block array can not be filled as " "diagonal blocks in the given array"
+            "Block array can not be filled as diagonal blocks in the given array"
         )
 
     arr_out = arr.copy()
@@ -552,7 +552,7 @@ def build_agg_vec(agg_vec, **source):
     ] * len(vec_list[0])
     for currvec in vec_list:
         if len(currvec) != len(out):
-           logging.warning("Inconsistent vector length") 
+            logging.warning("Inconsistent vector length")
         [_rep(out, ind, val) for ind, val in enumerate(currvec) if not out[ind]]
 
     [_rep(out, ind, miss_val) for ind, val in enumerate(out) if not val]
@@ -686,6 +686,7 @@ def filename_from_url(url):
     else:
         raise ValueError("Could not extract filename from url")
 
+
 def check_if_long(df, value_name=LONG_VALUE_NAME):
     """Checks if a given DataFrame follows is in a long format
 
@@ -772,7 +773,7 @@ def ssl_fix(*args, **kwargs):
             self.ssl_context = ssl_context
             super().__init__(**kwargs)
 
-        def init_poolmanager(self, connections, maxsize, block=False):  
+        def init_poolmanager(self, connections, maxsize, block=False):
             self.poolmanager = urllib3.poolmanager.PoolManager(
                 num_pools=connections,
                 maxsize=maxsize,
@@ -1463,7 +1464,6 @@ def convert(
         already_renamed = dict()
 
         for bridge in bridges:
-
             # encountering a bridge with the same orig name but which should
             # lead to two new index levels
             if bridge.orig in already_renamed.keys():
@@ -1477,7 +1477,6 @@ def convert(
                 df_collected.index = pd.MultiIndex.from_frame(_old_index)
 
             else:
-
                 for idx_old_names in df_collected.index.names:
                     if bridge.orig in idx_old_names:
                         # rename the index names

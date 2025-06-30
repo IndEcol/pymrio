@@ -239,8 +239,9 @@ def get_exiobase_files(path, coefficients=True):
         ]
         if len(found_file) > 1:
             logging.warning(
-                "Multiple files found for {}: {}"
-                " - USING THE FIRST ONE".format(kk, found_file)
+                "Multiple files found for {}: {} - USING THE FIRST ONE".format(
+                    kk, found_file
+                )
             )
             found_file = found_file[0:1]
         elif len(found_file) == 0:
@@ -456,7 +457,7 @@ def parse_exiobase1(path):
     system = _get_MRIO_system(path)
     if not system:
         logging.warning(
-            "Could not determine system (pxp or ixi)" " set system parameter manually"
+            "Could not determine system (pxp or ixi) set system parameter manually"
         )
 
     io = generic_exiobase12_parser(exio_files, system=system)
@@ -512,7 +513,7 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
     system = _get_MRIO_system(path)
     if not system:
         logging.warning(
-            "Could not determine system (pxp or ixi)" " set system parameter manually"
+            "Could not determine system (pxp or ixi) set system parameter manually"
         )
 
     io = generic_exiobase12_parser(exio_files, system=system)
@@ -582,9 +583,7 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
                     "in {} - specify one: {}".format(path, charac_files)
                 )
             elif len(charac_files) == 0:
-                raise ParserError(
-                    "No characcterisation file found " "in {}".format(path)
-                )
+                raise ParserError("No characcterisation file found in {}".format(path))
             else:
                 if _content.iszip:
                     with zipfile.ZipFile(path, "r") as zz:
@@ -878,9 +877,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
         # 2. case: directory given-build wiot_file with the value given in year
         if not year:
             raise ParserError(
-                "No year specified "
-                "(either specify a specific file "
-                "or a path and year)"
+                "No year specified (either specify a specific file or a path and year)"
             )
         year_two_digit = str(year)[-2:]
         wiot_file_list = [
@@ -1209,7 +1206,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     else:
         dd_sec_rename = wiot_sector_lookup.code.to_dict()
         warnings.warn(
-            "Parameter for names not understood - " "used ISIC codes as sector names"
+            "Parameter for names not understood - used ISIC codes as sector names"
         )
 
     if ll_names[1] == "c":
@@ -1276,8 +1273,9 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     ]
     if len(ll_root_content) < 1:
         warnings.warn(
-            "Extension data for {} not found - "
-            "Extension not included".format(para["start"]),
+            "Extension data for {} not found - Extension not included".format(
+                para["start"]
+            ),
             ParserWarning,
         )
         return None
@@ -1308,14 +1306,16 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
 
         if len(ll_pff_read) < 1:
             raise ParserError(
-                "Country data not complete for Extension "
-                "{} - missing {}.".format(para["start"], co)
+                "Country data not complete for Extension {} - missing {}.".format(
+                    para["start"], co
+                )
             )
 
         elif len(ll_pff_read) > 1:
             raise ParserError(
-                "Multiple country data for Extension "
-                "{} - country {}.".format(para["start"], co)
+                "Multiple country data for Extension {} - country {}.".format(
+                    para["start"], co
+                )
             )
 
         pff_read = ll_pff_read[0]
@@ -1494,7 +1494,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
         return df_use_sea, df_unit
     else:
         warnings.warn(
-            "SEA extension raw data file not found - " "SEA-Extension not included",
+            "SEA extension raw data file not found - SEA-Extension not included",
             ParserWarning,
         )
         return None, None
@@ -1556,9 +1556,7 @@ def parse_oecd(path, year=None):
         # 2. case: dir given - build oecd_file with the value given in year
         if not year:
             raise ParserError(
-                "No year specified "
-                "(either specify a specific file "
-                "or path and year)"
+                "No year specified (either specify a specific file or path and year)"
             )
 
         oecd_file_list = [
@@ -2216,16 +2214,18 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
     for key in gloria_data_sut.keys():
         if "region" in gloria_data_sut[key].columns.names:
             meta_rec._add_modify(
-                "Remove empty countries ({name}) columns "
-                "from {table}".format(name=empty_countries, table=key)
+                "Remove empty countries ({name}) columns from {table}".format(
+                    name=empty_countries, table=key
+                )
             )
             gloria_data_sut[key] = gloria_data_sut[key].drop(
                 empty_countries, axis=1, level=0
             )
         if "region" in gloria_data_sut[key].index.names:
             meta_rec._add_modify(
-                "Remove empty countries ({name}) row "
-                "from {table}".format(name=empty_countries, table=key)
+                "Remove empty countries ({name}) row from {table}".format(
+                    name=empty_countries, table=key
+                )
             )
             gloria_data_sut[key] = gloria_data_sut[key].drop(
                 empty_countries, axis=0, level=0
