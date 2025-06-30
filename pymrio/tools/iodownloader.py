@@ -2,17 +2,14 @@
 
 import getpass
 import itertools
-import json
 import os
 import re
-import ssl
 import zipfile
 from collections import namedtuple
 
 import requests
-import urllib3
 
-from pymrio.core.constants import __ROOT, GLORIA_URLS
+from pymrio.core.constants import GLORIA_URLS
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import filename_from_url, ssl_fix
 
@@ -277,7 +274,7 @@ def download_oecd(
     if type(version) is int:
         version = "v" + str(version)
 
-    if not version in ("v2016", "v2018", "v2021", "v2023"):
+    if version not in ("v2016", "v2018", "v2021", "v2023"):
         raise ValueError("Version not understood")
 
     if type(years) is int or type(years) is str:

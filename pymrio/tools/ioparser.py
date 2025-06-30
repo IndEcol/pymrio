@@ -1881,7 +1881,7 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
                 try:
                     indices_loc = os.path.join(path, "indices.zip")
                     indices_file = zipfile.ZipFile(indices_loc)
-                except:
+                except Exception:
                     raise ValueError(
                         f"{filename} is not available in the zip file and no indices.zip file is available in the directory provided"
                     )

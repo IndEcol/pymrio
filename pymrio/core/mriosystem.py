@@ -15,6 +15,8 @@ import string
 import time
 import typing
 import warnings
+from abc import ABC
+from typing import Iterator, Union
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -50,8 +52,8 @@ from pymrio.tools.iometadata import MRIOMetaData
 
 
 # internal functions
-def _warn_deprecation(message):  # pragma: no cover
-    warnings.warn(message, DeprecationWarning, stacklevel=2)
+# def _warn_deprecation(message):  # pragma: no cover
+#     warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
 # Exceptions
@@ -74,14 +76,21 @@ class ResetWarning(UserWarning):
 
 
 # Abstract classes
-class BaseSystem:
+class _BaseSystem(ABC):
     """This class is the base class for IOSystem and Extension
 
     Note
     ----
-    Thats is only a base class - do not make an instance of this class.
+    That's is only a base class - do not make an instance of this class.
 
     """
+
+    # properties to be set in the implementation classes
+    __basic__ = []
+    __non_agg_attributes__ = []
+    __coefficients__ = []
+    name = "Abstract BaseSystem"
+
 
     def __str__(self, startstr="System with: "):
         parastr = ", ".join(
@@ -108,6 +117,7 @@ class BaseSystem:
 
         return False
 
+
     def reset_full(self, force=False, _meta=None):
         """Remove all accounts which can be recalculated based on Z, Y, F, F_Y
 
@@ -122,7 +132,7 @@ class BaseSystem:
             Metadata handler for logging, optional. Internal
 
         """
-        # Attriubtes to keep must be defined in the init: __basic__
+        # Attributes to keep must be defined in the init: __basic__
         strwarn = None
         for df in self.__basic__:
             if df == "F_Y":
@@ -479,7 +489,8 @@ class BaseSystem:
             warnings.warn("No attributes available to get sectors")
             return None
 
-    def get_DataFrame(self, data=False, with_unit=True, with_population=True):
+    def get_DataFrame(self, data=False, with_unit=True, with_population=True) -> Iterator[Union[pd.DataFrame, str]]:
+
         """Yields all panda.DataFrames or there names
 
         Notes
@@ -701,7 +712,7 @@ class BaseSystem:
             for ext in self.get_extensions(data=True):
                 for df in ext.get_DataFrame(data=True):
                     df.rename(index=sectors, columns=sectors, inplace=True)
-        except:
+        except Exception:
             pass
         self.meta._add_modify("Changed sector names")
         return self
@@ -731,7 +742,7 @@ class BaseSystem:
             for ext in self.get_extensions(data=True):
                 for df in ext.get_DataFrame(data=True):
                     df.rename(index=Y_categories, columns=Y_categories, inplace=True)
-        except:
+        except Exception:
             pass
 
         self.meta._add_modify("Changed Y category names")
@@ -903,7 +914,7 @@ class BaseSystem:
 
 
 # API classes
-class Extension(BaseSystem):
+class Extension(_BaseSystem):
     """Class which gathers all information for one extension of the IOSystem
 
     Notes
@@ -1137,9 +1148,7 @@ class Extension(BaseSystem):
                 logging.debug("{} - M_down calculated based on G".format(self.name))
             else:
                 logging.debug(
-                    "Calculation of M_down not possible because G is not available.".format(
-                        self.name
-                    )
+                    "Calculation of M_down not possible because G is not available."
                 )
 
         F_Y_agg = 0
@@ -1311,7 +1320,7 @@ class Extension(BaseSystem):
                 y_label_name = (
                     name_row + " (" + str(self.unit.loc[row, "unit"].tolist()[0]) + ")"
                 )
-            except:
+            except Exception:
                 y_label_name = name_row + " (" + str(self.unit.loc[row, "unit"]) + ")"
         else:
             y_label_name = name_row
@@ -1393,7 +1402,7 @@ class Extension(BaseSystem):
         plt.legend(loc="best")
         try:
             plt.tight_layout()
-        except:  # pragma: no cover
+        except Exception: 
             pass
 
         if file_name:
@@ -1566,7 +1575,7 @@ class Extension(BaseSystem):
                             settings_overrides={"output_encoding": "unicode"},
                         )
 
-                except:  # pragma: no cover
+                except Exception:
                     warnings.warn("Module docutils not available - write rst instead")
                     format = "rst"
             format_str = {
@@ -2149,7 +2158,7 @@ class Extension(BaseSystem):
         return new_extension
 
 
-class IOSystem(BaseSystem):
+class IOSystem(_BaseSystem):
     """Class containing a whole EE MRIO System
 
     The class collects pandas dataframes for a whole EE MRIO system. The
@@ -2432,7 +2441,7 @@ class IOSystem(BaseSystem):
 
         ext_list = list(self.get_extensions(data=False, instance_names=True))
         extensions = extensions or ext_list
-        if type(extensions) == str:
+        if isinstance(extensions, str):
             extensions = [extensions]
 
         for ext_name in extensions:

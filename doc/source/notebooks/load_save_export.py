@@ -57,7 +57,6 @@ io_read.meta
 # Internally, pymrio stores data in csv format, with the 'economic core' data in the root and each satellite account in a subfolder. Metadata as file as a file describing the data format ('file_parameters.json') are included in each folder.
 
 # %%
-import os
 
 os.listdir(save_folder_full)
 

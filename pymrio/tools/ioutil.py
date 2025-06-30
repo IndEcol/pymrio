@@ -17,6 +17,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
 import urllib3
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES, LONG_VALUE_NAME, PYMRIO_PATH
@@ -296,10 +297,6 @@ def diagonalize_columns_to_sectors(
     sectors = df.index.get_level_values(sector_index_level).unique()
     sector_name = sector_index_level if type(sector_index_level) is str else "sector"
 
-    new_col_index = [
-        tuple(list(orig) + [new]) for orig in df.columns for new in sectors
-    ]
-
     diag_df = pd.DataFrame(
         data=diagonalize_blocks(df.values, blocksize=len(sectors)),
         index=df.index,
@@ -310,7 +307,7 @@ def diagonalize_columns_to_sectors(
     return diag_df
 
 
-def diagonalize_blocks(arr: np.array, blocksize: int):
+def diagonalize_blocks(arr, blocksize: int):
     """Diagonalize sections of columns of an array for the whole array
 
     Parameters
@@ -381,7 +378,7 @@ def set_dom_block(df: pd.DataFrame, value: float = 0) -> pd.DataFrame:
     regions = df.index.get_level_values(0).unique()
     df_res = df.copy()
     for reg in regions:
-        df_res.loc[reg, reg] = 0
+        df_res.loc[reg, reg] = value
     return df_res
 
 
@@ -555,7 +552,7 @@ def build_agg_vec(agg_vec, **source):
     ] * len(vec_list[0])
     for currvec in vec_list:
         if len(currvec) != len(out):
-            logging.warn("Inconsistent vector length")
+           logging.warning("Inconsistent vector length") 
         [_rep(out, ind, val) for ind, val in enumerate(currvec) if not out[ind]]
 
     [_rep(out, ind, miss_val) for ind, val in enumerate(out) if not val]
@@ -568,7 +565,7 @@ def find_first_number(ll):
     for nr, entry in enumerate(ll):
         try:
             float(entry)
-        except (ValueError, TypeError) as e:
+        except (ValueError, TypeError):
             pass
         else:
             return nr
@@ -613,8 +610,8 @@ def sniff_csv_format(
 
     def read_first_lines(filehandle):
         lines = []
-        for i in range(max_test_lines):
-            line = ff.readline()
+        for _ in range(max_test_lines):
+            line = filehandle.readline()
             if line == "":
                 continue
             try:
@@ -641,15 +638,16 @@ def sniff_csv_format(
         for line in test_lines
     ]
 
+    sep = None
     for nr, (count, sep) in enumerate(sep_aly_lines[0]):
         for line in sep_aly_lines:
             if line[nr][0] == count:
                 break
-        else:
-            sep = None
-
         if sep:
             break
+
+    if not sep:
+        raise ValueError("Could not identify separator")
 
     lines_with_sep = [line for line in test_lines if sep in line]
 
@@ -683,8 +681,10 @@ def filename_from_url(url):
 
     """
     name = re.search(r"[^/\\&?]+\.\w{2,7}(?=([?&].*$|$))", url)
-    return name.group()
-
+    if name:
+        return name.group()
+    else:
+        raise ValueError("Could not extract filename from url")
 
 def check_if_long(df, value_name=LONG_VALUE_NAME):
     """Checks if a given DataFrame follows is in a long format
@@ -765,14 +765,14 @@ def ssl_fix(*args, **kwargs):
         r: class:`Response <Response>` object
     """
 
-    class CustomHttpAdapter(requests.adapters.HTTPAdapter):
+    class CustomHttpAdapter(HTTPAdapter):
         # "Transport adapter" that allows us to use custom ssl_context.
 
         def __init__(self, ssl_context=None, **kwargs):
             self.ssl_context = ssl_context
             super().__init__(**kwargs)
 
-        def init_poolmanager(self, connections, maxsize, block=False):
+        def init_poolmanager(self, connections, maxsize, block=False):  
             self.poolmanager = urllib3.poolmanager.PoolManager(
                 num_pools=connections,
                 maxsize=maxsize,
@@ -782,7 +782,7 @@ def ssl_fix(*args, **kwargs):
 
     try:
         r = requests.get(*args, **kwargs)
-    except:
+    except Exception:
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
         ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
         session = requests.session()
@@ -991,7 +991,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
     if not at_least_one_valid:
         if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
-            _dfs_idx = pd.DataFrame(index=[], columns=_dfs_idx.columns)
+            _dfs_idx = pd.DataFrame(columns=_dfs_idx.columns)
         elif type(_dfs_idx) in [pd.Index, pd.MultiIndex]:
             _dfs_idx = pd.Index([])
 
@@ -1162,7 +1162,7 @@ def _validate_characterization_table(
                 .region.apply(set)
             )
             for improw in reg_cov.index:
-                if len(dd := regions.difference(reg_cov[improw])) > 0:
+                if len(regions.difference(reg_cov[improw])) > 0:
                     fac.loc[row, "error_missing_region"] = True
 
         if "sector" in all_required_col:
@@ -1172,7 +1172,7 @@ def _validate_characterization_table(
                 .sector.apply(set)
             )
             for improw in reg_cov.index:
-                if len(dd := sectors.difference(reg_cov[improw])) > 0:
+                if len(sectors.difference(reg_cov[improw])) > 0:
                     fac.loc[row, "error_missing_sector"] = True
 
     # check if additional region/sectors in the data

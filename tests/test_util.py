@@ -133,7 +133,7 @@ def test_dev_read(csv_test_files_content):
     for tests in csv_test_files_content.test_contents:
         with patch(
             "builtins.open", mock_open(read_data=tests.text), create=False
-        ) as mo:  # noqa
+        ) as _:  # noqa
             res = sniff_csv_format("foo")
         assert res["sep"] == tests.sep
         assert res["nr_index_col"] == tests.index_col
