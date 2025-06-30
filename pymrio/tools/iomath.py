@@ -274,8 +274,8 @@ def calc_G(B, L=None, x=None):
         if type(L) is pd.DataFrame:
             return pd.DataFrame(
                 np.transpose(recix * np.transpose(L.values * x)),
-                index=Z.index,
-                columns=Z.columns,
+                index=L.index,
+                columns=L.columns,
             )
         else:
             # G = hat(x) *  L * hat(x)^{-1} in mathematical form hatx.dot(L.transpose()).dot(np.linalg.inv(hatx)).

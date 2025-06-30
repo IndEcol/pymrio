@@ -43,7 +43,7 @@ def _get_file_format(file_name):
             break
     else:
         raise ValueError("Unkown format of stored files")
-    return format_key
+    return table_format
 
 
 def load_all(path, include_core=True, subfolders=None, path_in_arc=None):

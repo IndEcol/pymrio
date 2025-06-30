@@ -346,7 +346,7 @@ def download_oecd(
             os.remove(storage_file)
             if version == "v2023":
                 for file in os.listdir(storage_folder):
-                    absolute_path = os.path.join(storage_folder, file)
+                    # absolute_path = os.path.join(storage_folder, file)
                     os.rename(
                         os.path.join(storage_folder, file),
                         os.path.join(

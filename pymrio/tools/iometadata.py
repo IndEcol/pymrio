@@ -272,7 +272,6 @@ class MRIOMetaData(object):
                 with open(str(self._metadata_file), "r") as f:
                     self._content = json.load(f, object_pairs_hook=OrderedDict)
 
-        return mmd
 
     def note(self, entry):
         """Add the passed string as note to the history
@@ -386,22 +385,22 @@ class MRIOMetaData(object):
 
         try:
             username = getpass.getuser()
-        except:
+        except Exception:
             username = "unknown"
 
         try:
             hostname = platform.node()
-        except:
+        except Exception:
             hostname = "unknown"
 
         try:
             os = platform.system()
-        except:
+        except Exception:
             os = "unknown"
 
         try:
             pyver = platform.python_version()
-        except:
+        except Exception:
             pyver = "unknown"
 
         return {

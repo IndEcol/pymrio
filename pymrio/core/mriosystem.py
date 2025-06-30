@@ -683,7 +683,7 @@ class _BaseSystem(ABC):
             for ext in self.get_extensions(data=True):
                 for df in ext.get_DataFrame(data=True):
                     df.rename(index=regions, columns=regions, inplace=True)
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
 
         self.meta._add_modify("Changed country names")
@@ -778,25 +778,25 @@ class _BaseSystem(ABC):
             )
             if len(index_find) > 0:
                 res_dict["index"] = index_find
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
         try:
             reg_find = ioutil.index_contains(self.get_regions(), find_all=term)
             if len(reg_find) > 0:
                 res_dict["regions"] = reg_find
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
         try:
             sector_find = ioutil.index_contains(self.get_sectors(), find_all=term)
             if len(sector_find) > 0:
                 res_dict["sectors"] = sector_find
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
         try:
             Y_find = ioutil.index_contains(self.get_Y_categories(), find_all=term)
             if len(Y_find) > 0:
                 res_dict["Y_categories"] = Y_find
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
         try:
             for ext in self.get_extensions(data=False, instance_names=True):
@@ -805,7 +805,7 @@ class _BaseSystem(ABC):
                 )
                 if len(ext_index_find) > 0:
                     res_dict[ext + "_index"] = ext_index_find
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
 
         return res_dict
