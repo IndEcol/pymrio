@@ -1825,9 +1825,11 @@ class Extension(BaseSystem):
             'characterized_name_column', 'characterization_factors_column',
             'characterized_unit_column', 'orig_unit_column'
 
-        characterized_name_column: str (optional)
+        characterized_name_column: str (optional) or list[str]
             Name of the column with the names of the
-            characterized account (default: "impact")
+            characterized account (default: "impact").
+            In case a list of columns is passed, these get
+            conconateded to one colum and split before return.
 
         characterization_factors_column: str (optional)
             Name of the column with the factors for the
@@ -1853,6 +1855,32 @@ class Extension(BaseSystem):
 
         """
         name = self.name + name if name[0] == "_" else name
+
+        if type(characterized_name_column) is list:
+            if len(characterized_name_column) == 0:
+                raise ValueError(
+                    "characterized_name_column must be a string or a list with at least one element"
+                )
+            elif len(characterized_name_column) == 1:
+                characterized_name_column = characterized_name_column[0]
+                orig_characterized_name_column = None
+            else:
+                orig_characterized_name_column = characterized_name_column
+                sep_char = "<<!>>"
+                all_impacts = pd.concat(
+                    [factors[col] for col in characterized_name_column]
+                ).unique()
+                all_impacts_joined = "".join(all_impacts)
+
+                while sep_char in all_impacts_joined:
+                    sep_char = sep_char.replace("|", "||")
+
+                characterized_name_column = "char_name_col_merged"
+                factors.loc[:, characterized_name_column] = factors[
+                    orig_characterized_name_column
+                ].agg(sep_char.join, axis=1)
+        else:
+            orig_characterized_name_column = None
 
         req = ioutil._characterize_get_requried_col(
             ext_index_names=list(self.get_rows().names),
@@ -1924,17 +1952,28 @@ class Extension(BaseSystem):
             )
             _group_index = res.index.names.difference(acc.index.names)
             res = res.groupby(_group_index).sum().T.reindex(columns=acc.columns)
+            if orig_characterized_name_column:
+                res.index = pd.MultiIndex.from_arrays(
+                    list(zip(*res.index.str.split(sep_char))),
+                    names=orig_characterized_name_column,
+                )
             setattr(new_ext, acc_name, res)
 
-        setattr(
-            new_ext,
-            "unit",
+        res_unit = (
             factors.loc[:, [characterized_name_column, characterized_unit_column]]
             .drop_duplicates()
             .set_index(characterized_name_column)
             .rename({characterized_unit_column: "unit"}, axis=1)
-            .loc[new_ext.get_rows(), :],
         )
+        if orig_characterized_name_column:
+            res_unit.index = pd.MultiIndex.from_arrays(
+                list(zip(*res_unit.index.str.split(sep_char))),
+                names=orig_characterized_name_column,
+            )
+        res_unit = res_unit.loc[new_ext.get_rows(), :]
+        setattr(new_ext, "unit", res_unit)
+        if orig_characterized_name_column:
+            validation = validation.drop(characterized_name_column, axis=1)
 
         return ret_value(
             validation=validation,
