@@ -17,6 +17,7 @@ New Features
   `reindex` which specifies a order of the converted dataframe/extension. It is a wrapper around pandas reindex,
   but also allows to passing of a bridge column name to sort after the order given in the bridge table.
 * we have a logo
+* characterization method accepts multiple columns for characterized_name_column. Thus is can be used for characterizing into a multiindex.
 
 Fixes
 ======

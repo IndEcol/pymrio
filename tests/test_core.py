@@ -669,6 +669,24 @@ def test_characterize_extension_reg_spec(fix_testmrio):
     pdt.assert_frame_equal(nnaa.F, res_reg2_missing.extension.F)
     pdt.assert_frame_equal(nnaa.F_Y, res_reg2_missing.extension.F_Y)
 
+    # testing passing multiple impact columns
+
+    fac_split = fac_reg2_missing.copy()
+    fac_split.loc[:, "impact2"] = fac_split.loc[:, "impact"].str.split().str[-1]
+    res_split = tmrio.emissions.characterize(
+        fac_split, characterized_name_column=["impact", "impact2"]
+    )
+
+    assert "impact" in res_split.validation.columns
+    assert "impact2" in res_split.validation.columns
+    assert "char_name_col_merged" not in res_split.validation.columns
+
+    npt.assert_array_equal(res_split.extension.F.values, nnaa.F.values)
+    npt.assert_array_equal(res_split.extension.F_Y.values, nnaa.F_Y.values)
+
+    assert "impact" == res_split.extension.get_index().names[0]
+    assert "impact2" == res_split.extension.get_index().names[1]
+
 
 @pytest.mark.filterwarnings("ignore::UserWarning")
 def test_characterize_extension_over_extensions(fix_testmrio):
@@ -748,7 +766,9 @@ def test_characterize_extension_over_extensions(fix_testmrio):
     factors_reg_ext.loc[:, "extension"] = factors_reg_ext.loc[:, "compartment"]
     factors_reg_ext = factors_reg_ext[factors_reg_ext.compartment != "land"]
 
-    ex_reg_one = tt.emissions.characterize(factors_reg_spec, name="one").extension
+    ex_reg_one = tt.emissions.characterize(factors_reg_spec, 
+                                           name="one",
+                                           characterized_name_column=["impact"]).extension
     ex_reg_multi = pymrio.extension_characterize(
         *list(tt.get_extensions(data=True)),
         factors=factors_reg_ext,
