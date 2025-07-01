@@ -1,4 +1,4 @@
-"""Various constant values
+"""Various constant values.
 
 KST 20140903
 """

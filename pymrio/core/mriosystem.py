@@ -2924,39 +2924,39 @@ class IOSystem(_BaseSystem):
 
         try:
             self.reset_all_to_flows()
-        except ResetError:
+        except ResetError as err:
             raise AggregationError(
                 "System under-defined for aggregation - "
                 "do a 'calc_all' before aggregation"
-            )
+            ) from err
 
-        def agg_routine(df):
+        def agg_routine(iodf):
             """Aggregate duplicate columns and rows."""
-            _index_names = df.index.names
-            _columns_names = df.columns.names
-            if (type(df.columns[0]) is not tuple) and df.columns[0].lower() == "unit":
-                df = df.groupby(df.index, sort=False).first()
+            _index_names = iodf.index.names
+            _columns_names = iodf.columns.names
+            if (type(iodf.columns[0]) is not tuple) and iodf.columns[0].lower() == "unit":
+                iodf = iodf.groupby(iodf.index, sort=False).first()
             else:
-                df = (
-                    df.groupby(df.index, sort=False)
+                iodf = (
+                    iodf.groupby(iodf.index, sort=False)
                     .sum()
-                    .T.groupby(df.columns, sort=False)
+                    .T.groupby(iodf.columns, sort=False)
                     .sum()
                     .T
                 )
 
-            if type(df.index[0]) is tuple:
-                df.index = pd.MultiIndex.from_tuples(df.index, names=_index_names)
-            if type(df.columns[0]) is tuple:
-                df.columns = pd.MultiIndex.from_tuples(df.columns, names=_columns_names)
-            return df
+            if type(iodf.index[0]) is tuple:
+                iodf.index = pd.MultiIndex.from_tuples(iodf.index, names=_index_names)
+            if type(iodf.columns[0]) is tuple:
+                iodf.columns = pd.MultiIndex.from_tuples(iodf.columns, names=_columns_names)
+            return iodf
 
         for df_to_agg_name in self.get_DataFrame(data=False, with_unit=True):
             self.meta._add_modify(f"Aggregate economic core - {df_to_agg_name}")
             setattr(
                 self,
                 df_to_agg_name,
-                agg_routine(df=getattr(self, df_to_agg_name)),
+                agg_routine(iodf=getattr(self, df_to_agg_name)),
             )
 
         # Aggregate extension
@@ -2968,7 +2968,7 @@ class IOSystem(_BaseSystem):
                 setattr(
                     ext,
                     df_to_agg_name,
-                    agg_routine(df=getattr(ext, df_to_agg_name)),
+                    agg_routine(iodf=getattr(ext, df_to_agg_name)),
                 )
 
         if not inplace:
@@ -3044,11 +3044,11 @@ class IOSystem(_BaseSystem):
 
         try:
             self.reset_to_flows()
-        except ResetError:
+        except ResetError as err:
             raise AggregationError(
                 "System under-defined for aggregation - "
                 "do a 'calc_all' before aggregation"
-            )
+            ) from err
 
         if type(region_names) is str:
             region_names = [region_names]
@@ -3286,7 +3286,7 @@ class IOSystem(_BaseSystem):
         return self
 
     def remove_extension(self, ext):
-        """Remove extension from IOSystem
+        """Remove extension from IOSystem.
 
         For single Extensions the same can be achieved with del
         IOSystem_name.Extension_name
@@ -3326,7 +3326,7 @@ class IOSystem(_BaseSystem):
         ignore_columns=None,
         reindex=None,
     ):
-        """Apply the convert function to the extensions of the mrio object
+        """Apply the convert function to the extensions of the mrio object.
 
         Internally that calls the Extension.convert function for all extensions.
 
@@ -3525,7 +3525,7 @@ class IOSystem(_BaseSystem):
         )
 
     def extension_concate(self, new_extension_name):
-        """Concates all extension of the mrio object
+        """Concates all extension of the mrio object.
 
         This method combines all satellite accounts into a single extension.
 
@@ -3565,7 +3565,7 @@ def extension_characterize(
     only_validation=False,
     orig_unit_column="stressor_unit",
 ):
-    """Characterize stressors across different extensions
+    """Characterize stressors across different extensions.
 
     This works similar to the characterize method of a specific
     extension.
@@ -3725,7 +3725,7 @@ def extension_convert(
     ignore_columns=None,
     reindex=None,
 ):
-    """Apply the convert function to a list of extensions
+    """Apply the convert function to a list of extensions.
 
     Internally that calls the Extension.convert function for all extensions.
 
@@ -3847,7 +3847,8 @@ def extension_convert(
     for ext in extensions:
         if ext.name not in df_map[extension_col_name].unique():
             warnings.warn(
-                f"Extension {ext.name} not found in df_map. Skipping extension."
+                f"Extension {ext.name} not found in df_map. Skipping extension.",
+                stacklevel=2
             )
             # TODO: later go to logging
             continue

@@ -138,7 +138,7 @@ ignore = [
 ]
 # These codes are ignored by the linter (e.g., flake8, pydocstyle, or pandas-vet)
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 50
 
 [tool.ruff.lint.pydocstyle]

@@ -1,5 +1,6 @@
-"""Pymrio - A python module for automating io calculations and generating reports
-==============================================================================
+"""Pymrio - A python module for automating io calculations and generating reports.
+
+==================================================================================
 
 The classes and tools in this module should work with any symetric IO system.
 
