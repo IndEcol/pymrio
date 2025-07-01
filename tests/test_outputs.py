@@ -1,4 +1,4 @@
-"""Test for producing graphical outputs
+"""Test for producing graphical outputs.
 
 The report functionality is tested separately
 in test_integration
@@ -26,7 +26,14 @@ import pymrio  # noqa
 
 @pytest.fixture()
 def fix_testmrio_calc():
-    """Single point to load the test mrio"""
+    """
+    Single point to load the test mrio.
+    
+    Returns
+    -------
+    TestMRIO
+        A class containing the loaded test MRIO with all calculations performed.
+    """
 
     class TestMRIO:
         testmrio = pymrio.load_test().calc_all()
@@ -35,7 +42,14 @@ def fix_testmrio_calc():
 
 
 def test_graphs_totals(fix_testmrio_calc):
-    """Testing graph totals"""
+    """
+    Testing graph totals.
+    
+    Parameters
+    ----------
+    fix_testmrio_calc : fixture
+        The fixture providing the test MRIO object.
+    """
     stressor = ("emission_type1", "air")
     tt = fix_testmrio_calc.testmrio
     ax = tt.emissions.plot_account(row=stressor)
@@ -58,7 +72,14 @@ def test_graphs_totals(fix_testmrio_calc):
 
 
 def test_graphs_population_sector(fix_testmrio_calc):
-    """Testing graph per population for a specific sector"""
+    """
+    Testing graph per population for a specific sector.
+    
+    Parameters
+    ----------
+    fix_testmrio_calc : fixture
+        The fixture providing the test MRIO object.
+    """
     stressor = ("emission_type2", "water")
     sector = "mining"
 
@@ -84,7 +105,14 @@ def test_graphs_population_sector(fix_testmrio_calc):
 
 
 def test_graphs_population_total(fix_testmrio_calc):
-    """Testing total per population accounts"""
+    """
+    Testing total per population accounts.
+    
+    Parameters
+    ----------
+    fix_testmrio_calc : fixture
+        The fixture providing the test MRIO object.
+    """
     stressor = ("emission_type2", "water")
 
     tt = fix_testmrio_calc.testmrio
