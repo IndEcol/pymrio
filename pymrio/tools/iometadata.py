@@ -1,4 +1,4 @@
-"""Meta data for provenance and version tracking in pymrio"""
+"""Meta data for provenance and version tracking in pymrio."""
 
 import datetime
 import getpass
@@ -15,6 +15,8 @@ from pymrio.version import __version__ as pymrio_version
 
 
 class MRIOMetaData:
+    """MRIO Meta Data class."""
+
     def __init__(
         self,
         location=None,
@@ -25,7 +27,7 @@ class MRIOMetaData:
         path_in_arc="",
         logger_function=logging.info,
     ):
-        """Organzises the MRIO meta data
+        """Organzise the MRIO meta data.
 
         The meta data is stored in a json file.
 
@@ -145,9 +147,11 @@ class MRIOMetaData:
             self.logger("Start recording metadata")
 
     def __repr__(self):
+        """Repr."""
         return self.__str__()
 
     def __str__(self):
+        """Str."""
         nr_hist_lines_show = 10
 
         hist = "\n".join(self._content["history"][:nr_hist_lines_show])
@@ -172,7 +176,7 @@ class MRIOMetaData:
         version=None,
         logger_function=logging.info,
     ):
-        """Factory method for making a download log file
+        """Make a download log file (factory method).
 
         This makes an instance of the metahander suitable for storing download information.
         During estabishment it also records system information (username, hostname, pymrio version, etc.)
@@ -252,7 +256,7 @@ class MRIOMetaData:
         return mmd
 
     def _read_content(self):
-        """Read the metadata file and store the content in self._content"""
+        """Read the metadata file and store the content in self._content."""
         if self._metadata_file:
             if self._path_in_arc:
                 with zipfile.ZipFile(file=str(self._metadata_file)) as zf:
@@ -263,22 +267,22 @@ class MRIOMetaData:
                     self._content = json.load(f, object_pairs_hook=OrderedDict)
 
     def note(self, entry):
-        """Add the passed string as note to the history
+        """Add the passed string as note to the history.
 
         If log is True (default), also log the string by logging.info
         """
         self._add_history(entry_type="NOTE", entry=entry)
 
     def _add_fileio(self, entry):
-        """Add the passed string as FILEIO to the history"""
+        """Add the passed string as FILEIO to the history."""
         self._add_history(entry_type="FILEIO", entry=entry)
 
     def _add_modify(self, entry):
-        """Add the passed string as MODIFICATION to the history"""
+        """Add the passed string as MODIFICATION to the history."""
         self._add_history(entry_type="MODIFICATION", entry=entry)
 
     def _add_history(self, entry_type, entry):
-        """Generic method to add entry as entry_type to the history"""
+        """Add entry as entry_type to the history."""
         meta_string = f"{self._time()} - {entry_type.upper()} -  {entry}"
 
         self._content["history"].insert(0, meta_string)
@@ -286,26 +290,27 @@ class MRIOMetaData:
 
     @property
     def metadata(self):
+        """Return the current content."""
         return self._content
 
     @property
     def history(self):
-        """All recorded history"""
+        """Return all recorded history."""
         return self._content["history"]
 
     @property
     def modification_history(self):
-        """All modification history entries"""
+        """Return all modification history entries."""
         return self._get_history_type("MODIFICATION")
 
     @property
     def note_history(self):
-        """All note history entries"""
+        """Return all note history entries."""
         return self._get_history_type("NOTE")
 
     @property
     def file_io_history(self):
-        """All fileio history entries"""
+        """Return all fileio history entries."""
         return self._get_history_type("FILEIO")
 
     def _get_history_type(self, history_type):
@@ -313,22 +318,26 @@ class MRIOMetaData:
 
     @property
     def description(self):
+        """Return description entries."""
         return self._content["description"]
 
     @property
     def name(self):
+        """Return the name entry."""
         return self._content["name"]
 
     @property
     def system(self):
+        """Return the system entry."""
         return self._content["system"]
 
     @property
     def version(self):
+        """Return version."""
         return self._content["version"]
 
     def change_meta(self, para, new_value, log=True):
-        """Changes the meta data
+        """Change the meta data.
 
         This function does nothing if None is passed as new_value.
         To set a certain value to None pass the str 'None'
@@ -362,7 +371,7 @@ class MRIOMetaData:
             )
 
     def _get_system_meta(self):
-        """Returns a dictionary with user meta data
+        """Return a dictionary with user meta data.
 
         with username, computername, os, os version, and python version
         """
@@ -398,7 +407,7 @@ class MRIOMetaData:
         return f"{datetime.datetime.now():%Y%m%d %H:%M:%S}"
 
     def _read_content(self):
-        """Reads metadata from location (and path_in_arc if archive)
+        """Read metadata from location (and path_in_arc if archive).
 
         This function is called during the init process and
         should not be used in isolation: it overwrites
@@ -415,7 +424,7 @@ class MRIOMetaData:
                 self._content = json.load(mdf, object_pairs_hook=OrderedDict)
 
     def save(self, location=None):
-        """Saves the current status of the metadata
+        """Save the current status of the metadata.
 
         This saves the metadata at the location of the previously loaded
         metadata or at the file/path given in location.
@@ -447,7 +456,7 @@ class MRIOMetaData:
             logging.error("No metadata file given for storing the file")
 
     def __call__(self, note=None):
-        """Shortcut for showing and adding notes
+        """Call (shortcut) for showing and adding notes.
 
         If called without parameters, prints a full description
         of the metadata. If 'note' is given, add note and prints
