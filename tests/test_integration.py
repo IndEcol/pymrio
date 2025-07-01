@@ -1,4 +1,6 @@
-"""Testing functions for the full run based on
+"""Testing functions for the full run.
+
+This is based on
 the small MRIO given within pymrio.
 
 This tests the full computation and fileio.
@@ -154,7 +156,7 @@ def td_testmrio():
 
 
 def test_all_wo_ghosh(td_testmrio):
-    """Full integration test, without ghosh
+    """Full integration test, without ghosh.
 
     Checks:
     -) cba calculations
@@ -194,14 +196,13 @@ def test_all_wo_ghosh(td_testmrio):
 
 
 def test_all_with_ghosh(td_testmrio):
-    """Full integration test, with ghosh calcualtion
+    """Full integration test, with ghosh calcualtion.
 
     Checks:
     -) cba calculations
     -) M calculations
     -) concate extension
     """
-
     mr_wig = pymrio.load_test()
     mr_wig.calc_all(include_ghosh=True)
 
@@ -240,7 +241,7 @@ def test_all_with_ghosh(td_testmrio):
 
 
 def test_txt_zip_fileio(tmpdir):
-    """Round trip with saving and loading the testmrio
+    """Round trip with saving and loading the testmrio.
 
     Txt and zip format
 
@@ -312,7 +313,7 @@ def test_txt_zip_fileio(tmpdir):
 
 
 def test_parquet_fileio(tmpdir):
-    """Round trip with saving and loading the testmrio in parquet"""
+    """Round trip with saving and loading the testmrio in parquet."""
     mr = pymrio.load_test()
 
     save_path = str(tmpdir.mkdir("pymrio_test_parquet"))
@@ -325,7 +326,7 @@ def test_parquet_fileio(tmpdir):
 
 
 def test_pickle_fileio(tmpdir):
-    """Round trip with saving and loading the testmrio in pickle"""
+    """Round trip with saving and loading the testmrio in pickle."""
     mr = pymrio.load_test()
 
     save_path = str(tmpdir.mkdir("pymrio_test_pickle"))
@@ -338,7 +339,7 @@ def test_pickle_fileio(tmpdir):
 
 
 def test_reports(tmpdir):
-    """Tests the reporting function
+    """Tests the reporting function.
 
     Here, only the correct file and folder structure
     is tested. The actual graphical output gets tested
