@@ -1,4 +1,4 @@
-"""Tests the aggregation functionality in pymrio
+"""Tests the aggregation functionality in pymrio.
 
 This only test the top-level aggregation function.
 For the low-level function 'build_agg_vec' and 'build_agg_matrix'
@@ -20,7 +20,7 @@ import pymrio  # noqa
 
 
 def test_aggreation_regions():
-    """Testing aggregation of regions in various ways"""
+    """Testing aggregation of regions in various ways."""
     # All these representations should lead to the same results
     reg_agg_matrix = np.array([[1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1]])
 
@@ -111,7 +111,7 @@ def test_aggreation_regions():
 
 
 def test_aggreation_sectors():
-    """Test different possibilities to aggregate sectors"""
+    """Test different possibilities to aggregate sectors."""
     sec_agg_df = pd.DataFrame(
         data=[
             ("food", "eat"),
@@ -167,7 +167,7 @@ def test_aggreation_sectors():
 
 
 def test_numerical_aggreation_sectors():
-    """Testing aggregation of sectors with a numeric array"""
+    """Testing aggregation of sectors with a numeric array."""
     sec_agg = np.array(
         [[1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1]]
     )
@@ -189,7 +189,7 @@ def test_numerical_aggreation_sectors():
 
 
 def test_wrong_inputs():
-    """Tests if correct Exceptions are raised for wrong shaped input arguments"""
+    """Tests if correct Exceptions are raised for wrong shaped input arguments."""
     io = pymrio.load_test().calc_all()
 
     with pytest.raises(ValueError) as VA_sector_number:
@@ -218,7 +218,7 @@ def test_wrong_inputs():
 
 
 def test_total_agg():
-    """Testing aggregation to total values"""
+    """Testing aggregation to total values."""
     io = pymrio.load_test().calc_all()
     np.testing.assert_allclose(
         io.emissions.D_cba.sum(axis=1).to_frame().values,
@@ -227,7 +227,7 @@ def test_total_agg():
 
 
 def test_underdefined_agg():
-    """Testing correct error message for underdefined aggregation"""
+    """Testing correct error message for underdefined aggregation."""
     io = pymrio.load_test().calc_all()
     io.reset_all_to_coefficients()
     with pytest.raises(pymrio.core.mriosystem.AggregationError):

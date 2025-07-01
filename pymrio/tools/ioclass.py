@@ -17,12 +17,12 @@ def get_classification(mrio_name: Optional[str] = None):
 
     Parameters
     ----------
-
     mrio_name: str
         MRIO for which to get the classification.
         Pass None (default) for a list of available classifications.
 
-    Returns:
+    Returns
+    -------
         pymrio.ClassificationData
     """
     if not mrio_name:
@@ -89,8 +89,8 @@ class ClassificationData:
             be extracted from the Series name if this is given (to allow for
             tab completion).
 
-        Returns:
-        --------
+        Returns
+        -------
             dict
         """
         if not isinstance(orig, str):

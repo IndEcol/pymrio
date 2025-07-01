@@ -86,14 +86,13 @@ def parse_exio12_ext(
 
     For EXIOBASE 3 - extension can be loaded directly with pymrio.load
 
-    Notes:
+    Notes
     -----
     So far this only parses factor of production extensions F (not
     final demand extensions F_Y nor coeffiecents S).
 
     Parameters
     ----------
-
     ext_file : string or pathlib.Path
         File to parse
 
@@ -123,7 +122,7 @@ def parse_exio12_ext(
     sep : string, optional
         Delimiter to use; default ','
 
-    Returns:
+    Returns
     -------
     pymrio.Extension
         with F (and unit if available)
@@ -187,7 +186,7 @@ def get_exiobase12_version(filename):
 
 
 def get_exiobase_files(path, coefficients=True):
-    """Gets the EXIOBASE files in path (which can be a zip file)
+    """Get the EXIOBASE files in path (which can be a zip file).
 
     Parameters
     ----------
@@ -197,40 +196,40 @@ def get_exiobase_files(path, coefficients=True):
         If True (default), considers the mrIot file as A matrix,
         and the extensions as S matrices. Otherwise as Z and F, respectively
 
-    Returns:
+    Returns
     -------
     dict of dict
     """
     path = os.path.normpath(str(path))
     if coefficients:
-        exio_core_regex = dict(
+        exio_core_regex = {
             # don’t match file if starting with _
-            A=re.compile(r"(?<!\_)mrIot.*txt"),
-            Y=re.compile(r"(?<!\_)mrFinalDemand.*txt"),
-            S_factor_inputs=re.compile(r"(?<!\_)mrFactorInputs.*txt"),
-            S_emissions=re.compile(r"(?<!\_)mrEmissions.*txt"),
-            S_materials=re.compile(r"(?<!\_)mrMaterials.*txt"),
-            S_resources=re.compile(r"(?<!\_)mrResources.*txt"),
-            F_Y_resources=re.compile(r"(?<!\_)mrFDResources.*txt"),
-            F_Y_emissions=re.compile(r"(?<!\_)mrFDEmissions.*txt"),
-            F_Y_materials=re.compile(r"(?<!\_)mrFDMaterials.*txt"),
-        )
+            "A": re.compile(r"(?<!\_)mrIot.*txt"),
+            "Y": re.compile(r"(?<!\_)mrFinalDemand.*txt"),
+            "S_factor_inputs": re.compile(r"(?<!\_)mrFactorInputs.*txt"),
+            "S_emissions": re.compile(r"(?<!\_)mrEmissions.*txt"),
+            "S_materials": re.compile(r"(?<!\_)mrMaterials.*txt"),
+            "S_resources": re.compile(r"(?<!\_)mrResources.*txt"),
+            "F_Y_resources": re.compile(r"(?<!\_)mrFDResources.*txt"),
+            "F_Y_emissions": re.compile(r"(?<!\_)mrFDEmissions.*txt"),
+            "F_Y_materials": re.compile(r"(?<!\_)mrFDMaterials.*txt"),
+        }
     else:
-        exio_core_regex = dict(
+        exio_core_regex = {
             # don’t match file if starting with _
-            Z=re.compile(r"(?<!\_)mrIot.*txt"),
-            Y=re.compile(r"(?<!\_)mrFinalDemand.*txt"),
-            F_factor_inputs=re.compile(r"(?<!\_)mrFactorInputs.*txt"),
-            F_emissions=re.compile(r"(?<!\_)mrEmissions.*txt"),
-            F_materials=re.compile(r"(?<!\_)mrMaterials.*txt"),
-            F_resources=re.compile(r"(?<!\_)mrResources.*txt"),
-            F_Y_emissions=re.compile(r"(?<!\_)mrFDEmissions.*txt"),
-            F_Y_materials=re.compile(r"(?<!\_)mrFDMaterials.*txt"),
-        )
+            "Z": re.compile(r"(?<!\_)mrIot.*txt"),
+            "Y": re.compile(r"(?<!\_)mrFinalDemand.*txt"),
+            "F_factor_inputs": re.compile(r"(?<!\_)mrFactorInputs.*txt"),
+            "F_emissions": re.compile(r"(?<!\_)mrEmissions.*txt"),
+            "F_materials": re.compile(r"(?<!\_)mrMaterials.*txt"),
+            "F_resources": re.compile(r"(?<!\_)mrResources.*txt"),
+            "F_Y_emissions": re.compile(r"(?<!\_)mrFDEmissions.*txt"),
+            "F_Y_materials": re.compile(r"(?<!\_)mrFDMaterials.*txt"),
+        }
 
     repo_content = get_repo_content(path)
 
-    exio_files = dict()
+    exio_files = {}
     for kk, vv in exio_core_regex.items():
         found_file = [
             vv.search(ff).string for ff in repo_content.filelist if vv.search(ff)
@@ -262,7 +261,7 @@ def get_exiobase_files(path, coefficients=True):
 
 
 def generic_exiobase12_parser(exio_files, system=None):
-    """Generic EXIOBASE version 1 and 2 parser
+    """Parse EXIOBASE version 1 and 2.
 
     This is used internally by parse_exiobase1 / 2 functions to
     parse exiobase files. In most cases, these top-level functions
@@ -271,7 +270,6 @@ def generic_exiobase12_parser(exio_files, system=None):
 
     Parameters
     ----------
-
     exio_files: dict of dict
 
     system: str (pxp or ixi)
@@ -438,7 +436,7 @@ def parse_exiobase1(path):
     path : pathlib.Path or string
         Path of the exiobase 1 data
 
-    Returns:
+    Returns
     -------
     pymrio.IOSystem with exio1 data
 
@@ -488,12 +486,12 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
         will be taken from the pymrio module. If popvector = None no population
         data will be passed to the IOSystem.
 
-    Returns:
+    Returns
     -------
     IOSystem
         A IOSystem with the parsed exiobase 2 data
 
-    Raises:
+    Raises
     ------
     ParserError
         If the exiobase source files are not complete in the given path
@@ -697,12 +695,11 @@ def parse_exiobase3(path):
 
     Parameters
     ----------
-
     path : string or pathlib.Path
         Path to the folder with the EXIOBASE files
         or the compressed archive.
 
-    Returns:
+    Returns
     -------
     IOSystem
         A IOSystem with the parsed exiobase 3 data
@@ -842,11 +839,11 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
         insensitive and passing the first character is sufficient.
     TODO popvector : TO BE IMPLEMENTED (consistent with EXIOBASE)
 
-    Returns:
+    Returns
     -------
     IOSystem
 
-    Raises:
+    Raises
     ------
     ParserError
         If the WIOD source file are not complete or inconsistent
@@ -1250,7 +1247,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     para : dict
         Defining the parameters for reading the extension.
 
-    Returns:
+    Returns
     -------
     dict with keys
         F : pd.DataFrame with index 'stressor' and columns 'region', 'sector'
@@ -1408,7 +1405,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
     sea_data_sheet : string, optional
         Worksheet with the SEA data in the excel file
 
-    Returns:
+    Returns
     -------
     SEA data as extension for the WIOD MRIO
     """
@@ -1494,7 +1491,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
 
 
 def parse_oecd(path, year=None):
-    """Parse the OECD ICIO tables
+    """Parse the OECD ICIO tables.
 
     This function works for both, the 2016 and 2018 release.
     The OECd webpage provides the data as csv files in zip compressed
@@ -1522,11 +1519,11 @@ def parse_oecd(path, year=None):
         Year to parse if 'path' is given as a folder.
         If path points to a specific file, this parameter is not used.
 
-    Returns:
+    Returns
     -------
     IOSystem
 
-    Raises:
+    Raises
     ------
     ParserError
         If the file to parse could not be definitely identified.
@@ -1731,7 +1728,6 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
 
     Parameters
     ----------
-
     path : string or pathlib.Path
        Path to the Eora raw storage folder or a specific eora zip file to
        parse.  There are several options to specify the data for parsing:
@@ -1992,7 +1988,6 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
 
     Parameters
     ----------
-
     path : string or pathlib.Path
        Path to the Gloria raw storage folder, which should contain 3
        files/folders for a given year (as downloaded by download_gloria in
@@ -2245,9 +2240,9 @@ def __construct_IO(data_sut, construct="B"):
 
     Note:
     ----
+
     Parameters
     ----------
-
     data_sut : dict
         Dictionary containing the SUT matrices (pd.DataFrames)
         V: Supply matrix: industry x commodity
@@ -2380,7 +2375,6 @@ def parse_gloria(
 
     Parameters
     ----------
-
     path : string or pathlib.Path
        Path to the Gloria raw storage folder, which should contain 3
        files/folders for a given year (as downloaded by download_gloria in

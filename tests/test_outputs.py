@@ -28,8 +28,8 @@ import pymrio  # noqa
 def fix_testmrio_calc():
     """Single point to load the test mrio.
     
-    Returns:
-    --------
+    Returns
+    -------
     TestMRIO
         A class containing the loaded test MRIO with all calculations performed.
     """

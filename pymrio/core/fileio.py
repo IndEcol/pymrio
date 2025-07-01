@@ -245,7 +245,7 @@ def load(path, include_core=True, path_in_arc=""):
         for data in e.g. the folder 'emissions' pass 'emissions/'.  Only used
         if parameter 'path' points to an compressed zip file.
 
-    Returns:
+    Returns
     -------
         IOSystem or Extension class depending on systemtype in the json file
         None in case of errors
@@ -380,7 +380,6 @@ def archive(
 
     Parameters
     ----------
-
     source: str or pathlib.Path or list of these
         Location of the mrio data (folder).
         If not all data should be archived, pass a list of
@@ -421,7 +420,7 @@ def archive(
         https://docs.python.org/3/library/zlib.html#zlib.compressobj )
         NB: This is only used if python version >= 3.7
 
-    Raises:
+    Raises
     ------
     FileExistsError: In case a file to be archived already present in the
     archive.
@@ -506,7 +505,7 @@ def _load_all_ini_based_io(path, **kwargs):  # pragma: no cover
     **kwargs : key word arguments, optional
             This will be passed directly to the load method
 
-    Returns:
+    Returns
     -------
     IOSystem
     None in case of errors
@@ -533,7 +532,6 @@ def _load_ini_based_io(
 
     Parameters
     ----------
-
     path : string
         path or ini file name for the data to load
 
@@ -562,7 +560,7 @@ def _load_ini_based_io(
         significantly reduces the required memory if the purpose is only
         to analyse the results calculated beforehand.
 
-    Returns:
+    Returns
     -------
         IOSystem or Extension class depending on systemtype in the ini file
         None in case of errors
@@ -779,12 +777,12 @@ def load_test():
     The test system only contains Z, Y, F, F_Y. The rest can be calculated with
     calc_all()
 
-    Notes:
+    Notes
     -----
         For development: This function can be used as an example of
         how to parse an IOSystem
 
-    Returns:
+    Returns
     -------
     IOSystem
 

@@ -118,7 +118,6 @@ def _get_url_datafiles(
 
     Parameters
     ----------
-
     url_db_view: url str
         Url which shows the list of mrios in the db
 
@@ -140,7 +139,7 @@ def _get_url_datafiles(
         Can be requests.get or requests.post
 
 
-    Returns:
+    Returns
     -------
     Named tuple:
     .raw_text: content of url_db_view for later use
@@ -191,7 +190,7 @@ def _download_urls(
         Be default a Firefox, set in the HEADER variable
 
 
-    Returns:
+    Returns
     -------
     The downlog_handler is passed back
 
@@ -255,7 +254,7 @@ def download_oecd(
         the storage folder (default). Set to True to replace
         files.
 
-    Returns:
+    Returns
     -------
     Meta data of the downloaded MRIOs
 
@@ -402,7 +401,7 @@ def download_wiod2013(
         in WIOD_CONFIG - list of all available urls Remove items from this list
         to only download a subset of extensions
 
-    Returns:
+    Returns
     -------
     Meta data of the downloaded MRIOs
 
@@ -630,7 +629,7 @@ def download_exiobase3(
         see the block 'Versions' on the right hand side of
         https://zenodo.org/record/4277368.
 
-    Returns:
+    Returns
     -------
     Meta data of the downloaded MRIOs
 
@@ -704,7 +703,6 @@ def download_gloria(
 
     Parameters
     ----------
-
     urls: dict, optional
         Dictionary containing the links of gloria databases
         for different versions, this is already fed to the function,
@@ -727,7 +725,7 @@ def download_gloria(
         the storage folder (default). Set to True to replace
         files.
 
-    Returns:
+    Returns
     -------
     No returns
     """

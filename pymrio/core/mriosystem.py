@@ -120,7 +120,6 @@ class _BaseSystem(ABC):
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -174,7 +173,6 @@ class _BaseSystem(ABC):
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -242,8 +240,7 @@ class _BaseSystem(ABC):
         """Returns a deep copy of the system
 
         Parameters
-        -----------
-
+        ----------
         new_name: str, optional
             Set a new meta name parameter.
             Default: <old_name>_copy
@@ -268,7 +265,7 @@ class _BaseSystem(ABC):
         entries : List, optional
             If given, retuns an list with None for all values not in entries.
 
-        Returns:
+        Returns
         -------
         Index
             List of categories, None if no attribute to determine
@@ -383,7 +380,7 @@ class _BaseSystem(ABC):
         entries : List, optional
             If given, retuns an list with None for all values not in entries.
 
-        Returns:
+        Returns
         -------
         Index
             List of regions,
@@ -438,7 +435,7 @@ class _BaseSystem(ABC):
         entries : List, optional
             If given, retuns an list with None for all values not in entries.
 
-        Returns:
+        Returns
         -------
         Index
             List of sectors,
@@ -487,7 +484,7 @@ class _BaseSystem(ABC):
     ) -> Iterator[Union[pd.DataFrame, str]]:
         """Yields all panda.DataFrames or there names
 
-        Notes:
+        Notes
         -----
         For IOSystem this does not include the DataFrames in the extensions.
 
@@ -507,7 +504,7 @@ class _BaseSystem(ABC):
             If True, includes the 'population' vector
             If False, does not include the 'population' vector.
 
-        Returns:
+        Returns
         -------
             DataFrames or string generator, depending on parameter data
 
@@ -751,7 +748,7 @@ class _BaseSystem(ABC):
         term : string
             String to search for
 
-        Returns:
+        Returns
         -------
         dict of (multi)index
             With keys 'index', 'region', 'sector', 'Y_category' and
@@ -824,7 +821,7 @@ class _BaseSystem(ABC):
             the values are the regex.
             If the entry is not in index name, it is ignored silently.
 
-        Returns:
+        Returns
         -------
         pd.Index or pd.MultiIndex
             The matched rows/index
@@ -858,7 +855,7 @@ class _BaseSystem(ABC):
             the values are the regex to match.
             If the entry is not in index name, it is ignored silently.
 
-        Returns:
+        Returns
         -------
         pd.Index or pd.MultiIndex
             The matched rows/index
@@ -892,7 +889,7 @@ class _BaseSystem(ABC):
             the values are the regex to match.
             If the entry is not in index name, it is ignored silently.
 
-        Returns:
+        Returns
         -------
         pd.Index or pd.MultiIndex
             The matched rows/index
@@ -905,12 +902,12 @@ class _BaseSystem(ABC):
 class Extension(_BaseSystem):
     """Class which gathers all information for one extension of the IOSystem
 
-    Notes:
+    Notes
     -----
     For the total accounts (D_) also reginal (appendix _reg) and
     per capita (appendix _cap) are possible.
 
-    Attributes:
+    Attributes
     ----------
     name : string
         Every extension must have a name. This can (recommended) be the name
@@ -1054,7 +1051,7 @@ class Extension(_BaseSystem):
         - for each region (if population vector is given):
             D_cba_cap, D_pba_cap, D_imp_cap, D_exp_cap
 
-        Notes:
+        Notes
         -----
         Only attributes which are not None are recalculated (for D_* this is
         checked for each group (reg, cap, and w/o appendix)).
@@ -1242,7 +1239,7 @@ class Extension(_BaseSystem):
         However, any valid keyword for the pandas.DataFrame.plot
         method can be passed.
 
-        Notes:
+        Notes
         -----
             This looks prettier with the seaborn module
             (import seaborn before calling this method)
@@ -1270,7 +1267,7 @@ class Extension(_BaseSystem):
         **kwargs : key word arguments, optional
             This will be passed directly to the pd.DataFrame.plot method
 
-        Returns:
+        Returns
         -------
         Axis as given by pandas.DataFrame.plot, None in case of errors
 
@@ -1410,8 +1407,8 @@ class Extension(_BaseSystem):
         The report consists of a text file and a folder with the pics
         (both names following parameter name)
 
-        Notes:
-        ----
+        Notes
+        -----
             This looks prettier with the seaborn module
             (import seaborn before calling this method)
 
@@ -1626,7 +1623,7 @@ class Extension(_BaseSystem):
             that case the dict can be
             used directly to build a new extension.
 
-        Returns:
+        Returns
         -------
         dict object with the data (pandas DataFrame) for the specific rows
         """
@@ -1665,7 +1662,7 @@ class Extension(_BaseSystem):
             Any other string: an Extension object is returned, with the name set to the passed string.
 
 
-        Returns:
+        Returns
         -------
         dict object with the data (pandas DataFrame) for the specific rows
         or an Extension object (based on return_type)
@@ -1724,7 +1721,7 @@ class Extension(_BaseSystem):
         _meta: MRIOMetaData, optional
             Metadata handler for logging, optional. Internal
 
-        Returns:
+        Returns
         -------
         pymrio.Extension
 
@@ -1808,7 +1805,7 @@ class Extension(_BaseSystem):
         dataframe of the extension.
 
         Parameters
-        -----------
+        ----------
         factors: pd.DataFrame
             A dataframe in long format with numerical index and columns named
             index.names of the extension to be characterized and
@@ -1835,8 +1832,8 @@ class Extension(_BaseSystem):
             with be appended to the original name. Default: '_characterized'
 
 
-        Returns:
-        --------
+        Returns
+        -------
         namedtuple with the following attributes:
             validation: pd.DataFrame
             extension: pymrio.Extension
@@ -1985,7 +1982,6 @@ class Extension(_BaseSystem):
 
         Parameters
         ----------
-
         df_map : pd.DataFrame
             The DataFrame with the mapping of the old to the new classification.
             This requires a specific structure:
@@ -2147,12 +2143,12 @@ class IOSystem(_BaseSystem):
     extensions are given as dictionaries containing F, F_Y, D, m, D_cba, D_pba,
     D_imp, D_exp
 
-    Notes:
+    Notes
     -----
         The attributes and extension dictionary entries are pandas.DataFrame
         with an MultiIndex.  This index must have the specified level names.
 
-    Attributes:
+    Attributes
     ----------
     Z : pandas.DataFrame
         Symetric input output table (flows) with country and sectors as
@@ -2298,7 +2294,7 @@ class IOSystem(_BaseSystem):
 
         These are the entries of Z and Y with the domestic blocks set to 0.
 
-        Returns:
+        Returns
         -------
         namedtuple (with two pandas DataFrames)
             A namedTuple with two fields:
@@ -2322,7 +2318,7 @@ class IOSystem(_BaseSystem):
             If True, includes ghosh calculations in the system and extensions.
             Default is False.
 
-        Returns:
+        Returns
         -------
         self : IOSystem
             The updated IOSystem instance after performing all calculations.
@@ -2346,7 +2342,7 @@ class IOSystem(_BaseSystem):
         dealt with. The ghosh calculation rely on Z
 
         Parameters
-        -----------
+        ----------
         include_ghosh : bool, optional
             If True, includes ghosh calculations in the system and extensions.
             Default is False.
@@ -2448,7 +2444,7 @@ class IOSystem(_BaseSystem):
 
         This method calls .report_accounts for all extensions
 
-        Notes:
+        Notes
         -----
             This looks prettier with the seaborn module (import seaborn before
             calling this method)
@@ -2511,7 +2507,7 @@ class IOSystem(_BaseSystem):
             'Factor Inputs' (get it with mrio.factor_inputs.name),
             and an instance name 'factor_inputs'.
 
-        Returns:
+        Returns
         -------
         Generator for Extension or string
 
@@ -2573,7 +2569,7 @@ class IOSystem(_BaseSystem):
             the values are the regex.
             If the entry is not in index name, it is ignored silently.
 
-        Returns:
+        Returns
         -------
         dict
             A dict with the extension names as keys and an Index/MultiIndex of
@@ -2610,7 +2606,7 @@ class IOSystem(_BaseSystem):
             the values are the regex.
             If the entry is not in index name, it is ignored silently.
 
-        Returns:
+        Returns
         -------
         dict
             A dict with the extension names as keys and an Index/MultiIndex of
@@ -2648,7 +2644,7 @@ class IOSystem(_BaseSystem):
             the values are the regex.
             If the entry is not in index name, it is ignored silently.
 
-        Returns:
+        Returns
         -------
         dict
             A dict with the extension names as keys and an Index/MultiIndex of
@@ -2692,7 +2688,7 @@ class IOSystem(_BaseSystem):
             passed string (this will automatically exclude empty extensions).
 
 
-        Returns:
+        Returns
         -------
         dict
             A dict with the extension names as keys and an Index/MultiIndex of
@@ -2752,7 +2748,7 @@ class IOSystem(_BaseSystem):
         kwargs: dict
             Specifies the keyword arguments to pass to the method.
 
-        Returns:
+        Returns
         -------
         dict
             A dict with the extension names as keys and the return values of the
@@ -2782,7 +2778,6 @@ class IOSystem(_BaseSystem):
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -2797,7 +2792,6 @@ class IOSystem(_BaseSystem):
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -2817,7 +2811,6 @@ class IOSystem(_BaseSystem):
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -2835,7 +2828,6 @@ class IOSystem(_BaseSystem):
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -2851,7 +2843,6 @@ class IOSystem(_BaseSystem):
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -2927,7 +2918,7 @@ class IOSystem(_BaseSystem):
             Regardless of the setting, the IOSystem is returned to
             allow for chained operations.
 
-        Returns:
+        Returns
         -------
         IOSystem
             Aggregated IOSystem (if inplace is False)
@@ -3040,7 +3031,7 @@ class IOSystem(_BaseSystem):
             Regardless of the setting, the IOSystem is returned to
             allow for chained operations.
 
-        Returns:
+        Returns
         -------
         IOSystem
             Aggregated IOSystem (if inplace is False)
@@ -3349,7 +3340,6 @@ class IOSystem(_BaseSystem):
 
         Parameters
         ----------
-
         df_map : pd.DataFrame
             The DataFrame with the mapping of the old to the new classification.
             This requires a specific structure:
@@ -3487,7 +3477,7 @@ class IOSystem(_BaseSystem):
         stressors.
 
         Parameters
-        -----------
+        ----------
         factors: pd.DataFrame
             A dataframe in long format with numerical index and columns named
             index.names of the extension to be characterized and 'extension',
@@ -3521,8 +3511,8 @@ class IOSystem(_BaseSystem):
             with be appended to the original name. Default: '_characterized'
 
 
-        Returns:
-        --------
+        Returns
+        -------
         pymrio.Extension
 
 
@@ -3558,7 +3548,7 @@ class IOSystem(_BaseSystem):
         new_extension_name : str
             Name for the new extension
 
-        Returns:
+        Returns
         -------
         pymrio.Extension
 
@@ -3598,7 +3588,7 @@ def extension_characterize(
 
 
     Parameters
-    -----------
+    ----------
     extensions : list of extensions
         Extensions to convert. All extensions passed must have the same index names/format.
 
@@ -3635,8 +3625,8 @@ def extension_characterize(
         with be appended to the original name. Default: '_characterized'
 
 
-    Returns:
-    --------
+    Returns
+    -------
     pymrio.Extension
 
 
@@ -3747,7 +3737,6 @@ def extension_convert(
 
     Parameters
     ----------
-
     extensions : list of extensions
         Extensions to convert. All extensions passed must
         have an index structure (index names) as described in df_map.
@@ -3913,28 +3902,27 @@ def extension_convert(
 def extension_concate(*extensions, new_extension_name):
     """Concatenate extensions
 
-    Notes:
-    ----
+    Notes
+    -----
     The method assumes that the first index is the name of the
     stressor/impact/input type. To provide a consistent naming this is renamed
     to 'indicator' if they differ. All other index names ('compartments', ...)
     are added to the concatenated extensions and set to NaN for missing values.
 
-    Notes:
-    ----
+    Notes
+    -----
     Attributes which are not DataFrames will be set to None if they differ
     between the extensions
 
     Parameters
     ----------
-
     extensions : Extensions
         The Extensions to concatenate as multiple parameters
 
     new_extension_name : string
         Name of the new extension
 
-    Returns:
+    Returns
     -------
     Concatenated extension
 

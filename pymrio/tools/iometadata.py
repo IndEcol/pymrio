@@ -39,8 +39,7 @@ class MRIOMetaData:
             the 'History' field.)
 
         Parameters
-        -----------
-
+        ----------
         location: str, valid path, optional
             Path or file for loading a previously saved metadata file and/or
             saving additional metadata (the method 'save' will use this
@@ -180,8 +179,7 @@ class MRIOMetaData:
         as defined in _get_system_meta.
 
         Parameters
-        -----------
-
+        ----------
         location: str, valid path
             Path or filename for the history log file.
             This can be the full file path or just the
@@ -216,8 +214,8 @@ class MRIOMetaData:
             passed to this function. By default, the funtion
             is set to logging.info. Set to None for no output.
 
-        Returns:
-        --------
+        Returns
+        -------
         MRIOMetaData object
             setup as a download log
 

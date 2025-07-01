@@ -137,9 +137,12 @@ ignore = [
 ]
 # These codes are ignored by the linter (e.g., flake8, pydocstyle, or pandas-vet)
 
+[tool.ruff.mccabe]
+max-complexity = 50
+
 [tool.ruff.lint.pydocstyle]
 # Specify the docstring convention to follow. "google" and "numpy" are common in data science.
-convention = "google"
+convention = "numpy"
 
 [tool.ruff.format]
 # Sets the style for quotes. Can be "single", "double", or "preserve".

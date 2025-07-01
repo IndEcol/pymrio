@@ -30,7 +30,7 @@ def calc_x(Z, Y):
     Y : pandas.DataFrame or numpy.array
         final demand with categories (1.order) for each country (2.order)
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Industry output x as column vector
@@ -61,7 +61,7 @@ def calc_x_from_L(L, y):
     y : pandas.DataFrame or numpy.array
         a column vector of the total final demand
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Industry output x as column vector
@@ -91,7 +91,7 @@ def calc_Z(A, x):
     x : pandas.DataFrame or numpy.array
         Industry output column vector
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Symmetric input output table (flows) Z
@@ -123,7 +123,7 @@ def calc_A(Z, x):
     x : pandas.DataFrame or numpy.array
         Industry output column vector
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Symmetric input output table (coefficients) A
@@ -165,7 +165,7 @@ def calc_B(Z, x):
     x : pandas.DataFrame or numpy.array
         Industry output column vector
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Symmetric input output table (coefficients) As
@@ -219,7 +219,7 @@ def calc_L(A):
     A : pandas.DataFrame or numpy.array
         Symmetric input output table (coefficients)
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Leontief input output table L
@@ -248,7 +248,7 @@ def calc_G(B, L=None, x=None):
     B : pandas.DataFrame or numpy.array
         Symmetric input output table (coefficients)
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Ghosh input output table G
@@ -299,7 +299,7 @@ def calc_S(F, x):
     x : pandas.DataFrame or numpy.array
         Industry output column vector
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Direct impact coefficients S
@@ -327,7 +327,7 @@ def calc_S_Y(F_Y, y):
     y : pandas.DataFrame or numpy.array
         Final demand column vector (e.g. mrio.Y.sum())
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Direct impact coefficients of final demand S_Y
@@ -352,7 +352,7 @@ def calc_F(S, x):
     x : pandas.DataFrame or numpy.array
         Industry output column vector
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Total direct impacts F
@@ -379,7 +379,7 @@ def calc_F_Y(S_Y, y):
     y : pandas.DataFrame or numpy.array
         Final demand column vector (e.g. mrio.Y.sum())
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Total direct impacts of final demand F_Y
@@ -405,7 +405,7 @@ def calc_M(S, L):
     S : pandas.DataFrame or numpy.array
         Direct impact coefficients
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Multipliers M
@@ -430,7 +430,7 @@ def calc_M_down(S, G):
     S : pandas.DataFrame or numpy.array
         Direct impact coefficients
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Downstream multipliers M
@@ -453,7 +453,7 @@ def calc_e(M, Y):
 
     TODO - this must be completely redone (D, check for dataframe, ...)
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Multipliers m
@@ -477,7 +477,7 @@ def recalc_M(S, D_cba, Y):
         column per country. This will be diagonalized per country block.
         The diagonolized form must be invertable for this method to work.
 
-    Returns:
+    Returns
     -------
     pandas.DataFrame or numpy.array
         Multipliers M
@@ -510,7 +510,7 @@ def calc_accounts(S, L, Y):
         Final demand: aggregated across categories or just one category, one
         column per country. Shape: rows as L, Y with just region names
 
-    Returns:
+    Returns
     -------
     Tuple
         (D_cba, D_pba, D_imp, D_exp)
@@ -570,8 +570,8 @@ def calc_gross_trade(Z: pd.DataFrame, Y: pd.DataFrame) -> typing.NamedTuple(
 
     These are the entries of Z and Y with the domestic blocks set to 0.
 
-    Notes:
-    ----------
+    Notes
+    -----
     This only works for DataFrame representation of Z and Y following the
     standard pymrio structure (regions on Multiindex level 0 or named 'region',
     sectors/categories on Multiindex level 1 or named 'sector').
@@ -583,7 +583,7 @@ def calc_gross_trade(Z: pd.DataFrame, Y: pd.DataFrame) -> typing.NamedTuple(
     Y : pandas.DataFrame
         final demand with regions (multiindex level 1) and categories (level 2)
 
-    Returns:
+    Returns
     -------
     namedtuple (with two DataFrames)
         A NamedTuple with two fields:
