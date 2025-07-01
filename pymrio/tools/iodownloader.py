@@ -1,4 +1,4 @@
-"""Utility functions for automatic downloading of public MRIO databases"""
+"""Utility functions for automatic downloading of public MRIO databases."""
 
 import getpass
 import itertools
@@ -114,7 +114,7 @@ def _get_url_datafiles(
     headers=HEADERS,
     requests_func=requests.post,
 ):
-    """Urls of mrio files by parsing url content for mrio_regex
+    """Urls of mrio files by parsing url content for mrio_regex.
 
     Parameters
     ----------
@@ -162,7 +162,7 @@ def _download_urls(
     access_cookie=None,
     headers=HEADERS,
 ):
-    """Save url from url_list to storage_folder
+    """Save url from url_list to storage_folder.
 
     Parameters
     ----------
@@ -225,7 +225,7 @@ def _download_urls(
 def download_oecd(
     storage_folder, version="v2023", years=None, overwrite_existing=False
 ):
-    """Downloads the OECD ICIO tables
+    """Download the OECD ICIO tables.
 
     Parameters
     ----------
@@ -366,7 +366,7 @@ def download_wiod2013(
     overwrite_existing=False,
     satellite_urls=WIOD_CONFIG["satellite_urls"],
 ):
-    """Downloads the 2013 wiod release
+    """Download the 2013 wiod release.
 
     Note:
     ----
@@ -443,9 +443,10 @@ def download_wiod2013(
 
 
 def download_eora26(
-    storage_folder, email, password, years=None, prices=["bp"], overwrite_existing=False
+    storage_folder, email, password, years=None, prices="bp", overwrite_existing=False
 ):
-    """Downloading eora26 mrios (registration required),
+    """Download eora26 mrios (registration required).
+
     To use this function you have to have an Eora account,
     New account registration can be done through https://worldmrio.com/login.jsp
 
@@ -464,7 +465,7 @@ def download_eora26(
         only applies to the IO tables because extensions are stored
         by country and not per year.
         The years can be given in 2 or 4 digits.
-    prices: list of str
+    prices: list of str or str
         If bp (default), download basic price tables.
         If pp, download purchaser prices. ['bp', 'pp'] possible.
     overwrite_existing: boolean, optional
@@ -472,6 +473,9 @@ def download_eora26(
         the storage folder (default). Set to True to replace
         files.
     """
+    if type(prices) is str:
+        prices = [prices]
+
     try:
         os.makedirs(storage_folder)
     except FileExistsError:
@@ -555,7 +559,7 @@ def download_eora26(
 
 
 def download_exiobase1():
-    """Downloading exiobase not implemented (registration required)"""
+    """Download exiobase not implemented (registration required)."""
     raise NotImplementedError(
         "EXIOBASE 1 requires registration prior to download. "
         "Please register at www.exiobase.eu and download the "
@@ -568,7 +572,7 @@ def download_exiobase1():
 
 
 def download_exiobase2():
-    """Downloading exiobase not implemented (registration required)"""
+    """Download exiobase not implemented (registration required)."""
     raise NotImplementedError(
         "EXIOBASE 2 requires registration prior to download. "
         "Please register at www.exiobase.eu and download the "
@@ -588,7 +592,7 @@ def download_exiobase3(
     overwrite_existing=False,
     doi="10.5281/zenodo.3583070",
 ):
-    """Downloads EXIOBASE 3 files from Zenodo
+    """Download EXIOBASE 3 files from Zenodo.
 
     Since version 3.7 EXIOBASE gets published on the Zenodo scientific data
     repository.  This function download the lastest available version from
@@ -697,7 +701,7 @@ def download_gloria(
     version=57,
     overwrite_existing=False,
 ):
-    """Download Gloria databases files
+    """Download Gloria databases files.
 
     Parameters
     ----------
