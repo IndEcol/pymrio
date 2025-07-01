@@ -121,7 +121,7 @@ def td_IO_Data_Miller():
 
 @pytest.fixture()
 def td_small_MRIO():
-    """A small MRIO with three sectors and two regions.
+    """Small MRIO with three sectors and two regions.
 
     The testdata here just consists of pandas DataFrames, the functionality
     with numpy arrays gets tested with td_IO_Data_Miller.

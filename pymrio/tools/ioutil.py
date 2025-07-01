@@ -1093,12 +1093,8 @@ def _validate_characterization_table(
 
     # Check for consistent units per impact
     for imp in unique_impacts:
-        if (
-            fac.loc[
-                fac.loc[:, characterized_name_column] == imp,
-                characterized_unit_column,
-            ].nunique()
-            != 1
+        if not(
+            fac.loc[ fac.loc[:, characterized_name_column] == imp, characterized_unit_column, ].eq(fac.loc[ fac.loc[:, characterized_name_column] == imp, characterized_unit_column, ].iloc[0]).all()
         ):
             fac.loc[
                 fac.loc[:, characterized_name_column] == imp,
@@ -1441,7 +1437,7 @@ def convert(
         # renaming part, checks if the old name (bridge.orig) is in the current index
         # and renames by the new one (bridge.new)
 
-        already_renamed = dict()
+        already_renamed = {}
 
         for bridge in bridges:
             # encountering a bridge with the same orig name but which should
