@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pymrio"
-version = "0.6.2dev"
+version = "0.6.2"
 description = "A python module for automating input output calculations and generating reports"
 readme = "README.rst"
 authors = [

@@ -43,25 +43,15 @@ def test_aggreation_regions():
 
     io = pymrio.load_test()
     io.calc_all()
-    manual_agg = (
-        io.emissions.D_cba_reg.reg1
-        + io.emissions.D_cba_reg.reg2
-        + io.emissions.D_cba_reg.reg3
-    )
+    manual_agg = io.emissions.D_cba_reg.reg1 + io.emissions.D_cba_reg.reg2 + io.emissions.D_cba_reg.reg3
 
     io_agg_wo_names = io.aggregate(region_agg=reg_agg_matrix, inplace=False)
-    np.testing.assert_allclose(
-        manual_agg.values, io_agg_wo_names.emissions.D_cba_reg.reg0
-    )
+    np.testing.assert_allclose(manual_agg.values, io_agg_wo_names.emissions.D_cba_reg.reg0)
 
     assert io_agg_wo_names.get_regions().tolist() == ["reg0", "reg1"]
 
-    io_agg_with_names = io.aggregate(
-        region_agg=reg_agg_matrix, region_names=["a", "b"], inplace=False
-    )
-    np.testing.assert_allclose(
-        manual_agg.values, io_agg_with_names.emissions.D_cba_reg.a
-    )
+    io_agg_with_names = io.aggregate(region_agg=reg_agg_matrix, region_names=["a", "b"], inplace=False)
+    np.testing.assert_allclose(manual_agg.values, io_agg_with_names.emissions.D_cba_reg.a)
 
     assert io_agg_with_names.get_regions().tolist() == ["a", "b"]
     assert io_agg_with_names.unit.index.equals(io_agg_with_names.Z.index)
@@ -102,9 +92,7 @@ def test_aggreation_regions():
     pdt.assert_frame_equal(io.factor_inputs.F, io_agg.factor_inputs.F)
     pdt.assert_frame_equal(io.factor_inputs.F, io_agg_with_names.factor_inputs.F)
     pdt.assert_frame_equal(io.factor_inputs.D_cba, io_agg.factor_inputs.D_cba)
-    pdt.assert_frame_equal(
-        io.factor_inputs.D_cba, io_agg_with_names.factor_inputs.D_cba
-    )
+    pdt.assert_frame_equal(io.factor_inputs.D_cba, io_agg_with_names.factor_inputs.D_cba)
 
     assert io.unit.index.equals(io.Z.index)
     assert io_agg.unit.index.equals(io_agg.Z.index)
@@ -139,10 +127,7 @@ def test_aggreation_sectors():
     )
 
     test_rename = [("reg3", "other"), ("reg3", "misc")]
-    assert (
-        io.Z.loc[test_rename[0], test_rename[0]]
-        == io_agg.Z.loc[test_rename[1], test_rename[1]]
-    )
+    assert io.Z.loc[test_rename[0], test_rename[0]] == io_agg.Z.loc[test_rename[1], test_rename[1]]
 
     sec_rename_dict = sec_agg_df.set_index("original").squeeze().to_dict()
     io.rename_regions(sec_rename_dict)
@@ -168,9 +153,7 @@ def test_aggreation_sectors():
 
 def test_numerical_aggreation_sectors():
     """Testing aggregation of sectors with a numeric array."""
-    sec_agg = np.array(
-        [[1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1]]
-    )
+    sec_agg = np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1]])
 
     io = pymrio.load_test()
     io.calc_all()
@@ -183,9 +166,7 @@ def test_numerical_aggreation_sectors():
 
     io.aggregate(sector_agg=sec_agg)
 
-    np.testing.assert_allclose(
-        manual_agg.values, io.emissions.D_pba.xs("sec2", level="sector", axis=1)
-    )
+    np.testing.assert_allclose(manual_agg.values, io.emissions.D_pba.xs("sec2", level="sector", axis=1))
 
 
 def test_wrong_inputs():

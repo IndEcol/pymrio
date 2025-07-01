@@ -31,7 +31,7 @@ def get_classification(mrio_name: Optional[str] = None):
     if mrio_name not in PYMRIO_PATH.keys():
         raise ValueError(
             f"No classification available for {mrio_name}. "
-             "Run the function without parameter to get available classifications."
+            "Run the function without parameter to get available classifications."
         )
 
     return ClassificationData(
@@ -73,9 +73,7 @@ class ClassificationData:
             sep=self.finaldemand_sep,
         )
 
-    def get_sector_dict(
-        self, orig: Union[str, list, pd.Series], new: Union[str, pd.Series]
-    ):
+    def get_sector_dict(self, orig: Union[str, list, pd.Series], new: Union[str, pd.Series]):
         """Return sector rename dict based.
 
         Parameters

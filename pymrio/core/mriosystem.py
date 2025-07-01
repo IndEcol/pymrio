@@ -90,13 +90,7 @@ class _BaseSystem:
     name = "Abstract BaseSystem"
 
     def __str__(self, startstr="System with: "):
-        parastr = ", ".join(
-            [
-                attr
-                for attr in self.__dict__
-                if self.__dict__[attr] is not None and "__" not in attr
-            ]
-        )
+        parastr = ", ".join([attr for attr in self.__dict__ if self.__dict__[attr] is not None and "__" not in attr])
         return startstr + parastr
 
     def __eq__(self, other):
@@ -135,11 +129,7 @@ class _BaseSystem:
                 continue
             if (getattr(self, df)) is None:
                 if force:
-                    strwarn = (
-                        "Reset system warning - Recalculation after "
-                        "reset not possible "
-                        f"because {df} missing"
-                    )
+                    strwarn = f"Reset system warning - Recalculation after reset not possible because {df} missing"
                     warnings.warn(strwarn, ResetWarning, stacklevel=2)
 
                 else:
@@ -157,9 +147,7 @@ class _BaseSystem:
 
         [
             setattr(self, key, None)
-            for key in self.get_DataFrame(
-                data=False, with_unit=False, with_population=False
-            )
+            for key in self.get_DataFrame(data=False, with_unit=False, with_population=False)
             if key not in self.__basic__
         ]
         return self
@@ -189,11 +177,7 @@ class _BaseSystem:
                 continue
             if (getattr(self, df)) is None:
                 if force:
-                    strwarn = (
-                        "Reset system warning - Recalculation after "
-                        "reset not possible "
-                        f"because {df} missing"
-                    )
+                    strwarn = f"Reset system warning - Recalculation after reset not possible because {df} missing"
                     warnings.warn(strwarn, ResetWarning, stacklevel=2)
 
                 else:
@@ -228,9 +212,7 @@ class _BaseSystem:
         # defined in self.__coefficients__
         [
             setattr(self, key, None)
-            for key in self.get_DataFrame(
-                data=False, with_unit=False, with_population=False
-            )
+            for key in self.get_DataFrame(data=False, with_unit=False, with_population=False)
             if key not in self.__coefficients__
         ]
         return self
@@ -273,9 +255,7 @@ class _BaseSystem:
         for df in possible_dataframes:
             if (df in self.__dict__) and (getattr(self, df) is not None):
                 try:
-                    ind = (
-                        getattr(self, df).columns.get_level_values("category").unique()
-                    )
+                    ind = getattr(self, df).columns.get_level_values("category").unique()
                 except (AssertionError, KeyError):
                     ind = getattr(self, df).columns.get_level_values(1).unique()
                 if entries:
@@ -342,19 +322,10 @@ class _BaseSystem:
             if grouping_pattern:
                 for pattern, new_group in grouping_pattern.items():
                     if type(pattern) is str:
-                        dd.update(
-                            {k: new_group for k in dd if re.match(pattern, k)}
-                        )
+                        dd.update({k: new_group for k in dd if re.match(pattern, k)})
                     else:
                         dd.update(
-                            {
-                                k: new_group
-                                for k in dd
-                                if all(
-                                    re.match(pat, k[nr])
-                                    for nr, pat in enumerate(pattern)
-                                )
-                            }
+                            {k: new_group for k in dd if all(re.match(pat, k[nr]) for nr, pat in enumerate(pattern))}
                         )
             return dd
 
@@ -470,9 +441,7 @@ class _BaseSystem:
             warnings.warn("No attributes available to get sectors", stacklevel=2)
             return None
 
-    def get_DataFrame(
-        self, data=False, with_unit=True, with_population=True
-    ) -> Iterator[Union[pd.DataFrame, str]]:
+    def get_DataFrame(self, data=False, with_unit=True, with_population=True) -> Iterator[Union[pd.DataFrame, str]]:
         """Yield all panda.DataFrames or there names.
 
         Notes
@@ -529,9 +498,7 @@ class _BaseSystem:
     @property
     def DataFrames(self):
         """Return the DataFrames of the system as generator."""
-        return list(
-            self.get_DataFrame(data=False, with_unit=True, with_population=True)
-        )
+        return list(self.get_DataFrame(data=False, with_unit=True, with_population=True))
 
     @property
     def empty(self):
@@ -594,9 +561,7 @@ class _BaseSystem:
             file_para["systemtype"] = GENERIC_NAMES["ext"]
             file_para["name"] = self.name
         else:
-            warnings.warn(
-                f'Unknown system type {str(type(self))} - set to "undef"', stacklevel=2
-            )
+            warnings.warn(f'Unknown system type {str(type(self))} - set to "undef"', stacklevel=2)
             file_para["systemtype"] = "undef"
 
         for df, df_name in zip(self.get_DataFrame(data=True), self.get_DataFrame()):
@@ -654,19 +619,13 @@ class _BaseSystem:
         if type(regions) is list:
             regions = dict(zip(self.get_regions(), regions))
 
-        for iodf_name, iodf in zip(
-            self.get_DataFrame(data=False), self.get_DataFrame(data=True)
-        ):
+        for iodf_name, iodf in zip(self.get_DataFrame(data=False), self.get_DataFrame(data=True)):
             self.__dict__[iodf_name] = iodf.rename(index=regions, columns=regions)
 
         try:
             for ext in self.get_extensions(data=True):
-                for extdf_name, extdf in zip(
-                    ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)
-                ):
-                    ext.__dict__[extdf_name] = extdf.rename(
-                        index=regions, columns=regions
-                    )
+                for extdf_name, extdf in zip(ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)):
+                    ext.__dict__[extdf_name] = extdf.rename(index=regions, columns=regions)
         except Exception as _:
             pass
 
@@ -688,19 +647,13 @@ class _BaseSystem:
         if type(sectors) is list:
             sectors = dict(zip(self.get_sectors(), sectors))
 
-        for iodf_name, iodf in zip(
-            self.get_DataFrame(data=False), self.get_DataFrame(data=True)
-        ):
+        for iodf_name, iodf in zip(self.get_DataFrame(data=False), self.get_DataFrame(data=True)):
             self.__dict__[iodf_name] = iodf.rename(index=sectors, columns=sectors)
 
         try:
             for ext in self.get_extensions(data=True):
-                for extdf_name, extdf in zip(
-                    ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)
-                ):
-                    ext.__dict__[extdf_name] = extdf.rename(
-                        index=sectors, columns=sectors
-                    )
+                for extdf_name, extdf in zip(ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)):
+                    ext.__dict__[extdf_name] = extdf.rename(index=sectors, columns=sectors)
         except Exception as _e:
             pass
         self.meta._add_modify("Changed sector names")
@@ -721,21 +674,13 @@ class _BaseSystem:
         if type(Y_categories) is list:
             Y_categories = dict(zip(self.get_Y_categories(), Y_categories))
 
-        for iodf_name, iodf in zip(
-            self.get_DataFrame(data=False), self.get_DataFrame(data=True)
-        ):
-            self.__dict__[iodf_name] = iodf.rename(
-                index=Y_categories, columns=Y_categories
-            )
+        for iodf_name, iodf in zip(self.get_DataFrame(data=False), self.get_DataFrame(data=True)):
+            self.__dict__[iodf_name] = iodf.rename(index=Y_categories, columns=Y_categories)
 
         try:
             for ext in self.get_extensions(data=True):
-                for extdf_name, extdf in zip(
-                    ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)
-                ):
-                    ext.__dict__[extdf_name] = extdf.rename(
-                        index=Y_categories, columns=Y_categories
-                    )
+                for extdf_name, extdf in zip(ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)):
+                    ext.__dict__[extdf_name] = extdf.rename(index=Y_categories, columns=Y_categories)
         except Exception:
             pass
 
@@ -767,9 +712,7 @@ class _BaseSystem:
         """
         res_dict = {}
         try:
-            index_find = ioutil.index_contains(
-                self.get_index(as_dict=False), find_all=term
-            )
+            index_find = ioutil.index_contains(self.get_index(as_dict=False), find_all=term)
             if len(index_find) > 0:
                 res_dict["index"] = index_find
         except Exception:  # noqa: E722
@@ -794,9 +737,7 @@ class _BaseSystem:
             pass
         try:
             for ext in self.get_extensions(data=False, instance_names=True):
-                ext_index_find = ioutil.index_contains(
-                    getattr(self, ext).get_index(as_dict=False), find_all=term
-                )
+                ext_index_find = ioutil.index_contains(getattr(self, ext).get_index(as_dict=False), find_all=term)
                 if len(ext_index_find) > 0:
                     res_dict[ext + "_index"] = ext_index_find
         except Exception:  # noqa: E722
@@ -1136,9 +1077,7 @@ class Extension(_BaseSystem):
                 self.M_down = calc_M_down(self.S, G)
                 logging.debug(f"{self.name} - M_down calculated based on G")
             else:
-                logging.debug(
-                    "Calculation of M_down not possible because G is not available."
-                )
+                logging.debug("Calculation of M_down not possible because G is not available.")
 
         F_Y_agg = 0
         if self.F_Y is not None:
@@ -1149,53 +1088,29 @@ class Extension(_BaseSystem):
             except (AssertionError, KeyError):
                 F_Y_agg = self.F_Y.T.groupby(level=0, sort=False).sum().T
 
-        if (
-            (self.D_cba is None)
-            or (self.D_pba is None)
-            or (self.D_imp is None)
-            or (self.D_exp is None)
-        ):
+        if (self.D_cba is None) or (self.D_pba is None) or (self.D_imp is None) or (self.D_exp is None):
             if L is None:
                 logging.debug("Not possilbe to calculate D accounts - L not present")
                 return None
-            self.D_cba, self.D_pba, self.D_imp, self.D_exp = calc_accounts(
-                self.S, L, Y_agg
-            )
+            self.D_cba, self.D_pba, self.D_imp, self.D_exp = calc_accounts(self.S, L, Y_agg)
             logging.debug(f"{self.name} - Accounts D calculated")
 
         # aggregate to country
-        if (
-            (self.D_cba_reg is None)
-            or (self.D_pba_reg is None)
-            or (self.D_imp_reg is None)
-            or (self.D_exp_reg is None)
-        ):
+        if (self.D_cba_reg is None) or (self.D_pba_reg is None) or (self.D_imp_reg is None) or (self.D_exp_reg is None):
             try:
-                self.D_cba_reg = (
-                    self.D_cba.T.groupby(level="region", sort=False).sum().T + F_Y_agg
-                )
+                self.D_cba_reg = self.D_cba.T.groupby(level="region", sort=False).sum().T + F_Y_agg
             except (AssertionError, KeyError):
-                self.D_cba_reg = (
-                    self.D_cba.T.groupby(level=0, sort=False).sum().T + F_Y_agg
-                )
+                self.D_cba_reg = self.D_cba.T.groupby(level=0, sort=False).sum().T + F_Y_agg
             try:
-                self.D_pba_reg = (
-                    self.D_pba.T.groupby(level="region", sort=False).sum().T + F_Y_agg
-                )
+                self.D_pba_reg = self.D_pba.T.groupby(level="region", sort=False).sum().T + F_Y_agg
             except (AssertionError, KeyError):
-                self.D_pba_reg = (
-                    self.D_pba.T.groupby(level=0, sort=False).sum().T + F_Y_agg
-                )
+                self.D_pba_reg = self.D_pba.T.groupby(level=0, sort=False).sum().T + F_Y_agg
             try:
-                self.D_imp_reg = (
-                    self.D_imp.T.groupby(level="region", sort=False).sum().T
-                )
+                self.D_imp_reg = self.D_imp.T.groupby(level="region", sort=False).sum().T
             except (AssertionError, KeyError):
                 self.D_imp_reg = self.D_imp.T.groupby(level=0, sort=False).sum().T
             try:
-                self.D_exp_reg = (
-                    self.D_exp.T.groupby(level="region", sort=False).sum().T
-                )
+                self.D_exp_reg = self.D_exp.T.groupby(level="region", sort=False).sum().T
             except (AssertionError, KeyError):
                 self.D_exp_reg = self.D_exp.T.groupby(level=0, sort=False).sum().T
 
@@ -1209,18 +1124,10 @@ class Extension(_BaseSystem):
                 or (self.D_imp_cap is None)
                 or (self.D_exp_cap is None)
             ):
-                self.D_cba_cap = (
-                    self.D_cba_reg / population.iloc[0][self.D_cba_reg.columns]
-                )
-                self.D_pba_cap = (
-                    self.D_pba_reg / population.iloc[0][self.D_pba_reg.columns]
-                )
-                self.D_imp_cap = (
-                    self.D_imp_reg / population.iloc[0][self.D_imp_reg.columns]
-                )
-                self.D_exp_cap = (
-                    self.D_exp_reg / population.iloc[0][self.D_exp_reg.columns]
-                )
+                self.D_cba_cap = self.D_cba_reg / population.iloc[0][self.D_cba_reg.columns]
+                self.D_pba_cap = self.D_pba_reg / population.iloc[0][self.D_pba_reg.columns]
+                self.D_imp_cap = self.D_imp_reg / population.iloc[0][self.D_imp_reg.columns]
+                self.D_exp_cap = self.D_exp_reg / population.iloc[0][self.D_exp_reg.columns]
 
                 logging.debug(f"{self.name} - Accounts D per capita calculated")
         return self
@@ -1284,14 +1191,7 @@ class Extension(_BaseSystem):
         if type(row) is int:
             row = self.D_cba.loc[row].name
 
-        name_row = (
-            str(row)
-            .replace("(", "")
-            .replace(")", "")
-            .replace("'", "")
-            .replace("[", "")
-            .replace("]", "")
-        )
+        name_row = str(row).replace("(", "").replace(")", "").replace("'", "").replace("[", "").replace("]", "")
         if sector:
             graph_name = name_row + " for sector " + sector
         else:
@@ -1305,9 +1205,7 @@ class Extension(_BaseSystem):
             try:
                 # for multiindex the entry is given with header,
                 # for single index just the entry
-                y_label_name = (
-                    name_row + " (" + str(self.unit.loc[row, "unit"].tolist()[0]) + ")"
-                )
+                y_label_name = name_row + " (" + str(self.unit.loc[row, "unit"].tolist()[0]) + ")"
             except Exception:
                 y_label_name = name_row + " (" + str(self.unit.loc[row, "unit"]) + ")"
         else:
@@ -1342,41 +1240,24 @@ class Extension(_BaseSystem):
         for key in accounts:
             if sector:
                 try:
-                    _data = pd.DataFrame(
-                        getattr(self, accounts[key])
-                        .xs(key=sector, axis=1, level="sector")
-                        .loc[row]
-                        .T
-                    )
+                    _data = pd.DataFrame(getattr(self, accounts[key]).xs(key=sector, axis=1, level="sector").loc[row].T)
                 except (AssertionError, KeyError):
-                    _data = pd.DataFrame(
-                        getattr(self, accounts[key])
-                        .xs(key=sector, axis=1, level=1)
-                        .loc[row]
-                        .T
-                    )
+                    _data = pd.DataFrame(getattr(self, accounts[key]).xs(key=sector, axis=1, level=1).loc[row].T)
 
                 if per_capita:
                     if population is not None:
                         if type(population) is pd.DataFrame:
                             # check for right order:
-                            if (
-                                population.columns.tolist()
-                                != self.D_cba_reg.columns.tolist()
-                            ):
+                            if population.columns.tolist() != self.D_cba_reg.columns.tolist():
                                 warnings.warn(
-                                    "Population regions are inconsistent "
-                                    "with IO regions",
+                                    "Population regions are inconsistent with IO regions",
                                     stacklevel=2,
                                 )
                             population = population.to_numpy()
                             population = population.reshape((-1, 1))
                             _data = _data / population
                     else:
-                        raise ValueError(
-                            "Population vector must be given for "
-                            "sector results per capita"
-                        )
+                        raise ValueError("Population vector must be given for sector results per capita")
             else:
                 _data = pd.DataFrame(getattr(self, accounts[key]).loc[row].T)
             _data.columns = [key]
@@ -1462,9 +1343,7 @@ class Extension(_BaseSystem):
             ffname = self.name.replace(" ", "_")
             ffname = "".join([r for r in ffname if r in valid_char])
 
-        rep_spec = collections.namedtuple(
-            "rep_spec", ["make", "spec_string", "is_per_capita"]
-        )
+        rep_spec = collections.namedtuple("rep_spec", ["make", "spec_string", "is_per_capita"])
 
         reports_to_write = {
             "per region accounts": rep_spec(per_region, "_per_region", False),
@@ -1502,11 +1381,7 @@ class Extension(_BaseSystem):
                     .replace(", ", "_")
                     .replace("__", "_")
                 )
-                graph_name = (
-                    self.name
-                    + " - "
-                    + str(row).replace("(", "").replace(")", "").replace("'", "")
-                )
+                graph_name = self.name + " - " + str(row).replace("(", "").replace(")", "").replace("'", "")
 
                 # get valid file name
                 def clean(varStr):
@@ -1637,8 +1512,7 @@ class Extension(_BaseSystem):
         # depraction warning
 
         warnings.warn(
-            "This method will be removed in future versions. "
-            "Use extract method instead",
+            "This method will be removed in future versions. Use extract method instead",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -1764,9 +1638,7 @@ class Extension(_BaseSystem):
             ext_diag.unit = None
 
         if _meta:
-            _meta._add_modify(
-                f"Calculated diagonalized accounts {name} from  {self.name}"
-            )
+            _meta._add_modify(f"Calculated diagonalized accounts {name} from  {self.name}")
 
         return ext_diag
 
@@ -1855,27 +1727,23 @@ class Extension(_BaseSystem):
 
         if type(characterized_name_column) is list:
             if len(characterized_name_column) == 0:
-                raise ValueError(
-                    "characterized_name_column must be a string or a list with at least one element"
-                )
+                raise ValueError("characterized_name_column must be a string or a list with at least one element")
             if len(characterized_name_column) == 1:
                 characterized_name_column = characterized_name_column[0]
                 orig_characterized_name_column = None
             else:
                 orig_characterized_name_column = characterized_name_column
                 sep_char = "<<!>>"
-                all_impacts = pd.concat(
-                    [factors[col] for col in characterized_name_column]
-                ).unique()
+                all_impacts = pd.concat([factors[col] for col in characterized_name_column]).unique()
                 all_impacts_joined = "".join(all_impacts)
 
                 while sep_char in all_impacts_joined:
                     sep_char = sep_char.replace("|", "||")
 
                 characterized_name_column = "char_name_col_merged"
-                factors.loc[:, characterized_name_column] = factors[
-                    orig_characterized_name_column
-                ].agg(sep_char.join, axis=1)
+                factors.loc[:, characterized_name_column] = factors[orig_characterized_name_column].agg(
+                    sep_char.join, axis=1
+                )
         else:
             orig_characterized_name_column = None
 
@@ -1898,9 +1766,7 @@ class Extension(_BaseSystem):
             orig_unit_column=orig_unit_column,
         )
 
-        ret_value = collections.namedtuple(
-            "characterization_result", ["validation", "extension"]
-        )
+        ret_value = collections.namedtuple("characterization_result", ["validation", "extension"])
 
         if only_validation:
             return ret_value(validation=validation, extension=None)
@@ -1932,11 +1798,7 @@ class Extension(_BaseSystem):
 
         # restrict to F and S and the Y stuff, otherwise we loose
         # _Y if we have multipliers etc. Also region specific not applicable to calculated results
-        acc_to_char = [
-            d
-            for d in self.get_DataFrame(data=False, with_unit=False)
-            if d in ["F", "F_Y", "S_Y", "S"]
-        ]
+        acc_to_char = [d for d in self.get_DataFrame(data=False, with_unit=False) if d in ["F", "F_Y", "S_Y", "S"]]
 
         for acc_name in acc_to_char:
             acc = getattr(self, acc_name)
@@ -1944,10 +1806,7 @@ class Extension(_BaseSystem):
             # template _df_shape different for final demand accounts
             _df_shape = pd.DataFrame(index=_series.index, columns=fac_calc.columns)
             res = _df_shape.assign(
-                **{
-                    char_name: _series * fac_calc.loc[:, char_name]
-                    for char_name in _df_shape.columns
-                }
+                **{char_name: _series * fac_calc.loc[:, char_name] for char_name in _df_shape.columns}
             )
             _group_index = res.index.names.difference(acc.index.names)
             res = res.groupby(_group_index).sum().T.reindex(columns=acc.columns)
@@ -2083,26 +1942,20 @@ class Extension(_BaseSystem):
 
         if unit_column_orig:
             if unit_column_orig not in df_map.columns:
-                raise ValueError(
-                    f"Unit column {unit_column_orig} not in mapping dataframe, pass None if not available"
-                )
+                raise ValueError(f"Unit column {unit_column_orig} not in mapping dataframe, pass None if not available")
             ignore_columns.append(unit_column_orig)
             for entry in df_map.iterrows():
                 # need fullmatch here as the same is used in ioutil.convert
                 corresponding_rows = self.fullmatch(**entry[1].to_dict())
                 for row in corresponding_rows:
                     if self.unit.loc[row].unit != entry[1][unit_column_orig]:
-                        raise ValueError(
-                            f"Unit in extension does not match the unit in mapping for row {row}"
-                        )
+                        raise ValueError(f"Unit in extension does not match the unit in mapping for row {row}")
 
         new_extension = Extension(name=new_extension_name)
 
         if unit_column_new:
             if unit_column_new not in df_map.columns:
-                raise ValueError(
-                    f"Unit column {unit_column_new} not in mapping dataframe, pass None if not available"
-                )
+                raise ValueError(f"Unit column {unit_column_new} not in mapping dataframe, pass None if not available")
 
             ignore_columns.append(unit_column_new)
 
@@ -2127,10 +1980,7 @@ class Extension(_BaseSystem):
             unit = pd.DataFrame(columns=["unit"], index=new_extension.get_rows())
             bridge_columns = [col for col in df_map.columns if "__" in col]
             unique_new_index = (
-                df_map.drop_duplicates(subset=bridge_columns)
-                .loc[:, bridge_columns]
-                .set_index(bridge_columns)
-                .index
+                df_map.drop_duplicates(subset=bridge_columns).loc[:, bridge_columns].set_index(bridge_columns).index
             )
             unique_new_index.names = [col.split("__")[0] for col in bridge_columns]
 
@@ -2301,9 +2151,7 @@ class IOSystem(_BaseSystem):
 
     def get_gross_trade(
         self,
-    ) -> typing.NamedTuple(
-        "gross_trade", [("bilat_flows", pd.DataFrame), ("totals", pd.DataFrame)]
-    ):
+    ) -> typing.NamedTuple("gross_trade", [("bilat_flows", pd.DataFrame), ("totals", pd.DataFrame)]):
         """Return the gross bilateral trade flows and totals.
 
         These are the entries of Z and Y with the domestic blocks set to 0.
@@ -2524,17 +2372,13 @@ class IOSystem(_BaseSystem):
         Generator for Extension or string
 
         """
-        all_ext_list = [
-            key for key in self.__dict__ if isinstance(self.__dict__[key], Extension)
-        ]
+        all_ext_list = [key for key in self.__dict__ if isinstance(self.__dict__[key], Extension)]
         all_name_list = [getattr(self, key).name for key in all_ext_list]
 
         if isinstance(names, str):
             names = [names]
         _pre_ext = names if names else all_ext_list
-        ext_name_or_inst = [
-            nn.name if isinstance(nn, Extension) else nn for nn in _pre_ext
-        ]
+        ext_name_or_inst = [nn.name if isinstance(nn, Extension) else nn for nn in _pre_ext]
 
         for name in ext_name_or_inst:
             if name in all_ext_list:
@@ -2587,9 +2431,7 @@ class IOSystem(_BaseSystem):
             A dict with the extension names as keys and an Index/MultiIndex of
             the matched rows as values
         """
-        return self._apply_extension_method(
-            extensions, method="match", find_all=find_all, **kwargs
-        )
+        return self._apply_extension_method(extensions, method="match", find_all=find_all, **kwargs)
 
     def extension_match(self, find_all=None, extensions=None, **kwargs):
         """Get a dict of extension index dicts which match a search pattern.
@@ -2624,9 +2466,7 @@ class IOSystem(_BaseSystem):
             A dict with the extension names as keys and an Index/MultiIndex of
             the matched rows as values
         """
-        return self._apply_extension_method(
-            extensions, method="match", find_all=find_all, **kwargs
-        )
+        return self._apply_extension_method(extensions, method="match", find_all=find_all, **kwargs)
 
     def extension_contains(self, find_all=None, extensions=None, **kwargs):
         """Get a dict of extension index dicts which contains a search pattern.
@@ -2662,9 +2502,7 @@ class IOSystem(_BaseSystem):
             A dict with the extension names as keys and an Index/MultiIndex of
             the matched rows as values
         """
-        return self._apply_extension_method(
-            extensions, method="contains", find_all=find_all, **kwargs
-        )
+        return self._apply_extension_method(extensions, method="contains", find_all=find_all, **kwargs)
 
     def extension_extract(
         self,
@@ -2773,9 +2611,7 @@ class IOSystem(_BaseSystem):
         if isinstance(extensions, (Extension, str)):
             extensions = [extensions]
 
-        instance_names = self.get_extensions(
-            names=extensions, data=False, instance_names=True
-        )
+        instance_names = self.get_extensions(names=extensions, data=False, instance_names=True)
         ext_data = self.get_extensions(names=extensions, data=True)
 
         result = {}
@@ -2941,34 +2777,21 @@ class IOSystem(_BaseSystem):
         try:
             self.reset_all_to_flows()
         except ResetError as err:
-            raise AggregationError(
-                "System under-defined for aggregation - "
-                "do a 'calc_all' before aggregation"
-            ) from err
+            raise AggregationError("System under-defined for aggregation - do a 'calc_all' before aggregation") from err
 
         def agg_routine(iodf):
             """Aggregate duplicate columns and rows."""
             _index_names = iodf.index.names
             _columns_names = iodf.columns.names
-            if (type(iodf.columns[0]) is not tuple) and iodf.columns[
-                0
-            ].lower() == "unit":
+            if (type(iodf.columns[0]) is not tuple) and iodf.columns[0].lower() == "unit":
                 iodf = iodf.groupby(iodf.index, sort=False).first()
             else:
-                iodf = (
-                    iodf.groupby(iodf.index, sort=False)
-                    .sum()
-                    .T.groupby(iodf.columns, sort=False)
-                    .sum()
-                    .T
-                )
+                iodf = iodf.groupby(iodf.index, sort=False).sum().T.groupby(iodf.columns, sort=False).sum().T
 
             if type(iodf.index[0]) is tuple:
                 iodf.index = pd.MultiIndex.from_tuples(iodf.index, names=_index_names)
             if type(iodf.columns[0]) is tuple:
-                iodf.columns = pd.MultiIndex.from_tuples(
-                    iodf.columns, names=_columns_names
-                )
+                iodf.columns = pd.MultiIndex.from_tuples(iodf.columns, names=_columns_names)
             return iodf
 
         for df_to_agg_name in self.get_DataFrame(data=False, with_unit=True):
@@ -2982,9 +2805,7 @@ class IOSystem(_BaseSystem):
         # Aggregate extension
         for ext in self.get_extensions(data=True):
             for df_to_agg_name in ext.get_DataFrame(data=False, with_unit=False):
-                self.meta._add_modify(
-                    f"Aggregate extension {ext.name} - {df_to_agg_name}"
-                )
+                self.meta._add_modify(f"Aggregate extension {ext.name} - {df_to_agg_name}")
                 setattr(
                     ext,
                     df_to_agg_name,
@@ -3065,10 +2886,7 @@ class IOSystem(_BaseSystem):
         try:
             self.reset_to_flows()
         except ResetError as err:
-            raise AggregationError(
-                "System under-defined for aggregation - "
-                "do a 'calc_all' before aggregation"
-            ) from err
+            raise AggregationError("System under-defined for aggregation - do a 'calc_all' before aggregation") from err
 
         if type(region_names) is str:
             region_names = [region_names]
@@ -3076,13 +2894,8 @@ class IOSystem(_BaseSystem):
             sector_names = [sector_names]
 
         if type(region_agg) is pd.DataFrame:
-            if ("original" not in region_agg.columns) or (
-                "aggregated" not in region_agg.columns
-            ):
-                raise ValueError(
-                    "Passed DataFrame must include the columns "
-                    '"original" and "aggregated"'
-                )
+            if ("original" not in region_agg.columns) or ("aggregated" not in region_agg.columns):
+                raise ValueError('Passed DataFrame must include the columns "original" and "aggregated"')
             region_agg = (
                 region_agg.set_index("original")
                 .reindex(self.get_regions(), fill_value=MISSING_AGG_ENTRY["region"])
@@ -3090,13 +2903,8 @@ class IOSystem(_BaseSystem):
             )
 
         if type(sector_agg) is pd.DataFrame:
-            if ("original" not in sector_agg.columns) or (
-                "aggregated" not in sector_agg.columns
-            ):
-                raise ValueError(
-                    "Passed DataFrame must include the columns "
-                    '"original" and "aggregated"'
-                )
+            if ("original" not in sector_agg.columns) or ("aggregated" not in sector_agg.columns):
+                raise ValueError('Passed DataFrame must include the columns "original" and "aggregated"')
             sector_agg = (
                 sector_agg.set_index("original")
                 .reindex(self.get_sectors(), fill_value=MISSING_AGG_ENTRY["sector"])
@@ -3140,10 +2948,7 @@ class IOSystem(_BaseSystem):
             else:
                 # rows in the concordance matrix give the new number of
                 # regions
-                region_names = [
-                    GENERIC_NAMES["region"] + str(nr)
-                    for nr in range(region_conc.shape[0])
-                ]
+                region_names = [GENERIC_NAMES["region"] + str(nr) for nr in range(region_conc.shape[0])]
 
         if (not _same_sectors) and (not sector_names):
             if isinstance(sector_agg, np.ndarray):
@@ -3151,20 +2956,13 @@ class IOSystem(_BaseSystem):
             if type(list(sector_agg)[0]) is str:
                 sector_names = ioutil.unique_element(sector_agg)
             else:
-                sector_names = [
-                    GENERIC_NAMES["sector"] + str(nr)
-                    for nr in range(sector_conc.shape[0])
-                ]
+                sector_names = [GENERIC_NAMES["sector"] + str(nr) for nr in range(sector_conc.shape[0])]
 
         # Assert right shapes
         if not sector_conc.shape[1] == len(self.get_sectors()):
-            raise ValueError(
-                "Sector aggregation does not correspond to the number of sectors."
-            )
+            raise ValueError("Sector aggregation does not correspond to the number of sectors.")
         if not region_conc.shape[1] == len(self.get_regions()):
-            raise ValueError(
-                "Region aggregation does not correspond to the number of regions."
-            )
+            raise ValueError("Region aggregation does not correspond to the number of regions.")
         if not len(sector_names) == sector_conc.shape[0]:
             raise ValueError("New sector names do not match sector aggregation.")
         if not len(region_names) == region_conc.shape[0]:
@@ -3172,24 +2970,16 @@ class IOSystem(_BaseSystem):
 
         # build pandas.MultiIndex for the aggregated system
         _reg_list_for_sec = [[r] * sector_conc.shape[0] for r in region_names]
-        _reg_list_for_sec = [
-            entry for entrylist in _reg_list_for_sec for entry in entrylist
-        ]
+        _reg_list_for_sec = [entry for entrylist in _reg_list_for_sec for entry in entrylist]
 
         _reg_list_for_Ycat = [[r] * len(self.get_Y_categories()) for r in region_names]
-        _reg_list_for_Ycat = [
-            entry for entrylist in _reg_list_for_Ycat for entry in entrylist
-        ]
+        _reg_list_for_Ycat = [entry for entrylist in _reg_list_for_Ycat for entry in entrylist]
 
         _sec_list = list(sector_names) * region_conc.shape[0]
         _Ycat_list = list(self.get_Y_categories()) * region_conc.shape[0]
 
-        mi_reg_sec = pd.MultiIndex.from_arrays(
-            [_reg_list_for_sec, _sec_list], names=["region", "sector"]
-        )
-        mi_reg_Ycat = pd.MultiIndex.from_arrays(
-            [_reg_list_for_Ycat, _Ycat_list], names=["region", "category"]
-        )
+        mi_reg_sec = pd.MultiIndex.from_arrays([_reg_list_for_sec, _sec_list], names=["region", "sector"])
+        mi_reg_Ycat = pd.MultiIndex.from_arrays([_reg_list_for_Ycat, _Ycat_list], names=["region", "category"])
 
         # arrange the whole concordance matrix
         conc = np.kron(region_conc, sector_conc)
@@ -3255,9 +3045,7 @@ class IOSystem(_BaseSystem):
                     # Full disaggregated extensions - aggregate both axis
                     # (this is the case if the extions shows the flows from
                     # pda to cba)
-                    extension.__dict__[ik_name] = pd.DataFrame(
-                        data=conc.dot(ik_df).dot(conc.T)
-                    )
+                    extension.__dict__[ik_name] = pd.DataFrame(data=conc.dot(ik_df).dot(conc.T))
 
                     # next step must be done afterwards due to unknown reasons
                     extension.__dict__[ik_name].columns = mi_reg_sec
@@ -3269,9 +3057,7 @@ class IOSystem(_BaseSystem):
                 ] and ik_df.columns.names == ["region", "category"]:
                     # Full disaggregated finald demand satellite account.
                     # Thats not implemented yet - but aggregation is in place
-                    extension.__dict__[ik_name] = pd.DataFrame(
-                        data=conc.dot(ik_df).dot(conc_y.T)
-                    )
+                    extension.__dict__[ik_name] = pd.DataFrame(data=conc.dot(ik_df).dot(conc_y.T))
                     # next step must be done afterwards due to unknown reasons
                     extension.__dict__[ik_name].columns = mi_reg_Ycat
                     extension.__dict__[ik_name].index = mi_reg_sec
@@ -3569,9 +3355,7 @@ class IOSystem(_BaseSystem):
 
 
         """
-        return extension_concate(
-            *list(self.get_extensions(data=True)), new_extension_name=new_extension_name
-        )
+        return extension_concate(*list(self.get_extensions(data=True)), new_extension_name=new_extension_name)
 
 
 def extension_characterize(
@@ -3659,9 +3443,7 @@ def extension_characterize(
 
     for spec_name in spec_ext_names:
         if spec_name not in given_ext_names:
-            raise ValueError(
-                f"Extension {spec_name} not found in the passed extensions."
-            )
+            raise ValueError(f"Extension {spec_name} not found in the passed extensions.")
 
     used_ext = [ext for ext in extensions if ext.name in spec_ext_names]
 
@@ -3693,9 +3475,7 @@ def extension_characterize(
     faci = faci.reset_index(extension_col_name)
 
     if any(faci.index.duplicated()):
-        raise NotImplementedError(
-            "Case with same stressor names in different extensions not implemented yet"
-        )
+        raise NotImplementedError("Case with same stressor names in different extensions not implemented yet")
 
     merge = []
     merge_Y = []
@@ -3995,18 +3775,14 @@ def extension_concate(*extensions, new_extension_name):
             if "F_Y" in ext.get_DataFrame(data=False):
                 cur_dict["F_Y"] = ext.F_Y
             else:
-                cur_dict["F_Y"] = pd.DataFrame(
-                    data=0, index=ext.get_index(), columns=SF_Y_columns
-                )
+                cur_dict["F_Y"] = pd.DataFrame(data=0, index=ext.get_index(), columns=SF_Y_columns)
         if S_Y_present:
             # doesn't work with getattr b/c S_Y can be present as attribute but
             # not as DataFrame
             if "S_Y" in ext.get_DataFrame(data=False):
                 cur_dict["S_Y"] = ext.S_Y
             else:
-                cur_dict["S_Y"] = pd.DataFrame(
-                    data=0, index=ext.get_index(), columns=SF_Y_columns
-                )
+                cur_dict["S_Y"] = pd.DataFrame(data=0, index=ext.get_index(), columns=SF_Y_columns)
 
         # append all df data
         for key in cur_dict:

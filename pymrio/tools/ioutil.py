@@ -124,16 +124,12 @@ def get_file_para(path, path_in_arc=""):
         if zipfile.is_zipfile(str(path)):
             # b/c in win os.path.join adds \ also for within zipfile
             if para_file_folder != "":
-                para_file_full_path = (
-                    para_file_folder + "/" + DEFAULT_FILE_NAMES["filepara"]
-                ).replace("//", "/")
+                para_file_full_path = (para_file_folder + "/" + DEFAULT_FILE_NAMES["filepara"]).replace("//", "/")
             else:
                 para_file_full_path = DEFAULT_FILE_NAMES["filepara"]
 
         else:
-            para_file_full_path = os.path.join(
-                para_file_folder, DEFAULT_FILE_NAMES["filepara"]
-            )
+            para_file_full_path = os.path.join(para_file_folder, DEFAULT_FILE_NAMES["filepara"])
     else:
         para_file_full_path = para_file_folder
         para_file_folder = os.path.dirname(para_file_full_path)
@@ -221,9 +217,7 @@ def build_agg_matrix(agg_vector, pos_dict=None):
         agg_vector = np.zeros(len(str_vector))
         if pos_dict:
             if len(pos_dict.keys()) != len(set(str_vector)):
-                raise ValueError(
-                    "Posistion elements inconsistent with aggregation vector"
-                )
+                raise ValueError("Posistion elements inconsistent with aggregation vector")
             seen = pos_dict
         else:
             seen = {}
@@ -248,9 +242,7 @@ def build_agg_matrix(agg_vector, pos_dict=None):
     return agg_matrix
 
 
-def diagonalize_columns_to_sectors(
-    df: pd.DataFrame, sector_index_level: Union[str, int] = "sector"
-) -> pd.DataFrame:
+def diagonalize_columns_to_sectors(df: pd.DataFrame, sector_index_level: Union[str, int] = "sector") -> pd.DataFrame:
     """Add the resolution of the rows to columns by diagonalizing.
 
     Parameters
@@ -285,9 +277,7 @@ def diagonalize_columns_to_sectors(
     diag_df = pd.DataFrame(
         data=diagonalize_blocks(df.values, blocksize=len(sectors)),
         index=df.index,
-        columns=pd.MultiIndex.from_product(
-            [df.columns, sectors], names=[*df.columns.names, sector_name]
-        ),
+        columns=pd.MultiIndex.from_product([df.columns, sectors], names=[*df.columns.names, sector_name]),
     )
     return diag_df
 
@@ -322,9 +312,7 @@ def diagonalize_blocks(arr, blocksize: int):
     nr_row = arr.shape[0]
 
     if np.mod(nr_row, blocksize):
-        raise ValueError(
-            "Number of rows of input array must be a multiple of blocksize"
-        )
+        raise ValueError("Number of rows of input array must be a multiple of blocksize")
 
     arr_diag = np.zeros((nr_row, blocksize * nr_col))
 
@@ -334,9 +322,7 @@ def diagonalize_blocks(arr, blocksize: int):
         for _ind in range(int(nr_row / blocksize)):
             row_start = _ind * blocksize
             row_end = blocksize + _ind * blocksize
-            arr_diag[row_start:row_end, col_start:col_end] = np.diag(
-                col_val[row_start:row_end]
-            )
+            arr_diag[row_start:row_end, col_start:col_end] = np.diag(col_val[row_start:row_end])
 
     return arr_diag
 
@@ -386,14 +372,9 @@ def set_block(arr, arr_block):
     nr_row_block = arr_block.shape[0]
 
     if np.mod(nr_row, nr_row_block) or np.mod(nr_col, nr_col_block):
-        raise ValueError(
-            "Number of rows/columns of the input array "
-            "must be a multiple of block shape"
-        )
+        raise ValueError("Number of rows/columns of the input array must be a multiple of block shape")
     if nr_row / nr_row_block != nr_col / nr_col_block:
-        raise ValueError(
-            "Block array can not be filled as diagonal blocks in the given array"
-        )
+        raise ValueError("Block array can not be filled as diagonal blocks in the given array")
 
     arr_out = arr.copy()
 
@@ -507,13 +488,9 @@ def build_agg_vec(agg_vec, **source):
                 if entry == os.path.splitext(file)[0]:
                     _tmp = np.genfromtxt(os.path.join(folder, file), dtype=str)
                     if _tmp.ndim == 1:
-                        agg_dict[entry] = [
-                            None if ee == "None" else ee for ee in _tmp.tolist()
-                        ]
+                        agg_dict[entry] = [None if ee == "None" else ee for ee in _tmp.tolist()]
                     else:
-                        agg_dict[entry] = [
-                            None if ee == "None" else ee for ee in _tmp[:, -1].tolist()
-                        ]
+                        agg_dict[entry] = [None if ee == "None" else ee for ee in _tmp[:, -1].tolist()]
                     break
             else:
                 logging.error(f"Aggregation vector -- {str(entry)} -- not found")
@@ -801,9 +778,7 @@ def index_fullmatch(df_ix, find_all=None, **kwargs):
         The matched rows/index, same type as _dfs_idx
 
     """
-    return _index_regex_matcher(
-        _dfs_idx=df_ix, _method="fullmatch", _find_all=find_all, **kwargs
-    )
+    return _index_regex_matcher(_dfs_idx=df_ix, _method="fullmatch", _find_all=find_all, **kwargs)
 
 
 def index_match(df_ix, find_all=None, **kwargs):
@@ -840,9 +815,7 @@ def index_match(df_ix, find_all=None, **kwargs):
         The matched rows/index, same type as _dfs_idx
 
     """
-    return _index_regex_matcher(
-        _dfs_idx=df_ix, _method="match", _find_all=find_all, **kwargs
-    )
+    return _index_regex_matcher(_dfs_idx=df_ix, _method="match", _find_all=find_all, **kwargs)
 
 
 def index_contains(df_ix, find_all=None, **kwargs):
@@ -880,9 +853,7 @@ def index_contains(df_ix, find_all=None, **kwargs):
         The matched rows/index, same type as _dfs_idx
 
     """
-    return _index_regex_matcher(
-        _dfs_idx=df_ix, _method="contains", _find_all=find_all, **kwargs
-    )
+    return _index_regex_matcher(_dfs_idx=df_ix, _method="contains", _find_all=find_all, **kwargs)
 
 
 def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
@@ -931,10 +902,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
         elif type(_dfs_idx) in [pd.Index, pd.MultiIndex]:
             idx = _dfs_idx
         else:
-            raise ValueError(
-                "Type of _dfs_idx must be one of "
-                "pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex"
-            )
+            raise ValueError("Type of _dfs_idx must be one of pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex")
         found = np.array([], dtype=int)
         for idx_name in idx.names:
             fun = getattr(idx.get_level_values(idx_name).str, _method)
@@ -953,10 +921,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
             elif type(_dfs_idx) in [pd.Index, pd.MultiIndex]:
                 fun = getattr(_dfs_idx.get_level_values(key).str, _method)
             else:
-                raise ValueError(
-                    "Type of _dfs_idx must be one of "
-                    "pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex"
-                )
+                raise ValueError("Type of _dfs_idx must be one of pd.DataFrame, pd.Series, pd.Index or pd.MultiIndex")
             _dfs_idx = _dfs_idx[fun(value, case=True, flags=0, na=False)]
             at_least_one_valid = True
         except KeyError:
@@ -999,9 +964,7 @@ def _characterize_get_requried_col(
     if not set(required_columns).issubset(set(factors.columns)):
         raise ValueError("Not all required columns in the passed DataFrame >factors<")
 
-    return namedtuple("ret_val", ["required_index_col", "all_required_columns"])(
-        req_index, required_columns
-    )
+    return namedtuple("ret_val", ["required_index_col", "all_required_columns"])(req_index, required_columns)
 
 
 def _validate_characterization_table(
@@ -1113,13 +1076,9 @@ def _validate_characterization_table(
     um = um.reset_index()
 
     fac.error_unit_stressor = fac.error_unit_stressor.astype("object")
-    fac.loc[:, "error_unit_stressor"] = (
-        um.loc[:, orig_unit_column] != um.loc[:, ext_unit_col]
-    )
+    fac.loc[:, "error_unit_stressor"] = um.loc[:, orig_unit_column] != um.loc[:, ext_unit_col]
     with pd.option_context("future.no_silent_downcasting", True):
-        fac.loc[:, "error_unit_stressor"] = fac.loc[:, "error_unit_stressor"].fillna(
-            False
-        )
+        fac.loc[:, "error_unit_stressor"] = fac.loc[:, "error_unit_stressor"].fillna(False)
     fac.error_unit_stressor = fac.error_unit_stressor.infer_objects(copy=False)
 
     fac = fac.set_index(ext_unit.index.names).sort_index()
@@ -1136,9 +1095,7 @@ def _validate_characterization_table(
         # the full region is set to True
         if "region" in all_required_col:
             reg_cov = (
-                fac.loc[row, ["region", characterized_name_column]]
-                .groupby(characterized_name_column)
-                .region.apply(set)
+                fac.loc[row, ["region", characterized_name_column]].groupby(characterized_name_column).region.apply(set)
             )
             for improw in reg_cov.index:
                 if len(regions.difference(reg_cov[improw])) > 0:
@@ -1146,9 +1103,7 @@ def _validate_characterization_table(
 
         if "sector" in all_required_col:
             reg_cov = (
-                fac.loc[row, ["sector", characterized_name_column]]
-                .groupby(characterized_name_column)
-                .sector.apply(set)
+                fac.loc[row, ["sector", characterized_name_column]].groupby(characterized_name_column).sector.apply(set)
             )
             for improw in reg_cov.index:
                 if len(sectors.difference(reg_cov[improw])) > 0:
@@ -1364,9 +1319,7 @@ def convert(
     # groupby breaks with NaNs or None, fix it here
     df_map.loc[:, bridge_columns] = df_map.loc[:, bridge_columns].fillna("")
 
-    unique_new_index = (
-        df_map.loc[:, bridge_columns].drop_duplicates().set_index(bridge_columns).index
-    )
+    unique_new_index = df_map.loc[:, bridge_columns].drop_duplicates().set_index(bridge_columns).index
 
     bridge_components = namedtuple("bridge_components", ["new", "orig", "raw"])
     bridges = []
@@ -1387,15 +1340,11 @@ def convert(
             raise ValueError(f"Column {col} contains more then one '__'")
         if bridge.orig not in df_map.columns:
             raise ValueError(f"Column {bridge.orig} not in df_map")
-        if (bridge.orig not in df_orig.index.names) and (
-            bridge.orig not in df_orig.columns.names
-        ):
+        if (bridge.orig not in df_orig.index.names) and (bridge.orig not in df_orig.columns.names):
             raise ValueError(f"Column {bridge.orig} not in df_orig")
         bridges.append(bridge)
 
-    orig_index_not_bridged = [
-        ix for ix in df_orig.index.names if ix not in [b.orig for b in bridges]
-    ]
+    orig_index_not_bridged = [ix for ix in df_orig.index.names if ix not in [b.orig for b in bridges]]
 
     df_map = df_map.set_index(bridge_columns)
 
@@ -1456,22 +1405,16 @@ def convert(
                     if bridge.orig in idx_old_names:
                         # rename the index names
                         if isinstance(df_collected.index, pd.MultiIndex):
-                            df_collected.index = df_collected.index.set_names(
-                                bridge.new, level=idx_old_names
-                            )
+                            df_collected.index = df_collected.index.set_names(bridge.new, level=idx_old_names)
                         else:
-                            df_collected.index = df_collected.index.set_names(
-                                bridge.new, level=None
-                            )
+                            df_collected.index = df_collected.index.set_names(bridge.new, level=None)
 
                         # rename the actual index values
                         df_collected = df_collected.reset_index(level=bridge.new)
                         for row in df_cur_map.reset_index().iterrows():
                             new_row_name = row[1][bridge.raw]
                             old_row_name = row[1][bridge.orig]
-                            df_collected.loc[:, bridge.new] = df_collected.loc[
-                                :, bridge.new
-                            ].str.replace(
+                            df_collected.loc[:, bridge.new] = df_collected.loc[:, bridge.new].str.replace(
                                 pat=old_row_name, repl=new_row_name, regex=True
                             )
 
@@ -1480,19 +1423,13 @@ def convert(
                             # The case with a single index where the
                             # previous reset index
                             # left only a numerical index
-                            df_collected = df_collected.set_index(
-                                bridge.new, drop=True, append=False
-                            )
+                            df_collected = df_collected.set_index(bridge.new, drop=True, append=False)
                         else:
-                            df_collected = df_collected.set_index(
-                                bridge.new, drop=True, append=True
-                            )
+                            df_collected = df_collected.set_index(bridge.new, drop=True, append=True)
 
                         already_renamed[bridge.orig] = bridge
 
-        res_collector.append(
-            df_collected.groupby(by=df_collected.index.names).agg(agg_func)
-        )
+        res_collector.append(df_collected.groupby(by=df_collected.index.names).agg(agg_func))
 
     all_result = pd.concat(res_collector, axis=0)
 
@@ -1510,9 +1447,7 @@ def convert(
         all_result = all_result.reset_index(level=orig_index_not_bridged, drop=True)
     else:
         # move the not bridged index levels to the end of the index
-        new_index = [
-            ix for ix in all_result.index.names if ix not in orig_index_not_bridged
-        ]
+        new_index = [ix for ix in all_result.index.names if ix not in orig_index_not_bridged]
         try:
             all_result = all_result.reorder_levels(new_index + orig_index_not_bridged)
         except TypeError:  # case where there is only one index level
@@ -1527,8 +1462,7 @@ def convert(
                 grouped_order = grouped.reindex(index=df_map.loc[:, reindex].unique())
             else:
                 raise ValueError(
-                    f"Reindexing by {reindex} is not possible, "
-                    "it is not a bridge column in the mapping DataFrame."
+                    f"Reindexing by {reindex} is not possible, it is not a bridge column in the mapping DataFrame."
                 )
         else:
             grouped_order = grouped.reindex(index=reindex)

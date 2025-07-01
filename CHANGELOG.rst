@@ -3,8 +3,13 @@ Changelog
 #########
 
 ******************
-v0.6.2dev
+v0.6.2 - 20250701
 ******************
+
+New Features
+============
+
+* characterization function accepts list of column names for characterized_name_column
 
 Miscellaneous
 =============

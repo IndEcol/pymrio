@@ -81,9 +81,7 @@ def test_graphs_population_sector(fix_testmrio_calc):
     sector = "mining"
 
     tt = fix_testmrio_calc.testmrio
-    ax = tt.emissions.plot_account(
-        row=stressor, per_capita=True, population=tt.population, sector=sector
-    )
+    ax = tt.emissions.plot_account(row=stressor, per_capita=True, population=tt.population, sector=sector)
 
     assert stressor[0] in str(ax.title)
     assert stressor[1] in str(ax.title)
@@ -94,9 +92,7 @@ def test_graphs_population_sector(fix_testmrio_calc):
     # for each account from all regions. Thus
     # the order of drawn patches is for each account
     # (cba, pba, imp, exp) for each region
-    sec_reg1_pop = (
-        tt.emissions.D_cba.loc[stressor, ("reg1", sector)] / tt.population.reg1
-    ).iloc[0]
+    sec_reg1_pop = (tt.emissions.D_cba.loc[stressor, ("reg1", sector)] / tt.population.reg1).iloc[0]
 
     assert ax.patches[0].get_height() == sec_reg1_pop
 

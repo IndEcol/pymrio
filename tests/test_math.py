@@ -77,9 +77,7 @@ def td_IO_Data_Miller():
 
         # At the example following Table 2.3, additional
         # decimals where calculated
-        L_arr = np.array([[1.25412541, 0.330033], [0.2640264, 1.12211221]]).astype(
-            "float"
-        )
+        L_arr = np.array([[1.25412541, 0.330033], [0.2640264, 1.12211221]]).astype("float")
         L_df = pd.DataFrame(
             data=L_arr,
             index=["sec1", "sec2"],
@@ -130,9 +128,7 @@ def td_small_MRIO():
     class IO_Data:
         _sectors = ["sector1", "sector2", "sector3"]
         _regions = ["reg1", "reg2"]
-        _Z_multiindex = pd.MultiIndex.from_product(
-            [_regions, _sectors], names=["region", "sector"]
-        )
+        _Z_multiindex = pd.MultiIndex.from_product([_regions, _sectors], names=["region", "sector"])
 
         Z = pd.DataFrame(
             data=[
@@ -149,9 +145,7 @@ def td_small_MRIO():
         )
 
         _categories = ["final demand"]
-        _Y_multiindex = pd.MultiIndex.from_product(
-            [_regions, _categories], names=["region", "category"]
-        )
+        _Y_multiindex = pd.MultiIndex.from_product([_regions, _categories], names=["region", "category"])
         Y = pd.DataFrame(
             data=[[14, 3], [2.5, 2.5], [13, 6], [5, 20], [10, 10], [3, 10]],
             index=_Z_multiindex,
@@ -540,9 +534,7 @@ def td_small_MRIO():
 
 def test_calc_x_df(td_IO_Data_Miller):
     """Test the calc_x_df function using the td_IO_Data_Miller fixture."""
-    pdt.assert_frame_equal(
-        td_IO_Data_Miller.x_df, calc_x(td_IO_Data_Miller.Z_df, td_IO_Data_Miller.fd_df)
-    )
+    pdt.assert_frame_equal(td_IO_Data_Miller.x_df, calc_x(td_IO_Data_Miller.Z_df, td_IO_Data_Miller.fd_df))
 
 
 def test_calc_x_arr(td_IO_Data_Miller):
@@ -555,9 +547,7 @@ def test_calc_x_arr(td_IO_Data_Miller):
 
 def test_calc_Z_df(td_IO_Data_Miller):
     """Test that calc_Z returns the correct DataFrame for Miller IO data."""
-    pdt.assert_frame_equal(
-        td_IO_Data_Miller.Z_df, calc_Z(td_IO_Data_Miller.A_df, td_IO_Data_Miller.x_df)
-    )
+    pdt.assert_frame_equal(td_IO_Data_Miller.Z_df, calc_Z(td_IO_Data_Miller.A_df, td_IO_Data_Miller.x_df))
 
 
 def test_calc_Z_arr(td_IO_Data_Miller):
@@ -570,9 +560,7 @@ def test_calc_Z_arr(td_IO_Data_Miller):
 
 def test_calc_A_df(td_IO_Data_Miller):
     """Test that calc_A returns the correct DataFrame for Miller IO data."""
-    pdt.assert_frame_equal(
-        td_IO_Data_Miller.A_df, calc_A(td_IO_Data_Miller.Z_df, td_IO_Data_Miller.x_df)
-    )
+    pdt.assert_frame_equal(td_IO_Data_Miller.A_df, calc_A(td_IO_Data_Miller.Z_df, td_IO_Data_Miller.x_df))
 
 
 def test_calc_A_arr(td_IO_Data_Miller):
@@ -590,9 +578,7 @@ def test_calc_L_df(td_IO_Data_Miller):
 
 def test_calc_L_arr(td_IO_Data_Miller):
     """Test that calc_L returns the expected array for given A_arr."""
-    npt.assert_allclose(
-        td_IO_Data_Miller.L_arr, calc_L(td_IO_Data_Miller.A_arr), rtol=1e-5
-    )
+    npt.assert_allclose(td_IO_Data_Miller.L_arr, calc_L(td_IO_Data_Miller.A_arr), rtol=1e-5)
 
 
 def test_calc_x_from_L_df(td_IO_Data_Miller):
@@ -705,17 +691,13 @@ def test_calc_S_MRIO(td_small_MRIO):
 
 def test_calc_S_Y_MRIO(td_small_MRIO):
     """Test calculation of S_Y matrix in MRIO model."""
-    pdt.assert_frame_equal(
-        td_small_MRIO.S_Y, calc_S_Y(td_small_MRIO.F_Y, td_small_MRIO.Y.sum(axis=0))
-    )
+    pdt.assert_frame_equal(td_small_MRIO.S_Y, calc_S_Y(td_small_MRIO.F_Y, td_small_MRIO.Y.sum(axis=0)))
 
 
 def test_calc_F_Y_MRIO(td_small_MRIO):
     """Test calculation of F_Y matrix in MRIO model."""
     S_Y = calc_S_Y(td_small_MRIO.F_Y, td_small_MRIO.Y.sum(axis=0))
-    pdt.assert_frame_equal(
-        td_small_MRIO.F_Y, calc_F_Y(S_Y, td_small_MRIO.Y.sum(axis=0))
-    )
+    pdt.assert_frame_equal(td_small_MRIO.F_Y, calc_F_Y(S_Y, td_small_MRIO.Y.sum(axis=0)))
 
 
 def test_calc_M_MRIO(td_small_MRIO):
@@ -725,9 +707,7 @@ def test_calc_M_MRIO(td_small_MRIO):
 
 def test_calc_M_down_MRIO(td_small_MRIO):
     """Test calculation of M_down (Gosh-based) matrix in MRIO model."""
-    pdt.assert_frame_equal(
-        td_small_MRIO.M_down, calc_M_down(td_small_MRIO.S, td_small_MRIO.G)
-    )
+    pdt.assert_frame_equal(td_small_MRIO.M_down, calc_M_down(td_small_MRIO.S, td_small_MRIO.G))
 
 
 def test_calc_gross_trade_MRIO(td_small_MRIO):
@@ -735,13 +715,12 @@ def test_calc_gross_trade_MRIO(td_small_MRIO):
     gt = calc_gross_trade(td_small_MRIO.Z, td_small_MRIO.Y)
 
     reg1sec2trade = (
-        td_small_MRIO.Z.loc[("reg1", "sector2"), "reg2"].sum()
-        + td_small_MRIO.Y.loc[("reg1", "sector2"), "reg2"].sum()
+        td_small_MRIO.Z.loc[("reg1", "sector2"), "reg2"].sum() + td_small_MRIO.Y.loc[("reg1", "sector2"), "reg2"].sum()
     )
 
-    total_exports_reg1 = td_small_MRIO.Z.loc["reg1", "reg2"].sum(
+    total_exports_reg1 = td_small_MRIO.Z.loc["reg1", "reg2"].sum(axis=1) + td_small_MRIO.Y.loc["reg1", "reg2"].sum(
         axis=1
-    ) + td_small_MRIO.Y.loc["reg1", "reg2"].sum(axis=1)
+    )
 
     assert gt.bilat_flows.loc[("reg1", "sector2"), "reg2"] == reg1sec2trade
     pdt.assert_series_equal(

@@ -529,9 +529,7 @@ def calc_accounts(S, L, Y):
     # sector in one column
 
     if isinstance(Y.columns, pd.MultiIndex):
-        raise ValueError(
-            "Column index of Y can not be a MultiIndex - aggregate the columns"
-        )
+        raise ValueError("Column index of Y can not be a MultiIndex - aggregate the columns")
     Y_diag = ioutil.diagonalize_columns_to_sectors(Y)
     x_diag = L @ Y_diag
 
@@ -547,9 +545,7 @@ def calc_accounts(S, L, Y):
     # which are not in the core. This happens for example for statistical discrepancy
     # in the OECD tables. It is "theoretically" possible to calculate footprints for
     # these "regions", but not PBA accounts.
-    D_pba = pd.DataFrame(
-        S.to_numpy() * x_tot.reshape((1, -1)), index=S.index, columns=S.columns
-    )
+    D_pba = pd.DataFrame(S.to_numpy() * x_tot.reshape((1, -1)), index=S.index, columns=S.columns)
 
     # for the traded accounts set the domestic industry output to zero
     x_trade = ioutil.set_dom_block(x_diag, value=0)
@@ -559,9 +555,7 @@ def calc_accounts(S, L, Y):
 
     # D_exp = S.dot(np.diagflat(x_exp))
     # faster broadcasted version:
-    D_exp = pd.DataFrame(
-        S.to_numpy() * x_exp.reshape((1, -1)), index=S.index, columns=S.columns
-    )
+    D_exp = pd.DataFrame(S.to_numpy() * x_exp.reshape((1, -1)), index=S.index, columns=S.columns)
 
     return (D_cba, D_pba, D_imp, D_exp)
 

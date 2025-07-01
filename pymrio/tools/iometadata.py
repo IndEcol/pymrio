@@ -97,9 +97,7 @@ class MRIOMetaData:
                 if zipfile.is_zipfile(str(location)):
                     with zipfile.ZipFile(file=str(location)) as zf:
                         if path_in_arc not in zf.namelist():
-                            path_in_arc = os.path.join(
-                                path_in_arc, DEFAULT_FILE_NAMES["metadata"]
-                            )
+                            path_in_arc = os.path.join(path_in_arc, DEFAULT_FILE_NAMES["metadata"])
 
                     self._path_in_arc = str(path_in_arc)
 

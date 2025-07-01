@@ -182,9 +182,7 @@ def test_all_wo_ghosh(td_testmrio):
         rtol=1e-5,
     )
 
-    sat_new = pymrio.extension_concate(
-        mr_nog.emissions, mr_nog.factor_inputs, new_extension_name="sat_new"
-    )
+    sat_new = pymrio.extension_concate(mr_nog.emissions, mr_nog.factor_inputs, new_extension_name="sat_new")
 
     assert len(sat_new.D_cba) == 3
     assert mr_nog.emissions.F.index[0] in sat_new.F.index
@@ -227,9 +225,7 @@ def test_all_with_ghosh(td_testmrio):
         rtol=1e-5,
     )
 
-    sat_new = pymrio.extension_concate(
-        mr_wig.emissions, mr_wig.factor_inputs, new_extension_name="sat_new"
-    )
+    sat_new = pymrio.extension_concate(mr_wig.emissions, mr_wig.factor_inputs, new_extension_name="sat_new")
 
     assert len(sat_new.D_cba) == 3
     assert mr_wig.emissions.F.index[0] in sat_new.F.index
@@ -289,9 +285,7 @@ def test_txt_zip_fileio(tmpdir):
     if os.path.exists(zip_arc):
         os.remove(zip_arc)
 
-    pymrio.archive(
-        source=save_path, archive=zip_arc, remove_source=True, path_in_arc="test"
-    )
+    pymrio.archive(source=save_path, archive=zip_arc, remove_source=True, path_in_arc="test")
 
     fc = pymrio.get_repo_content(zip_arc)
     assert fc.iszip is True
@@ -350,9 +344,7 @@ def test_reports(tmpdir):
     save_path = str(tmpdir.mkdir("pymrio_test_reports"))
 
     with pytest.raises(ValueError):
-        mr.report_accounts(
-            path=save_path, per_capita=False, per_region=False, format="html"
-        )
+        mr.report_accounts(path=save_path, per_capita=False, per_region=False, format="html")
 
     mr.report_accounts(path=save_path, per_capita=True, format="html")
 
@@ -361,12 +353,8 @@ def test_reports(tmpdir):
         assert ext.name.replace(" ", "_") + "_per_capita.html" in file_content
         assert ext.name.replace(" ", "_") + "_per_region.html" in file_content
 
-        cap_pic_file_content = os.listdir(
-            os.path.join(save_path, ext.name.replace(" ", "_") + "_per_capita")
-        )
-        reg_pic_file_content = os.listdir(
-            os.path.join(save_path, ext.name.replace(" ", "_") + "_per_region")
-        )
+        cap_pic_file_content = os.listdir(os.path.join(save_path, ext.name.replace(" ", "_") + "_per_capita"))
+        reg_pic_file_content = os.listdir(os.path.join(save_path, ext.name.replace(" ", "_") + "_per_region"))
 
         assert "png" in cap_pic_file_content[0]
         assert "png" in reg_pic_file_content[0]

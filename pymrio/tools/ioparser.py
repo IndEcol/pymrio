@@ -232,13 +232,9 @@ def get_exiobase_files(path, coefficients=True):
 
     exio_files = {}
     for kk, vv in exio_core_regex.items():
-        found_file = [
-            vv.search(ff).string for ff in repo_content.filelist if vv.search(ff)
-        ]
+        found_file = [vv.search(ff).string for ff in repo_content.filelist if vv.search(ff)]
         if len(found_file) > 1:
-            logging.warning(
-                f"Multiple files found for {kk}: {found_file} - USING THE FIRST ONE"
-            )
+            logging.warning(f"Multiple files found for {kk}: {found_file} - USING THE FIRST ONE")
             found_file = found_file[0:1]
         elif len(found_file) == 0:
             continue
@@ -277,9 +273,7 @@ def generic_exiobase12_parser(exio_files, system=None):
         Only used for the metadata
 
     """
-    version = " & ".join(
-        {dd.get("version", "") for dd in exio_files.values() if dd.get("version", "")}
-    )
+    version = " & ".join({dd.get("version", "") for dd in exio_files.values() if dd.get("version", "")})
 
     meta_rec = MRIOMetaData(system=system, name="EXIOBASE", version=version)
 
@@ -321,9 +315,7 @@ def generic_exiobase12_parser(exio_files, system=None):
         core_data[table].index.names = ["region", "sector", "unit"]
         if table == "A" or table == "Z":
             core_data[table].columns.names = ["region", "sector"]
-            _unit = (
-                pd.DataFrame(core_data[table].iloc[:, 0]).reset_index(level="unit").unit
-            )
+            _unit = pd.DataFrame(core_data[table].iloc[:, 0]).reset_index(level="unit").unit
             _unit = pd.DataFrame(_unit)
             _unit.columns = ["unit"]
         if table == "Y":
@@ -371,9 +363,7 @@ def generic_exiobase12_parser(exio_files, system=None):
         _unit = pd.DataFrame(_unit)
         _unit.columns = ["unit"]
         _new_unit = _unit.unit.str.replace("/" + mon_unit, "", regex=True)
-        _new_unit[_new_unit == ""] = _unit.unit[_new_unit == ""].str.replace(
-            "/", "", regex=True
-        )
+        _new_unit[_new_unit == ""] = _unit.unit[_new_unit == ""].str.replace("/", "", regex=True)
         _unit.unit = _new_unit
 
         ext_data[tt] = ext_data[tt].reset_index(level="unit", drop=True)
@@ -446,9 +436,7 @@ def parse_exiobase1(path):
 
     system = _get_MRIO_system(path)
     if not system:
-        logging.warning(
-            "Could not determine system (pxp or ixi) set system parameter manually"
-        )
+        logging.warning("Could not determine system (pxp or ixi) set system parameter manually")
 
     io = generic_exiobase12_parser(exio_files, system=system)
     return io
@@ -502,9 +490,7 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
 
     system = _get_MRIO_system(path)
     if not system:
-        logging.warning(
-            "Could not determine system (pxp or ixi) set system parameter manually"
-        )
+        logging.warning("Could not determine system (pxp or ixi) set system parameter manually")
 
     io = generic_exiobase12_parser(exio_files, system=system)
 
@@ -564,14 +550,9 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
         else:
             _content = get_repo_content(path)
             charac_regex = re.compile(r"(?<!\_)(?<!\.)characterisation.*xlsx")
-            charac_files = [
-                ff for ff in _content.filelist if re.search(charac_regex, ff)
-            ]
+            charac_files = [ff for ff in _content.filelist if re.search(charac_regex, ff)]
             if len(charac_files) > 1:
-                raise ParserError(
-                    "Found multiple characcterisation files "
-                    f"in {path} - specify one: {charac_files}"
-                )
+                raise ParserError(f"Found multiple characcterisation files in {path} - specify one: {charac_files}")
             if len(charac_files) == 0:
                 raise ParserError(f"No characcterisation file found in {path}")
             if _content.iszip:
@@ -615,14 +596,10 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
 
             charac_data[Qname].index = charac_data[Qname][Q_head_col_rowname[Qname]]
 
-            _unit[Qname] = pd.DataFrame(
-                charac_data[Qname].iloc[:, Q_head_col_rowunit[Qname]]
-            )
+            _unit[Qname] = pd.DataFrame(charac_data[Qname].iloc[:, Q_head_col_rowunit[Qname]])
             _unit[Qname].columns = ["unit"]
             _unit[Qname].index.name = "impact"
-            charac_data[Qname] = charac_data[Qname].iloc[
-                :, Q_head_col_rowunit[Qname] + 1 :
-            ]
+            charac_data[Qname] = charac_data[Qname].iloc[:, Q_head_col_rowunit[Qname] + 1 :]
             charac_data[Qname].index.name = "impact"
 
             try:
@@ -863,22 +840,16 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     else:
         # 2. case: directory given-build wiot_file with the value given in year
         if not year:
-            raise ParserError(
-                "No year specified (either specify a specific file or a path and year)"
-            )
+            raise ParserError("No year specified (either specify a specific file or a path and year)")
         year_two_digit = str(year)[-2:]
         wiot_file_list = [
             fl
             for fl in os.listdir(path)
-            if (
-                fl[:6] == wiot_start + year_two_digit
-                and os.path.splitext(fl)[1] == wiot_ext
-            )
+            if (fl[:6] == wiot_start + year_two_digit and os.path.splitext(fl)[1] == wiot_ext)
         ]
         if len(wiot_file_list) != 1:
             raise ParserError(
-                "Multiple files for a given year or file not "
-                "found (specify a specific file in paramters)"
+                "Multiple files for a given year or file not found (specify a specific file in paramters)"
             )
 
         wiot_file = os.path.join(path, wiot_file_list[0])
@@ -923,13 +894,9 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     meta_rec._add_fileio(f"WIOD data parsed from {wiot_file}")
     # get meta data
     wiot_year = wiot_data.iloc[wiot_meta["year"], wiot_meta["col"]][-4:]
-    wiot_iosystem = (
-        wiot_data.iloc[wiot_meta["iosystem"], wiot_meta["col"]].rstrip(")").lstrip("(")
-    )
+    wiot_iosystem = wiot_data.iloc[wiot_meta["iosystem"], wiot_meta["col"]].rstrip(")").lstrip("(")
     meta_rec.change_meta("system", wiot_iosystem)
-    _wiot_unit = (
-        wiot_data.iloc[wiot_meta["unit"], wiot_meta["col"]].rstrip(")").lstrip("(")
-    )
+    _wiot_unit = wiot_data.iloc[wiot_meta["unit"], wiot_meta["col"]].rstrip(")").lstrip("(")
 
     # remove meta data, empty rows, total column
     wiot_data.iloc[0 : wiot_meta["end_row"], wiot_meta["col"]] = np.nan
@@ -942,20 +909,16 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     # Early years in WIOD tables have a different name for Romania:
     # 'ROM' which should be 'ROU'. The latter is also consistent with
     # the environmental extensions names.
-    wiot_data.iloc[wiot_header["region"], :] = wiot_data.iloc[
-        wiot_header["region"], :
-    ].str.replace("ROM", "ROU", regex=False)
-    wiot_data.iloc[:, wiot_header["region"]] = wiot_data.iloc[
-        :, wiot_header["region"]
-    ].str.replace("ROM", "ROU", regex=False)
+    wiot_data.iloc[wiot_header["region"], :] = wiot_data.iloc[wiot_header["region"], :].str.replace(
+        "ROM", "ROU", regex=False
+    )
+    wiot_data.iloc[:, wiot_header["region"]] = wiot_data.iloc[:, wiot_header["region"]].str.replace(
+        "ROM", "ROU", regex=False
+    )
 
     # get the end of the interindustry matrix
-    _lastZcol = wiot_data[
-        wiot_data.iloc[:, wiot_header["c_code"]] == wiot_marks["last_interindsec"]
-    ].index[-1]
-    _lastZrow = wiot_data[
-        wiot_data[wiot_header["c_code"]] == wiot_marks["last_interindsec"]
-    ].index[-1]
+    _lastZcol = wiot_data[wiot_data.iloc[:, wiot_header["c_code"]] == wiot_marks["last_interindsec"]].index[-1]
+    _lastZrow = wiot_data[wiot_data[wiot_header["c_code"]] == wiot_marks["last_interindsec"]].index[-1]
 
     if _lastZcol != _lastZrow:
         raise ParserError("Interindustry matrix not symetric in the WIOD source file")
@@ -978,14 +941,10 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     # Save lookup of sectors and codes - to be used at the end of the parser
     # Assuming USA is present in every WIOT year
     wiot_sector_lookup = (
-        wiot_data[wiot_data[wiot_header["region"]] == "USA"].iloc[
-            :, 0 : max(index_wiot_headers) + 1
-        ]
+        wiot_data[wiot_data[wiot_header["region"]] == "USA"].iloc[:, 0 : max(index_wiot_headers) + 1]
     ).astype("str")
 
-    wiot_sector_lookup.columns = [
-        entry[1] for entry in sorted(zip(wiot_header.values(), wiot_header.keys()))
-    ]
+    wiot_sector_lookup.columns = [entry[1] for entry in sorted(zip(wiot_header.values(), wiot_header.keys()))]
     wiot_sector_lookup = wiot_sector_lookup.set_index("code", drop=False)
     _Y = Y.T.iloc[
         :,
@@ -997,9 +956,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
         ],
     ]
     wiot_fd_lookup = _Y[_Y.iloc[:, wiot_header["region"]] == "USA"].astype("str")
-    wiot_fd_lookup.columns = [
-        entry[1] for entry in sorted(zip(wiot_header.values(), wiot_header.keys()))
-    ]
+    wiot_fd_lookup.columns = [entry[1] for entry in sorted(zip(wiot_header.values(), wiot_header.keys()))]
     wiot_fd_lookup = wiot_fd_lookup.set_index("c_code", drop=False)
     wiot_fd_lookup.index.name = "code"
 
@@ -1012,15 +969,11 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     Z.columns = Z.index
 
     indexY_col_head = Y.iloc[[wiot_header["region"], wiot_header["c_code"]], :]
-    Y.columns = pd.MultiIndex.from_arrays(
-        indexY_col_head.values, names=IDX_NAMES["Y_col2"]
-    )
+    Y.columns = pd.MultiIndex.from_arrays(indexY_col_head.values, names=IDX_NAMES["Y_col2"])
     Y = Y.iloc[max(index_wiot_headers) + 1 :, :]
     Y.index = Z.index
 
-    F_fac = F_fac.set_index(
-        [wiot_header["sector_names"]], drop=False
-    )  # c_code missing, use names
+    F_fac = F_fac.set_index([wiot_header["sector_names"]], drop=False)  # c_code missing, use names
     F_fac.index.names = ["inputtype"]
     F_fac = F_fac.iloc[:, max(index_wiot_headers) + 1 :]
     F_fac.columns = Z.columns
@@ -1057,14 +1010,10 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     }
 
     # SEA extension
-    _F_sea_data, _F_sea_unit = __get_WIOD_SEA_extension(
-        root_path=root_path, year=wiot_year
-    )
+    _F_sea_data, _F_sea_unit = __get_WIOD_SEA_extension(root_path=root_path, year=wiot_year)
     if _F_sea_data is not None:
         # None if no SEA file present
-        _F_Y_sea = pd.DataFrame(
-            index=_F_sea_data.index, columns=F_Y_fac.columns, data=0
-        )
+        _F_Y_sea = pd.DataFrame(index=_F_sea_data.index, columns=F_Y_fac.columns, data=0)
         _F_Y_sea = _F_Y_sea.astype("float")
 
         ext["SEA"] = {
@@ -1153,9 +1102,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
             # None if extension not available
             _F_Y = _dl_ex["F_Y"]
 
-            _F_Y.columns = pd.MultiIndex.from_product(
-                [_F_Y.columns, [_ss_F_Y_pressure_column]]
-            )
+            _F_Y.columns = pd.MultiIndex.from_product([_F_Y.columns, [_ss_F_Y_pressure_column]])
             _F_Y = pd.concat([_F_Y_template.astype("float"), _F_Y]).astype("float")
             _F_Y = _F_Y.fillna(0)
             _F_Y.index.names = _dl_ex["F"].index.names
@@ -1200,8 +1147,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
         dd_fd_rename = wiot_fd_lookup.sector_names.to_dict()
     else:
         warnings.warn(
-            "Parameter for names not understood - "
-            "used c_codes as final demand category names",
+            "Parameter for names not understood - used c_codes as final demand category names",
             stacklevel=2,
         )
 
@@ -1251,24 +1197,17 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
 
 
     """
-    ll_root_content = [
-        ff for ff in os.listdir(root_path) if ff.startswith(para["start"])
-    ]
+    ll_root_content = [ff for ff in os.listdir(root_path) if ff.startswith(para["start"])]
     if len(ll_root_content) < 1:
         warnings.warn(
-            "Extension data for {} not found - Extension not included".format(
-                para["start"]
-            ),
+            "Extension data for {} not found - Extension not included".format(para["start"]),
             ParserWarning,
             stacklevel=2,
         )
         return None
 
     if len(ll_root_content) > 1:
-        raise ParserError(
-            "Several raw data for extension"
-            "{} available - clean extension folder.".format(para["start"])
-        )
+        raise ParserError("Several raw data for extension{} available - clean extension folder.".format(para["start"]))
 
     pf_env = os.path.join(root_path, ll_root_content[0])
 
@@ -1284,23 +1223,14 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         ll_pff_read = [
             ff
             for ff in ll_env_content
-            if ff.endswith(para["ext"])
-            and (ff.startswith(co.upper()) or ff.startswith(co.lower()))
+            if ff.endswith(para["ext"]) and (ff.startswith(co.upper()) or ff.startswith(co.lower()))
         ]
 
         if len(ll_pff_read) < 1:
-            raise ParserError(
-                "Country data not complete for Extension {} - missing {}.".format(
-                    para["start"], co
-                )
-            )
+            raise ParserError("Country data not complete for Extension {} - missing {}.".format(para["start"], co))
 
         if len(ll_pff_read) > 1:
-            raise ParserError(
-                "Multiple country data for Extension {} - country {}.".format(
-                    para["start"], co
-                )
-            )
+            raise ParserError("Multiple country data for Extension {} - country {}.".format(para["start"], co))
 
         pff_read = ll_pff_read[0]
 
@@ -1312,9 +1242,9 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
             df_env = ff_excel.parse(sheet_name=str(year), index_col=None, header=0)
         else:
             warnings.warn(
-                "Extension {} does not include"
-                "data for the year {} - "
-                "Extension not included".format(para["start"], year),
+                "Extension {} does not includedata for the year {} - Extension not included".format(
+                    para["start"], year
+                ),
                 ParserWarning,
                 stacklevel=2,
             )
@@ -1342,11 +1272,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         df_env = df_env[df_env.iloc[:, 0] != "total"]
         df_env = df_env[df_env.iloc[:, 0] != "secTOT"]
         df_env = df_env[df_env.iloc[:, 0] != "secQ"]
-        df_env.iloc[:, 0] = (
-            df_env.iloc[:, 0]
-            .astype(str)
-            .replace(to_replace="sec", value="", regex=True)
-        )
+        df_env.iloc[:, 0] = df_env.iloc[:, 0].astype(str).replace(to_replace="sec", value="", regex=True)
         df_env = df_env.set_index([df_env.columns[0]])
         df_env.index.names = ["sector"]
         df_env = df_env.T
@@ -1412,18 +1338,14 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
         _SEA_folder = root_path
 
     sea_folder_content = [
-        ff
-        for ff in os.listdir(_SEA_folder)
-        if os.path.splitext(ff)[-1] == sea_ext and ff[:8] == sea_start
+        ff for ff in os.listdir(_SEA_folder) if os.path.splitext(ff)[-1] == sea_ext and ff[:8] == sea_start
     ]
 
     if sea_folder_content:
         # read data
         sea_file = os.path.join(_SEA_folder, sorted(sea_folder_content)[0])
 
-        df_sea = pd.read_excel(
-            sea_file, sheet_name=data_sheet, header=0, index_col=[0, 1, 2, 3]
-        )
+        df_sea = pd.read_excel(sea_file, sheet_name=data_sheet, header=0, index_col=[0, 1, 2, 3])
 
         # fix years
         ic_sea = df_sea.columns.tolist()
@@ -1434,8 +1356,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
             ds_sea = df_sea[str(year)]
         except KeyError:
             warnings.warn(
-                "SEA extension does not include data for the "
-                f"year {year} - SEA-Extension not included",
+                f"SEA extension does not include data for the year {year} - SEA-Extension not included",
                 ParserWarning,
                 stacklevel=2,
             )
@@ -1443,9 +1364,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
 
         # get useful data (employment)
         mt_sea = ["EMP", "EMPE", "H_EMP", "H_EMPE"]
-        ds_use_sea = pd.concat(
-            [ds_sea.xs(key=vari, level="Variable", drop_level=False) for vari in mt_sea]
-        )
+        ds_use_sea = pd.concat([ds_sea.xs(key=vari, level="Variable", drop_level=False) for vari in mt_sea])
         ds_use_sea = ds_use_sea.drop(labels="TOT", level="Code")
         ds_use_sea = ds_use_sea.reset_index("Description", drop=True)
 
@@ -1456,9 +1375,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
             ds_RoW.loc[:] = 0
             df_RoW = ds_RoW.reset_index()
             df_RoW["Country"] = "RoW"
-            ds_use_sea = pd.concat([ds_use_sea.reset_index(), df_RoW]).set_index(
-                ["Country", "Code", "Variable"]
-            )
+            ds_use_sea = pd.concat([ds_use_sea.reset_index(), df_RoW]).set_index(["Country", "Code", "Variable"])
 
         ds_use_sea = ds_use_sea.fillna(value=0)
         df_use_sea = ds_use_sea.unstack(level=["Country", "Code"])[str(year)]
@@ -1539,17 +1456,14 @@ def parse_oecd(path, year=None):
     else:
         # 2. case: dir given - build oecd_file with the value given in year
         if not year:
-            raise ParserError(
-                "No year specified (either specify a specific file or path and year)"
-            )
+            raise ParserError("No year specified (either specify a specific file or path and year)")
 
         oecd_file_list = [
             fl
             for fl in os.listdir(path)
             if (
                 os.path.splitext(fl)[1] in [".csv", ".CSV", ".zip"]
-                and os.path.splitext(fl)[0]
-                in [oo + str(year) for oo in oecd_file_starts]
+                and os.path.splitext(fl)[0] in [oo + str(year) for oo in oecd_file_starts]
             )
         ]
 
@@ -1558,9 +1472,7 @@ def parse_oecd(path, year=None):
 
             if len(unique_file_data) > 1:
                 raise ParserError(
-                    "Multiple files for a given year "
-                    "found (specify a specific file in the "
-                    'parameter "path")'
+                    'Multiple files for a given year found (specify a specific file in the parameter "path")'
                 )
 
         elif len(oecd_file_list) == 0:
@@ -1604,25 +1516,17 @@ def parse_oecd(path, year=None):
     factor_input_exact = oecd_raw.filter(items=["TLS", "VA"], axis=0)
     factor_input_regex = oecd_raw.filter(regex="VALU|TAX", axis=0)
     factor_input = pd.concat([factor_input_exact, factor_input_regex], axis=0)
-    final_demand = oecd_raw.filter(
-        regex="HFCE|NPISH|NPS|GGFC|GFCF|INVNT|INV|DIRP|DPABR|FD|P33|DISC|OUT", axis=1
-    )
+    final_demand = oecd_raw.filter(regex="HFCE|NPISH|NPS|GGFC|GFCF|INVNT|INV|DIRP|DPABR|FD|P33|DISC|OUT", axis=1)
 
     Z = oecd_raw.loc[
         oecd_raw.index.difference(factor_input.index),
         oecd_raw.columns.difference(final_demand.columns),
     ].astype("float")
-    F_factor_input = factor_input.loc[
-        :, factor_input.columns.difference(final_demand.columns)
-    ].astype("float")
+    F_factor_input = factor_input.loc[:, factor_input.columns.difference(final_demand.columns)].astype("float")
     F_Y_factor_input = factor_input.loc[:, final_demand.columns].astype("float")
-    Y = final_demand.loc[final_demand.index.difference(F_factor_input.index), :].astype(
-        "float"
-    )
+    Y = final_demand.loc[final_demand.index.difference(F_factor_input.index), :].astype("float")
 
-    Z_index = pd.MultiIndex.from_tuples(
-        tuple(ll) for ll in Z.index.map(lambda x: x.split("_", maxsplit=1))
-    )
+    Z_index = pd.MultiIndex.from_tuples(tuple(ll) for ll in Z.index.map(lambda x: x.split("_", maxsplit=1)))
     Z_columns = Z_index.copy()
     Z_index.names = IDX_NAMES["Z_row"]
     Z_columns.names = IDX_NAMES["Z_col"]
@@ -1665,32 +1569,23 @@ def parse_oecd(path, year=None):
         # see https://github.com/pandas-dev/pandas/issues/10440
 
         # aggregate rows
-        Z.loc[co_name, :] = (
-            Z.loc[co_name, :] + Z.loc[agg_list, :].groupby(level="sector").sum()
-        ).to_numpy()
+        Z.loc[co_name, :] = (Z.loc[co_name, :] + Z.loc[agg_list, :].groupby(level="sector").sum()).to_numpy()
         Z = Z.drop(agg_list, axis=0)
-        Y.loc[co_name, :] = (
-            Y.loc[co_name, :] + Y.loc[agg_list, :].groupby(level="sector").sum()
-        ).to_numpy()
+        Y.loc[co_name, :] = (Y.loc[co_name, :] + Y.loc[agg_list, :].groupby(level="sector").sum()).to_numpy()
         Y = Y.drop(agg_list, axis=0)
 
         # aggregate columns
-        Z.loc[:, co_name] = (
-            Z.loc[:, co_name] + Z.loc[:, agg_list].T.groupby(level="sector").sum().T
-        ).to_numpy()
+        Z.loc[:, co_name] = (Z.loc[:, co_name] + Z.loc[:, agg_list].T.groupby(level="sector").sum().T).to_numpy()
         Z = Z.drop(agg_list, axis=1)
 
         F_factor_input.loc[:, co_name] = (
-            F_factor_input.loc[:, co_name]
-            + F_factor_input.loc[:, agg_list].T.groupby(level="sector").sum().T
+            F_factor_input.loc[:, co_name] + F_factor_input.loc[:, agg_list].T.groupby(level="sector").sum().T
         ).to_numpy()
         F_factor_input = F_factor_input.drop(agg_list, axis=1)
 
     # unit df generation at the end to have consistent index
     unit = pd.DataFrame(index=Z.index, data=mon_unit, columns=IDX_NAMES["unit"])
-    F_unit = pd.DataFrame(
-        index=F_factor_input.index, data=mon_unit, columns=IDX_NAMES["unit"]
-    )
+    F_unit = pd.DataFrame(index=F_factor_input.index, data=mon_unit, columns=IDX_NAMES["unit"])
 
     oecd = IOSystem(
         Z=Z,
@@ -1780,16 +1675,11 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
         eora_file_list = [
             fl
             for fl in os.listdir(path)
-            if os.path.splitext(fl)[1] == eora_zip_ext
-            and str(year) in fl
-            and str(price) in fl
+            if os.path.splitext(fl)[1] == eora_zip_ext and str(year) in fl and str(price) in fl
         ]
 
         if len(eora_file_list) > 1:
-            raise ParserError(
-                "Multiple files for a given year "
-                "found (specify a specific file in parameters)"
-            )
+            raise ParserError("Multiple files for a given year found (specify a specific file in parameters)")
         if len(eora_file_list) == 1:
             eora_loc = os.path.join(path, eora_file_list[0])
             is_zip = True
@@ -1895,15 +1785,9 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
         }
     meta_rec._add_fileio(f"Eora26 for {year}-{price} data parsed from {eora_loc}")
 
-    eora_data["labels_Z"] = eora_data["labels_Z"].loc[
-        :, [getattr(ZY_col, country_names), ZY_col.name]
-    ]
-    eora_data["labels_Y"] = eora_data["labels_Y"].loc[
-        :, [getattr(ZY_col, country_names), ZY_col.name]
-    ]
-    eora_data["labels_VA"] = eora_data["labels_VA"].iloc[
-        :, : len(eora_header_spec["VA"].column_names)
-    ]
+    eora_data["labels_Z"] = eora_data["labels_Z"].loc[:, [getattr(ZY_col, country_names), ZY_col.name]]
+    eora_data["labels_Y"] = eora_data["labels_Y"].loc[:, [getattr(ZY_col, country_names), ZY_col.name]]
+    eora_data["labels_VA"] = eora_data["labels_VA"].iloc[:, : len(eora_header_spec["VA"].column_names)]
     labQ = eora_data["labels_Q"].iloc[:, : len(eora_header_spec["Q"].column_names)]
     labQ.columns = IDX_NAMES["F_row_src"]
     Q_unit = pd.DataFrame(labQ["stressor"].str.extract(r"\((.*)\)", expand=False))
@@ -1914,15 +1798,11 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
 
     for key in eora_header_spec:
         eora_data[key].columns = (
-            eora_data[eora_header_spec[key].columns]
-            .set_index(list(eora_data[eora_header_spec[key].columns]))
-            .index
+            eora_data[eora_header_spec[key].columns].set_index(list(eora_data[eora_header_spec[key].columns])).index
         )
         eora_data[key].columns.names = eora_header_spec[key].column_names
         eora_data[key].index = (
-            eora_data[eora_header_spec[key].index]
-            .set_index(list(eora_data[eora_header_spec[key].index]))
-            .index
+            eora_data[eora_header_spec[key].index].set_index(list(eora_data[eora_header_spec[key].index])).index
         )
         eora_data[key].index.names = eora_header_spec[key].index_names
 
@@ -2030,8 +1910,7 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
         version = 59
         version_readme = "59a"
         warnings.warn(
-            "Files in version 59a and 59 have the same name, "
-            "make sure to not store both in the same folder",
+            "Files in version 59a and 59 have the same name, make sure to not store both in the same folder",
             stacklevel=2,
         )
     else:
@@ -2083,9 +1962,7 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
         ),
     }
 
-    mrio_path = glob.glob(
-        os.path.join(path, f"GLORIA_MRIOs_{str(version)}_{str(year)}*")
-    )[0]
+    mrio_path = glob.glob(os.path.join(path, f"GLORIA_MRIOs_{str(version)}_{str(year)}*"))[0]
     gloria_zip_ext = ".zip"
 
     # First we load the monetary data
@@ -2110,14 +1987,10 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
         zip_file.close()
     else:
         for key, filename in gloria_mrio_files.items():
-            gloria_data_sut[key] = pd.read_csv(
-                glob.glob(os.path.join(mrio_path, "*" + filename))[0], header=None
-            )
+            gloria_data_sut[key] = pd.read_csv(glob.glob(os.path.join(mrio_path, "*" + filename))[0], header=None)
 
     # Then we load the satellite data
-    satellite_path = glob.glob(
-        os.path.join(path, f"GLORIA_SatelliteAccounts_0{str(version)}_{str(year)}*")
-    )[0]
+    satellite_path = glob.glob(os.path.join(path, f"GLORIA_SatelliteAccounts_0{str(version)}_{str(year)}*"))[0]
     if os.path.splitext(satellite_path)[1] == gloria_zip_ext:
         satellite_is_zip = True
     else:
@@ -2134,20 +2007,14 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
         zip_file.close()
     else:
         for key, filename in gloria_satellite_files.items():
-            gloria_data_sut[key] = pd.read_csv(
-                glob.glob(os.path.join(satellite_path, "*" + filename))[0], header=None
-            )
+            gloria_data_sut[key] = pd.read_csv(glob.glob(os.path.join(satellite_path, "*" + filename))[0], header=None)
 
     # And finally the labels
-    gloria_meta_path = glob.glob(
-        os.path.join(path, f"GLORIA_ReadMe_0{str(version_readme)}.xlsx")
-    )[0]
+    gloria_meta_path = glob.glob(os.path.join(path, f"GLORIA_ReadMe_0{str(version_readme)}.xlsx"))[0]
     regions = pd.read_excel(gloria_meta_path, sheet_name="Regions")[country_col]
     sectors = pd.read_excel(gloria_meta_path, sheet_name="Sectors")["Sector_names"]
 
-    va_fd_sheet = pd.read_excel(
-        gloria_meta_path, sheet_name="Value added and final demand"
-    )
+    va_fd_sheet = pd.read_excel(gloria_meta_path, sheet_name="Value added and final demand")
     fd_cats = va_fd_sheet["Final_demand_names"].to_list()
     va_cats = va_fd_sheet["Value_added_names"].to_list()
 
@@ -2155,14 +2022,10 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
 
     system = ["Industry", "Product"]
 
-    gloria_data_sut["labels_T"] = pd.DataFrame(
-        itertools.product(regions, system, sectors)
-    )
+    gloria_data_sut["labels_T"] = pd.DataFrame(itertools.product(regions, system, sectors))
     gloria_data_sut["labels_Y"] = pd.DataFrame(itertools.product(regions, fd_cats))
     gloria_data_sut["labels_VA"] = pd.DataFrame(itertools.product(regions, va_cats))
-    gloria_data_sut["labels_Q"] = satellite_cats[
-        ["Sat_indicator", "Sat_head_indicator", "Sat_unit"]
-    ]
+    gloria_data_sut["labels_Q"] = satellite_cats[["Sat_indicator", "Sat_head_indicator", "Sat_unit"]]
 
     for key in gloria_header_spec:
         gloria_data_sut[key].columns = (
@@ -2185,19 +2048,11 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
 
     for key in gloria_data_sut:
         if "region" in gloria_data_sut[key].columns.names:
-            meta_rec._add_modify(
-                f"Remove empty countries ({empty_countries}) columns from {key}"
-            )
-            gloria_data_sut[key] = gloria_data_sut[key].drop(
-                empty_countries, axis=1, level=0
-            )
+            meta_rec._add_modify(f"Remove empty countries ({empty_countries}) columns from {key}")
+            gloria_data_sut[key] = gloria_data_sut[key].drop(empty_countries, axis=1, level=0)
         if "region" in gloria_data_sut[key].index.names:
-            meta_rec._add_modify(
-                f"Remove empty countries ({empty_countries}) row from {key}"
-            )
-            gloria_data_sut[key] = gloria_data_sut[key].drop(
-                empty_countries, axis=0, level=0
-            )
+            meta_rec._add_modify(f"Remove empty countries ({empty_countries}) row from {key}")
+            gloria_data_sut[key] = gloria_data_sut[key].drop(empty_countries, axis=0, level=0)
 
     # Extract Supply and Use tables from the Transaction matrix
     gloria_data_sut["V"] = gloria_data_sut["T"].loc[
@@ -2220,14 +2075,10 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
     ]
     gloria_data_sut["VA"].columns = gloria_data_sut["VA"].columns.droplevel(1)
 
-    gloria_data_sut["Y"] = gloria_data_sut["Y"].loc[
-        gloria_data_sut["Y"].index.get_level_values(1) == "Product", :
-    ]
+    gloria_data_sut["Y"] = gloria_data_sut["Y"].loc[gloria_data_sut["Y"].index.get_level_values(1) == "Product", :]
     gloria_data_sut["Y"].index = gloria_data_sut["Y"].index.droplevel(1)
 
-    gloria_data_sut["Q"] = gloria_data_sut["Q"].loc[
-        :, gloria_data_sut["Q"].columns.get_level_values(1) == "Industry"
-    ]
+    gloria_data_sut["Q"] = gloria_data_sut["Q"].loc[:, gloria_data_sut["Q"].columns.get_level_values(1) == "Industry"]
     gloria_data_sut["Q"].columns = gloria_data_sut["Q"].columns.droplevel(1)
 
     return gloria_data_sut, meta_rec
@@ -2362,9 +2213,7 @@ def __construct_IO(data_sut, construct="B"):
     return data_io
 
 
-def parse_gloria(
-    path, year=2022, version=59, price="bp", country_names="gloria", construct="B"
-):
+def parse_gloria(path, year=2022, version=59, price="bp", country_names="gloria", construct="B"):
     """Parse the GLORIA database in IO format.
 
     Note
@@ -2397,9 +2246,7 @@ def parse_gloria(
         'full' = Full country names as provided by Gloria
         Passing the first letter suffice.
     """
-    gloria_data_sut, meta_rec = parse_gloria_sut(
-        path, year, version, price, country_names
-    )
+    gloria_data_sut, meta_rec = parse_gloria_sut(path, year, version, price, country_names)
 
     # Construct the IO matrices from the SUT matrices, for GLORIA all
     # constructs are equivalent (the supply table only has diagonal values)

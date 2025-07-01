@@ -36,8 +36,7 @@ def fix_testmrio():
 
         Y_cat = [
             "Final consumption expenditure by households",
-            "Final consumption expenditure by non-profit "
-            "organisations serving households (NPISH)",
+            "Final consumption expenditure by non-profit organisations serving households (NPISH)",
             "Final consumption expenditure by government",
             "Gross fixed capital formation",
             "Changes in inventories",
@@ -84,13 +83,8 @@ def test_get_gross_trade(fix_testmrio):
     for reg in tt.get_regions():
         assert flows.loc[reg, reg].sum().sum() == 0
 
-    reg3trade_imports_from_reg2 = (
-        tt.Z.loc[("reg2", "trade"), "reg3"].sum()
-        + tt.Y.loc[("reg2", "trade"), "reg3"].sum()
-    )
-    assert reg3trade_imports_from_reg2 == pytest.approx(
-        flows.loc[("reg2", "trade"), "reg3"]
-    )
+    reg3trade_imports_from_reg2 = tt.Z.loc[("reg2", "trade"), "reg3"].sum() + tt.Y.loc[("reg2", "trade"), "reg3"].sum()
+    assert reg3trade_imports_from_reg2 == pytest.approx(flows.loc[("reg2", "trade"), "reg3"])
 
 
 @pytest.mark.parametrize(
@@ -117,9 +111,7 @@ def test_get_gross_trade(fix_testmrio):
 def test_get_extensions(fix_testmrio, names, data, instance_names, result):
     """Testing getting extensions."""
     tt = fix_testmrio.testmrio
-    exts = list(
-        tt.get_extensions(names=names, data=data, instance_names=instance_names)
-    )
+    exts = list(tt.get_extensions(names=names, data=data, instance_names=instance_names))
     assert sorted(exts) == sorted(result)
 
 
@@ -127,11 +119,7 @@ def test_get_extension_raise(fix_testmrio):
     """Testing raising exceptions for wrong extension request."""
     tt = fix_testmrio.testmrio
     with pytest.raises(ValueError):
-        list(
-            tt.get_extensions(
-                names=["emissions", "foo"], data=False, instance_names=True
-            )
-        )
+        list(tt.get_extensions(names=["emissions", "foo"], data=False, instance_names=True))
 
 
 def test_get_index(fix_testmrio):
@@ -157,9 +145,7 @@ def test_get_index(fix_testmrio):
 
     # pat_single_tpl = {('Value Added',): 'va'}
     pat_single_str = {"Value Added": "va"}
-    pat_single_index = tt.factor_inputs.get_index(
-        as_dict=True, grouping_pattern=pat_single_str
-    )
+    pat_single_index = tt.factor_inputs.get_index(as_dict=True, grouping_pattern=pat_single_str)
     assert pat_single_str == pat_single_index
 
 
@@ -183,33 +169,22 @@ def test_properties(fix_testmrio):
     assert all(tt.emissions.Y_categories == tt.get_Y_categories())
     assert all(tt.emissions.rows == tt.emissions.get_rows())
     assert tt.DataFrames == list(tt.get_DataFrame(data=False))
-    assert tt.factor_inputs.DataFrames == list(
-        tt.factor_inputs.get_DataFrame(data=False)
-    )
+    assert tt.factor_inputs.DataFrames == list(tt.factor_inputs.get_DataFrame(data=False))
     assert tt.extensions == list(tt.get_extensions(data=False, instance_names=False))
-    assert tt.extensions_instance_names == list(
-        tt.get_extensions(data=False, instance_names=True)
-    )
+    assert tt.extensions_instance_names == list(tt.get_extensions(data=False, instance_names=True))
 
 
 def test_get_sectors(fix_testmrio):
     """Test getting sectors."""
     assert list(fix_testmrio.testmrio.get_sectors()) == fix_testmrio.sectors
     assert (
-        fix_testmrio.testmrio.get_sectors(["construction", "food", "a"])[
-            fix_testmrio.sectors.index("construction")
-        ]
+        fix_testmrio.testmrio.get_sectors(["construction", "food", "a"])[fix_testmrio.sectors.index("construction")]
         == "construction"
     )
     assert (
-        fix_testmrio.testmrio.get_sectors(["construction", "food", "a"])[
-            fix_testmrio.sectors.index("food")
-        ]
-        == "food"
+        fix_testmrio.testmrio.get_sectors(["construction", "food", "a"])[fix_testmrio.sectors.index("food")] == "food"
     )
-    assert fix_testmrio.testmrio.get_sectors("food") == [
-        e if e == "food" else None for e in fix_testmrio.sectors
-    ]
+    assert fix_testmrio.testmrio.get_sectors("food") == [e if e == "food" else None for e in fix_testmrio.sectors]
     assert (
         fix_testmrio.testmrio.get_sectors(["construction", "food", "a"])[1] == None  # noqa
     )
@@ -219,24 +194,16 @@ def test_get_regions(fix_testmrio):
     """Test getting regions."""
     assert list(fix_testmrio.testmrio.get_regions()) == fix_testmrio.regions
 
-    assert (
-        fix_testmrio.testmrio.get_regions(fix_testmrio.regions[:])
-        == fix_testmrio.regions
-    )
+    assert fix_testmrio.testmrio.get_regions(fix_testmrio.regions[:]) == fix_testmrio.regions
 
-    assert fix_testmrio.testmrio.get_regions("reg4") == [
-        e if e == "reg4" else None for e in fix_testmrio.regions
-    ]
+    assert fix_testmrio.testmrio.get_regions("reg4") == [e if e == "reg4" else None for e in fix_testmrio.regions]
 
 
 def test_get_Y_categories(fix_testmrio):
     """Test getting finald demand categories."""
     assert list(fix_testmrio.testmrio.get_Y_categories()) == fix_testmrio.Y_cat
 
-    assert (
-        fix_testmrio.testmrio.get_Y_categories(fix_testmrio.Y_cat[:])
-        == fix_testmrio.Y_cat
-    )
+    assert fix_testmrio.testmrio.get_Y_categories(fix_testmrio.Y_cat[:]) == fix_testmrio.Y_cat
 
     assert fix_testmrio.testmrio.get_Y_categories("Export") == [
         e if e == "Export" else None for e in fix_testmrio.Y_cat
@@ -272,18 +239,13 @@ def test_rename_sector_with_io_info(fix_testmrio):
 
     classdata = pymrio.get_classification("test")
     corr_dict = classdata.get_sector_dict(orig="TestMrioName", new="TestMrioCode")
-    corr_dict2 = classdata.get_sector_dict(
-        orig=fix_testmrio.testmrio.get_sectors(), new="TestMrioCode"
-    )
+    corr_dict2 = classdata.get_sector_dict(orig=fix_testmrio.testmrio.get_sectors(), new="TestMrioCode")
 
     assert corr_dict == corr_dict2
 
     fix_testmrio.testmrio.rename_sectors(corr_dict)
 
-    assert (
-        fix_testmrio.testmrio.get_sectors()[3]
-        == classdata.sectors.iloc[3, :].loc["TestMrioCode"]
-    )
+    assert fix_testmrio.testmrio.get_sectors()[3] == classdata.sectors.iloc[3, :].loc["TestMrioCode"]
 
 
 def test_rename_Ycat(fix_testmrio):
@@ -338,31 +300,18 @@ def test_extract(fix_testmrio):
     assert "FOO" not in with_missing
 
     # Test for correct shape when extracting one row
-    assert (
-        tt.factor_inputs.extract("Value Added", return_type="ext").F.index
-        == tt.factor_inputs.get_rows()
-    )
-    assert (
-        tt.factor_inputs.extract(("Value Added"), return_type="ext").F.index
-        == tt.factor_inputs.get_rows()
-    )
-    assert (
-        tt.factor_inputs.extract(["Value Added"], return_type="ext").F.index
-        == tt.factor_inputs.get_rows()
-    )
+    assert tt.factor_inputs.extract("Value Added", return_type="ext").F.index == tt.factor_inputs.get_rows()
+    assert tt.factor_inputs.extract(("Value Added"), return_type="ext").F.index == tt.factor_inputs.get_rows()
+    assert tt.factor_inputs.extract(["Value Added"], return_type="ext").F.index == tt.factor_inputs.get_rows()
 
     assert (
-        tt.factor_inputs.extract(tt.factor_inputs.get_rows(), return_type="ext").F.index
-        == tt.factor_inputs.get_rows()
+        tt.factor_inputs.extract(tt.factor_inputs.get_rows(), return_type="ext").F.index == tt.factor_inputs.get_rows()
     )
     pdt.assert_index_equal(
         tt.emissions.extract(tt.emissions.get_rows(), return_type="ext").F.index,
         tt.emissions.get_rows(),
     )
-    assert (
-        tt.emissions.extract(tt.emissions.get_rows()[0], return_type="ext").F.index
-        == tt.emissions.get_rows()[0]
-    )
+    assert tt.emissions.extract(tt.emissions.get_rows()[0], return_type="ext").F.index == tt.emissions.get_rows()[0]
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning")
@@ -375,9 +324,7 @@ def test_extension_extract(fix_testmrio):
     dfa = tt.extension_extract(match_air, dataframes=["F", "F_Y"], include_empty=True)
     assert dfa["Factor Inputs"]["F"].shape[0] == 0
 
-    exta = tt.extension_extract(
-        match_air, dataframes=["F", "F_Y"], include_empty=True, return_type="extension"
-    )
+    exta = tt.extension_extract(match_air, dataframes=["F", "F_Y"], include_empty=True, return_type="extension")
     assert exta["Factor Inputs"].F.shape[0] == 0
     assert exta["Factor Inputs"].name == "Factor Inputs_extracted"
     assert exta["Emissions"].name == "Emissions_extracted"
@@ -487,9 +434,7 @@ def test_characterize_extension_general(fix_testmrio):
     )
 
     with pytest.raises(ValueError):
-        ex_error = t_uncalc.emissions.characterize(
-            factors, characterization_factors_column="foo"
-        )
+        ex_error = t_uncalc.emissions.characterize(factors, characterization_factors_column="foo")
     with pytest.raises(ValueError):
         ex_error = t_uncalc.factor_inputs.characterize(  # noqa: F841
             factors, characterization_factors_column="foo"
@@ -516,23 +461,15 @@ def test_characterize_extension_general(fix_testmrio):
 def test_characterize_validation(fix_testmrio):
     """Validation of characterization factors sheet before usage."""
     factors_reg_spec = pd.read_csv(
-        Path(
-            PYMRIO_PATH["test_mrio"]
-            / Path("concordance")
-            / "emissions_charact_reg_spec.tsv"
-        ),
+        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact_reg_spec.tsv"),
         sep="\t",
     )
     tmrio = fix_testmrio.testmrio
-    rep_basic = tmrio.emissions.characterize(
-        factors_reg_spec, only_validation=True
-    ).validation
+    rep_basic = tmrio.emissions.characterize(factors_reg_spec, only_validation=True).validation
 
     # Case 1: original factor sheet has more stressor data, should be reported
     assert all(rep_basic[rep_basic.stressor == "emission_type3"].error_missing_stressor)
-    assert not any(
-        rep_basic[rep_basic.stressor != "emission_type3"].error_missing_stressor
-    )
+    assert not any(rep_basic[rep_basic.stressor != "emission_type3"].error_missing_stressor)
     # rest should be fine
     assert not any(rep_basic.error_unit_impact)
     assert not any(rep_basic.error_unit_stressor)
@@ -540,28 +477,18 @@ def test_characterize_validation(fix_testmrio):
     # Case 2: one region missing
     # removing one region from the data
     fac_mis_reg = factors_reg_spec.copy().loc[factors_reg_spec.region != "reg3"]
-    rep_reg_miss = tmrio.emissions.characterize(
-        fac_mis_reg, only_validation=True
-    ).validation
-    assert all(
-        rep_reg_miss[rep_reg_miss.stressor != "emission_type3"].error_missing_region
-    )
+    rep_reg_miss = tmrio.emissions.characterize(fac_mis_reg, only_validation=True).validation
+    assert all(rep_reg_miss[rep_reg_miss.stressor != "emission_type3"].error_missing_region)
     # as stressor 3 is not present, not a region missing error
-    assert not any(
-        rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_region
-    )
+    assert not any(rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_region)
     # other error still present
-    assert all(
-        rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_stressor
-    )
+    assert all(rep_reg_miss[rep_reg_miss.stressor == "emission_type3"].error_missing_stressor)
 
     # Case 3: one additional region
     new_data = factors_reg_spec.iloc[[0]]
     new_data.loc[:, "region"] = "reg_new"
     fac_add_reg = factors_reg_spec.merge(new_data, how="outer")
-    rep_add_reg = tmrio.emissions.characterize(
-        fac_add_reg, only_validation=True
-    ).validation
+    rep_add_reg = tmrio.emissions.characterize(fac_add_reg, only_validation=True).validation
     assert all(rep_add_reg[rep_add_reg.region == "reg_new"].error_missing_region)
     assert not any(rep_add_reg[rep_add_reg.region != "reg_new"].error_missing_region)
 
@@ -570,19 +497,9 @@ def test_characterize_validation(fix_testmrio):
         Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
         sep="\t",
     )
-    rep_basic_no_reg = tmrio.emissions.characterize(
-        factors_no_reg, only_validation=True
-    ).validation
-    assert all(
-        rep_basic_no_reg[
-            rep_basic_no_reg.stressor == "emission_type3"
-        ].error_missing_stressor
-    )
-    assert not any(
-        rep_basic_no_reg[
-            rep_basic_no_reg.stressor != "emission_type3"
-        ].error_missing_stressor
-    )
+    rep_basic_no_reg = tmrio.emissions.characterize(factors_no_reg, only_validation=True).validation
+    assert all(rep_basic_no_reg[rep_basic_no_reg.stressor == "emission_type3"].error_missing_stressor)
+    assert not any(rep_basic_no_reg[rep_basic_no_reg.stressor != "emission_type3"].error_missing_stressor)
 
     assert not any(rep_basic_no_reg.error_unit_impact)
     assert not any(rep_basic_no_reg.error_unit_stressor)
@@ -591,30 +508,18 @@ def test_characterize_validation(fix_testmrio):
     fac_wrong_unit = factors_reg_spec.copy().loc[factors_reg_spec.region == "reg3"]
     fac_wrong_unit = factors_reg_spec.copy()
     fac_wrong_unit.loc[
-        (fac_wrong_unit.region == "reg4")
-        & (fac_wrong_unit.stressor == "emission_type1"),
+        (fac_wrong_unit.region == "reg4") & (fac_wrong_unit.stressor == "emission_type1"),
         "stressor_unit",
     ] = "s"
 
-    rep_wrong_unit = tmrio.emissions.characterize(
-        fac_wrong_unit, only_validation=True
-    ).validation
+    rep_wrong_unit = tmrio.emissions.characterize(fac_wrong_unit, only_validation=True).validation
 
-    assert all(
-        rep_wrong_unit[rep_wrong_unit.stressor_unit == "s"].loc[
-            :, "error_unit_stressor"
-        ]
-    )
-    assert not any(
-        rep_wrong_unit[rep_wrong_unit.stressor_unit != "s"].loc[
-            :, "error_unit_stressor"
-        ]
-    )
+    assert all(rep_wrong_unit[rep_wrong_unit.stressor_unit == "s"].loc[:, "error_unit_stressor"])
+    assert not any(rep_wrong_unit[rep_wrong_unit.stressor_unit != "s"].loc[:, "error_unit_stressor"])
 
     charact_table_reg = factors_reg_spec.copy()
     charact_table_reg.loc[
-        (charact_table_reg.region == "reg2")
-        & (charact_table_reg.stressor == "emission_type2"),
+        (charact_table_reg.region == "reg2") & (charact_table_reg.stressor == "emission_type2"),
         "region",
     ] = "reg_new"
 
@@ -630,11 +535,7 @@ def test_characterize_extension_reg_spec(fix_testmrio):
     After that, new results are generated by modifying regional characterization.
     """
     factors_reg_spec = pd.read_csv(
-        Path(
-            PYMRIO_PATH["test_mrio"]
-            / Path("concordance")
-            / "emissions_charact_reg_spec.tsv"
-        ),
+        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact_reg_spec.tsv"),
         sep="\t",
     )
 
@@ -686,9 +587,7 @@ def test_characterize_extension_reg_spec(fix_testmrio):
 
     fac_split = fac_reg2_missing.copy()
     fac_split.loc[:, "impact2"] = fac_split.loc[:, "impact"].str.split().str[-1]
-    res_split = tmrio.emissions.characterize(
-        fac_split, characterized_name_column=["impact", "impact2"]
-    )
+    res_split = tmrio.emissions.characterize(fac_split, characterized_name_column=["impact", "impact2"])
 
     assert "impact" in res_split.validation.columns
     assert "impact2" in res_split.validation.columns
@@ -715,12 +614,8 @@ def test_characterize_extension_over_extensions(fix_testmrio):
 
     # Test with same extension
     ex_wo_ext_full = tt.emissions.characterize(f_wo_ext, name="new_wo")
-    only_val = pymrio.extension_characterize(
-        tt.emissions, factors=f_with_ext, only_validation=True
-    )
-    ex_with_ext_full = pymrio.extension_characterize(
-        tt.emissions, factors=f_with_ext, new_extension_name="new_with"
-    )
+    only_val = pymrio.extension_characterize(tt.emissions, factors=f_with_ext, only_validation=True)
+    ex_with_ext_full = pymrio.extension_characterize(tt.emissions, factors=f_with_ext, new_extension_name="new_with")
 
     assert only_val.extension is None
     pdt.assert_frame_equal(only_val.validation, ex_with_ext_full.validation)
@@ -760,11 +655,7 @@ def test_characterize_extension_over_extensions(fix_testmrio):
     tt.water.F_Y = tt.water.F_Y.loc[[("emission_type2", "water")], :]
 
     factors_reg_spec = pd.read_csv(
-        Path(
-            PYMRIO_PATH["test_mrio"]
-            / Path("concordance")
-            / "emissions_charact_reg_spec.tsv"
-        ),
+        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact_reg_spec.tsv"),
         sep="\t",
     )
 
@@ -778,18 +669,14 @@ def test_characterize_extension_over_extensions(fix_testmrio):
     factors_reg_ext.loc[:, "extension"] = factors_reg_ext.loc[:, "compartment"]
     factors_reg_ext = factors_reg_ext[factors_reg_ext.compartment != "land"]
 
-    ex_reg_one = tt.emissions.characterize(
-        factors_reg_spec, name="one", characterized_name_column=["impact"]
-    ).extension
+    ex_reg_one = tt.emissions.characterize(factors_reg_spec, name="one", characterized_name_column=["impact"]).extension
     ex_reg_multi = pymrio.extension_characterize(
         *list(tt.get_extensions(data=True)),
         factors=factors_reg_ext,
         new_extension_name="multi",
     ).extension
 
-    ex_reg_method = tt.extension_characterize(
-        factors=factors_reg_ext, new_extension_name="multi"
-    ).extension
+    ex_reg_method = tt.extension_characterize(factors=factors_reg_ext, new_extension_name="multi").extension
 
     pdt.assert_frame_equal(ex_reg_one.F, ex_reg_multi.F)
     pdt.assert_frame_equal(ex_reg_one.F_Y, ex_reg_multi.F_Y)
@@ -823,20 +710,14 @@ def test_extension_convert_simple(fix_testmrio):
     )
 
     # check alphabetic order
-    tt_pre.pre_calc = tt_pre.emissions.convert(
-        df_map, new_extension_name="emissions_new_pre_calc", reindex=None
-    )
-    assert list(tt_pre.pre_calc.get_rows()) == sorted(
-        df_map.loc[:, "total__stressor"].unique()
-    )
+    tt_pre.pre_calc = tt_pre.emissions.convert(df_map, new_extension_name="emissions_new_pre_calc", reindex=None)
+    assert list(tt_pre.pre_calc.get_rows()) == sorted(df_map.loc[:, "total__stressor"].unique())
 
     # check previous order
     tt_pre.pre_calc = tt_pre.emissions.convert(
         df_map, new_extension_name="emissions_new_pre_calc", reindex="total__stressor"
     )
-    assert list(tt_pre.pre_calc.get_rows()) == list(
-        df_map.loc[:, "total__stressor"].unique()
-    )
+    assert list(tt_pre.pre_calc.get_rows()) == list(df_map.loc[:, "total__stressor"].unique())
 
     tt_pre.calc_all()
 
@@ -878,9 +759,7 @@ def test_extension_convert_simple(fix_testmrio):
     tt_post = fix_testmrio.testmrio.copy()
     tt_post.calc_all()
 
-    tt_post.post_calc = tt_post.emissions.convert(
-        df_map, new_extension_name="emissions_new_post_calc"
-    )
+    tt_post.post_calc = tt_post.emissions.convert(df_map, new_extension_name="emissions_new_post_calc")
 
     pdt.assert_series_equal(
         tt_post.emissions.D_cba.loc["emission_type1", "air"],
@@ -1011,10 +890,8 @@ def test_extension_convert_function(fix_testmrio):
 
     df_map_add_across_wrong_name = df_map_add_across.copy()
 
-    df_map_add_across_wrong_name.loc[:, "extension"] = (
-        df_map_add_across_wrong_name.extension.str.replace(
-            "emissions_new_pre_calc", "foo"
-        )
+    df_map_add_across_wrong_name.loc[:, "extension"] = df_map_add_across_wrong_name.extension.str.replace(
+        "emissions_new_pre_calc", "foo"
     )
 
     ext_across_correct = pymrio.extension_convert(
@@ -1032,8 +909,7 @@ def test_extension_convert_function(fix_testmrio):
     )
 
     expected_df_correct_F = (
-        tt_pre.emissions.F.loc["emission_type2", :].iloc[0, :]
-        + ext_double.F.loc[("water_emissions", "water")] * 1e-3
+        tt_pre.emissions.F.loc["emission_type2", :].iloc[0, :] + ext_double.F.loc[("water_emissions", "water")] * 1e-3
     )
     expected_df_wrong_F = tt_pre.emissions.F.loc["emission_type2", :].iloc[0, :]
     expected_df_correct_F_Y = (
@@ -1225,9 +1101,7 @@ def test_extension_convert_test_unit_fail(fix_testmrio):
     )
 
     with pytest.raises(ValueError):
-        fix_testmrio.testmrio.emissions.convert(
-            df_fail1, new_extension_name="emissions_new"
-        )
+        fix_testmrio.testmrio.emissions.convert(df_fail1, new_extension_name="emissions_new")
 
     with pytest.raises(ValueError):
         fix_testmrio.testmrio.emissions.convert(
@@ -1418,15 +1292,11 @@ def test_extension_match_contain(fix_testmrio):
     assert len(dual_match2["Emissions"]) == 1
 
     # Test for extension instance and set names
-    inst_match = tt.extension_match(
-        extensions=["emissions", "factor_inputs"], stressor="emission_type.*"
-    )
+    inst_match = tt.extension_match(extensions=["emissions", "factor_inputs"], stressor="emission_type.*")
     assert len(inst_match["emissions"]) == 2
     assert len(inst_match["factor_inputs"]) == 0
 
-    inst_match2 = tt.extension_match(
-        extensions=["emissions"], stressor="emission_type.*"
-    )
+    inst_match2 = tt.extension_match(extensions=["emissions"], stressor="emission_type.*")
     assert len(inst_match2["emissions"]) == 2
     assert "factor_inputs" not in inst_match2
 
@@ -1441,9 +1311,7 @@ def test_direct_account_calc(fix_testmrio):
     orig.calc_all()
 
     with pytest.raises(ValueError):
-        (D_cba, D_pba, D_imp, D_exp) = pymrio.calc_accounts(
-            orig.emissions.S, orig.L, orig.Y
-        )
+        (D_cba, D_pba, D_imp, D_exp) = pymrio.calc_accounts(orig.emissions.S, orig.L, orig.Y)
 
     new = orig.copy().rename_regions({"reg3": "ll", "reg4": "aa"})
 
@@ -1478,36 +1346,22 @@ def test_extension_reset_with_rename(fix_testmrio):
     orig_rename.rename_regions({"reg3": "cd", "reg4": "ab"})
 
     orig_rename.calc_all()
-    pdt.assert_frame_equal(
-        orig.emissions.D_imp["reg3"], orig_rename.emissions.D_imp["cd"]
-    )
+    pdt.assert_frame_equal(orig.emissions.D_imp["reg3"], orig_rename.emissions.D_imp["cd"])
     new_rename = orig_rename.copy().reset_extensions()
     new_rename.Y = new_rename.Y.loc[:, ["reg2", "cd", "ab"]]
     new_rename.calc_all()
-    pdt.assert_frame_equal(
-        new_rename.emissions.D_imp["reg2"], orig_rename.emissions.D_imp["reg2"]
-    )
-    pdt.assert_frame_equal(
-        new_rename.emissions.D_cba["cd"], orig_rename.emissions.D_cba["cd"]
-    )
-    pdt.assert_frame_equal(
-        new_rename.emissions.D_cba["ab"], orig_rename.emissions.D_cba["ab"]
-    )
-    pdt.assert_frame_equal(
-        orig.emissions.D_cba["reg4"], new_rename.emissions.D_cba["ab"]
-    )
+    pdt.assert_frame_equal(new_rename.emissions.D_imp["reg2"], orig_rename.emissions.D_imp["reg2"])
+    pdt.assert_frame_equal(new_rename.emissions.D_cba["cd"], orig_rename.emissions.D_cba["cd"])
+    pdt.assert_frame_equal(new_rename.emissions.D_cba["ab"], orig_rename.emissions.D_cba["ab"])
+    pdt.assert_frame_equal(orig.emissions.D_cba["reg4"], new_rename.emissions.D_cba["ab"])
 
 
 def test_concate_extensions(fix_testmrio):
     """Test concating extensions."""
     tt = fix_testmrio.testmrio
 
-    added_diff = pymrio.extension_concate(
-        *[tt.emissions, tt.factor_inputs], new_extension_name="diff"
-    )
-    added_same = pymrio.extension_concate(
-        *[tt.emissions, tt.emissions], new_extension_name="same"
-    )
+    added_diff = pymrio.extension_concate(*[tt.emissions, tt.factor_inputs], new_extension_name="diff")
+    added_same = pymrio.extension_concate(*[tt.emissions, tt.emissions], new_extension_name="same")
 
     assert added_same.get_rows().names == ["stressor", "compartment"]
     # When names differ, indicator is used
@@ -1522,9 +1376,5 @@ def test_concate_extensions(fix_testmrio):
     assert all(testF.loc["Value Added", "compartment"].isna())
 
     added_meth = tt.extension_concate(new_extension_name="method")
-    pdt.assert_frame_equal(
-        added_meth.F, added_diff.F, check_like=True, check_names=True
-    )
-    pdt.assert_frame_equal(
-        added_meth.F_Y, added_diff.F_Y, check_like=True, check_names=True
-    )
+    pdt.assert_frame_equal(added_meth.F, added_diff.F, check_like=True, check_names=True)
+    pdt.assert_frame_equal(added_meth.F_Y, added_diff.F_Y, check_like=True, check_names=True)

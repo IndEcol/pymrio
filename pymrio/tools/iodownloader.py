@@ -209,9 +209,7 @@ def _download_urls(
         # req = requests.post(url, stream=True, cookies=access_cookie)
         req = requests.get(url, stream=True, cookies=access_cookie, headers=headers)
         if req.status_code != 200:
-            raise requests.exceptions.HTTPError(
-                f"HTTP Error {req.status_code} for {url}"
-            )
+            raise requests.exceptions.HTTPError(f"HTTP Error {req.status_code} for {url}")
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
@@ -222,9 +220,7 @@ def _download_urls(
     return downlog_handler
 
 
-def download_oecd(
-    storage_folder, version="v2023", years=None, overwrite_existing=False
-):
+def download_oecd(storage_folder, version="v2023", years=None, overwrite_existing=False):
     """Download the OECD ICIO tables.
 
     Parameters
@@ -312,10 +308,7 @@ def download_oecd(
 
         if not overwrite_existing:
             if version == "v2021":
-                filenames = [
-                    f"ICIO{version.lstrip('v')}_{str(yr)}.csv"
-                    for yr in range(int(yy[:4]), int(yy[-4:]) + 1)
-                ]
+                filenames = [f"ICIO{version.lstrip('v')}_{str(yr)}.csv" for yr in range(int(yy[:4]), int(yy[-4:]) + 1)]
                 if set(filenames).issubset(os.listdir(storage_folder)):
                     continue
             if version == "v2023":
@@ -347,11 +340,7 @@ def download_oecd(
                         ),
                     )
 
-        downlog._add_fileio(
-            "Downloaded {} to {}".format(
-                OECD_CONFIG["datafiles"][version][yy], filename
-            )
-        )
+        downlog._add_fileio("Downloaded {} to {}".format(OECD_CONFIG["datafiles"][version][yy], filename))
 
     downlog.save()
 
@@ -416,9 +405,7 @@ def download_wiod2013(
     )
 
     restricted_wiod_io_urls = [
-        url
-        for url in wiod_web_content.data_urls
-        if re.search(r"(wiot)(\d\d)", os.path.basename(url)).group(2) in years
+        url for url in wiod_web_content.data_urls if re.search(r"(wiot)(\d\d)", os.path.basename(url)).group(2) in years
     ]
 
     downlog = MRIOMetaData._make_download_log(
@@ -440,9 +427,7 @@ def download_wiod2013(
     return downlog
 
 
-def download_eora26(
-    storage_folder, email, password, years=None, prices="bp", overwrite_existing=False
-):
+def download_eora26(storage_folder, email, password, years=None, prices="bp", overwrite_existing=False):
     """Download eora26 mrios (registration required).
 
     To use this function you have to have an Eora account,
@@ -520,9 +505,7 @@ def download_eora26(
 
     for year in years:
         if not 1990 <= int(year) <= 2016:
-            raise ValueError(
-                "Open data for Eora26 is only avaliable for the years 1990-2016"
-            )
+            raise ValueError("Open data for Eora26 is only avaliable for the years 1990-2016")
 
     if type(prices) is str:
         prices = [prices]
@@ -532,9 +515,7 @@ def download_eora26(
         for yr in years
     ]
 
-    restricted_eora_urls.append(
-        "https://worldmrio.com/ComputationsM/Phase199/Loop082/simplified/indices.zip"
-    )
+    restricted_eora_urls.append("https://worldmrio.com/ComputationsM/Phase199/Loop082/simplified/indices.zip")
 
     downlog = MRIOMetaData._make_download_log(
         location=storage_folder,
@@ -642,9 +623,7 @@ def download_exiobase3(
     exio_web_content = _get_url_datafiles(**EXIOBASE3_CONFIG)
 
     file_pattern = re.compile(r"IOT_[1,2]\d\d\d_[p,i]x[p,i]\.zip")
-    available_files = [
-        file_pattern.search(url).group() for url in exio_web_content.data_urls
-    ]
+    available_files = [file_pattern.search(url).group() for url in exio_web_content.data_urls]
 
     available_years = {filename.split("_")[1] for filename in available_files}
     if type(years) is int or type(years) is str:
@@ -673,13 +652,9 @@ def download_exiobase3(
         )
 
         if not filename:
-            downlog._add_fileio(
-                f"Could not find EXIOBASE 3 source file with >{file_specs[0]}< and >{file_specs[1]}<"
-            )
+            downlog._add_fileio(f"Could not find EXIOBASE 3 source file with >{file_specs[0]}< and >{file_specs[1]}<")
             continue
-        requested_urls += [
-            u for u in exio_web_content.data_urls for f in filename if f in u
-        ]
+        requested_urls += [u for u in exio_web_content.data_urls for f in filename if f in u]
 
     downlog = _download_urls(
         url_list=requested_urls,
@@ -746,20 +721,8 @@ def download_gloria(
 
     if year:
         for yr in year:
-            files_to_download.extend(
-                [
-                    file
-                    for file in urls[f"0{version}"]
-                    if str(yr) in filename_from_url(file)
-                ]
-            )
-        files_to_download.extend(
-            [
-                file
-                for file in urls[f"0{version}"]
-                if "ReadMe" in filename_from_url(file)
-            ]
-        )
+            files_to_download.extend([file for file in urls[f"0{version}"] if str(yr) in filename_from_url(file)])
+        files_to_download.extend([file for file in urls[f"0{version}"] if "ReadMe" in filename_from_url(file)])
     else:
         files_to_download = urls[f"0{version}"]
 

@@ -100,9 +100,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                 # Not using os.path.join here b/c this adds the wrong
                 # separator when reading the zip in windows
                 if path_in_arc != "":
-                    path_in_arc = (
-                        path_in_arc + "/" + DEFAULT_FILE_NAMES["filepara"]
-                    ).replace("//", "/")
+                    path_in_arc = (path_in_arc + "/" + DEFAULT_FILE_NAMES["filepara"]).replace("//", "/")
                 else:
                     path_in_arc = DEFAULT_FILE_NAMES["filepara"]
 
@@ -120,8 +118,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                     f
                     for f in zz.namelist()
                     if os.path.basename(f) == DEFAULT_FILE_NAMES["filepara"]
-                    and json.loads(zz.read(f).decode("utf-8"))["systemtype"]
-                    == "IOSystem"
+                    and json.loads(zz.read(f).decode("utf-8"))["systemtype"] == "IOSystem"
                 ]
             if len(fpfiles) == 0:
                 raise ReadError(
@@ -131,11 +128,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                     "from default.".format(DEFAULT_FILE_NAMES["filepara"], path)
                 )
             if len(fpfiles) > 1:
-                raise ReadError(
-                    f"Mulitple mrio archives found in {path}. "
-                    "Specify one by the "
-                    'parameter "path_in_arc"'
-                )
+                raise ReadError(f'Mulitple mrio archives found in {path}. Specify one by the parameter "path_in_arc"')
             path_in_arc = os.path.dirname(fpfiles[0])
 
         logging.debug(f"Expect file parameter-file at {path_in_arc} in {path}")
@@ -152,9 +145,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
             }
 
         for subfolder_name in subfolders:
-            if subfolder_name not in zipcontent + list(
-                {os.path.dirname(p) for p in zipcontent}
-            ):
+            if subfolder_name not in zipcontent + list({os.path.dirname(p) for p in zipcontent}):
                 # Not using os.path.join here b/c this adds the wrong
                 # separator when reading the zip in windows
                 subfolder_full = root_in_zip + "/" + subfolder_name
@@ -164,16 +155,12 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
             subfolder_name = os.path.basename(os.path.normpath(subfolder_name))
 
             if subfolder_name not in zipcontent:
-                subfolder_full_meta = (
-                    subfolder_full + "/" + DEFAULT_FILE_NAMES["filepara"]
-                )
+                subfolder_full_meta = subfolder_full + "/" + DEFAULT_FILE_NAMES["filepara"]
             else:
                 subfolder_full_meta = subfolder_full
 
             if subfolder_full_meta in zipcontent:
-                ext = load(
-                    path, include_core=include_core, path_in_arc=subfolder_full_meta
-                )
+                ext = load(path, include_core=include_core, path_in_arc=subfolder_full_meta)
                 setattr(io, clean(subfolder_name), ext)
                 io.meta._add_fileio(f"Added satellite account from {subfolder_full}")
             else:
@@ -254,20 +241,14 @@ def load(path, include_core=True, path_in_arc=""):
             # Not using os.path.join here b/c this adds the wrong
             # separator when reading the zip in windows
             if file_para.folder != "":
-                metadata_folder = (
-                    file_para.folder + "/" + DEFAULT_FILE_NAMES["metadata"]
-                ).replace("//", "/")
+                metadata_folder = (file_para.folder + "/" + DEFAULT_FILE_NAMES["metadata"]).replace("//", "/")
             else:
                 metadata_folder = DEFAULT_FILE_NAMES["metadata"]
 
-            ret_system = IOSystem(
-                meta=MRIOMetaData(location=path, path_in_arc=metadata_folder)
-            )
+            ret_system = IOSystem(meta=MRIOMetaData(location=path, path_in_arc=metadata_folder))
             ret_system.meta._add_fileio(f"Loaded IO system from {path} - {path_in_arc}")
         else:
-            ret_system = IOSystem(
-                meta=MRIOMetaData(location=path / DEFAULT_FILE_NAMES["metadata"])
-            )
+            ret_system = IOSystem(meta=MRIOMetaData(location=path / DEFAULT_FILE_NAMES["metadata"]))
             ret_system.meta._add_fileio(f"Loaded IO system from {path}")
 
     elif file_para.content["systemtype"] == GENERIC_NAMES["ext"]:
@@ -429,21 +410,17 @@ def archive(
     # Not using os.path.join here b/c this adds the wrong
     # separator when reading the zip in windows
     arc_file_names = {
-        str(f): (path_in_arc + "/" + str(f.relative_to(source_root))).replace("//", "/")
-        for f in source_files
+        str(f): (path_in_arc + "/" + str(f.relative_to(source_root))).replace("//", "/") for f in source_files
     }
 
     if archive.exists():
         with zipfile.ZipFile(file=str(archive), mode="r") as zf:
             already_present = zf.namelist()
-        duplicates = {
-            ff: zf for ff, zf in arc_file_names.items() if zf in already_present
-        }
+        duplicates = {ff: zf for ff, zf in arc_file_names.items() if zf in already_present}
 
         if duplicates:
             raise FileExistsError(
-                "These files already exists in {arc} for "
-                'path_in_arc "{pa}":\n  {filelist}'.format(
+                'These files already exists in {arc} for path_in_arc "{pa}":\n  {filelist}'.format(
                     pa=path_in_arc,
                     arc=archive,
                     filelist="\n  ".join(duplicates.values()),
@@ -621,9 +598,7 @@ def _load_ini_based_io(
         nr_header = io_ini.get("files", key + "_nr_header", fallback=None)
 
         if (nr_index_col is None) or (nr_header is None):
-            raise ReadError(
-                f"Index or column specification missing for {str(file_name)}"
-            )
+            raise ReadError(f"Index or column specification missing for {str(file_name)}")
             return None
 
         _index_col = list(range(int(nr_index_col)))
@@ -636,10 +611,7 @@ def _load_ini_based_io(
         file = os.path.join(path, file_name)
         logging.info(f"Load data from {file}")
 
-        if (
-            os.path.splitext(file)[1] == ".pkl"
-            or os.path.splitext(file)[1] == ".pickle"
-        ):
+        if os.path.splitext(file)[1] == ".pkl" or os.path.splitext(file)[1] == ".pickle":
             setattr(ret_system, key, pd.read_pickle(file))
         else:
             setattr(
@@ -664,10 +636,7 @@ def _load_ini_based_io(
                 for file in os.listdir(subpath):
                     if os.path.splitext(file)[1] == ".ini":
                         if _inifound:
-                            raise ReadError(
-                                "Found multiple ini files in subfolder "
-                                f"{subpath} - specify one"
-                            )
+                            raise ReadError(f"Found multiple ini files in subfolder {subpath} - specify one")
                             return None
                         subini_file_name = file
                         _inifound = True
@@ -681,14 +650,10 @@ def _load_ini_based_io(
             subio_ini.read(os.path.join(subpath, subini_file_name))
 
             systemtype = subio_ini.get("systemtype", "systemtype", fallback=None)
-            name = subio_ini.get(
-                "meta", "name", fallback=os.path.splitext(subini_file_name)[0]
-            )
+            name = subio_ini.get("meta", "name", fallback=os.path.splitext(subini_file_name)[0])
 
             if systemtype == "IOSystem":
-                raise ReadError(
-                    f"IOSystem found in subfolder {subpath} - only extensions expected"
-                )
+                raise ReadError(f"IOSystem found in subfolder {subpath} - only extensions expected")
                 return None
             if systemtype == "Extension":
                 sub_system = Extension(name=name)
@@ -711,15 +676,11 @@ def _load_ini_based_io(
                         continue
 
                 file_name = subio_ini.get("files", key)
-                nr_index_col = subio_ini.get(
-                    "files", key + "_nr_index_col", fallback=None
-                )
+                nr_index_col = subio_ini.get("files", key + "_nr_index_col", fallback=None)
                 nr_header = subio_ini.get("files", key + "_nr_header", fallback=None)
 
                 if (nr_index_col is None) or (nr_header is None):
-                    raise ReadError(
-                        f"Index or column specification missing for {str(file_name)}"
-                    )
+                    raise ReadError(f"Index or column specification missing for {str(file_name)}")
                     return None
 
                 _index_col = list(range(int(nr_index_col)))
@@ -731,18 +692,13 @@ def _load_ini_based_io(
                     _header = 0
                 file = os.path.join(subpath, file_name)
                 logging.info(f"Load data from {file}")
-                if (
-                    os.path.splitext(file)[1] == ".pkl"
-                    or os.path.splitext(file)[1] == ".pickle"
-                ):
+                if os.path.splitext(file)[1] == ".pkl" or os.path.splitext(file)[1] == ".pickle":
                     setattr(sub_system, key, pd.read_pickle(file))
                 else:
                     setattr(
                         sub_system,
                         key,
-                        pd.read_csv(
-                            file, index_col=_index_col, header=_header, sep="\t"
-                        ),
+                        pd.read_csv(file, index_col=_index_col, header=_header, sep="\t"),
                     )
 
                 # get valid python name from folder
@@ -787,27 +743,15 @@ def load_test():
     # afterwards safed as a extra dataframe
     #
     # unit_col: column containing the unit for the table
-    file_data = collections.namedtuple(
-        "file_data", ["file_name", "row_header", "col_header", "unit_col"]
-    )
+    file_data = collections.namedtuple("file_data", ["file_name", "row_header", "col_header", "unit_col"])
 
     # file names and header specs of the system
     test_system = {
-        "Z": file_data(
-            file_name="trade_flows_Z.txt", row_header=2, col_header=3, unit_col=2
-        ),
-        "Y": file_data(
-            file_name="finald_demand_Y.txt", row_header=2, col_header=3, unit_col=2
-        ),
-        "fac": file_data(
-            file_name="factor_input.txt", row_header=2, col_header=2, unit_col=1
-        ),
-        "emissions": file_data(
-            file_name="emissions.txt", row_header=2, col_header=3, unit_col=2
-        ),
-        "FDemissions": file_data(
-            file_name="FDemissions.txt", row_header=2, col_header=3, unit_col=2
-        ),
+        "Z": file_data(file_name="trade_flows_Z.txt", row_header=2, col_header=3, unit_col=2),
+        "Y": file_data(file_name="finald_demand_Y.txt", row_header=2, col_header=3, unit_col=2),
+        "fac": file_data(file_name="factor_input.txt", row_header=2, col_header=2, unit_col=1),
+        "emissions": file_data(file_name="emissions.txt", row_header=2, col_header=3, unit_col=2),
+        "FDemissions": file_data(file_name="FDemissions.txt", row_header=2, col_header=3, unit_col=2),
     }
 
     meta_rec = MRIOMetaData(location=PYMRIO_PATH["test_mrio_data"])
@@ -850,9 +794,7 @@ def load_test():
         "unit",
     ]
     factor_inputs["F"].columns.names = ["region", "sector"]
-    factor_inputs["unit"] = pd.DataFrame(
-        factor_inputs["F"].iloc[:, 0].reset_index(level="unit").unit
-    )
+    factor_inputs["unit"] = pd.DataFrame(factor_inputs["F"].iloc[:, 0].reset_index(level="unit").unit)
     # factor_inputs["F"].reset_index(level="unit", drop=True, inplace=True)
     factor_inputs["F"] = factor_inputs["F"].reset_index(level="unit", drop=True)
 
@@ -863,9 +805,7 @@ def load_test():
         "unit",
     ]
     emissions["F"].columns.names = ["region", "sector"]
-    emissions["unit"] = pd.DataFrame(
-        emissions["F"].iloc[:, 0].reset_index(level="unit").unit
-    )
+    emissions["unit"] = pd.DataFrame(emissions["F"].iloc[:, 0].reset_index(level="unit").unit)
     emissions["F"] = emissions["F"].reset_index(level="unit", drop=True)
     emissions["F_Y"].index.names = ["stressor", "compartment", "unit"]
     emissions["F_Y"].columns.names = ["region", "category"]
