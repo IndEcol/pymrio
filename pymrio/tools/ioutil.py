@@ -1,4 +1,4 @@
-"""Utility function for pymrio
+"""Utility function for pymrio.
 
 KST 20140502
 """
@@ -23,7 +23,7 @@ from pymrio.core.constants import DEFAULT_FILE_NAMES, LONG_VALUE_NAME, PYMRIO_PA
 
 
 def is_vector(inp):
-    """Returns true if the input can be interpreted as a 'true' vector
+    """Returns true if the input can be interpreted as a 'true' vector.
 
     Note:
     ----
@@ -50,7 +50,7 @@ def is_vector(inp):
 
 
 def get_repo_content(path):
-    """List of files in a repo (path or zip)
+    """List of files in a repo (path or zip).
 
     Parameters
     ----------
@@ -76,7 +76,7 @@ def get_repo_content(path):
 
 
 def get_file_para(path, path_in_arc=""):
-    """Generic method to read the file parameter file
+    """Generic method to read the file parameter file.
 
     Helper function to consistently read the file parameter file, which can
     either be uncompressed or included in a zip archive.  By default, the file
@@ -258,7 +258,7 @@ def build_agg_matrix(agg_vector, pos_dict=None):
 def diagonalize_columns_to_sectors(
     df: pd.DataFrame, sector_index_level: Union[str, int] = "sector"
 ) -> pd.DataFrame:
-    """Adds the resolution of the rows to columns by diagonalizing
+    """Adds the resolution of the rows to columns by diagonalizing.
 
     Parameters
     ----------
@@ -300,7 +300,7 @@ def diagonalize_columns_to_sectors(
 
 
 def diagonalize_blocks(arr, blocksize: int):
-    """Diagonalize sections of columns of an array for the whole array
+    """Diagonalize sections of columns of an array for the whole array.
 
     Parameters
     ----------
@@ -350,7 +350,7 @@ def diagonalize_blocks(arr, blocksize: int):
 
 
 def set_dom_block(df: pd.DataFrame, value: float = 0) -> pd.DataFrame:
-    """Set domestic blocks to value (0 by default)
+    """Set domestic blocks to value (0 by default).
 
     Requires that the region is the top index in the multiindex
     hierarchy (default case in pymrio).
@@ -373,7 +373,7 @@ def set_dom_block(df: pd.DataFrame, value: float = 0) -> pd.DataFrame:
 
 
 def set_block(arr, arr_block):
-    """Sets the diagonal blocks of an array to an given array
+    """Sets the diagonal blocks of an array to an given array.
 
     Parameters
     ----------
@@ -417,7 +417,7 @@ def set_block(arr, arr_block):
 
 
 def unique_element(ll):
-    """Returns unique elements from a list preserving the original order"""
+    """Returns unique elements from a list preserving the original order."""
     seen = {}
     result = []
     for item in ll:
@@ -429,7 +429,7 @@ def unique_element(ll):
 
 
 def build_agg_vec(agg_vec, **source):
-    """Builds an combined aggregation vector considering diff classifications
+    """Builds an combined aggregation vector considering diff classifications.
 
     This function build an aggregation vector based on the order in agg_vec.
     The naming and actual mapping is given in source, either explicitly or by
@@ -549,7 +549,7 @@ def build_agg_vec(agg_vec, **source):
 
 
 def find_first_number(ll):
-    """Returns nr of first entry parseable to float in ll, None otherwise"""
+    """Returns nr of first entry parseable to float in ll, None otherwise."""
     for nr, entry in enumerate(ll):
         try:
             float(entry)
@@ -566,7 +566,7 @@ def sniff_csv_format(
     max_test_lines=10,
     zip_file=None,
 ):
-    """Tries to get the separator, nr of index cols and header rows in a csv file
+    """Tries to get the separator, nr of index cols and header rows in a csv file.
 
     Parameters
     ----------
@@ -653,7 +653,7 @@ def sniff_csv_format(
 
 
 def filename_from_url(url):
-    """Extract a file name from the download link for that file
+    """Extract a file name from the download link for that file.
 
     Parameters
     ----------
@@ -675,7 +675,7 @@ def filename_from_url(url):
 
 
 def check_if_long(df, value_name=LONG_VALUE_NAME):
-    """Checks if a given DataFrame follows is in a long format
+    """Checks if a given DataFrame follows is in a long format.
 
     Currently this only checks if 'value_name' is in the columns.
     In no parameter is given, it uses the default value 'value', defined
@@ -712,7 +712,7 @@ def check_if_long(df, value_name=LONG_VALUE_NAME):
 
 
 def to_long(df, value_name=LONG_VALUE_NAME):
-    """Converts the pymrio matrix df format to a long format
+    """Converts the pymrio matrix df format to a long format.
 
     FIX: All index and columns become separate columns (not index!)
 
@@ -736,8 +736,7 @@ def to_long(df, value_name=LONG_VALUE_NAME):
 
 
 def ssl_fix(*args, **kwargs):
-    """Tries to use a request connection with Lagacy option
-    when normal connection fails
+    """Tries to use a request connection with Lagacy option when normal connection fails.
 
     Parameters
     ----------
@@ -780,7 +779,7 @@ def ssl_fix(*args, **kwargs):
 
 
 def index_fullmatch(df_ix, find_all=None, **kwargs):
-    """Fullmatch regex on index of df_ix
+    """Fullmatch regex on index of df_ix.
 
     Similar to pandas str.fullmatch, thus the whole
     string of the index must match.
@@ -820,7 +819,7 @@ def index_fullmatch(df_ix, find_all=None, **kwargs):
 
 
 def index_match(df_ix, find_all=None, **kwargs):
-    """Match regex on index of df_ix
+    """Match regex on index of df_ix.
 
     Similar to pandas str.match, thus the start of the index string must match.
 
@@ -899,7 +898,7 @@ def index_contains(df_ix, find_all=None, **kwargs):
 
 
 def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
-    """Match index of df with regex
+    """Match index of df with regex.
 
     The generic method for the contain, match, fullmatch implementation
     along the index of the pymrio dataframes.
@@ -1028,7 +1027,7 @@ def _validate_characterization_table(
     characterized_unit_column="impact_unit",
     orig_unit_column="stressor_unit",
 ):
-    """Internal untility for checking a factors sheet for characterization
+    """Internal untility for checking a factors sheet for characterization.
 
     This should not be called directly, use characterize with only_validation instead.
 
@@ -1176,7 +1175,7 @@ def _validate_characterization_table(
 
 
 def extend_rows(df, **kwargs):
-    """Given a df, duplicate rows by spreading one columns
+    """Given a df, duplicate rows by spreading one columns.
 
     This function takes a dataframe (e.g. a bridge or characterization specs),
     and spreads rows based on the input given in the keyword arguments.
@@ -1261,7 +1260,7 @@ def extend_rows(df, **kwargs):
 
 
 def check_df_map(df_orig, df_map):
-    """Check which entries of df_map would be in effect given df_orig"""
+    """Check which entries of df_map would be in effect given df_orig."""
     # TODO: we need a way to check for spelling mistakes
     # and other hickups sneaking into df_map.
     # In this function, we check for each line of df_map which entries
@@ -1282,7 +1281,7 @@ def convert(
     ignore_columns=None,
     reindex=None,
 ):
-    """Convert a DataFrame to a new classification
+    """Convert a DataFrame to a new classification.
 
     Parameters
     ----------
