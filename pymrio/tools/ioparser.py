@@ -687,7 +687,7 @@ def parse_exiobase3(path):
     This parser works with either the compressed zip
     archive as downloaded or the extracted system.
 
-    Note:
+    Note
     ----
     The exiobase 3 parser does so far not include
     population and characterization data.
@@ -1229,7 +1229,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
 
     This function is based on the structure of the extensions from _may12.
 
-    Note:
+    Note
     ----
     The function deletes 'secQ' which is not present in the economic tables.
 
@@ -1501,7 +1501,7 @@ def parse_oecd(path, year=None):
     archives. This function works with both, the compressed archives
     and the unpacked csv files.
 
-    Note:
+    Note
     ----
     I) The original OECD ICIO tables provide some disaggregation of the Mexican
     and Chinese tables for the interindustry flows. The pymrio parser
@@ -1718,7 +1718,7 @@ def parse_oecd(path, year=None):
 def parse_eora26(path, year=None, price="bp", country_names="eora"):
     """Parse the Eora26 database.
 
-    Note:
+    Note
     ----
     This parser deletes the statistical discrepancy columns from
     the parsed Eora system (reports the amount of loss in the
@@ -1983,7 +1983,7 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
 def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria"):
     """Parse the GLORIA database in SUT format.
 
-    Note:
+    Note
     ----
     Countries with null transaction matrix are removed to avoid singular matrices
 
@@ -2240,7 +2240,7 @@ def __construct_IO(data_sut, construct="B"):
     # Construct the IO matrices from the SUT matrices
     """Build input output matrices from SUT matrices.
 
-    Note:
+    Note
     ----
 
     Parameters
@@ -2370,7 +2370,7 @@ def parse_gloria(
 ):
     """Parse the GLORIA database in IO format.
 
-    Note:
+    Note
     ----
     Countries with null transaction matrix are removed to avoid singular matrices
     For GLORIA, all constructs are equivalent (Supply table is diagonal)

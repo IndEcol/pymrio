@@ -352,10 +352,8 @@ class _BaseSystem:
                                 k: new_group
                                 for k in dd.keys()
                                 if all(
-                                    [
-                                        re.match(pat, k[nr])
-                                        for nr, pat in enumerate(pattern)
-                                    ]
+                                    re.match(pat, k[nr])
+                                    for nr, pat in enumerate(pattern)
                                 )
                             }
                         )
@@ -600,7 +598,9 @@ class _BaseSystem:
             file_para["systemtype"] = GENERIC_NAMES["ext"]
             file_para["name"] = self.name
         else:
-            warnings.warn(f'Unknown system type {str(type(self))} - set to "undef"', stacklevel=2)
+            warnings.warn(
+                f'Unknown system type {str(type(self))} - set to "undef"', stacklevel=2
+            )
             file_para["systemtype"] = "undef"
 
         for df, df_name in zip(self.get_DataFrame(data=True), self.get_DataFrame()):
@@ -656,16 +656,22 @@ class _BaseSystem:
 
         """
         if type(regions) is list:
-            regions = {old: new for old, new in zip(self.get_regions(), regions)}
+            regions = dict(zip(self.get_regions(), regions))
 
-        for df in self.get_DataFrame(data=True):
-            df.rename(index=regions, columns=regions, inplace=True)
+        for iodf_name, iodf in zip(
+            self.get_DataFrame(data=False), self.get_DataFrame(data=True)
+        ):
+            self.__dict__[iodf_name] = iodf.rename(index=regions, columns=regions)
 
         try:
             for ext in self.get_extensions(data=True):
-                for df in ext.get_DataFrame(data=True):
-                    df.rename(index=regions, columns=regions, inplace=True)
-        except Exception:  # noqa: E722
+                for extdf_name, extdf in zip(
+                    ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)
+                ):
+                    ext.__dict__[extdf_name] = extdf.rename(
+                        index=regions, columns=regions
+                    )
+        except Exception as _:
             pass
 
         self.meta._add_modify("Changed country names")
@@ -684,16 +690,22 @@ class _BaseSystem:
 
         """
         if type(sectors) is list:
-            sectors = {old: new for old, new in zip(self.get_sectors(), sectors)}
+            sectors = dict(zip(self.get_sectors(), sectors))
 
-        for df in self.get_DataFrame(data=True):
-            df.rename(index=sectors, columns=sectors, inplace=True)
+        for iodf_name, iodf in zip(
+            self.get_DataFrame(data=False), self.get_DataFrame(data=True)
+        ):
+            self.__dict__[iodf_name] = iodf.rename(index=sectors, columns=sectors)
 
         try:
             for ext in self.get_extensions(data=True):
-                for df in ext.get_DataFrame(data=True):
-                    df.rename(index=sectors, columns=sectors, inplace=True)
-        except Exception:
+                for extdf_name, extdf in zip(
+                    ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)
+                ):
+                    ext.__dict__[extdf_name] = extdf.rename(
+                        index=sectors, columns=sectors
+                    )
+        except Exception as _e:
             pass
         self.meta._add_modify("Changed sector names")
         return self
@@ -711,17 +723,23 @@ class _BaseSystem:
 
         """
         if type(Y_categories) is list:
-            Y_categories = {
-                old: new for old, new in zip(self.get_Y_categories(), Y_categories)
-            }
+            Y_categories = dict(zip(self.get_Y_categories(), Y_categories))
 
-        for df in self.get_DataFrame(data=True):
-            df.rename(index=Y_categories, columns=Y_categories, inplace=True)
+        for iodf_name, iodf in zip(
+            self.get_DataFrame(data=False), self.get_DataFrame(data=True)
+        ):
+            self.__dict__[iodf_name] = iodf.rename(
+                index=Y_categories, columns=Y_categories
+            )
 
         try:
             for ext in self.get_extensions(data=True):
-                for df in ext.get_DataFrame(data=True):
-                    df.rename(index=Y_categories, columns=Y_categories, inplace=True)
+                for extdf_name, extdf in zip(
+                    ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)
+                ):
+                    ext.__dict__[extdf_name] = extdf.rename(
+                        index=Y_categories, columns=Y_categories
+                    )
         except Exception:
             pass
 
@@ -1325,7 +1343,7 @@ class Extension(_BaseSystem):
                 accounts["Imports"] = "D_imp_reg"
                 accounts["Exports"] = "D_exp_reg"
 
-        data_row = pd.DataFrame(columns=[key for key in accounts])
+        data_row = pd.DataFrame(columns=list(accounts))
         for key in accounts:
             if sector:
                 try:
@@ -1354,7 +1372,7 @@ class Extension(_BaseSystem):
                                 warnings.warn(
                                     "Population regions are inconsistent "
                                     "with IO regions",
-                                    stacklevel=2
+                                    stacklevel=2,
                                 )
                             population = population.to_numpy()
                             population = population.reshape((-1, 1))
@@ -1551,7 +1569,10 @@ class Extension(_BaseSystem):
                         )
 
                 except Exception:
-                    warnings.warn("Module docutils not available - write rst instead", stacklevel=2)
+                    warnings.warn(
+                        "Module docutils not available - write rst instead",
+                        stacklevel=2,
+                    )
                     format = "rst"
             format_str = {
                 "latex": "tex",
@@ -1624,7 +1645,7 @@ class Extension(_BaseSystem):
             "This method will be removed in future versions. "
             "Use extract method instead",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
 
         retdict = {}
@@ -1672,7 +1693,7 @@ class Extension(_BaseSystem):
             if not all(elem in self.get_DataFrame() for elem in dataframes):
                 warnings.warn(
                     f"Not all requested dataframes are available in {self.name}",
-                    stacklevel=2
+                    stacklevel=2,
                 )
             dataframes = [elem for elem in dataframes if elem in self.get_DataFrame()]
 
@@ -1696,7 +1717,7 @@ class Extension(_BaseSystem):
         on this matrix show the flow of embodied stressors from the source
         region/sector (row index) to the final consumer (column index).
 
-        Note:
+        Note
         ----
         Since the type of analysis based on the disaggregated matrix is based
         on flows, direct household emissions (F_Y) are not included.
@@ -1791,8 +1812,8 @@ class Extension(_BaseSystem):
         Besides the unit errors, the characterization routine works with missing data.
         Any missing data is assumed to be 0.
 
-        Note:
-        ----
+        Note
+        -----
         Accordance of units is enforced.
         This is done be checking the column specified in orig_unit_column with the unit
         dataframe of the extension.
@@ -1893,14 +1914,14 @@ class Extension(_BaseSystem):
         if any(validation.error_unit_impact):
             warnings.warn(
                 "Inconsistent impact units found in factors - check validation",
-                stacklevel=2
+                stacklevel=2,
             )
             return ret_value(validation=validation, extension=None)
 
         if any(validation.error_unit_stressor):
             warnings.warn(
                 "Unit errors/inconsistencies between passed units and extension units - check validation",
-                stacklevel=2
+                stacklevel=2,
             )
             return ret_value(validation=validation, extension=None)
 
@@ -2934,7 +2955,9 @@ class IOSystem(_BaseSystem):
             """Aggregate duplicate columns and rows."""
             _index_names = iodf.index.names
             _columns_names = iodf.columns.names
-            if (type(iodf.columns[0]) is not tuple) and iodf.columns[0].lower() == "unit":
+            if (type(iodf.columns[0]) is not tuple) and iodf.columns[
+                0
+            ].lower() == "unit":
                 iodf = iodf.groupby(iodf.index, sort=False).first()
             else:
                 iodf = (
@@ -2948,7 +2971,9 @@ class IOSystem(_BaseSystem):
             if type(iodf.index[0]) is tuple:
                 iodf.index = pd.MultiIndex.from_tuples(iodf.index, names=_index_names)
             if type(iodf.columns[0]) is tuple:
-                iodf.columns = pd.MultiIndex.from_tuples(iodf.columns, names=_columns_names)
+                iodf.columns = pd.MultiIndex.from_tuples(
+                    iodf.columns, names=_columns_names
+                )
             return iodf
 
         for df_to_agg_name in self.get_DataFrame(data=False, with_unit=True):
@@ -3848,7 +3873,7 @@ def extension_convert(
         if ext.name not in df_map[extension_col_name].unique():
             warnings.warn(
                 f"Extension {ext.name} not found in df_map. Skipping extension.",
-                stacklevel=2
+                stacklevel=2,
             )
             # TODO: later go to logging
             continue

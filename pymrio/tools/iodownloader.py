@@ -368,7 +368,7 @@ def download_wiod2013(
 ):
     """Download the 2013 wiod release.
 
-    Note:
+    Note
     ----
     Currently, pymrio only works with the 2013 release of the wiod tables. The
     more recent 2016 release so far (October 2017) lacks the environmental and

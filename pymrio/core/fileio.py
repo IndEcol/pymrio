@@ -360,7 +360,7 @@ def archive(
     This function is a wrapper around zipfile.write,
     to ease the writing of an archive and removing the source data.
 
-    Note:
+    Note
     ----
     In contrast to zipfile.write, this function raises an
     error if the data (path + filename) are identical in the zip archive.
@@ -838,11 +838,12 @@ def load_test():
     trade["Z"].index.names = ["region", "sector", "unit"]
     trade["Z"].columns.names = ["region", "sector"]
     trade["unit"] = pd.DataFrame(trade["Z"].iloc[:, 0].reset_index(level="unit").unit)
-    trade["Z"].reset_index(level="unit", drop=True, inplace=True)
-
+    trade["Z"] = trade["Z"].reset_index(level="unit", drop=True)
     trade["Y"].index.names = ["region", "sector", "unit"]
     trade["Y"].columns.names = ["region", "category"]
-    trade["Y"].reset_index(level="unit", drop=True, inplace=True)
+    trade["Y"] = trade["Y"].reset_index(level="unit", drop=True)
+    data["Z"] = trade["Z"]
+    data["Y"] = trade["Y"]
 
     factor_inputs["name"] = "Factor Inputs"
     factor_inputs["F"].index.names = [
@@ -853,7 +854,8 @@ def load_test():
     factor_inputs["unit"] = pd.DataFrame(
         factor_inputs["F"].iloc[:, 0].reset_index(level="unit").unit
     )
-    factor_inputs["F"].reset_index(level="unit", drop=True, inplace=True)
+    # factor_inputs["F"].reset_index(level="unit", drop=True, inplace=True)
+    factor_inputs["F"] = factor_inputs["F"].reset_index(level="unit", drop=True)
 
     emissions["name"] = "Emissions"
     emissions["F"].index.names = [
@@ -865,10 +867,10 @@ def load_test():
     emissions["unit"] = pd.DataFrame(
         emissions["F"].iloc[:, 0].reset_index(level="unit").unit
     )
-    emissions["F"].reset_index(level="unit", drop=True, inplace=True)
+    emissions["F"] = emissions["F"].reset_index(level="unit", drop=True)
     emissions["F_Y"].index.names = ["stressor", "compartment", "unit"]
     emissions["F_Y"].columns.names = ["region", "category"]
-    emissions["F_Y"].reset_index(level="unit", drop=True, inplace=True)
+    emissions["F_Y"] = emissions["F_Y"].reset_index(level="unit", drop=True)
 
     # the population data - this is optional (None can be passed if no data is
     # available)
