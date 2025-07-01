@@ -334,8 +334,8 @@ def test_extract(fix_testmrio):
     assert "S_Y" in new_air.get_DataFrame()
 
     with_missing = tt.emissions.extract(index=id_air, dataframes=["F", "FOO"])
-    assert "F" in with_missing.keys()
-    assert "FOO" not in with_missing.keys()
+    assert "F" in with_missing
+    assert "FOO" not in with_missing
 
     # Test for correct shape when extracting one row
     assert (
@@ -498,7 +498,8 @@ def test_characterize_extension_general(fix_testmrio):
     # testing unit mismatch
 
     fac_mod_stressor_unit = factors.copy()
-    # Changing one emission_type2 value - report error for all due to non consitent units
+    # Changing one emission_type2 value and
+    # report error for all due to non consitent units
     fac_mod_stressor_unit.loc[3, "stressor_unit"] = "g"
 
     incon_stressor_unit = t_calc.emissions.characterize(fac_mod_stressor_unit)
@@ -696,8 +697,8 @@ def test_characterize_extension_reg_spec(fix_testmrio):
     npt.assert_array_equal(res_split.extension.F.values, nnaa.F.values)
     npt.assert_array_equal(res_split.extension.F_Y.values, nnaa.F_Y.values)
 
-    assert "impact" == res_split.extension.get_index().names[0]
-    assert "impact2" == res_split.extension.get_index().names[1]
+    assert res_split.extension.get_index().names[0] == "impact"
+    assert res_split.extension.get_index().names[1] == "impact2"
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning")
@@ -1343,9 +1344,9 @@ def test_find(fix_testmrio):
         assert all(all_found[ext + "_index"] == tt.__dict__[ext].get_index())
 
     ext_find = tt.find("air")
-    assert "sectors" not in ext_find.keys()
-    assert "regions" not in ext_find.keys()
-    assert "Y_categories" not in ext_find.keys()
+    assert "sectors" not in ext_find
+    assert "regions" not in ext_find
+    assert "Y_categories" not in ext_find
 
 
 def test_contain_match_matchall(fix_testmrio):
@@ -1427,10 +1428,10 @@ def test_extension_match_contain(fix_testmrio):
         extensions=["emissions"], stressor="emission_type.*"
     )
     assert len(inst_match2["emissions"]) == 2
-    assert "factor_inputs" not in inst_match2.keys()
+    assert "factor_inputs" not in inst_match2
 
     name_match = tt.extension_contains(extensions=["Factor Inputs"], inputtype="Value")
-    assert "factor_inputs" not in name_match.keys()
+    assert "factor_inputs" not in name_match
     assert len(name_match["Factor Inputs"]) == 1
 
 

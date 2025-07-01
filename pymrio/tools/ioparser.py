@@ -381,9 +381,7 @@ def generic_exiobase12_parser(exio_files, system=None):
         ext_dict.update({table_type: ext_data[tt], "unit": _unit, "name": ext_name})
         extensions.update({ext_name: ext_dict})
 
-    if version[0] == "1":
-        year = 2000
-    elif version[0] == "2":
+    if version[0] == "1" or version[0] == "2":
         year = 2000
     elif version[0] == "3":
         raise ParserError("This function can not be used to parse EXIOBASE 3")
@@ -574,31 +572,30 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
                     "Found multiple characcterisation files "
                     f"in {path} - specify one: {charac_files}"
                 )
-            elif len(charac_files) == 0:
+            if len(charac_files) == 0:
                 raise ParserError(f"No characcterisation file found in {path}")
-            else:
-                if _content.iszip:
-                    with zipfile.ZipFile(path, "r") as zz:
-                        charac_data = {
-                            Qname: pd.read_excel(
-                                zz.open(charac_files[0]),
-                                sheet_name=Qname,
-                                skiprows=list(range(0, Q_head_row[Qname])),
-                                header=None,
-                            )
-                            for Qname in Qsheets
-                        }
-
-                else:
+            if _content.iszip:
+                with zipfile.ZipFile(path, "r") as zz:
                     charac_data = {
                         Qname: pd.read_excel(
-                            os.path.join(path, charac_files[0]),
+                            zz.open(charac_files[0]),
                             sheet_name=Qname,
                             skiprows=list(range(0, Q_head_row[Qname])),
                             header=None,
                         )
                         for Qname in Qsheets
                     }
+
+            else:
+                charac_data = {
+                    Qname: pd.read_excel(
+                        os.path.join(path, charac_files[0]),
+                        sheet_name=Qname,
+                        skiprows=list(range(0, Q_head_row[Qname])),
+                        header=None,
+                    )
+                    for Qname in Qsheets
+                }
 
         _unit = {}
         # temp for the calculated impacts which than
@@ -962,8 +959,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
 
     if _lastZcol != _lastZrow:
         raise ParserError("Interindustry matrix not symetric in the WIOD source file")
-    else:
-        Zshape = (_lastZrow, _lastZcol)
+    Zshape = (_lastZrow, _lastZcol)
 
     # separate factor input extension and remove
     # totals in the first and last row
@@ -1198,9 +1194,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
             stacklevel=2,
         )
 
-    if ll_names[1] == "c":
-        dd_fd_rename = wiot_fd_lookup.c_code.to_dict()
-    elif ll_names[1] == "i":
+    if ll_names[1] == "c" or ll_names[1] == "i":
         dd_fd_rename = wiot_fd_lookup.c_code.to_dict()
     elif ll_names[1] == "f":
         dd_fd_rename = wiot_fd_lookup.sector_names.to_dict()
@@ -1270,7 +1264,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
         )
         return None
 
-    elif len(ll_root_content) > 1:
+    if len(ll_root_content) > 1:
         raise ParserError(
             "Several raw data for extension"
             "{} available - clean extension folder.".format(para["start"])
@@ -1301,7 +1295,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
                 )
             )
 
-        elif len(ll_pff_read) > 1:
+        if len(ll_pff_read) > 1:
             raise ParserError(
                 "Multiple country data for Extension {} - country {}.".format(
                     para["start"], co
@@ -1484,13 +1478,12 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
         )
 
         return df_use_sea, df_unit
-    else:
-        warnings.warn(
-            "SEA extension raw data file not found - SEA-Extension not included",
-            ParserWarning,
-            stacklevel=2,
-        )
-        return None, None
+    warnings.warn(
+        "SEA extension raw data file not found - SEA-Extension not included",
+        ParserWarning,
+        stacklevel=2,
+    )
+    return None, None
 
 
 def parse_oecd(path, year=None):
@@ -1797,7 +1790,7 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
                 "Multiple files for a given year "
                 "found (specify a specific file in parameters)"
             )
-        elif len(eora_file_list) == 1:
+        if len(eora_file_list) == 1:
             eora_loc = os.path.join(path, eora_file_list[0])
             is_zip = True
         else:
@@ -1870,7 +1863,8 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
                     indices_file = zipfile.ZipFile(indices_loc)
                 except Exception as err:
                     raise ValueError(
-                        f"{filename} is not available in the zip file and no indices.zip file is available in the directory provided"
+                        f"{filename} is not available in the zip file and no indices.zip file is available "
+                        f"in the directory provided"
                     ) from err
 
         eora_data = {
@@ -1918,7 +1912,7 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
     labQ["stressor"] = labQ["stressor"].str.replace(r"\s\((.*)\)", "", regex=True)
     eora_data["labels_Q"] = labQ
 
-    for key in eora_header_spec.keys():
+    for key in eora_header_spec:
         eora_data[key].columns = (
             eora_data[eora_header_spec[key].columns]
             .set_index(list(eora_data[eora_header_spec[key].columns]))
@@ -1935,7 +1929,8 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
         try:
             meta_rec._add_modify(
                 f"Remove Rest of the World ({row_name}) "
-                f"row from {key} - loosing {eora_data[key].loc[:, row_name].sum().to_numpy()[0]}"
+                f"row from {key} - "
+                f"loosing {eora_data[key].loc[:, row_name].sum().to_numpy()[0]}"
             )
             eora_data[key] = eora_data[key].drop(row_name, axis=1)
         except KeyError:
@@ -1944,7 +1939,8 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
         try:
             meta_rec._add_modify(
                 f"Remove Rest of the World ({row_name}) column "
-                f"from {key} - loosing {eora_data[key].loc[row_name, :].sum().to_numpy()[0]}"
+                f"from {key} - loosing "
+                f"{eora_data[key].loc[row_name, :].sum().to_numpy()[0]}"
             )
             eora_data[key] = eora_data[key].drop(row_name, axis=0)
         except KeyError:
@@ -2034,7 +2030,8 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
         version = 59
         version_readme = "59a"
         warnings.warn(
-            "Files in version 59a and 59 have the same name, make sure to not store both in the same folder",
+            "Files in version 59a and 59 have the same name, "
+            "make sure to not store both in the same folder",
             stacklevel=2,
         )
     else:
@@ -2167,7 +2164,7 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
         ["Sat_indicator", "Sat_head_indicator", "Sat_unit"]
     ]
 
-    for key in gloria_header_spec.keys():
+    for key in gloria_header_spec:
         gloria_data_sut[key].columns = (
             gloria_data_sut[gloria_header_spec[key].columns]
             .set_index(list(gloria_data_sut[gloria_header_spec[key].columns]))
@@ -2186,7 +2183,7 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
     column_sum = gloria_data_sut["T"].T.groupby("region").sum().sum(axis=1)
     empty_countries = row_sum[(row_sum == 0) & (column_sum == 0)].index.to_list()
 
-    for key in gloria_data_sut.keys():
+    for key in gloria_data_sut:
         if "region" in gloria_data_sut[key].columns.names:
             meta_rec._add_modify(
                 f"Remove empty countries ({empty_countries}) columns from {key}"

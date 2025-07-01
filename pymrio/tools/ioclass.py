@@ -28,9 +28,10 @@ def get_classification(mrio_name: Optional[str] = None):
     if not mrio_name:
         return PYMRIO_PATH.keys()
 
-    elif mrio_name not in PYMRIO_PATH.keys():
+    if mrio_name not in PYMRIO_PATH.keys():
         raise ValueError(
-            f"No classification available for {mrio_name}. Run the function without parameter to get available classifications."
+            f"No classification available for {mrio_name}. "
+             "Run the function without parameter to get available classifications."
         )
 
     return ClassificationData(

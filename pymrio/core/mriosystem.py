@@ -283,8 +283,7 @@ class _BaseSystem:
                         entries = [entries]
                     ind = ind.tolist()
                     return [None if ee not in entries else ee for ee in ind]
-                else:
-                    return ind
+                return ind
         else:  # pragma: no cover
             warnings.warn("No attributes available to get Y categories", stacklevel=2)
             return None
@@ -344,13 +343,13 @@ class _BaseSystem:
                 for pattern, new_group in grouping_pattern.items():
                     if type(pattern) is str:
                         dd.update(
-                            {k: new_group for k in dd.keys() if re.match(pattern, k)}
+                            {k: new_group for k in dd if re.match(pattern, k)}
                         )
                     else:
                         dd.update(
                             {
                                 k: new_group
-                                for k in dd.keys()
+                                for k in dd
                                 if all(
                                     re.match(pat, k[nr])
                                     for nr, pat in enumerate(pattern)
@@ -359,8 +358,7 @@ class _BaseSystem:
                         )
             return dd
 
-        else:
-            return orig_idx
+        return orig_idx
 
     def set_index(self, index):
         """Set the pd dataframe index of all dataframes in the system to index."""
@@ -416,8 +414,7 @@ class _BaseSystem:
                         entries = [entries]
                     ind = ind.tolist()
                     return [None if ee not in entries else ee for ee in ind]
-                else:
-                    return ind
+                return ind
         else:  # pragma: no cover
             warnings.warn("No attributes available to get regions", stacklevel=2)
             return None
@@ -468,8 +465,7 @@ class _BaseSystem:
                         entries = [entries]
                     ind = ind.tolist()
                     return [None if ee not in entries else ee for ee in ind]
-                else:
-                    return ind
+                return ind
         else:  # pragma: no cover
             warnings.warn("No attributes available to get sectors", stacklevel=2)
             return None
@@ -1161,12 +1157,11 @@ class Extension(_BaseSystem):
         ):
             if L is None:
                 logging.debug("Not possilbe to calculate D accounts - L not present")
-                return
-            else:
-                self.D_cba, self.D_pba, self.D_imp, self.D_exp = calc_accounts(
-                    self.S, L, Y_agg
-                )
-                logging.debug(f"{self.name} - Accounts D calculated")
+                return None
+            self.D_cba, self.D_pba, self.D_imp, self.D_exp = calc_accounts(
+                self.S, L, Y_agg
+            )
+            logging.debug(f"{self.name} - Accounts D calculated")
 
         # aggregate to country
         if (
@@ -1671,7 +1666,8 @@ class Extension(_BaseSystem):
             the missing dataframes are ignored.
         return_type: str, optional
             If 'dataframe' or 'df' (also with 's' plural, default), the returned dict contains dataframes.
-            If 'extension' or 'ext' (also with 's' plural) an Extension object is returned (named like the original with _extracted appended).
+            If 'extension' or 'ext' (also with 's' plural) an Extension
+            object is returned (named like the original with _extracted appended).
             Any other string: an Extension object is returned, with the name set to the passed string.
 
 
@@ -1703,7 +1699,7 @@ class Extension(_BaseSystem):
 
         if return_type.lower() in ["dataframes", "dataframe", "dfs", "df"]:
             return retdict
-        elif return_type.lower() in ["extensions", "extension", "ext", "exts"]:
+        if return_type.lower() in ["extensions", "extension", "ext", "exts"]:
             ext_name = self.name + "_extracted"
         else:
             ext_name = return_type
@@ -1862,7 +1858,7 @@ class Extension(_BaseSystem):
                 raise ValueError(
                     "characterized_name_column must be a string or a list with at least one element"
                 )
-            elif len(characterized_name_column) == 1:
+            if len(characterized_name_column) == 1:
                 characterized_name_column = characterized_name_column[0]
                 orig_characterized_name_column = None
             else:
@@ -2747,8 +2743,7 @@ class IOSystem(_BaseSystem):
 
         if ext_name:
             return extension_concate(*extracts.values(), new_extension_name=ext_name)
-        else:
-            return extracts
+        return extracts
 
     def _apply_extension_method(self, extensions, method, *args, **kwargs):
         """Apply a method to a list of extensions.

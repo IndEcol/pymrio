@@ -54,7 +54,7 @@ def test_aggreation_regions():
         manual_agg.values, io_agg_wo_names.emissions.D_cba_reg.reg0
     )
 
-    assert ["reg0", "reg1"] == io_agg_wo_names.get_regions().tolist()
+    assert io_agg_wo_names.get_regions().tolist() == ["reg0", "reg1"]
 
     io_agg_with_names = io.aggregate(
         region_agg=reg_agg_matrix, region_names=["a", "b"], inplace=False
@@ -63,7 +63,7 @@ def test_aggreation_regions():
         manual_agg.values, io_agg_with_names.emissions.D_cba_reg.a
     )
 
-    assert ["a", "b"] == io_agg_with_names.get_regions().tolist()
+    assert io_agg_with_names.get_regions().tolist() == ["a", "b"]
     assert io_agg_with_names.unit.index.equals(io_agg_with_names.Z.index)
 
     io_vec1 = io.aggregate(region_agg=reg_agg_vec1, inplace=False)
@@ -76,7 +76,7 @@ def test_aggreation_regions():
     io_df = io.aggregate(region_agg=reg_agg_df, inplace=False)
     np.testing.assert_allclose(manual_agg.values, io_df.emissions.D_cba_reg.a)
 
-    assert ["a", "b"] == io_df.get_regions().tolist()
+    assert io_df.get_regions().tolist() == ["a", "b"]
 
     # Testing the aggregation of duplicate regions/sectors
 

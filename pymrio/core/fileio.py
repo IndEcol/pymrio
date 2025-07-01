@@ -130,14 +130,13 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                     'through "path_in_arc" if different '
                     "from default.".format(DEFAULT_FILE_NAMES["filepara"], path)
                 )
-            elif len(fpfiles) > 1:
+            if len(fpfiles) > 1:
                 raise ReadError(
                     f"Mulitple mrio archives found in {path}. "
                     "Specify one by the "
                     'parameter "path_in_arc"'
                 )
-            else:
-                path_in_arc = os.path.dirname(fpfiles[0])
+            path_in_arc = os.path.dirname(fpfiles[0])
 
         logging.debug(f"Expect file parameter-file at {path_in_arc} in {path}")
 
@@ -691,7 +690,7 @@ def _load_ini_based_io(
                     f"IOSystem found in subfolder {subpath} - only extensions expected"
                 )
                 return None
-            elif systemtype == "Extension":
+            if systemtype == "Extension":
                 sub_system = Extension(name=name)
             else:
                 raise ReadError("System not defined in ini")

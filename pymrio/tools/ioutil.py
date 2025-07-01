@@ -41,12 +41,9 @@ def is_vector(inp):
     """
     inp = np.asarray(inp)
     nr_dim = np.ndim(inp)
-    if nr_dim == 1:
+    if nr_dim == 1 or (nr_dim == 2) and (1 in inp.shape):
         return True
-    elif (nr_dim == 2) and (1 in inp.shape):
-        return True
-    else:
-        return False
+    return False
 
 
 def get_repo_content(path):
@@ -663,8 +660,7 @@ def filename_from_url(url):
     name = re.search(r"[^/\\&?]+\.\w{2,7}(?=([?&].*$|$))", url)
     if name:
         return name.group()
-    else:
-        raise ValueError("Could not extract filename from url")
+    raise ValueError("Could not extract filename from url")
 
 
 def check_if_long(df, value_name=LONG_VALUE_NAME):
@@ -700,8 +696,7 @@ def check_if_long(df, value_name=LONG_VALUE_NAME):
 
     if value_name not in df.columns:
         return False
-    else:
-        return True
+    return True
 
 
 def to_long(df, value_name=LONG_VALUE_NAME):
@@ -948,8 +943,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
         found = np.unique(found)
         if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
             return _dfs_idx.iloc[found]
-        else:
-            return _dfs_idx[found]
+        return _dfs_idx[found]
 
     at_least_one_valid = False
     for key, value in kwargs.items():
@@ -1361,7 +1355,7 @@ def convert(
     reindex: str, None or collection
         Wrapper for pandas' reindex method to control return order.
         - If None: sorts the index alphabetically.
-        - If str: uses the unique value order from the specified bridge column as the index order.
+        - If str: uses the unique value order from the bridge column as the index order.
         - For other types (e.g., collections): passes directly to pandas.reindex.
 
     """
@@ -1393,12 +1387,11 @@ def convert(
             raise ValueError(f"Column {col} contains more then one '__'")
         if bridge.orig not in df_map.columns:
             raise ValueError(f"Column {bridge.orig} not in df_map")
-        elif (bridge.orig not in df_orig.index.names) and (
+        if (bridge.orig not in df_orig.index.names) and (
             bridge.orig not in df_orig.columns.names
         ):
             raise ValueError(f"Column {bridge.orig} not in df_orig")
-        else:
-            bridges.append(bridge)
+        bridges.append(bridge)
 
     orig_index_not_bridged = [
         ix for ix in df_orig.index.names if ix not in [b.orig for b in bridges]
@@ -1448,7 +1441,7 @@ def convert(
         for bridge in bridges:
             # encountering a bridge with the same orig name but which should
             # lead to two new index levels
-            if bridge.orig in already_renamed.keys():
+            if bridge.orig in already_renamed:
                 # already renamed the index to another one previously,
                 # but we need to create more index levels for the
                 # same original index level
@@ -1484,7 +1477,8 @@ def convert(
 
                         # put the index back
                         if df_collected.index.name is None:
-                            # The case with a single index where the previous reset index
+                            # The case with a single index where the
+                            # previous reset index
                             # left only a numerical index
                             df_collected = df_collected.set_index(
                                 bridge.new, drop=True, append=False

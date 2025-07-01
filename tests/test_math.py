@@ -596,7 +596,7 @@ def test_calc_L_arr(td_IO_Data_Miller):
 
 
 def test_calc_x_from_L_df(td_IO_Data_Miller):
-    """Test that calc_x_from_L returns the expected DataFrame for given L_df and fd_df."""
+    """Test that calc_x_from_L returns the expected DataFrame."""
     pdt.assert_frame_equal(
         td_IO_Data_Miller.x_df,
         calc_x_from_L(td_IO_Data_Miller.L_df, td_IO_Data_Miller.fd_df),

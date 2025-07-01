@@ -107,8 +107,7 @@ def calc_Z(A, x):
     # return A.dot(np.diagflat(x))
     if type(A) is pd.DataFrame:
         return pd.DataFrame(A.to_numpy() * x, index=A.index, columns=A.columns)
-    else:
-        return A * x
+    return A * x
 
 
 def calc_A(Z, x):
@@ -148,14 +147,14 @@ def calc_A(Z, x):
     # return Z.dot(np.diagflat(recix))
     if type(Z) is pd.DataFrame:
         return pd.DataFrame(Z.to_numpy() * recix, index=Z.index, columns=Z.columns)
-    else:
-        return Z * recix
+    return Z * recix
 
 
 def calc_B(Z, x):
     """Calculate the B matrix (coefficients) from Z and x.
 
-    B is a normalized version of the industrial flows of the transpose of Z, which quantifies the input to downstream
+    B is a normalized version of the industrial flows of the
+    transpose of Z, which quantifies the input to downstream
     sectors.
 
     Parameters
@@ -194,8 +193,7 @@ def calc_B(Z, x):
             index=Z.index,
             columns=Z.columns,
         )
-    else:
-        return np.transpose(np.transpose(Z) * recix)
+    return np.transpose(np.transpose(Z) * recix)
 
 
 def calc_L(A):
@@ -230,19 +228,19 @@ def calc_L(A):
     I = np.eye(A.shape[0])  # noqa
     if type(A) is pd.DataFrame:
         return pd.DataFrame(np.linalg.inv(I - A), index=A.index, columns=A.columns)
-    else:
-        return np.linalg.inv(I - A)
+    return np.linalg.inv(I - A)
 
 
 def calc_G(B, L=None, x=None):
     """Calculate the Ghosh inverse matrix G.
 
-    Either from B (high computation effort) or from Leontief matrix L and x (low computation effort)
+    Either from B (high computation effort) or from Leontief
+    matrix L and x (low computation effort).
 
     G = inverse matrix of (I - B) = hat(x) *  L * hat(x)^{-1}
 
-    where I is an identity matrix of same shape as B, and hat(x) is the diagonal matrix with values of x on the
-    diagonal.
+    where I is an identity matrix of same shape as B, and hat(x) is the diagonal
+    matrix with values of x on the diagonal.
 
     Parameters
     ----------
@@ -257,7 +255,8 @@ def calc_G(B, L=None, x=None):
         If DataFrame index/columns as B
 
     """
-    # if L has already been calculated, then G can be derived from it with low computational cost.
+    # if L has already been calculated, then G can be derived from it
+    # with low computational cost.
     if L is not None and x is not None:
         if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
             x = x.to_numpy()
@@ -278,16 +277,16 @@ def calc_G(B, L=None, x=None):
                 index=L.index,
                 columns=L.columns,
             )
-        else:
-            # G = hat(x) *  L * hat(x)^{-1} in mathematical form hatx.dot(L.transpose()).dot(np.linalg.inv(hatx)).
-            # it is computationally much faster to multiply element-wise because hatx is a diagonal matrix.
-            return np.transpose(recix * np.transpose(L * x))
-    else:  # calculation of the inverse of I-As has a high computational cost.
-        I = np.eye(B.shape[0])  # noqa
-        if type(B) is pd.DataFrame:
-            return pd.DataFrame(np.linalg.inv(I - B), index=B.index, columns=B.columns)
-        else:
-            return np.linalg.inv(I - B)  # G = inverse matrix of (I - B)
+        # G = hat(x) *  L * hat(x)^{-1} in
+        # mathematical form hatx.dot(L.transpose()).dot(np.linalg.inv(hatx)).
+        # it is computationally much faster to multiply
+        # element-wise because hatx is a diagonal matrix.
+        return np.transpose(recix * np.transpose(L * x))
+    # calculation of the inverse of I-As has a high computational cost.
+    I = np.eye(B.shape[0])  # noqa
+    if type(B) is pd.DataFrame:
+        return pd.DataFrame(np.linalg.inv(I - B), index=B.index, columns=B.columns)
+    return np.linalg.inv(I - B)  # G = inverse matrix of (I - B)
 
 
 def calc_S(F, x):
@@ -544,7 +543,10 @@ def calc_accounts(S, L, Y):
 
     # D_pba = S.dot(np.diagflat(x_tot))
     # faster broadcasted calculation:
-    # NB: D_pba columns might be different to D_cba columns if Y include "regions" which are not in the core. This happens for example for statistical discrepancy in the OECD tables. It is "theoretically" possible to calculate footprints for these "regions", but not PBA accounts.
+    # NB: D_pba columns might be different to D_cba columns if Y include "regions"
+    # which are not in the core. This happens for example for statistical discrepancy
+    # in the OECD tables. It is "theoretically" possible to calculate footprints for
+    # these "regions", but not PBA accounts.
     D_pba = pd.DataFrame(
         S.to_numpy() * x_tot.reshape((1, -1)), index=S.index, columns=S.columns
     )

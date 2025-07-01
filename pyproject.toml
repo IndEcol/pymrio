@@ -116,7 +116,7 @@ omit = [
 
 [tool.ruff]
 target-version = "py39"
-line-length = 88
+line-length = 120
 extend-exclude = ["*.ipynb", "doc/source/**/*.py"]
 
 
@@ -125,10 +125,22 @@ extend-exclude = ["*.ipynb", "doc/source/**/*.py"]
 extend-select = [
     "B",   # flake8-bugbear: Finds potential bugs and design problems.
     "C",   # flake8-comprehensions: Promotes pythonic list/set/dict comprehensions.
+    "W",   # PyCodeStyle warnings
+    "E",   # PyCodeStyle errors
     "D",   # pydocstyle: Enforces docstring conventions.
+    "F",   # Pyflakes rules
     "I",   # isort: Sorts and organizes imports automatically.
     "UP",  # pyupgrade: Helps upgrade syntax to newer Python versions.
     "PD",  # pandas-vet: Checks for common mistakes in pandas usage.
+    "C4",  # Catch incorrect use of comprehensions, dict, list, etc
+    "ISC", # String concatenation
+    # "RUF",    # Ruff lint
+    # "RET", # Good return practices #TODO
+    # "SIM", # Common simplification rules #TODO
+    # "PTH",      # Use pathlib instead of os.path
+    # "TD",       # Be diligent with TODO comments
+    # "NPY",      # Some numpy-specific things #TODO
+    "TID", # Some good import practices
 ]
 ignore = [
     "D100",  # Missing docstring in public module

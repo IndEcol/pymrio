@@ -282,9 +282,7 @@ def download_oecd(
     if not years:
         if version == "v2018":
             years = range(2005, 2016)
-        elif version == "v2021":
-            years = bundle_years.copy()
-        elif version == "v2023":
+        elif version == "v2021" or version == "v2023":
             years = bundle_years.copy()
         else:
             years = range(1995, 2012)
@@ -568,7 +566,7 @@ def download_exiobase1():
         "ixi_fpa_44_regions_coeff_txt "
         "manually (tab Data Download - EXIOBASE 1 (full data set)."
     )
-    return None
+    return
 
 
 def download_exiobase2():
@@ -582,7 +580,7 @@ def download_exiobase2():
         ">MrIOT_PxP_ita_coefficient_version2.2.2.zip<_"
         "manually (tab Data Download - EXIOBASE 2)."
     )
-    return None
+    return
 
 
 def download_exiobase3(

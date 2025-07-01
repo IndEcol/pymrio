@@ -256,7 +256,7 @@ def test_filename_from_url():
         "conference.pdf": "http://www.dennis.com/conference.pdf&34gegrt4",
     }
 
-    for filename in test_urls.keys():
+    for filename in test_urls:
         assert filename_from_url(test_urls[filename]) == filename
 
 
@@ -714,7 +714,8 @@ def test_convert_characterize():
     exp_res1A_co2 = exp_res1A.reindex(["total_sum", "total_regex", "all_air"])
     pdt.assert_frame_equal(res1A_co2, exp_res1A_co2)
 
-    # TEST1B: with only impact (one index level in the result) , keep compartments as these are not dropped now
+    # TEST1B: with only impact (one index level in the result) ,
+    # keep compartments as these are not dropped now
 
     res1B = convert(to_char, map_test1, drop_not_bridged_index=False)
 
@@ -917,7 +918,8 @@ def test_convert_characterize():
         char5_res.T.groupby(level="region").sum().T, char4_calc_nostack.astype("float")
     )
 
-    # TODO: test case for multindex characterization on one of teh inner levels - does not work in the GLAM example
+    # TODO: test case for multindex characterization on one of teh inner levels
+    # does not work in the GLAM example
 
 
 def test_convert_wrong_inputs():
