@@ -1010,7 +1010,8 @@ def test_extend_rows():
             "region": ["GLO", "GLO", "GLO"],
             "sector": ["A", "B", "C"],
             "value": [1, 2, 3],
-        })
+        }
+    )
     # Test with empty new_values list (shouldn't change the original rows).
 
     result = extend_rows(df_to_extend, region={"GLO": ["reg1", "reg2"]})
@@ -1026,7 +1027,9 @@ def test_extend_rows():
         }
     )
 
-    result = extend_rows(df_to_extend, region={"GLO": ["reg1", "reg2"]}, sector={"C": ["C", "D"]})
+    result = extend_rows(
+        df_to_extend, region={"GLO": ["reg1", "reg2"]}, sector={"C": ["C", "D"]}
+    )
     assert len(result) == 8  # 2 regions * (2 sectors from C + 2 original sectors)
     assert set(result["region"].unique()) == {"reg1", "reg2"}
     assert set(result["sector"].unique()) == {"A", "B", "C", "D"}
@@ -1044,7 +1047,8 @@ def test_extend_rows():
     )
 
     result = extend_rows(
-        df_to_extend, region={"GLO": ["reg1", "reg2"], "EU": ["France", "Germany", "Austria"]}
+        df_to_extend,
+        region={"GLO": ["reg1", "reg2"], "EU": ["France", "Germany", "Austria"]},
     )
 
     # Original had 3 rows, GLO expands to 2 new rows, EU expands to 3 new rows, + 1 USA.

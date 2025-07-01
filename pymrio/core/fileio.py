@@ -1,6 +1,4 @@
-"""Methods to load previously save mrios
-
-"""
+"""Methods to load previously save mrios"""
 
 import collections
 import configparser
@@ -141,9 +139,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
             else:
                 path_in_arc = os.path.dirname(fpfiles[0])
 
-        logging.debug(
-            f"Expect file parameter-file at {path_in_arc} in {path}"
-        )
+        logging.debug(f"Expect file parameter-file at {path_in_arc} in {path}")
 
     io = load(path, include_core=include_core, path_in_arc=path_in_arc)
 
@@ -180,9 +176,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                     path, include_core=include_core, path_in_arc=subfolder_full_meta
                 )
                 setattr(io, clean(subfolder_name), ext)
-                io.meta._add_fileio(
-                    f"Added satellite account from {subfolder_full}"
-                )
+                io.meta._add_fileio(f"Added satellite account from {subfolder_full}")
             else:
                 continue
 
@@ -205,9 +199,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
             if subfolder_full_meta.exists():
                 ext = load(subfolder_full, include_core=include_core)
                 setattr(io, clean(subfolder_name), ext)
-                io.meta._add_fileio(
-                    f"Added satellite account from {subfolder_full}"
-                )
+                io.meta._add_fileio(f"Added satellite account from {subfolder_full}")
             else:
                 continue
 
@@ -272,9 +264,7 @@ def load(path, include_core=True, path_in_arc=""):
             ret_system = IOSystem(
                 meta=MRIOMetaData(location=path, path_in_arc=metadata_folder)
             )
-            ret_system.meta._add_fileio(
-                f"Loaded IO system from {path} - {path_in_arc}"
-            )
+            ret_system.meta._add_fileio(f"Loaded IO system from {path} - {path_in_arc}")
         else:
             ret_system = IOSystem(
                 meta=MRIOMetaData(location=path / DEFAULT_FILE_NAMES["metadata"])

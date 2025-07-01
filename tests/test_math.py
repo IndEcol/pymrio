@@ -574,6 +574,7 @@ def test_calc_A_df(td_IO_Data_Miller):
         td_IO_Data_Miller.A_df, calc_A(td_IO_Data_Miller.Z_df, td_IO_Data_Miller.x_df)
     )
 
+
 def test_calc_A_arr(td_IO_Data_Miller):
     """Test that calc_A returns the expected array for given Z_arr and x_arr."""
     npt.assert_array_equal(
@@ -609,7 +610,6 @@ def test_calc_x_from_L_arr(td_IO_Data_Miller):
         calc_x_from_L(td_IO_Data_Miller.L_arr, td_IO_Data_Miller.fd_arr),
         rtol=1e-5,
     )
-
 
 
 def test_calc_F_arr(td_IO_Data_Miller):
@@ -728,7 +728,6 @@ def test_calc_M_down_MRIO(td_small_MRIO):
     pdt.assert_frame_equal(
         td_small_MRIO.M_down, calc_M_down(td_small_MRIO.S, td_small_MRIO.G)
     )
-
 
 
 def test_calc_gross_trade_MRIO(td_small_MRIO):

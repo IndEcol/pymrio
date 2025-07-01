@@ -249,9 +249,7 @@ class _BaseSystem(ABC):
         if not new_name:
             new_name = self.name + "_copy"
         if str(type(self)) == "<class 'pymrio.core.mriosystem.IOSystem'>":
-            _tmp.meta.note(
-                f"IOSystem copy {new_name} based on {self.meta.name}"
-            )
+            _tmp.meta.note(f"IOSystem copy {new_name} based on {self.meta.name}")
             _tmp.meta.change_meta("name", new_name, log=False)
         else:
             _tmp.name = new_name
@@ -603,9 +601,7 @@ class _BaseSystem(ABC):
             file_para["systemtype"] = GENERIC_NAMES["ext"]
             file_para["name"] = self.name
         else:
-            warnings.warn(
-                f'Unknown system type {str(type(self))} - set to "undef"'
-            )
+            warnings.warn(f'Unknown system type {str(type(self))} - set to "undef"')
             file_para["systemtype"] = "undef"
 
         for df, df_name in zip(self.get_DataFrame(data=True), self.get_DataFrame()):
@@ -1117,13 +1113,9 @@ class Extension(_BaseSystem):
                         Y=Y_agg,
                         nr_sectors=self.get_sectors().size,
                     )
-                    logging.debug(
-                        f"{self.name} - M calculated based on D_cba and Y"
-                    )
+                    logging.debug(f"{self.name} - M calculated based on D_cba and Y")
                 except Exception as ex:
-                    logging.debug(
-                        f"Recalculation of M not possible - cause: {ex}"
-                    )
+                    logging.debug(f"Recalculation of M not possible - cause: {ex}")
 
         if self.M_down is None:
             if G is not None:
@@ -1570,9 +1562,7 @@ class Extension(_BaseSystem):
             _repfile = curr_ffname + "." + format_str.get(format, str(format))
             with open(path / _repfile, "w") as out_file:
                 out_file.write(fin_txt)
-            logging.info(
-                f"Report for {arep} written to {str(_repfile)}"
-            )
+            logging.info(f"Report for {arep} written to {str(_repfile)}")
 
         if _plt:  # pragma: no cover
             plt.ion()
@@ -2417,9 +2407,7 @@ class IOSystem(_BaseSystem):
             extensions = [extensions]
 
         for ext_name in extensions:
-            self.meta._add_modify(
-                f"Calculating accounts for extension {ext_name}"
-            )
+            self.meta._add_modify(f"Calculating accounts for extension {ext_name}")
             ext = getattr(self, ext_name)
             ext.calc_system(
                 x=self.x,

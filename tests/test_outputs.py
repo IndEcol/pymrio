@@ -27,7 +27,7 @@ import pymrio  # noqa
 @pytest.fixture()
 def fix_testmrio_calc():
     """Single point to load the test mrio.
-    
+
     Returns
     -------
     TestMRIO
@@ -42,7 +42,7 @@ def fix_testmrio_calc():
 
 def test_graphs_totals(fix_testmrio_calc):
     """Testing graph totals.
-    
+
     Parameters
     ----------
     fix_testmrio_calc : fixture
@@ -71,7 +71,7 @@ def test_graphs_totals(fix_testmrio_calc):
 
 def test_graphs_population_sector(fix_testmrio_calc):
     """Testing graph per population for a specific sector.
-    
+
     Parameters
     ----------
     fix_testmrio_calc : fixture
@@ -103,7 +103,7 @@ def test_graphs_population_sector(fix_testmrio_calc):
 
 def test_graphs_population_total(fix_testmrio_calc):
     """Testing total per population accounts.
-    
+
     Parameters
     ----------
     fix_testmrio_calc : fixture

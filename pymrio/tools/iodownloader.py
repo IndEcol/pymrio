@@ -200,9 +200,7 @@ def _download_urls(
         if downlog_handler.name == "Eora":
             filename = filename.split(".zip")[0] + ".zip"
         if not overwrite_existing and filename in os.listdir(storage_folder):
-            downlog_handler._add_fileio(
-                f"Skip download existing file {filename}"
-            )
+            downlog_handler._add_fileio(f"Skip download existing file {filename}")
             continue
         storage_file = os.path.join(storage_folder, filename)
 

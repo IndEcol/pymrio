@@ -142,9 +142,7 @@ def get_file_para(path, path_in_arc=""):
         para_file_folder = os.path.dirname(para_file_full_path)
 
     if para_file_full_path not in files:
-        raise FileNotFoundError(
-            f"File parameter file {para_file_full_path} not found"
-        )
+        raise FileNotFoundError(f"File parameter file {para_file_full_path} not found")
 
     if zipfile.is_zipfile(str(path)):
         with zipfile.ZipFile(file=str(path)) as zf:
@@ -521,9 +519,7 @@ def build_agg_vec(agg_vec, **source):
                         ]
                     break
             else:
-                logging.error(
-                    f"Aggregation vector -- {str(entry)} -- not found"
-                )
+                logging.error(f"Aggregation vector -- {str(entry)} -- not found")
 
     # build the summary aggregation vector
     def _rep(ll, ii, vv):
@@ -591,7 +587,7 @@ def sniff_csv_format(
 
         Entries are set to None if inconsistent information in the file
     """
-    potential_sep=potential_sep if potential_sep else ["\t", ",", ";", "|", "-", "_"]
+    potential_sep = potential_sep if potential_sep else ["\t", ",", ";", "|", "-", "_"]
 
     def read_first_lines(filehandle):
         lines = []
@@ -647,7 +643,7 @@ def sniff_csv_format(
                 if find_first_number(line.split(sep)) == nr_index_col:
                     break
 
-    return {'sep': sep, 'nr_header_row': nr_header_row, 'nr_index_col': nr_index_col}
+    return {"sep": sep, "nr_header_row": nr_header_row, "nr_index_col": nr_index_col}
 
 
 def filename_from_url(url):
@@ -1093,8 +1089,18 @@ def _validate_characterization_table(
 
     # Check for consistent units per impact
     for imp in unique_impacts:
-        if not(
-            fac.loc[ fac.loc[:, characterized_name_column] == imp, characterized_unit_column, ].eq(fac.loc[ fac.loc[:, characterized_name_column] == imp, characterized_unit_column, ].iloc[0]).all()
+        if not (
+            fac.loc[
+                fac.loc[:, characterized_name_column] == imp,
+                characterized_unit_column,
+            ]
+            .eq(
+                fac.loc[
+                    fac.loc[:, characterized_name_column] == imp,
+                    characterized_unit_column,
+                ].iloc[0]
+            )
+            .all()
         ):
             fac.loc[
                 fac.loc[:, characterized_name_column] == imp,
