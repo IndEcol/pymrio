@@ -1,4 +1,4 @@
-"""test cases for all util functions"""
+"""Test cases for all util functions."""
 
 import os
 import string
@@ -35,6 +35,7 @@ from pymrio.tools.ioutil import (  # noqa
 
 @pytest.fixture()
 def csv_test_files_content():
+    """Get the content of csv test."""
     test_para = namedtuple("test_para", ["text", "sep", "header_rows", "index_col"])
 
     class example_csv_content:
@@ -119,7 +120,7 @@ def csv_test_files_content():
 
 
 def test_find_first_number():
-    """Some tests for finding the first number in a sequence"""
+    """Some tests for finding the first number in a sequence."""
     assert find_first_number([0, 1, 2, 3]) == 0
     assert find_first_number(["a", 1, 2, 3]) == 1
     assert find_first_number(["a", 1, "c", 3]) == 1
@@ -129,11 +130,9 @@ def test_find_first_number():
 
 
 def test_dev_read(csv_test_files_content):
-    """Tests the csv sniffer"""
+    """Tests the csv sniffer."""
     for tests in csv_test_files_content.test_contents:
-        with patch(
-            "builtins.open", mock_open(read_data=tests.text), create=False
-        ) as mo:  # noqa
+        with patch("builtins.open", mock_open(read_data=tests.text), create=False) as _:  # noqa
             res = sniff_csv_format("foo")
         assert res["sep"] == tests.sep
         assert res["nr_index_col"] == tests.index_col
@@ -141,8 +140,7 @@ def test_dev_read(csv_test_files_content):
 
 
 def test_build_agg_matrix():
-    """Tests building the aggreagation matrix"""
-
+    """Tests building the aggreagation matrix."""
     am_num = build_agg_matrix([1, 0, 0, 1, 0])
     expected = np.array([[0.0, 1.0, 1.0, 0.0, 1.0], [1.0, 0.0, 0.0, 1.0, 0.0]])
     am_str = build_agg_matrix(
@@ -154,15 +152,14 @@ def test_build_agg_matrix():
 
 
 def test_build_agg_vec():
-    """Simple test based on the test mrio"""
+    """Simple test based on the test mrio."""
     vec = build_agg_vec(["OECD", "EU"], path="test", miss="RoW")
     expected = ["OECD", "EU", "OECD", "OECD", "RoW", "RoW"]
     assert vec == expected
 
 
 def test_diagonalize_blocks():
-    """Tests the numpy implementation of diagonalize_blocks"""
-
+    """Tests the numpy implementation of diagonalize_blocks."""
     # arr (df):  output (df): (blocks = [x, y, z])
     #     (all letters are index or header)
     #       A B     A A A B B B
@@ -190,6 +187,7 @@ def test_diagonalize_blocks():
 
 
 def test_diagonalize_columns_to_sectors():
+    """Test the diagonalize_columns_to_sectors function for correct behavior."""
     inp_array = np.array(([3, 1], [4, 2], [5, 3], [6, 9], [7, 6], [8, 4]))
     out_array = np.array(
         (
@@ -218,7 +216,7 @@ def test_diagonalize_columns_to_sectors():
 
 
 def test_set_block():
-    """Set block util function"""
+    """Set block util function."""
     full_arr = np.random.random((10, 10))
     block_arr = np.zeros((2, 2))
 
@@ -238,6 +236,7 @@ def test_set_block():
 
 
 def test_filename_from_url():
+    """Getting filename from url tests."""
     letters = np.array(list(string.printable))
     fake = Faker()
     for _ in range(100):
@@ -262,8 +261,7 @@ def test_filename_from_url():
 
 
 def test_util_regex():
-    """Test regex matching"""
-
+    """Test regex matching."""
     test_index = pd.MultiIndex.from_product(
         [["a1", "b1", "c2", "b2"], ["aa", "bb", "cc", "dd"]],
         names=["region", "sector"],
@@ -357,8 +355,7 @@ def test_util_regex():
 
 
 def test_convert_rename_singleindex():
-    """Testing the renaming of one table with a single index"""
-
+    """Testing the renaming of one table with a single index."""
     to_char = pd.DataFrame(
         data=99.0, index=["em1", "em2", "em3"], columns=["r1", "r2", "r3"]
     )
@@ -380,8 +377,7 @@ def test_convert_rename_singleindex():
 
 
 def test_convert_rename_multiindex():
-    """Testing the renaming of one table with a multiindex"""
-
+    """Testing the renaming of one table with a multiindex."""
     to_char = pd.DataFrame(
         data=99.0,
         index=pd.MultiIndex.from_product([["em1", "em2", "emA"], ["air", "water"]]),
@@ -465,12 +461,11 @@ def test_convert_rename_multiindex():
 
 
 def test_convert_rename_spread_index():
-    """Testing the renaming of one table from an index to an multiindex
+    """Testing the renaming of one table from an index to an multiindex.
 
     This is for example needed for the EXIOBASE stressor to GLAM conversion,
-    where one stressor level need to be spread to multiple flows/classes
+    where one stressor level need to be spread to multiple flows/classes.
     """
-
     # TEST SIMPLE CASE: SPREADING SINGLE INDEX TO MULTIINDEX
 
     to_char = pd.DataFrame(
@@ -572,8 +567,6 @@ def test_convert_rename_spread_index():
     renamed_missing_nan = convert(to_char, rename_bridge_missing_nan)
     renamed_missing_none = convert(to_char, rename_bridge_missing_none)
 
-    renamed_missing_none
-
     pdt.assert_frame_equal(renamed_missing_string, renamed_missing_nan)
     pdt.assert_frame_equal(renamed_missing_string, renamed_missing_none)
 
@@ -657,8 +650,7 @@ def test_convert_rename_spread_index():
 
 
 def test_convert_characterize():
-    """Testing the characterization of one table"""
-
+    """Testing the characterization of one table."""
     to_char = pd.DataFrame(
         data=5,
         index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
@@ -690,10 +682,10 @@ def test_convert_characterize():
     exp_res1A.loc["all_air"] = (
         to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
     )
-    exp_res1A.loc["total_regex"] = (to_char.sum(axis=1) * 2).values
-    exp_res1A.loc["total_sum"] = (to_char.sum(axis=1) * 2).values
+    exp_res1A.loc["total_regex"] = (to_char.sum(axis=1) * 2).to_numpy()
+    exp_res1A.loc["total_sum"] = (to_char.sum(axis=1) * 2).to_numpy()
     exp_res1A = exp_res1A.astype(float)
-    exp_res1A.sort_index(inplace=True)
+    exp_res1A = exp_res1A.sort_index()
 
     res1A = convert(to_char, map_test1, drop_not_bridged_index=True, reindex=None)
 
@@ -775,13 +767,13 @@ def test_convert_characterize():
     exp_res2.loc[("all_air", "air")] = (
         to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
     )
-    exp_res2.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).values
-    exp_res2.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).values
+    exp_res2.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
+    exp_res2.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
     exp_res2 = exp_res2.astype(float)
-    exp_res2.sort_index(inplace=True)
+    exp_res2 = exp_res2.sort_index()
 
     res2 = convert(to_char, map_test2)
-    res2.sort_index(inplace=True)
+    res2 = res2.sort_index()
 
     exp_res2.index.names = res2.index.names
     exp_res2.columns.names = res2.columns.names
@@ -814,13 +806,13 @@ def test_convert_characterize():
     exp_res3.loc[("all_air", "air")] = (
         to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
     )
-    exp_res3.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).values
-    exp_res3.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).values
+    exp_res3.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
+    exp_res3.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
     exp_res3 = exp_res3.astype(float)
-    exp_res3.sort_index(inplace=True)
+    exp_res3 = exp_res3.sort_index()
 
     res3 = convert(to_char, map_test3)
-    res3.sort_index(inplace=True)
+    res3 = res3.sort_index()
 
     exp_res3.index.names = res3.index.names
     exp_res3.columns.names = res3.columns.names
@@ -929,6 +921,7 @@ def test_convert_characterize():
 
 
 def test_convert_wrong_inputs():
+    """Testing wrong inputs for convert function."""
     to_char = pd.DataFrame(
         data=5,
         index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
@@ -1011,21 +1004,22 @@ def test_convert_wrong_inputs():
 
 
 def test_extend_rows():
-    # Test basic functionality with string values
-    df = pd.DataFrame(
+    """Test basic extend functionality with string values."""
+    df_to_extend = pd.DataFrame(
         {
             "region": ["GLO", "GLO", "GLO"],
             "sector": ["A", "B", "C"],
             "value": [1, 2, 3],
         }
     )
+    # Test with empty new_values list (shouldn't change the original rows).
 
-    result = extend_rows(df, region={"GLO": ["reg1", "reg2"]})
+    result = extend_rows(df_to_extend, region={"GLO": ["reg1", "reg2"]})
     assert len(result) == 6
     assert set(result["region"].unique()) == {"reg1", "reg2"}
 
-    # Test spreading two columns, one it itself and another column
-    df = pd.DataFrame(
+    # Test spreading two columns, one it itself and another column.
+    df_to_extend = pd.DataFrame(
         {
             "region": ["GLO", "GLO", "GLO"],
             "sector": ["A", "B", "C"],
@@ -1033,7 +1027,9 @@ def test_extend_rows():
         }
     )
 
-    result = extend_rows(df, region={"GLO": ["reg1", "reg2"]}, sector={"C": ["C", "D"]})
+    result = extend_rows(
+        df_to_extend, region={"GLO": ["reg1", "reg2"]}, sector={"C": ["C", "D"]}
+    )
     assert len(result) == 8  # 2 regions * (2 sectors from C + 2 original sectors)
     assert set(result["region"].unique()) == {"reg1", "reg2"}
     assert set(result["sector"].unique()) == {"A", "B", "C", "D"}
@@ -1041,8 +1037,8 @@ def test_extend_rows():
     assert all(result[(result.sector == "D") & (result.region == "reg1")].value == 3)
     assert all(result[(result.sector == "C") & (result.region == "reg1")].value == 3)
 
-    # Tests extending rows for multiple values in the same column
-    df = pd.DataFrame(
+    # Tests extending rows for multiple values in the same column.
+    df_to_extend = pd.DataFrame(
         {
             "region": ["GLO", "EU", "USA"],
             "sector": ["A", "B", "C"],
@@ -1051,10 +1047,11 @@ def test_extend_rows():
     )
 
     result = extend_rows(
-        df, region={"GLO": ["reg1", "reg2"], "EU": ["France", "Germany", "Austria"]}
+        df_to_extend,
+        region={"GLO": ["reg1", "reg2"], "EU": ["France", "Germany", "Austria"]},
     )
 
-    # Original had 3 rows, GLO expands to 2 new rows, EU expands to 3 new rows, + 1 USA
+    # Original had 3 rows, GLO expands to 2 new rows, EU expands to 3 new rows, + 1 USA.
     assert len(result) == 6
     assert set(result["region"].unique()) == {
         "reg1",
@@ -1064,10 +1061,10 @@ def test_extend_rows():
         "USA",
         "Austria",
     }
-    assert "GLO" not in result["region"].values
-    assert "EU" not in result["region"].values
+    assert "GLO" not in result["region"].to_numpy()
+    assert "EU" not in result["region"].to_numpy()
 
-    # Check values were properly copied
+    # Check values were properly copied.
     assert all(result[result.region == "reg1"].value == 10)
     assert all(result[result.region == "reg2"].value == 10)
     assert all(result[result.region == "France"].value == 20)
@@ -1075,8 +1072,8 @@ def test_extend_rows():
     assert all(result[result.region == "Austria"].value == 20)
     assert all(result[result.region == "USA"].value == 30)
 
-    # Test with numerical values
-    df = pd.DataFrame(
+    # Test with numerical values.
+    df_to_extend = pd.DataFrame(
         {
             "year": [2020, 2020, 2020],
             "id": [1, 2, 3],
@@ -1084,12 +1081,12 @@ def test_extend_rows():
         }
     )
 
-    result = extend_rows(df, year={2020: [2021, 2022]})
+    result = extend_rows(df_to_extend, year={2020: [2021, 2022]})
     assert len(result) == 6
     assert set(result["year"].unique()) == {2021, 2022}
     assert result["value"].sum() == 2 * (10 + 20 + 30)
 
-    # Test ValueError for non-numerical DataFrame
+    # Test ValueError for non-numerical DataFrame.
     df_with_custom_index = pd.DataFrame(
         {
             "region": ["GLO", "GLO"],
@@ -1101,23 +1098,23 @@ def test_extend_rows():
     with pytest.raises(ValueError, match="DataFrame index must be numerical"):
         extend_rows(df_with_custom_index, region={"GLO": ["reg1"]})
 
-    # Test ValueError for non-existent column
+    # Test ValueError for non-existent column.
     with pytest.raises(ValueError, match="Column nonexistent not in DataFrame"):
-        extend_rows(df, nonexistent={"val": ["new"]})
+        extend_rows(df_to_extend, nonexistent={"val": ["new"]})
 
-    # Test ValueError for non-existent value to spread
+    # Test ValueError for non-existent value to spread.
     with pytest.raises(ValueError, match="No rows found to spread for value"):
-        extend_rows(df, year={1999: ["new"]})
+        extend_rows(df_to_extend, year={1999: ["new"]})
 
     # Test with empty new_values list (shouldn't change the original rows)
-    df = pd.DataFrame(
+    df_to_extend = pd.DataFrame(
         {
             "region": ["GLO", "EU"],
             "value": [1, 2],
         }
     )
 
-    result = extend_rows(df, region={"GLO": []})
+    result = extend_rows(df_to_extend, region={"GLO": []})
 
     assert len(result) == 2
     assert set(result["region"].unique()) == {"GLO", "EU"}

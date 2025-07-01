@@ -1,18 +1,15 @@
-"""Utility functions for automatic downloading of public MRIO databases"""
+"""Utility functions for automatic downloading of public MRIO databases."""
 
 import getpass
 import itertools
-import json
 import os
 import re
-import ssl
 import zipfile
 from collections import namedtuple
 
 import requests
-import urllib3
 
-from pymrio.core.constants import __ROOT, GLORIA_URLS
+from pymrio.core.constants import GLORIA_URLS
 from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioutil import filename_from_url, ssl_fix
 
@@ -117,11 +114,10 @@ def _get_url_datafiles(
     headers=HEADERS,
     requests_func=requests.post,
 ):
-    """Urls of mrio files by parsing url content for mrio_regex
+    """Urls of mrio files by parsing url content for mrio_regex.
 
     Parameters
     ----------
-
     url_db_view: url str
         Url which shows the list of mrios in the db
 
@@ -166,7 +162,7 @@ def _download_urls(
     access_cookie=None,
     headers=HEADERS,
 ):
-    """Save url from url_list to storage_folder
+    """Save url from url_list to storage_folder.
 
     Parameters
     ----------
@@ -196,19 +192,15 @@ def _download_urls(
 
     Returns
     -------
-
     The downlog_handler is passed back
 
     """
-
     for url in url_list:
         filename = filename_from_url(url)
         if downlog_handler.name == "Eora":
             filename = filename.split(".zip")[0] + ".zip"
         if not overwrite_existing and filename in os.listdir(storage_folder):
-            downlog_handler._add_fileio(
-                "Skip download existing file {}".format(filename)
-            )
+            downlog_handler._add_fileio(f"Skip download existing file {filename}")
             continue
         storage_file = os.path.join(storage_folder, filename)
 
@@ -218,13 +210,13 @@ def _download_urls(
         req = requests.get(url, stream=True, cookies=access_cookie, headers=headers)
         if req.status_code != 200:
             raise requests.exceptions.HTTPError(
-                "HTTP Error {} for {}".format(req.status_code, url)
+                f"HTTP Error {req.status_code} for {url}"
             )
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
 
-        downlog_handler._add_fileio("Downloaded {} to {}".format(url, filename))
+        downlog_handler._add_fileio(f"Downloaded {url} to {filename}")
         downlog_handler.save()
 
     return downlog_handler
@@ -233,7 +225,7 @@ def _download_urls(
 def download_oecd(
     storage_folder, version="v2023", years=None, overwrite_existing=False
 ):
-    """Downloads the OECD ICIO tables
+    """Download the OECD ICIO tables.
 
     Parameters
     ----------
@@ -262,7 +254,6 @@ def download_oecd(
 
     Returns
     -------
-
     Meta data of the downloaded MRIOs
 
     """
@@ -277,7 +268,7 @@ def download_oecd(
     if type(version) is int:
         version = "v" + str(version)
 
-    if not version in ("v2016", "v2018", "v2021", "v2023"):
+    if version not in ("v2016", "v2018", "v2021", "v2023"):
         raise ValueError("Version not understood")
 
     if type(years) is int or type(years) is str:
@@ -317,7 +308,7 @@ def download_oecd(
 
     for yy in years:
         if yy not in OECD_CONFIG["datafiles"][version].keys():
-            raise ValueError("Datafile for {} not specified or available.".format(yy))
+            raise ValueError(f"Datafile for {yy} not specified or available.")
 
         filename = "ICIO" + version.lstrip("v") + "_" + yy + ".zip"
 
@@ -349,7 +340,7 @@ def download_oecd(
             os.remove(storage_file)
             if version == "v2023":
                 for file in os.listdir(storage_folder):
-                    absolute_path = os.path.join(storage_folder, file)
+                    # absolute_path = os.path.join(storage_folder, file)
                     os.rename(
                         os.path.join(storage_folder, file),
                         os.path.join(
@@ -375,7 +366,7 @@ def download_wiod2013(
     overwrite_existing=False,
     satellite_urls=WIOD_CONFIG["satellite_urls"],
 ):
-    """Downloads the 2013 wiod release
+    """Download the 2013 wiod release.
 
     Note
     ----
@@ -410,11 +401,9 @@ def download_wiod2013(
 
     Returns
     -------
-
     Meta data of the downloaded MRIOs
 
     """
-
     os.makedirs(storage_folder, exist_ok=True)
 
     if type(years) is int or type(years) is str:
@@ -454,9 +443,10 @@ def download_wiod2013(
 
 
 def download_eora26(
-    storage_folder, email, password, years=None, prices=["bp"], overwrite_existing=False
+    storage_folder, email, password, years=None, prices="bp", overwrite_existing=False
 ):
-    """Downloading eora26 mrios (registration required),
+    """Download eora26 mrios (registration required).
+
     To use this function you have to have an Eora account,
     New account registration can be done through https://worldmrio.com/login.jsp
 
@@ -475,7 +465,7 @@ def download_eora26(
         only applies to the IO tables because extensions are stored
         by country and not per year.
         The years can be given in 2 or 4 digits.
-    prices: list of str
+    prices: list of str or str
         If bp (default), download basic price tables.
         If pp, download purchaser prices. ['bp', 'pp'] possible.
     overwrite_existing: boolean, optional
@@ -483,6 +473,8 @@ def download_eora26(
         the storage folder (default). Set to True to replace
         files.
     """
+    if type(prices) is str:
+        prices = [prices]
 
     try:
         os.makedirs(storage_folder)
@@ -567,7 +559,7 @@ def download_eora26(
 
 
 def download_exiobase1():
-    """Downloading exiobase not implemented (registration required)"""
+    """Download exiobase not implemented (registration required)."""
     raise NotImplementedError(
         "EXIOBASE 1 requires registration prior to download. "
         "Please register at www.exiobase.eu and download the "
@@ -580,7 +572,7 @@ def download_exiobase1():
 
 
 def download_exiobase2():
-    """Downloading exiobase not implemented (registration required)"""
+    """Download exiobase not implemented (registration required)."""
     raise NotImplementedError(
         "EXIOBASE 2 requires registration prior to download. "
         "Please register at www.exiobase.eu and download the "
@@ -600,8 +592,7 @@ def download_exiobase3(
     overwrite_existing=False,
     doi="10.5281/zenodo.3583070",
 ):
-    """
-    Downloads EXIOBASE 3 files from Zenodo
+    """Download EXIOBASE 3 files from Zenodo.
 
     Since version 3.7 EXIOBASE gets published on the Zenodo scientific data
     repository.  This function download the lastest available version from
@@ -642,11 +633,9 @@ def download_exiobase3(
 
     Returns
     -------
-
     Meta data of the downloaded MRIOs
 
     """
-
     os.makedirs(storage_folder, exist_ok=True)
 
     doi_url = "https://doi.org/" + doi
@@ -687,9 +676,7 @@ def download_exiobase3(
 
         if not filename:
             downlog._add_fileio(
-                "Could not find EXIOBASE 3 source file with >{}< and >{}<".format(
-                    file_specs[0], file_specs[1]
-                )
+                f"Could not find EXIOBASE 3 source file with >{file_specs[0]}< and >{file_specs[1]}<"
             )
             continue
         requested_urls += [
@@ -714,12 +701,10 @@ def download_gloria(
     version=57,
     overwrite_existing=False,
 ):
-    """
-    Download Gloria databases files
+    """Download Gloria databases files.
 
     Parameters
     ----------
-
     urls: dict, optional
         Dictionary containing the links of gloria databases
         for different versions, this is already fed to the function,
@@ -744,10 +729,8 @@ def download_gloria(
 
     Returns
     -------
-
     No returns
     """
-
     if f"0{version}" not in urls.keys():
         raise Exception("Specified version is invalid")
 

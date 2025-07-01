@@ -1,5 +1,4 @@
-"""
-Utility function for pymrio
+"""Utility function for pymrio.
 
 KST 20140502
 """
@@ -18,14 +17,15 @@ import numpy as np
 import pandas as pd
 import requests
 import urllib3
+from requests.adapters import HTTPAdapter
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES, LONG_VALUE_NAME, PYMRIO_PATH
 
 
 def is_vector(inp):
-    """Returns true if the input can be interpreted as a 'true' vector
+    """Return true if the input can be interpreted as a 'true' vector.
 
-    Note
+    Note:
     ----
     Does only check dimensions, not if type is numeric
 
@@ -50,16 +50,14 @@ def is_vector(inp):
 
 
 def get_repo_content(path):
-    """List of files in a repo (path or zip)
+    """List of files in a repo (path or zip).
 
     Parameters
     ----------
-
     path: string or pathlib.Path
 
     Returns
     -------
-
     Returns a namedtuple with .iszip and .filelist
     The path in filelist are pure strings.
 
@@ -77,7 +75,7 @@ def get_repo_content(path):
 
 
 def get_file_para(path, path_in_arc=""):
-    """Generic method to read the file parameter file
+    """Read the file parameter file.
 
     Helper function to consistently read the file parameter file, which can
     either be uncompressed or included in a zip archive.  By default, the file
@@ -87,7 +85,6 @@ def get_file_para(path, path_in_arc=""):
 
     Parameters
     ----------
-
     path: pathlib.Path or string
         Path or path with para file name for the data to load.
         This must either point to the directory containing the uncompressed
@@ -104,7 +101,6 @@ def get_file_para(path, path_in_arc=""):
 
     Returns
     -------
-
     Returns a namedtuple with
     .folder: str with the absolute path containing the
            file parameter file. In case of a zip the path
@@ -114,7 +110,6 @@ def get_file_para(path, path_in_arc=""):
 
     Raises
     ------
-
     FileNotFoundError if parameter file not found
 
     """
@@ -147,15 +142,13 @@ def get_file_para(path, path_in_arc=""):
         para_file_folder = os.path.dirname(para_file_full_path)
 
     if para_file_full_path not in files:
-        raise FileNotFoundError(
-            "File parameter file {} not found".format(para_file_full_path)
-        )
+        raise FileNotFoundError(f"File parameter file {para_file_full_path} not found")
 
     if zipfile.is_zipfile(str(path)):
         with zipfile.ZipFile(file=str(path)) as zf:
             para_file_content = json.loads(zf.read(para_file_full_path).decode("utf-8"))
     else:
-        with open(para_file_full_path, "r") as pf:
+        with open(para_file_full_path) as pf:
             para_file_content = json.load(pf)
 
     return namedtuple("file_parameter", ["folder", "name", "content"])(
@@ -166,7 +159,7 @@ def get_file_para(path, path_in_arc=""):
 
 
 def build_agg_matrix(agg_vector, pos_dict=None):
-    """Aggregation based on mapping given in input as numerical or str vector.
+    """Aggregate based on mapping given in input as numerical or str vector.
 
     Parameters
     ----------
@@ -186,14 +179,12 @@ def build_agg_matrix(agg_vector, pos_dict=None):
 
     Returns
     -------
-
     agg_matrix : numpy ndarray
         Aggregation matrix with shape (n, m) with n (rows) indicating the
         new classification and m (columns) the old classification
 
     Examples
-    ---------
-
+    --------
     Assume an input vector with either
 
     >>> inp1 = np.array([0, 1, 1, 2])
@@ -207,8 +198,7 @@ def build_agg_matrix(agg_vector, pos_dict=None):
     >>> build_agg_matrix(inp1)
     >>> build_agg_matrix(inp2)
 
-    Returns
-
+    results in
     >>> array([[1., 0., 0., 0.],
     >>>        [0., 1., 1., 0.],
     >>>        [0., 0., 0., 1.]])
@@ -264,7 +254,7 @@ def build_agg_matrix(agg_vector, pos_dict=None):
 def diagonalize_columns_to_sectors(
     df: pd.DataFrame, sector_index_level: Union[str, int] = "sector"
 ) -> pd.DataFrame:
-    """Adds the resolution of the rows to columns by diagonalizing
+    """Add the resolution of the rows to columns by diagonalizing.
 
     Parameters
     ----------
@@ -278,7 +268,7 @@ def diagonalize_columns_to_sectors(
     pd.DataFrame, diagonalized
 
 
-    Example
+    Example:
     --------
         input       output
          (all letters are index or header)
@@ -292,13 +282,8 @@ def diagonalize_columns_to_sectors(
         B z 8 4     0 0 8 0 0 4
 
     """
-
     sectors = df.index.get_level_values(sector_index_level).unique()
     sector_name = sector_index_level if type(sector_index_level) is str else "sector"
-
-    new_col_index = [
-        tuple(list(orig) + [new]) for orig in df.columns for new in sectors
-    ]
 
     diag_df = pd.DataFrame(
         data=diagonalize_blocks(df.values, blocksize=len(sectors)),
@@ -310,12 +295,11 @@ def diagonalize_columns_to_sectors(
     return diag_df
 
 
-def diagonalize_blocks(arr: np.array, blocksize: int):
-    """Diagonalize sections of columns of an array for the whole array
+def diagonalize_blocks(arr, blocksize: int):
+    """Diagonalize sections of columns of an array for the whole array.
 
     Parameters
     ----------
-
     arr : numpy array
         Input array
 
@@ -327,9 +311,8 @@ def diagonalize_blocks(arr: np.array, blocksize: int):
     numpy ndarray with shape (columns 'arr' * blocksize,
                               columns 'arr' * blocksize)
 
-    Example
+    Example:
     --------
-
     arr:      output: (blocksize = 3)
         3 1     3 0 0 1 0 0
         4 2     0 4 0 0 2 0
@@ -338,7 +321,6 @@ def diagonalize_blocks(arr: np.array, blocksize: int):
         7 6     0 7 0 0 6 0
         8 4     0 0 8 0 0 4
     """
-
     nr_col = arr.shape[1]
     nr_row = arr.shape[0]
 
@@ -363,7 +345,7 @@ def diagonalize_blocks(arr: np.array, blocksize: int):
 
 
 def set_dom_block(df: pd.DataFrame, value: float = 0) -> pd.DataFrame:
-    """Set domestic blocks to value (0 by default)
+    """Set domestic blocks to value (0 by default).
 
     Requires that the region is the top index in the multiindex
     hierarchy (default case in pymrio).
@@ -381,12 +363,12 @@ def set_dom_block(df: pd.DataFrame, value: float = 0) -> pd.DataFrame:
     regions = df.index.get_level_values(0).unique()
     df_res = df.copy()
     for reg in regions:
-        df_res.loc[reg, reg] = 0
+        df_res.loc[reg, reg] = value
     return df_res
 
 
 def set_block(arr, arr_block):
-    """Sets the diagonal blocks of an array to an given array
+    """Set the diagonal blocks of an array to an given array.
 
     Parameters
     ----------
@@ -413,7 +395,7 @@ def set_block(arr, arr_block):
         )
     if nr_row / nr_row_block != nr_col / nr_col_block:
         raise ValueError(
-            "Block array can not be filled as " "diagonal blocks in the given array"
+            "Block array can not be filled as diagonal blocks in the given array"
         )
 
     arr_out = arr.copy()
@@ -430,7 +412,7 @@ def set_block(arr, arr_block):
 
 
 def unique_element(ll):
-    """returns unique elements from a list preserving the original order"""
+    """Return unique elements from a list preserving the original order."""
     seen = {}
     result = []
     for item in ll:
@@ -442,7 +424,7 @@ def unique_element(ll):
 
 
 def build_agg_vec(agg_vec, **source):
-    """Builds an combined aggregation vector considering diff classifications
+    """Build an combined aggregation vector considering diff classifications.
 
     This function build an aggregation vector based on the order in agg_vec.
     The naming and actual mapping is given in source, either explicitly or by
@@ -497,7 +479,6 @@ def build_agg_vec(agg_vec, **source):
 
     Examples
     --------
-
     >>> build_agg_vec(['EU', 'OECD'], path = 'test')
     ['EU', 'EU', 'EU', 'OECD', 'REST', 'REST']
 
@@ -514,12 +495,11 @@ def build_agg_vec(agg_vec, **source):
 
 
     """
-
     # build a dict with aggregation vectors in source and folder
     # TODO: the logic here should be moved to constants
     if type(agg_vec) is str:
         agg_vec = [agg_vec]
-    agg_dict = dict()
+    agg_dict = {}
     for entry in agg_vec:
         try:
             agg_dict[entry] = source[entry]
@@ -539,9 +519,7 @@ def build_agg_vec(agg_vec, **source):
                         ]
                     break
             else:
-                logging.error(
-                    "Aggregation vector -- {} -- not found".format(str(entry))
-                )
+                logging.error(f"Aggregation vector -- {str(entry)} -- not found")
 
     # build the summary aggregation vector
     def _rep(ll, ii, vv):
@@ -555,7 +533,7 @@ def build_agg_vec(agg_vec, **source):
     ] * len(vec_list[0])
     for currvec in vec_list:
         if len(currvec) != len(out):
-            logging.warn("Inconsistent vector length")
+            logging.warning("Inconsistent vector length")
         [_rep(out, ind, val) for ind, val in enumerate(currvec) if not out[ind]]
 
     [_rep(out, ind, miss_val) for ind, val in enumerate(out) if not val]
@@ -564,11 +542,11 @@ def build_agg_vec(agg_vec, **source):
 
 
 def find_first_number(ll):
-    """Returns nr of first entry parseable to float in ll, None otherwise"""
+    """Return nr of first entry parseable to float in ll, None otherwise."""
     for nr, entry in enumerate(ll):
         try:
             float(entry)
-        except (ValueError, TypeError) as e:
+        except (ValueError, TypeError):
             pass
         else:
             return nr
@@ -577,21 +555,20 @@ def find_first_number(ll):
 
 def sniff_csv_format(
     csv_file,
-    potential_sep=["\t", ",", ";", "|", "-", "_"],
+    potential_sep=None,
     max_test_lines=10,
     zip_file=None,
 ):
-    """Tries to get the separator, nr of index cols and header rows in a csv file
+    r"""Attempt to get the separator, nr of index cols and header rows in a csv file.
 
     Parameters
     ----------
-
     csv_file: str
         Path to a csv file
 
     potential_sep: list, optional
         List of potential separators (delimiters) to test.
-        Default: '\t', ',', ';', '|', '-', '_'
+        Default: '\t', ',', ';', '|', '-', '_' (used when passing None)
 
     max_test_lines: int, optional
         How many lines to test, default: 10 or available lines in csv_file
@@ -610,11 +587,12 @@ def sniff_csv_format(
 
         Entries are set to None if inconsistent information in the file
     """
+    potential_sep = potential_sep if potential_sep else ["\t", ",", ";", "|", "-", "_"]
 
     def read_first_lines(filehandle):
         lines = []
-        for i in range(max_test_lines):
-            line = ff.readline()
+        for _ in range(max_test_lines):
+            line = filehandle.readline()
             if line == "":
                 continue
             try:
@@ -629,7 +607,7 @@ def sniff_csv_format(
             with zz.open(csv_file, "r") as ff:
                 test_lines = read_first_lines(ff)
     else:
-        with open(csv_file, "r") as ff:
+        with open(csv_file) as ff:
             test_lines = read_first_lines(ff)
 
     sep_aly_lines = [
@@ -641,6 +619,7 @@ def sniff_csv_format(
         for line in test_lines
     ]
 
+    sep = None
     for nr, (count, sep) in enumerate(sep_aly_lines[0]):
         for line in sep_aly_lines:
             if line[nr][0] == count:
@@ -659,20 +638,19 @@ def sniff_csv_format(
     if sep:
         nr_index_col = find_first_number(lines_with_sep[-1].split(sep))
         if nr_index_col:
-            for nr_header_row, line in enumerate(lines_with_sep):
+            for header_row, line in enumerate(lines_with_sep):
+                nr_header_row = header_row
                 if find_first_number(line.split(sep)) == nr_index_col:
                     break
 
-    return dict(sep=sep, nr_header_row=nr_header_row, nr_index_col=nr_index_col)
+    return {"sep": sep, "nr_header_row": nr_header_row, "nr_index_col": nr_index_col}
 
 
 def filename_from_url(url):
-    """
-    Extract a file name from the download link for that file
+    """Extract a file name from the download link for that file.
 
     Parameters
     ----------
-
     url: str,
         The download link of the file
 
@@ -683,11 +661,14 @@ def filename_from_url(url):
 
     """
     name = re.search(r"[^/\\&?]+\.\w{2,7}(?=([?&].*$|$))", url)
-    return name.group()
+    if name:
+        return name.group()
+    else:
+        raise ValueError("Could not extract filename from url")
 
 
 def check_if_long(df, value_name=LONG_VALUE_NAME):
-    """Checks if a given DataFrame follows is in a long format
+    """Check if a given DataFrame follows is in a long format.
 
     Currently this only checks if 'value_name' is in the columns.
     In no parameter is given, it uses the default value 'value', defined
@@ -724,7 +705,7 @@ def check_if_long(df, value_name=LONG_VALUE_NAME):
 
 
 def to_long(df, value_name=LONG_VALUE_NAME):
-    """Converts the pymrio matrix df format to a long format
+    """Convert the pymrio matrix df format to a long format.
 
     FIX: All index and columns become separate columns (not index!)
 
@@ -748,9 +729,7 @@ def to_long(df, value_name=LONG_VALUE_NAME):
 
 
 def ssl_fix(*args, **kwargs):
-    """
-    Tries to use a request connection with Lagacy option
-    when normal connection fails
+    """Try to use a request connection with Lagacy option when normal connection fails.
 
     Parameters
     ----------
@@ -765,7 +744,7 @@ def ssl_fix(*args, **kwargs):
         r: class:`Response <Response>` object
     """
 
-    class CustomHttpAdapter(requests.adapters.HTTPAdapter):
+    class CustomHttpAdapter(HTTPAdapter):
         # "Transport adapter" that allows us to use custom ssl_context.
 
         def __init__(self, ssl_context=None, **kwargs):
@@ -782,7 +761,7 @@ def ssl_fix(*args, **kwargs):
 
     try:
         r = requests.get(*args, **kwargs)
-    except:
+    except Exception:
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
         ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
         session = requests.session()
@@ -793,7 +772,7 @@ def ssl_fix(*args, **kwargs):
 
 
 def index_fullmatch(df_ix, find_all=None, **kwargs):
-    """Fullmatch regex on index of df_ix
+    """Fullmatch regex on index of df_ix.
 
     Similar to pandas str.fullmatch, thus the whole
     string of the index must match.
@@ -801,7 +780,7 @@ def index_fullmatch(df_ix, find_all=None, **kwargs):
     The index levels need to be named (df.index.name needs to
     be set for all levels).
 
-    Note
+    Note:
     -----
     Arguments are set to case=True, flags=0, na=False, regex=True.
     For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -833,14 +812,14 @@ def index_fullmatch(df_ix, find_all=None, **kwargs):
 
 
 def index_match(df_ix, find_all=None, **kwargs):
-    """Match regex on index of df_ix
+    """Match regex on index of df_ix.
 
     Similar to pandas str.match, thus the start of the index string must match.
 
     The index levels need to be named (df.index.name needs to
     be set for all levels).
 
-    Note
+    Note:
     -----
     Arguments are set to case=True, flags=0, na=False, regex=True.
     For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -880,7 +859,7 @@ def index_contains(df_ix, find_all=None, **kwargs):
     The index levels need to be named (df.index.name needs to
     be set for all levels).
 
-    Note
+    Note:
     -----
     Arguments are set to case=True, flags=0, na=False, regex=True.
     For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -912,7 +891,7 @@ def index_contains(df_ix, find_all=None, **kwargs):
 
 
 def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
-    """Match index of df with regex
+    """Match index of df with regex.
 
     The generic method for the contain, match, fullmatch implementation
     along the index of the pymrio dataframes.
@@ -920,7 +899,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
     The index levels need to be named (df.index.name needs to
     be set for all levels).
 
-    Note
+    Note:
     -----
     Arguments are set to case=True, flags=0, na=False, regex=True.
     For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -991,7 +970,7 @@ def _index_regex_matcher(_dfs_idx, _method, _find_all=None, **kwargs):
 
     if not at_least_one_valid:
         if type(_dfs_idx) in [pd.DataFrame, pd.Series]:
-            _dfs_idx = pd.DataFrame(index=[], columns=_dfs_idx.columns)
+            _dfs_idx = pd.DataFrame(columns=_dfs_idx.columns)
         elif type(_dfs_idx) in [pd.Index, pd.MultiIndex]:
             _dfs_idx = pd.Index([])
 
@@ -1005,7 +984,7 @@ def _characterize_get_requried_col(
     characterization_factors_column,
     characterized_unit_column,
 ):
-    """Utility function to check and return a list of required columns.
+    """Check and return a list of required columns.
 
     For paramters naming see function characterize.
 
@@ -1041,7 +1020,7 @@ def _validate_characterization_table(
     characterized_unit_column="impact_unit",
     orig_unit_column="stressor_unit",
 ):
-    """Internal untility for checking a factors sheet for characterization
+    """Check a factors sheet for characterization (internal function).
 
     This should not be called directly, use characterize with only_validation instead.
 
@@ -1059,7 +1038,7 @@ def _validate_characterization_table(
     Parameters follow the convention of the characterization method:
 
     Parameters
-    -----------
+    ----------
     factors: pd.DataFrame
         A dataframe in long format with numerical index and columns named
         index.names of the extension to be characterized and
@@ -1088,7 +1067,7 @@ def _validate_characterization_table(
         characterization (default: "impact_unit")
 
     Returns
-    --------
+    -------
     pd.DataFrame: factors sheet with additional error columns
 
     """
@@ -1110,12 +1089,18 @@ def _validate_characterization_table(
 
     # Check for consistent units per impact
     for imp in unique_impacts:
-        if (
+        if not (
             fac.loc[
                 fac.loc[:, characterized_name_column] == imp,
                 characterized_unit_column,
-            ].nunique()
-            != 1
+            ]
+            .eq(
+                fac.loc[
+                    fac.loc[:, characterized_name_column] == imp,
+                    characterized_unit_column,
+                ].iloc[0]
+            )
+            .all()
         ):
             fac.loc[
                 fac.loc[:, characterized_name_column] == imp,
@@ -1162,7 +1147,7 @@ def _validate_characterization_table(
                 .region.apply(set)
             )
             for improw in reg_cov.index:
-                if len(dd := regions.difference(reg_cov[improw])) > 0:
+                if len(regions.difference(reg_cov[improw])) > 0:
                     fac.loc[row, "error_missing_region"] = True
 
         if "sector" in all_required_col:
@@ -1172,7 +1157,7 @@ def _validate_characterization_table(
                 .sector.apply(set)
             )
             for improw in reg_cov.index:
-                if len(dd := sectors.difference(reg_cov[improw])) > 0:
+                if len(sectors.difference(reg_cov[improw])) > 0:
                     fac.loc[row, "error_missing_sector"] = True
 
     # check if additional region/sectors in the data
@@ -1189,7 +1174,7 @@ def _validate_characterization_table(
 
 
 def extend_rows(df, **kwargs):
-    """Given a df, duplicate rows by spreading one columns
+    """Given a df, duplicate rows by spreading one columns.
 
     This function takes a dataframe (e.g. a bridge or characterization specs),
     and spreads rows based on the input given in the keyword arguments.
@@ -1197,7 +1182,7 @@ def extend_rows(df, **kwargs):
     Each keyword can be a column header, with the argument being a dict with the
     values to be spread.
 
-    Example
+    Example:
     -------
     >>> df = pd.DataFrame(
     ...     {
@@ -1246,7 +1231,6 @@ def extend_rows(df, **kwargs):
 
 
     """
-
     if not pd.api.types.is_numeric_dtype(df.index):
         raise ValueError("DataFrame index must be numerical")
 
@@ -1275,7 +1259,7 @@ def extend_rows(df, **kwargs):
 
 
 def check_df_map(df_orig, df_map):
-    """Check which entries of df_map would be in effect given df_orig"""
+    """Check which entries of df_map would be in effect given df_orig."""
     # TODO: we need a way to check for spelling mistakes
     # and other hickups sneaking into df_map.
     # In this function, we check for each line of df_map which entries
@@ -1296,7 +1280,7 @@ def convert(
     ignore_columns=None,
     reindex=None,
 ):
-    """Convert a DataFrame to a new classification
+    """Convert a DataFrame to a new classification.
 
     Parameters
     ----------
@@ -1381,7 +1365,6 @@ def convert(
         - For other types (e.g., collections): passes directly to pandas.reindex.
 
     """
-
     bridge_columns = [col for col in df_map.columns if "__" in col]
 
     # groupby breaks with NaNs or None, fix it here
@@ -1460,10 +1443,9 @@ def convert(
         # renaming part, checks if the old name (bridge.orig) is in the current index
         # and renames by the new one (bridge.new)
 
-        already_renamed = dict()
+        already_renamed = {}
 
         for bridge in bridges:
-
             # encountering a bridge with the same orig name but which should
             # lead to two new index levels
             if bridge.orig in already_renamed.keys():
@@ -1477,7 +1459,6 @@ def convert(
                 df_collected.index = pd.MultiIndex.from_frame(_old_index)
 
             else:
-
                 for idx_old_names in df_collected.index.names:
                     if bridge.orig in idx_old_names:
                         # rename the index names

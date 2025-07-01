@@ -1,4 +1,4 @@
-"""test cases for all mathematical functions"""
+"""test cases for all mathematical functions."""
 
 import os
 import sys
@@ -35,7 +35,9 @@ from pymrio.tools.iomath import calc_Z  # noqa
 # test data
 @pytest.fixture()
 def td_IO_Data_Miller():
-    """This data is from the chapter 2 of
+    """Test data from Miller et al.
+
+    This data is from the chapter 2 of
     Input-output analysis: foundations and extensions -- Miller, Ronald E
     and Blair, Peter D -- 2009 (ISBN: 9780521517133)
     """
@@ -119,7 +121,8 @@ def td_IO_Data_Miller():
 
 @pytest.fixture()
 def td_small_MRIO():
-    """A small MRIO with three sectors and two regions.
+    """Small MRIO with three sectors and two regions.
+
     The testdata here just consists of pandas DataFrames, the functionality
     with numpy arrays gets tested with td_IO_Data_Miller.
     """
@@ -536,12 +539,14 @@ def td_small_MRIO():
 
 
 def test_calc_x_df(td_IO_Data_Miller):
+    """Test the calc_x_df function using the td_IO_Data_Miller fixture."""
     pdt.assert_frame_equal(
         td_IO_Data_Miller.x_df, calc_x(td_IO_Data_Miller.Z_df, td_IO_Data_Miller.fd_df)
     )
 
 
 def test_calc_x_arr(td_IO_Data_Miller):
+    """Test the calculation of x array using the provided td_IO_Data_Miller fixture."""
     npt.assert_array_equal(
         td_IO_Data_Miller.x_arr,
         calc_x(td_IO_Data_Miller.Z_arr, td_IO_Data_Miller.fd_arr),
@@ -549,12 +554,14 @@ def test_calc_x_arr(td_IO_Data_Miller):
 
 
 def test_calc_Z_df(td_IO_Data_Miller):
+    """Test that calc_Z returns the correct DataFrame for Miller IO data."""
     pdt.assert_frame_equal(
         td_IO_Data_Miller.Z_df, calc_Z(td_IO_Data_Miller.A_df, td_IO_Data_Miller.x_df)
     )
 
 
 def test_calc_Z_arr(td_IO_Data_Miller):
+    """Test that calc_Z returns the correct array for Miller IO data."""
     npt.assert_array_equal(
         td_IO_Data_Miller.Z_arr,
         calc_Z(td_IO_Data_Miller.A_arr, td_IO_Data_Miller.x_arr),
@@ -562,12 +569,14 @@ def test_calc_Z_arr(td_IO_Data_Miller):
 
 
 def test_calc_A_df(td_IO_Data_Miller):
+    """Test that calc_A returns the correct DataFrame for Miller IO data."""
     pdt.assert_frame_equal(
         td_IO_Data_Miller.A_df, calc_A(td_IO_Data_Miller.Z_df, td_IO_Data_Miller.x_df)
     )
 
 
 def test_calc_A_arr(td_IO_Data_Miller):
+    """Test that calc_A returns the expected array for given Z_arr and x_arr."""
     npt.assert_array_equal(
         td_IO_Data_Miller.A_arr,
         calc_A(td_IO_Data_Miller.Z_arr, td_IO_Data_Miller.x_arr),
@@ -575,16 +584,19 @@ def test_calc_A_arr(td_IO_Data_Miller):
 
 
 def test_calc_L_df(td_IO_Data_Miller):
+    """Test that calc_L returns the expected DataFrame for given A_df."""
     pdt.assert_frame_equal(td_IO_Data_Miller.L_df, calc_L(td_IO_Data_Miller.A_df))
 
 
 def test_calc_L_arr(td_IO_Data_Miller):
+    """Test that calc_L returns the expected array for given A_arr."""
     npt.assert_allclose(
         td_IO_Data_Miller.L_arr, calc_L(td_IO_Data_Miller.A_arr), rtol=1e-5
     )
 
 
 def test_calc_x_from_L_df(td_IO_Data_Miller):
+    """Test that calc_x_from_L returns the expected DataFrame for given L_df and fd_df."""
     pdt.assert_frame_equal(
         td_IO_Data_Miller.x_df,
         calc_x_from_L(td_IO_Data_Miller.L_df, td_IO_Data_Miller.fd_df),
@@ -592,6 +604,7 @@ def test_calc_x_from_L_df(td_IO_Data_Miller):
 
 
 def test_calc_x_from_L_arr(td_IO_Data_Miller):
+    """Test that calc_x_from_L returns the expected array for given L_arr and fd_arr."""
     npt.assert_allclose(
         td_IO_Data_Miller.x_arr,
         calc_x_from_L(td_IO_Data_Miller.L_arr, td_IO_Data_Miller.fd_arr),
@@ -600,6 +613,7 @@ def test_calc_x_from_L_arr(td_IO_Data_Miller):
 
 
 def test_calc_F_arr(td_IO_Data_Miller):
+    """Test the calculation of F array using td_IO_Data_Miller input."""
     npt.assert_allclose(
         td_IO_Data_Miller.labtot_arr,
         calc_F(td_IO_Data_Miller.labcoeff_arr, td_IO_Data_Miller.xnew_arr),
@@ -608,6 +622,7 @@ def test_calc_F_arr(td_IO_Data_Miller):
 
 
 def test_calc_F_df(td_IO_Data_Miller):
+    """Test that calc_F returns the expected DataFrame for Miller IO data."""
     pdt.assert_frame_equal(
         td_IO_Data_Miller.labtot_df,
         calc_F(td_IO_Data_Miller.labcoeff_df, td_IO_Data_Miller.xnew_df),
@@ -615,6 +630,7 @@ def test_calc_F_df(td_IO_Data_Miller):
 
 
 def test_calc_S_arr(td_IO_Data_Miller):
+    """Test that calc_S returns the expected array for Miller IO data."""
     npt.assert_allclose(
         td_IO_Data_Miller.labcoeff_arr,
         calc_S(td_IO_Data_Miller.labtot_arr, td_IO_Data_Miller.xnew_arr),
@@ -623,6 +639,7 @@ def test_calc_S_arr(td_IO_Data_Miller):
 
 
 def test_calc_S_df(td_IO_Data_Miller):
+    """Test that calc_S returns the expected DataFrame for Miller IO data."""
     pdt.assert_frame_equal(
         td_IO_Data_Miller.labcoeff_df,
         calc_S(td_IO_Data_Miller.labtot_df, td_IO_Data_Miller.xnew_df),
@@ -630,14 +647,16 @@ def test_calc_S_df(td_IO_Data_Miller):
 
 
 def test_calc_x_MRIO(td_small_MRIO):
+    """Test that calc_x returns the expected DataFrame for small MRIO data."""
     pdt.assert_frame_equal(td_small_MRIO.x, calc_x(td_small_MRIO.Z, td_small_MRIO.Y))
 
 
 def test_calc_A_MRIO(td_small_MRIO):
+    """Test calculation of A matrix in MRIO using different x input formats."""
     pdt.assert_frame_equal(td_small_MRIO.A, calc_A(td_small_MRIO.Z, td_small_MRIO.x))
     # we also test the different methods to provide x:
-    x_values = td_small_MRIO.x.values
-    x_Tvalues = td_small_MRIO.x.T.values
+    x_values = td_small_MRIO.x.to_numpy()
+    x_Tvalues = td_small_MRIO.x.T.to_numpy()
     x_series = pd.Series(td_small_MRIO.x.iloc[:, 0])
     pdt.assert_frame_equal(td_small_MRIO.A, calc_A(td_small_MRIO.Z, x_series))
     pdt.assert_frame_equal(td_small_MRIO.A, calc_A(td_small_MRIO.Z, x_values))
@@ -645,10 +664,11 @@ def test_calc_A_MRIO(td_small_MRIO):
 
 
 def test_calc_B_MRIO(td_small_MRIO):
+    """Test calculation of B matrix in MRIO using different x input formats."""
     pdt.assert_frame_equal(td_small_MRIO.B, calc_B(td_small_MRIO.Z, td_small_MRIO.x))
     # we also test the different methods to provide x:
-    x_values = td_small_MRIO.x.values
-    x_Tvalues = td_small_MRIO.x.T.values
+    x_values = td_small_MRIO.x.to_numpy()
+    x_Tvalues = td_small_MRIO.x.T.to_numpy()
     x_series = pd.Series(td_small_MRIO.x.iloc[:, 0])
     pdt.assert_frame_equal(td_small_MRIO.B, calc_B(td_small_MRIO.Z, x_series))
     pdt.assert_frame_equal(td_small_MRIO.B, calc_B(td_small_MRIO.Z, x_values))
@@ -656,10 +676,12 @@ def test_calc_B_MRIO(td_small_MRIO):
 
 
 def test_calc_Z_MRIO(td_small_MRIO):
+    """Test calculation of Z matrix in MRIO using different x input formats."""
     pdt.assert_frame_equal(td_small_MRIO.Z, calc_Z(td_small_MRIO.A, td_small_MRIO.x))
     # we also test the different methods to provide x:
-    x_values = td_small_MRIO.x.values
-    x_Tvalues = td_small_MRIO.x.T.values
+
+    x_values = td_small_MRIO.x.to_numpy()
+    x_Tvalues = td_small_MRIO.x.T.to_numpy()
     x_series = pd.Series(td_small_MRIO.x.iloc[:, 0])
     pdt.assert_frame_equal(td_small_MRIO.Z, calc_Z(td_small_MRIO.A, x_series))
     pdt.assert_frame_equal(td_small_MRIO.Z, calc_Z(td_small_MRIO.A, x_values))
@@ -667,24 +689,29 @@ def test_calc_Z_MRIO(td_small_MRIO):
 
 
 def test_calc_L_MRIO(td_small_MRIO):
+    """Test calculation of L matrix in MRIO model."""
     pdt.assert_frame_equal(td_small_MRIO.L, calc_L(td_small_MRIO.A))
 
 
 def test_calc_G_MRIO(td_small_MRIO):
+    """Test calculation of G matrix in MRIO model."""
     pdt.assert_frame_equal(td_small_MRIO.G, calc_G(td_small_MRIO.B))
 
 
 def test_calc_S_MRIO(td_small_MRIO):
+    """Test calculation of S matrix in MRIO model."""
     pdt.assert_frame_equal(td_small_MRIO.S, calc_S(td_small_MRIO.F, td_small_MRIO.x))
 
 
 def test_calc_S_Y_MRIO(td_small_MRIO):
+    """Test calculation of S_Y matrix in MRIO model."""
     pdt.assert_frame_equal(
         td_small_MRIO.S_Y, calc_S_Y(td_small_MRIO.F_Y, td_small_MRIO.Y.sum(axis=0))
     )
 
 
 def test_calc_F_Y_MRIO(td_small_MRIO):
+    """Test calculation of F_Y matrix in MRIO model."""
     S_Y = calc_S_Y(td_small_MRIO.F_Y, td_small_MRIO.Y.sum(axis=0))
     pdt.assert_frame_equal(
         td_small_MRIO.F_Y, calc_F_Y(S_Y, td_small_MRIO.Y.sum(axis=0))
@@ -692,16 +719,19 @@ def test_calc_F_Y_MRIO(td_small_MRIO):
 
 
 def test_calc_M_MRIO(td_small_MRIO):
+    """Test calculation of M matrix in MRIO model."""
     pdt.assert_frame_equal(td_small_MRIO.M, calc_M(td_small_MRIO.S, td_small_MRIO.L))
 
 
 def test_calc_M_down_MRIO(td_small_MRIO):
+    """Test calculation of M_down (Gosh-based) matrix in MRIO model."""
     pdt.assert_frame_equal(
         td_small_MRIO.M_down, calc_M_down(td_small_MRIO.S, td_small_MRIO.G)
     )
 
 
 def test_calc_gross_trade_MRIO(td_small_MRIO):
+    """Test the calculation of gross trade using the MRIO data."""
     gt = calc_gross_trade(td_small_MRIO.Z, td_small_MRIO.Y)
 
     reg1sec2trade = (
@@ -722,7 +752,7 @@ def test_calc_gross_trade_MRIO(td_small_MRIO):
 
 
 def test_calc_accounts_MRIO(td_small_MRIO):
-    # calc the accounts
+    """Testing calculating all accounts."""
     nD_cba, nD_pba, nD_imp, nD_exp = calc_accounts(
         td_small_MRIO.S,
         td_small_MRIO.L,

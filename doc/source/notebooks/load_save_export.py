@@ -57,7 +57,6 @@ io_read.meta
 # Internally, pymrio stores data in csv format, with the 'economic core' data in the root and each satellite account in a subfolder. Metadata as file as a file describing the data format ('file_parameters.json') are included in each folder.
 
 # %%
-import os
 
 os.listdir(save_folder_full)
 
@@ -146,9 +145,7 @@ io1_load = pymrio.load_all(mrio_arc, path_in_arc="version1/")
 io2_load = pymrio.load_all(mrio_arc, path_in_arc="version2/")
 
 print(
-    "Extensions of the loaded io1 {ver1} and of io2: {ver2}".format(
-        ver1=sorted(io1_load.get_extensions()), ver2=sorted(io2_load.get_extensions())
-    )
+    f"Extensions of the loaded io1 {sorted(io1_load.get_extensions())} and of io2: {sorted(io2_load.get_extensions())}"
 )
 
 # %% [markdown]

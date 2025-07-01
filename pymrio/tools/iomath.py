@@ -1,8 +1,8 @@
-"""Mathematical functions for input output calculations
+"""Mathematical functions for input output calculations.
 
 All methods here should follow the functional programming paradigm
 
-Note
+Note:
 ----
 To avoid namespace pollution everything here starts with calc_
 
@@ -19,7 +19,7 @@ import pymrio.tools.ioutil as ioutil
 
 
 def calc_x(Z, Y):
-    """Calculate the industry output x from the Z and Y matrix
+    """Calculate the industry output x from the Z and Y matrix.
 
     industry output (x) = flows (sum_columns(Z)) + final demand (sum_columns(Y))
 
@@ -48,7 +48,7 @@ def calc_x(Z, Y):
 
 
 def calc_x_from_L(L, y):
-    """Calculate the industry output x from L and a y vector
+    """Calculate the industry output x from L and a y vector.
 
     x = Ly
 
@@ -77,7 +77,7 @@ def calc_x_from_L(L, y):
 
 
 def calc_Z(A, x):
-    """calculate the Z matrix (flows) from A and x
+    """Calculate the Z matrix (flows) from A and x.
 
     A = Z / x[None, :]  =>  Z = A * x[None, :]
 
@@ -100,19 +100,19 @@ def calc_Z(A, x):
 
     """
     if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
-        x = x.values
+        x = x.to_numpy()
     x = x.reshape((1, -1))  # use numpy broadcasting - much faster
     # (but has to ensure that x is a row vector)
     # old mathematical form:
     # return A.dot(np.diagflat(x))
     if type(A) is pd.DataFrame:
-        return pd.DataFrame(A.values * x, index=A.index, columns=A.columns)
+        return pd.DataFrame(A.to_numpy() * x, index=A.index, columns=A.columns)
     else:
         return A * x
 
 
 def calc_A(Z, x):
-    """Calculate the A matrix (coefficients) from Z and x
+    """Calculate the A matrix (coefficients) from Z and x.
 
     A is a normalized version of the industrial flows Z
 
@@ -132,7 +132,7 @@ def calc_A(Z, x):
 
     """
     if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
-        x = x.values
+        x = x.to_numpy()
     if (type(x) is not np.ndarray) and (x == 0):
         recix = 0
     else:
@@ -147,13 +147,13 @@ def calc_A(Z, x):
     # Mathematical form - slow
     # return Z.dot(np.diagflat(recix))
     if type(Z) is pd.DataFrame:
-        return pd.DataFrame(Z.values * recix, index=Z.index, columns=Z.columns)
+        return pd.DataFrame(Z.to_numpy() * recix, index=Z.index, columns=Z.columns)
     else:
         return Z * recix
 
 
 def calc_B(Z, x):
-    """Calculate the B matrix (coefficients) from Z and x
+    """Calculate the B matrix (coefficients) from Z and x.
 
     B is a normalized version of the industrial flows of the transpose of Z, which quantifies the input to downstream
     sectors.
@@ -174,7 +174,7 @@ def calc_B(Z, x):
 
     """
     if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
-        x = x.values
+        x = x.to_numpy()
     if (type(x) is not np.ndarray) and (x == 0):
         recix = 0
     else:
@@ -199,7 +199,7 @@ def calc_B(Z, x):
 
 
 def calc_L(A):
-    """Calculate the Leontief L from A
+    """Calculate the Leontief L from A.
 
     L = inverse matrix of (I - A)
 
@@ -235,8 +235,9 @@ def calc_L(A):
 
 
 def calc_G(B, L=None, x=None):
-    """Calculate the Ghosh inverse matrix G either from B (high computation effort) or from Leontief matrix L and x
-    (low computation effort)
+    """Calculate the Ghosh inverse matrix G.
+
+    Either from B (high computation effort) or from Leontief matrix L and x (low computation effort)
 
     G = inverse matrix of (I - B) = hat(x) *  L * hat(x)^{-1}
 
@@ -259,7 +260,7 @@ def calc_G(B, L=None, x=None):
     # if L has already been calculated, then G can be derived from it with low computational cost.
     if L is not None and x is not None:
         if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
-            x = x.values
+            x = x.to_numpy()
         if (type(x) is not np.ndarray) and (x == 0):
             recix = 0
         else:
@@ -273,9 +274,9 @@ def calc_G(B, L=None, x=None):
 
         if type(L) is pd.DataFrame:
             return pd.DataFrame(
-                np.transpose(recix * np.transpose(L.values * x)),
-                index=Z.index,
-                columns=Z.columns,
+                np.transpose(recix * np.transpose(L.to_numpy() * x)),
+                index=L.index,
+                columns=L.columns,
             )
         else:
             # G = hat(x) *  L * hat(x)^{-1} in mathematical form hatx.dot(L.transpose()).dot(np.linalg.inv(hatx)).
@@ -290,7 +291,7 @@ def calc_G(B, L=None, x=None):
 
 
 def calc_S(F, x):
-    """Calculate extensions/factor inputs coefficients
+    """Calculate extensions/factor inputs coefficients.
 
     Parameters
     ----------
@@ -311,9 +312,9 @@ def calc_S(F, x):
 
 
 def calc_S_Y(F_Y, y):
-    """Calculate extensions/factor inputs coefficients for the final demand
+    """Calculate extensions/factor inputs coefficients for the final demand.
 
-    Note
+    Note:
     ----
     F_Y will be restricted to the item available in y for the calculation. This
     allows to use a subset of Y (just some regions for example) to be used for
@@ -343,7 +344,7 @@ def calc_S_Y(F_Y, y):
 
 
 def calc_F(S, x):
-    """Calculate total direct impacts from the impact coefficients
+    """Calculate total direct impacts from the impact coefficients.
 
     Parameters
     ----------
@@ -364,9 +365,9 @@ def calc_F(S, x):
 
 
 def calc_F_Y(S_Y, y):
-    """Calc. total direct impacts from the impact coefficients of final demand
+    """Calc total direct impacts from the impact coefficients of final demand.
 
-    Note
+    Note:
     ----
     S_Y will be restricted to the item available in y for the calculation. This
     allows to use a subset of Y (just some regions for example) to be used for
@@ -396,7 +397,7 @@ def calc_F_Y(S_Y, y):
 
 
 def calc_M(S, L):
-    """Calculate multipliers of the extensions
+    """Calculate multipliers of the extensions.
 
     Parameters
     ----------
@@ -417,7 +418,7 @@ def calc_M(S, L):
 
 
 def calc_M_down(S, G):
-    """Calculate downstream multipliers of the extensions
+    """Calculate downstream multipliers of the extensions.
 
     M_down = S * ( G^T - I )
 
@@ -442,7 +443,7 @@ def calc_M_down(S, G):
 
 
 def calc_e(M, Y):
-    """Calculate total impacts (footprints of consumption Y)
+    """Calculate total impacts (footprints of consumption Y).
 
     Parameters
     ----------
@@ -462,7 +463,6 @@ def calc_e(M, Y):
         The calculation is based on multipliers M and final demand Y
 
     """
-
     return M.dot(Y)
 
 
@@ -480,13 +480,11 @@ def recalc_M(S, D_cba, Y):
 
     Returns
     -------
-
     pandas.DataFrame or numpy.array
         Multipliers M
         The type is determined by the type of D_cba.
         If DataFrame index/columns as D_cba
     """
-
     Y_diag = ioutil.diagonalize_columns_to_sectors(Y)
     Y_inv = np.linalg.inv(Y_diag)
     M = D_cba.dot(Y_inv)
@@ -498,7 +496,7 @@ def recalc_M(S, D_cba, Y):
 
 
 def calc_accounts(S, L, Y):
-    """Calculate sector specific cba and pba based accounts, imp and exp accounts
+    """Calculate sector specific cba and pba based accounts, imp and exp accounts.
 
     The total industry output x for the calculation
     is recalculated from L and y
@@ -538,7 +536,7 @@ def calc_accounts(S, L, Y):
     Y_diag = ioutil.diagonalize_columns_to_sectors(Y)
     x_diag = L @ Y_diag
 
-    x_tot = x_diag.values.sum(1)
+    x_tot = x_diag.to_numpy().sum(1)
 
     del Y_diag
 
@@ -548,35 +546,33 @@ def calc_accounts(S, L, Y):
     # faster broadcasted calculation:
     # NB: D_pba columns might be different to D_cba columns if Y include "regions" which are not in the core. This happens for example for statistical discrepancy in the OECD tables. It is "theoretically" possible to calculate footprints for these "regions", but not PBA accounts.
     D_pba = pd.DataFrame(
-        S.values * x_tot.reshape((1, -1)), index=S.index, columns=S.columns
+        S.to_numpy() * x_tot.reshape((1, -1)), index=S.index, columns=S.columns
     )
 
     # for the traded accounts set the domestic industry output to zero
     x_trade = ioutil.set_dom_block(x_diag, value=0)
     D_imp = pd.DataFrame(S @ x_trade)
 
-    x_exp = x_trade.sum(1).values
+    x_exp = x_trade.sum(1).to_numpy()
 
     # D_exp = S.dot(np.diagflat(x_exp))
     # faster broadcasted version:
     D_exp = pd.DataFrame(
-        S.values * x_exp.reshape((1, -1)), index=S.index, columns=S.columns
+        S.to_numpy() * x_exp.reshape((1, -1)), index=S.index, columns=S.columns
     )
 
     return (D_cba, D_pba, D_imp, D_exp)
 
 
-def calc_gross_trade(
-    Z: pd.DataFrame, Y: pd.DataFrame
-) -> typing.NamedTuple(
+def calc_gross_trade(Z: pd.DataFrame, Y: pd.DataFrame) -> typing.NamedTuple(
     "gross_trade", [("bilat_flows", pd.DataFrame), ("totals", pd.DataFrame)]
 ):
-    """Calculate the gross bilateral trade flows and totals
+    """Calculate the gross bilateral trade flows and totals.
 
     These are the entries of Z and Y with the domestic blocks set to 0.
 
     Notes
-    ----------
+    -----
     This only works for DataFrame representation of Z and Y following the
     standard pymrio structure (regions on Multiindex level 0 or named 'region',
     sectors/categories on Multiindex level 1 or named 'sector').
@@ -599,7 +595,6 @@ def calc_gross_trade(
               and region
 
     """
-
     Z_trade_blocks = ioutil.set_dom_block(Z, value=0)
     Y_trade_blocks = ioutil.set_dom_block(Y, value=0)
 

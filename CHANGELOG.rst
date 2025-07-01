@@ -2,6 +2,21 @@
 Changelog
 #########
 
+******************
+v0.6.2dev
+******************
+
+Miscellaneous
+=============
+
+* change to using uv for development environment
+
+    - removed conda environment.yml file
+    - setup pyproject.toml with uv dependencies
+
+* using ruff for formating, removed black and isort
+* using poe as task runner, remove ./format_and_test.sh
+
 
 ******************
 v0.6.1 - 20250626
@@ -14,6 +29,7 @@ New Features
   `reindex` which specifies a order of the converted dataframe/extension. It is a wrapper around pandas reindex,
   but also allows to passing of a bridge column name to sort after the order given in the bridge table.
 * we have a logo
+* characterization method accepts multiple columns for characterized_name_column. Thus is can be used for characterizing into a multiindex.
 
 Fixes
 ======

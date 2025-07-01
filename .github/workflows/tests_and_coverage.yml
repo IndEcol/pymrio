@@ -1,98 +1,55 @@
-name: build
+name: CI build
 
-on: ["push", "pull_request"]
+on: [push, pull_request]
 
-jobs: 
-
- test_development:
-  # Testing in development environment: functionality and code-format
+jobs:
+  test_development:
+    name: Development test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
-
     steps:
-    - name: Check out repository code
-      uses: actions/checkout@v4
-
-    - name: Cache conda
-      uses: actions/cache@v4
-      env:
-        # Increase this value to reset cache if etc/example-environment.yml has not changed
-        CACHE_NUMBER: 0
-      with:
-        path: ~/conda_pkgs_dir
-        key:
-          ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
-          hashFiles('environment.yml') }}
-
-    - uses: mamba-org/setup-micromamba@v2
-      env:
-        ACTIONS_STEP_DEBUG: true
-      with:
-          micromamba-version: '2.2.0-0'
-          environment-file: environment.yml
-          init-shell: >-
-            bash
-            powershell
-          cache-environment: true
-          cache-downloads: true
-          post-cleanup: 'all'
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install dependencies
+        run: uv sync --all-extras
+      - name: Run full test suite
+        run: uv run poe fulltest
+      - name: Upload coverage to Coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Optionally, if you get 422, try setting:
+          # COVERALLS_SERVICE_NAME: github-actions
+        run: |
+          uv run coveralls
 
 
-    - name: List environment
-      run: |
-        micromamba info
-        micromamba list
 
-    - name: Run tests
-      run: |
-         isort --project pymrio --profile black --check-only .
-         coverage run --source=pymrio -m pytest -vv
-
-    # - name: Coveralls analysis
-    #   run: COVERALLS_REPO_TOKEN=hCmKdeZ5j9ao62VSpZWWUyBrAh1dmlQ coveralls
-
-    - name: Upload coverage to Coveralls
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Optionally, if you get 422, try setting:
-        # COVERALLS_SERVICE_NAME: github-actions
-      run: |
-        coveralls
-
-
- test_production:
-   # Testing if the package runs on different systems/python versions
+  test_production:
+  # Testing if the package runs on different systems/python versions
+    name: Production test
     needs: test_development
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        # removed -l as this breaks in mac-os
-        shell: bash {0}
     strategy:
-      fail-fast: true
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: [3.9, "3.10", "3.11", "3.12"]
-
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    runs-on: ${{ matrix.os }}
     steps:
-       - name: Check out repository code
-         uses: actions/checkout@v4
-
-       - name: Setup Python
-         uses: actions/setup-python@v5
-         with:
-            python-version: ${{matrix.python-version}}
-
-       - name: Install dependencies
-         run: |
-            pip install -U pip
-            pip install .[test]  
-
-       - name: List installed packages
-         run: pip show pymrio && pip list
-
-       - name: Run production tests
-         run: pytest -vv
-
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install dependencies
+        run: uv sync --all-extras
+      - name: Run fast tests
+        run: uv run poe test

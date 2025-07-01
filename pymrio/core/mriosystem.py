@@ -1,5 +1,4 @@
-"""
-Generic classes for pymrio
+"""Generic classes for pymrio.
 
 Classes and function here should not be used directly.
 Use the API methods from the pymrio module instead.
@@ -15,7 +14,9 @@ import string
 import time
 import typing
 import warnings
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -48,40 +49,45 @@ from pymrio.tools.iomath import (
 )
 from pymrio.tools.iometadata import MRIOMetaData
 
-
 # internal functions
-def _warn_deprecation(message):  # pragma: no cover
-    warnings.warn(message, DeprecationWarning, stacklevel=2)
+# def _warn_deprecation(message):  # pragma: no cover
+#     warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
 # Exceptions
 class ResetError(Exception):
-    """Base class for errors while reseting the system"""
+    """Base class for errors while reseting the system."""
 
     pass
 
 
 class AggregationError(Exception):
-    """Base class for errors while reseting the system"""
+    """Base class for errors while reseting the system."""
 
     pass
 
 
 class ResetWarning(UserWarning):
-    """Base class for errors while reseting the system"""
+    """Base class for errors while reseting the system."""
 
     pass
 
 
 # Abstract classes
-class BaseSystem:
-    """This class is the base class for IOSystem and Extension
+class _BaseSystem:
+    """Base class for IOSystem and Extension.
 
-    Note
+    Note:
     ----
-    Thats is only a base class - do not make an instance of this class.
+    That's is only a base class - do not make an instance of this class.
 
     """
+
+    # properties to be set in the implementation classes
+    __basic__ = []
+    __non_agg_attributes__ = []
+    __coefficients__ = []
+    name = "Abstract BaseSystem"
 
     def __str__(self, startstr="System with: "):
         parastr = ", ".join(
@@ -109,11 +115,10 @@ class BaseSystem:
         return False
 
     def reset_full(self, force=False, _meta=None):
-        """Remove all accounts which can be recalculated based on Z, Y, F, F_Y
+        """Remove all accounts which can be recalculated based on Z, Y, F, F_Y.
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -122,7 +127,7 @@ class BaseSystem:
             Metadata handler for logging, optional. Internal
 
         """
-        # Attriubtes to keep must be defined in the init: __basic__
+        # Attributes to keep must be defined in the init: __basic__
         strwarn = None
         for df in self.__basic__:
             if df == "F_Y":
@@ -133,16 +138,16 @@ class BaseSystem:
                     strwarn = (
                         "Reset system warning - Recalculation after "
                         "reset not possible "
-                        "because {} missing".format(df)
+                        f"because {df} missing"
                     )
-                    warnings.warn(strwarn, ResetWarning)
+                    warnings.warn(strwarn, ResetWarning, stacklevel=2)
 
                 else:
                     raise ResetError(
                         "To few tables to recalculate the "
-                        "system after reset ({} missing) "
+                        f"system after reset ({df} missing) "
                         "- reset can be forced by passing "
-                        "'force=True')".format(df)
+                        "'force=True')"
                     )
 
         if _meta:
@@ -160,14 +165,13 @@ class BaseSystem:
         return self
 
     def reset_to_flows(self, force=False, _meta=None):
-        """Keeps only the absolute values.
+        """Keep only the absolute values.
 
         This removes all attributes which can not be aggregated and must be
         recalculated after the aggregation.
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -188,16 +192,16 @@ class BaseSystem:
                     strwarn = (
                         "Reset system warning - Recalculation after "
                         "reset not possible "
-                        "because {} missing".format(df)
+                        f"because {df} missing"
                     )
-                    warnings.warn(strwarn, ResetWarning)
+                    warnings.warn(strwarn, ResetWarning, stacklevel=2)
 
                 else:
                     raise ResetError(
                         "To few tables to recalculate the "
-                        "system after reset ({} missing) "
+                        f"system after reset ({df} missing) "
                         "- reset can be forced by passing "
-                        "'force=True')".format(df)
+                        "'force=True')"
                     )
 
         if _meta:
@@ -209,13 +213,12 @@ class BaseSystem:
         return self
 
     def reset_to_coefficients(self):
-        """Keeps only the coefficient.
+        """Keep only the coefficient.
 
         This can be used to recalculate the IO tables for a new finald demand.
 
-        Note
+        Note:
         -----
-
         The system can not be reconstructed after this steps
         because all absolute data is removed. Save the Y data in case
         a reconstruction might be necessary.
@@ -233,11 +236,10 @@ class BaseSystem:
         return self
 
     def copy(self, new_name=None):
-        """Returns a deep copy of the system
+        """Return a deep copy of the system.
 
         Parameters
-        -----------
-
+        ----------
         new_name: str, optional
             Set a new meta name parameter.
             Default: <old_name>_copy
@@ -246,18 +248,14 @@ class BaseSystem:
         if not new_name:
             new_name = self.name + "_copy"
         if str(type(self)) == "<class 'pymrio.core.mriosystem.IOSystem'>":
-            _tmp.meta.note(
-                "IOSystem copy {new} based on {old}".format(
-                    new=new_name, old=self.meta.name
-                )
-            )
+            _tmp.meta.note(f"IOSystem copy {new_name} based on {self.meta.name}")
             _tmp.meta.change_meta("name", new_name, log=False)
         else:
             _tmp.name = new_name
         return _tmp
 
     def get_Y_categories(self, entries=None):
-        """Returns names of y cat. of the IOSystem as unique names in order
+        """Return names of y cat. of the IOSystem as unique names in order.
 
         Parameters
         ----------
@@ -288,11 +286,11 @@ class BaseSystem:
                 else:
                     return ind
         else:  # pragma: no cover
-            warnings.warn("No attributes available to get Y categories")
+            warnings.warn("No attributes available to get Y categories", stacklevel=2)
             return None
 
     def get_index(self, as_dict=False, grouping_pattern=None):
-        """Returns the index of the DataFrames in the system
+        """Return the index of the DataFrames in the system.
 
         Parameters
         ----------
@@ -310,7 +308,6 @@ class BaseSystem:
             Only relevant if as_dict is True.
 
         """
-
         possible_dataframes = [
             "A",
             "L",
@@ -338,7 +335,7 @@ class BaseSystem:
                 orig_idx = getattr(self, df).index
                 break
         else:  # pragma: no cover
-            warnings.warn("No attributes available to get index")
+            warnings.warn("No attributes available to get index", stacklevel=2)
             return None
 
         if as_dict:
@@ -355,10 +352,8 @@ class BaseSystem:
                                 k: new_group
                                 for k in dd.keys()
                                 if all(
-                                    [
-                                        re.match(pat, k[nr])
-                                        for nr, pat in enumerate(pattern)
-                                    ]
+                                    re.match(pat, k[nr])
+                                    for nr, pat in enumerate(pattern)
                                 )
                             }
                         )
@@ -368,12 +363,12 @@ class BaseSystem:
             return orig_idx
 
     def set_index(self, index):
-        """Sets the pd dataframe index of all dataframes in the system to index"""
+        """Set the pd dataframe index of all dataframes in the system to index."""
         for df in self.get_DataFrame(data=True, with_population=False):
             df.index = index
 
     def get_regions(self, entries=None):
-        """Returns the names of regions in the IOSystem as unique names in order
+        """Return the names of regions in the IOSystem as unique names in order.
 
         Parameters
         ----------
@@ -424,11 +419,11 @@ class BaseSystem:
                 else:
                     return ind
         else:  # pragma: no cover
-            warnings.warn("No attributes available to get regions")
+            warnings.warn("No attributes available to get regions", stacklevel=2)
             return None
 
     def get_sectors(self, entries=None):
-        """Names of sectors in the IOSystem as unique names in order
+        """Return names of sectors in the IOSystem as unique names in order.
 
         Parameters
         ----------
@@ -476,11 +471,13 @@ class BaseSystem:
                 else:
                     return ind
         else:  # pragma: no cover
-            warnings.warn("No attributes available to get sectors")
+            warnings.warn("No attributes available to get sectors", stacklevel=2)
             return None
 
-    def get_DataFrame(self, data=False, with_unit=True, with_population=True):
-        """Yields all panda.DataFrames or there names
+    def get_DataFrame(
+        self, data=False, with_unit=True, with_population=True
+    ) -> Iterator[Union[pd.DataFrame, str]]:
+        """Yield all panda.DataFrames or there names.
 
         Notes
         -----
@@ -507,7 +504,6 @@ class BaseSystem:
             DataFrames or string generator, depending on parameter data
 
         """
-
         for key in self.__dict__:
             if (key == "unit") and not with_unit:
                 continue
@@ -521,29 +517,29 @@ class BaseSystem:
 
     @property
     def regions(self):
-        """Returns the regions of the system as Index"""
+        """Return the regions of the system as Index."""
         return self.get_regions()
 
     @property
     def sectors(self):
-        """Returns the sectors of the MRIO system."""
+        """Return the sectors of the MRIO system."""
         return self.get_sectors()
 
     @property
     def Y_categories(self):
-        """Returns the Y categories of the MRIO system."""
+        """Return the Y categories of the MRIO system."""
         return self.get_Y_categories()
 
     @property
     def DataFrames(self):
-        """Returns the DataFrames of the system as generator"""
+        """Return the DataFrames of the system as generator."""
         return list(
             self.get_DataFrame(data=False, with_unit=True, with_population=True)
         )
 
     @property
     def empty(self):
-        """True, if all dataframes of the system are empty"""
+        """True, if all dataframes of the system are empty."""
         for df in self.get_DataFrame(data=True):
             if len(df) > 0:
                 return False
@@ -551,8 +547,7 @@ class BaseSystem:
             return True
 
     def save(self, path, table_format="txt", sep="\t", float_format="%.12g"):
-        """Saving the system to path
-
+        r"""Save the system to path.
 
         Parameters
         ----------
@@ -578,7 +573,6 @@ class BaseSystem:
             Format for saving the DataFrames, only for txt files.
             default = '%.12g'
         """
-
         for format_key, format_extension in STORAGE_FORMAT.items():
             if table_format.lower() in format_extension:
                 table_extension = table_format
@@ -586,17 +580,17 @@ class BaseSystem:
                 break
         else:
             raise ValueError(
-                'Unknown table format "{}" - '
+                f'Unknown table format "{table_format}" - '
                 'must be "txt", "pkl", "parquet" or an alias as '
-                "defined in STORAGE_FORMAT".format(table_format)
+                "defined in STORAGE_FORMAT"
             )
 
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
 
         para_file_path = path / DEFAULT_FILE_NAMES["filepara"]
-        file_para = dict()
-        file_para["files"] = dict()
+        file_para = {}
+        file_para["files"] = {}
 
         if str(type(self)) == "<class 'pymrio.core.mriosystem.IOSystem'>":
             file_para["systemtype"] = GENERIC_NAMES["iosys"]
@@ -605,7 +599,7 @@ class BaseSystem:
             file_para["name"] = self.name
         else:
             warnings.warn(
-                'Unknown system type {} - set to "undef"'.format(str(type(self)))
+                f'Unknown system type {str(type(self))} - set to "undef"', stacklevel=2
             )
             file_para["systemtype"] = "undef"
 
@@ -622,7 +616,7 @@ class BaseSystem:
 
             save_file = df_name + "." + table_extension
             save_file_with_path = path / save_file
-            logging.info("Save file {}".format(save_file_with_path))
+            logging.info(f"Save file {save_file_with_path}")
             if table_format == "txt":
                 df.to_csv(save_file_with_path, sep=sep, float_format=float_format)
             elif table_format == "pickle":
@@ -632,7 +626,7 @@ class BaseSystem:
             else:
                 raise ValueError("Unknow table format passed through")
 
-            file_para["files"][df_name] = dict()
+            file_para["files"][df_name] = {}
             file_para["files"][df_name]["name"] = save_file
             file_para["files"][df_name]["nr_index_col"] = str(nr_index_col)
             file_para["files"][df_name]["nr_header"] = str(nr_header)
@@ -644,13 +638,13 @@ class BaseSystem:
             if not self.meta:
                 self.meta = MRIOMetaData(name=self.name, location=path)
 
-            self.meta._add_fileio("Saved {} to {}".format(self.name, path))
+            self.meta._add_fileio(f"Saved {self.name} to {path}")
             self.meta.save(location=path)
 
         return self
 
     def rename_regions(self, regions):
-        """Sets new names for the regions
+        """Set new names for the regions.
 
         Parameters
         ----------
@@ -661,25 +655,30 @@ class BaseSystem:
                 without repetition
 
         """
-
         if type(regions) is list:
-            regions = {old: new for old, new in zip(self.get_regions(), regions)}
+            regions = dict(zip(self.get_regions(), regions))
 
-        for df in self.get_DataFrame(data=True):
-            df.rename(index=regions, columns=regions, inplace=True)
+        for iodf_name, iodf in zip(
+            self.get_DataFrame(data=False), self.get_DataFrame(data=True)
+        ):
+            self.__dict__[iodf_name] = iodf.rename(index=regions, columns=regions)
 
         try:
             for ext in self.get_extensions(data=True):
-                for df in ext.get_DataFrame(data=True):
-                    df.rename(index=regions, columns=regions, inplace=True)
-        except:  # noqa: E722
+                for extdf_name, extdf in zip(
+                    ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)
+                ):
+                    ext.__dict__[extdf_name] = extdf.rename(
+                        index=regions, columns=regions
+                    )
+        except Exception as _:
             pass
 
         self.meta._add_modify("Changed country names")
         return self
 
     def rename_sectors(self, sectors):
-        """Sets new names for the sectors
+        """Set new names for the sectors.
 
         Parameters
         ----------
@@ -690,24 +689,29 @@ class BaseSystem:
                 complete without repetition
 
         """
-
         if type(sectors) is list:
-            sectors = {old: new for old, new in zip(self.get_sectors(), sectors)}
+            sectors = dict(zip(self.get_sectors(), sectors))
 
-        for df in self.get_DataFrame(data=True):
-            df.rename(index=sectors, columns=sectors, inplace=True)
+        for iodf_name, iodf in zip(
+            self.get_DataFrame(data=False), self.get_DataFrame(data=True)
+        ):
+            self.__dict__[iodf_name] = iodf.rename(index=sectors, columns=sectors)
 
         try:
             for ext in self.get_extensions(data=True):
-                for df in ext.get_DataFrame(data=True):
-                    df.rename(index=sectors, columns=sectors, inplace=True)
-        except:
+                for extdf_name, extdf in zip(
+                    ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)
+                ):
+                    ext.__dict__[extdf_name] = extdf.rename(
+                        index=sectors, columns=sectors
+                    )
+        except Exception as _e:
             pass
         self.meta._add_modify("Changed sector names")
         return self
 
     def rename_Y_categories(self, Y_categories):
-        """Sets new names for the Y_categories
+        """Set new names for the Y_categories.
 
         Parameters
         ----------
@@ -718,27 +722,32 @@ class BaseSystem:
                 complete without repetition
 
         """
-
         if type(Y_categories) is list:
-            Y_categories = {
-                old: new for old, new in zip(self.get_Y_categories(), Y_categories)
-            }
+            Y_categories = dict(zip(self.get_Y_categories(), Y_categories))
 
-        for df in self.get_DataFrame(data=True):
-            df.rename(index=Y_categories, columns=Y_categories, inplace=True)
+        for iodf_name, iodf in zip(
+            self.get_DataFrame(data=False), self.get_DataFrame(data=True)
+        ):
+            self.__dict__[iodf_name] = iodf.rename(
+                index=Y_categories, columns=Y_categories
+            )
 
         try:
             for ext in self.get_extensions(data=True):
-                for df in ext.get_DataFrame(data=True):
-                    df.rename(index=Y_categories, columns=Y_categories, inplace=True)
-        except:
+                for extdf_name, extdf in zip(
+                    ext.get_DataFrame(data=False), ext.get_DataFrame(data=True)
+                ):
+                    ext.__dict__[extdf_name] = extdf.rename(
+                        index=Y_categories, columns=Y_categories
+                    )
+        except Exception:
             pass
 
         self.meta._add_modify("Changed Y category names")
         return self
 
     def find(self, term):
-        """Looks for term in index, sectors, regions, Y_categories
+        """Look for term in index, sectors, regions, Y_categories.
 
         Mostly useful for a quick check if entry is present.
 
@@ -760,32 +769,32 @@ class BaseSystem:
             Empty keys are ommited.
             The values can be used directly on one of the DataFrames with .loc
         """
-        res_dict = dict()
+        res_dict = {}
         try:
             index_find = ioutil.index_contains(
                 self.get_index(as_dict=False), find_all=term
             )
             if len(index_find) > 0:
                 res_dict["index"] = index_find
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
         try:
             reg_find = ioutil.index_contains(self.get_regions(), find_all=term)
             if len(reg_find) > 0:
                 res_dict["regions"] = reg_find
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
         try:
             sector_find = ioutil.index_contains(self.get_sectors(), find_all=term)
             if len(sector_find) > 0:
                 res_dict["sectors"] = sector_find
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
         try:
             Y_find = ioutil.index_contains(self.get_Y_categories(), find_all=term)
             if len(Y_find) > 0:
                 res_dict["Y_categories"] = Y_find
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
         try:
             for ext in self.get_extensions(data=False, instance_names=True):
@@ -794,13 +803,13 @@ class BaseSystem:
                 )
                 if len(ext_index_find) > 0:
                     res_dict[ext + "_index"] = ext_index_find
-        except:  # noqa: E722
+        except Exception:  # noqa: E722
             pass
 
         return res_dict
 
     def contains(self, find_all=None, **kwargs):
-        """Check if index of the system contains the regex pattern
+        """Check if index of the system contains the regex pattern.
 
         Similar to pandas str.contains, thus the index
         string must contain the regex pattern. Uses ioutil.index_contains
@@ -808,7 +817,7 @@ class BaseSystem:
         The index levels need to be named (df.index.name needs to
         be set for all levels).
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -834,7 +843,7 @@ class BaseSystem:
         return ioutil.index_contains(self.get_index(as_dict=False), find_all, **kwargs)
 
     def match(self, find_all=None, **kwargs):
-        """Check if index of the system match the regex pattern
+        """Check if index of the system match the regex pattern.
 
         Similar to pandas str.match, thus the start of the index string must match.
         Uses ioutil.index_match
@@ -842,7 +851,7 @@ class BaseSystem:
         The index levels need to be named (df.index.name needs to
         be set for all levels).
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -868,7 +877,7 @@ class BaseSystem:
         return ioutil.index_match(self.get_index(as_dict=False), find_all, **kwargs)
 
     def fullmatch(self, find_all=None, **kwargs):
-        """Check if a index row of the system is a full match to the regex pattern
+        """Check if a index row of the system is a full match to the regex pattern.
 
         Similar to pandas str.fullmatch, thus the whole
         string of the index must match. Uses ioutil.index_fullmatch
@@ -876,7 +885,7 @@ class BaseSystem:
         The index levels need to be named (df.index.name needs to
         be set for all levels).
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -903,12 +912,11 @@ class BaseSystem:
 
 
 # API classes
-class Extension(BaseSystem):
-    """Class which gathers all information for one extension of the IOSystem
+class Extension(_BaseSystem):
+    """Class which gathers all information for one extension of the IOSystem.
 
     Notes
     -----
-
     For the total accounts (D_) also reginal (appendix _reg) and
     per capita (appendix _cap) are possible.
 
@@ -979,7 +987,7 @@ class Extension(BaseSystem):
         unit=None,
         **kwargs,
     ):
-        """Init function - see docstring class"""
+        """Init function - see docstring class."""
         self.name = name
         self.F = F
         self.F_Y = F_Y
@@ -1037,10 +1045,11 @@ class Extension(BaseSystem):
                 setattr(self, acc, None)
 
     def __str__(self):
+        """Return string representation."""
         return super().__str__("Extension {} with parameters: ").format(self.name)
 
     def calc_system(self, x, Y, Y_agg=None, L=None, G=None, population=None):
-        """Calculates the missing part of the extension plus accounts
+        """Calculate the missing part of the extension plus accounts.
 
         This method allows to specify an aggregated Y_agg for the
         account calculation (see Y_agg below). However, the full Y needs
@@ -1081,7 +1090,6 @@ class Extension(BaseSystem):
         population : pandas.DataFrame or np.array, optional
             Row vector with population per region
         """
-
         # TODO This should only be used for calculating the full system.
         # TODO There needs to be a new method for calculating the system
         # for a different demand vector in here
@@ -1097,24 +1105,24 @@ class Extension(BaseSystem):
 
         if self.F is None:
             self.F = calc_F(self.S, x)
-            logging.debug("{} - F calculated".format(self.name))
+            logging.debug(f"{self.name} - F calculated")
 
         if self.S is None:
             self.S = calc_S(self.F, x)
-            logging.debug("{} - S calculated".format(self.name))
+            logging.debug(f"{self.name} - S calculated")
 
         if (self.F_Y is None) and (self.S_Y is not None):
             self.F_Y = calc_F_Y(self.S_Y, y_vec)
-            logging.debug("{} - F_Y calculated".format(self.name))
+            logging.debug(f"{self.name} - F_Y calculated")
 
         if (self.S_Y is None) and (self.F_Y is not None):
             self.S_Y = calc_S_Y(self.F_Y, y_vec)
-            logging.debug("{} - S_Y calculated".format(self.name))
+            logging.debug(f"{self.name} - S_Y calculated")
 
         if self.M is None:
             if L is not None:
                 self.M = calc_M(self.S, L)
-                logging.debug("{} - M calculated based on L".format(self.name))
+                logging.debug(f"{self.name} - M calculated based on L")
             else:
                 try:
                     self.M = recalc_M(
@@ -1123,23 +1131,17 @@ class Extension(BaseSystem):
                         Y=Y_agg,
                         nr_sectors=self.get_sectors().size,
                     )
-                    logging.debug(
-                        "{} - M calculated based on D_cba and Y".format(self.name)
-                    )
+                    logging.debug(f"{self.name} - M calculated based on D_cba and Y")
                 except Exception as ex:
-                    logging.debug(
-                        "Recalculation of M not possible - cause: {}".format(ex)
-                    )
+                    logging.debug(f"Recalculation of M not possible - cause: {ex}")
 
         if self.M_down is None:
             if G is not None:
                 self.M_down = calc_M_down(self.S, G)
-                logging.debug("{} - M_down calculated based on G".format(self.name))
+                logging.debug(f"{self.name} - M_down calculated based on G")
             else:
                 logging.debug(
-                    "Calculation of M_down not possible because G is not available.".format(
-                        self.name
-                    )
+                    "Calculation of M_down not possible because G is not available."
                 )
 
         F_Y_agg = 0
@@ -1164,7 +1166,7 @@ class Extension(BaseSystem):
                 self.D_cba, self.D_pba, self.D_imp, self.D_exp = calc_accounts(
                     self.S, L, Y_agg
                 )
-                logging.debug("{} - Accounts D calculated".format(self.name))
+                logging.debug(f"{self.name} - Accounts D calculated")
 
         # aggregate to country
         if (
@@ -1202,7 +1204,7 @@ class Extension(BaseSystem):
             except (AssertionError, KeyError):
                 self.D_exp_reg = self.D_exp.T.groupby(level=0, sort=False).sum().T
 
-            logging.debug("{} - Accounts D for regions calculated".format(self.name))
+            logging.debug(f"{self.name} - Accounts D for regions calculated")
 
         # calc accounts per capita if population data is available
         if population is not None:
@@ -1225,7 +1227,7 @@ class Extension(BaseSystem):
                     self.D_exp_reg / population.iloc[0][self.D_exp_reg.columns]
                 )
 
-                logging.debug("{} - Accounts D per capita calculated".format(self.name))
+                logging.debug(f"{self.name} - Accounts D per capita calculated")
         return self
 
     def plot_account(
@@ -1238,7 +1240,7 @@ class Extension(BaseSystem):
         population=None,
         **kwargs,
     ):
-        """Plots D_pba, D_cba, D_imp and D_exp for the specified row (account)
+        """Plot D_pba, D_cba, D_imp and D_exp for the specified row (account).
 
         Plot either the total country accounts or for a specific sector,
         depending on the 'sector' parameter.
@@ -1311,7 +1313,7 @@ class Extension(BaseSystem):
                 y_label_name = (
                     name_row + " (" + str(self.unit.loc[row, "unit"].tolist()[0]) + ")"
                 )
-            except:
+            except Exception:
                 y_label_name = name_row + " (" + str(self.unit.loc[row, "unit"]) + ")"
         else:
             y_label_name = name_row
@@ -1341,7 +1343,7 @@ class Extension(BaseSystem):
                 accounts["Imports"] = "D_imp_reg"
                 accounts["Exports"] = "D_exp_reg"
 
-        data_row = pd.DataFrame(columns=[key for key in accounts])
+        data_row = pd.DataFrame(columns=list(accounts))
         for key in accounts:
             if sector:
                 try:
@@ -1369,9 +1371,10 @@ class Extension(BaseSystem):
                             ):
                                 warnings.warn(
                                     "Population regions are inconsistent "
-                                    "with IO regions"
+                                    "with IO regions",
+                                    stacklevel=2,
                                 )
-                            population = population.values
+                            population = population.to_numpy()
                             population = population.reshape((-1, 1))
                             _data = _data / population
                     else:
@@ -1393,7 +1396,7 @@ class Extension(BaseSystem):
         plt.legend(loc="best")
         try:
             plt.tight_layout()
-        except:  # pragma: no cover
+        except Exception:
             pass
 
         if file_name:
@@ -1410,13 +1413,13 @@ class Extension(BaseSystem):
         ffname=None,
         **kwargs,
     ):
-        """Writes a report to the given path for the regional accounts
+        """Write a report to the given path for the regional accounts.
 
         The report consists of a text file and a folder with the pics
         (both names following parameter name)
 
         Notes
-        ----
+        -----
             This looks prettier with the seaborn module
             (import seaborn before calling this method)
 
@@ -1447,7 +1450,6 @@ class Extension(BaseSystem):
             (through the self.plot_account method)
 
         """
-
         if not per_region and not per_capita:
             raise ValueError("Either per_region or per_capita must be choosen")
 
@@ -1473,7 +1475,7 @@ class Extension(BaseSystem):
             "per region accounts": rep_spec(per_region, "_per_region", False),
             "per capita accounts": rep_spec(per_capita, "_per_capita", True),
         }
-        logging.info("Write report for {}".format(self.name))
+        logging.info(f"Write report for {self.name}")
         fig_name_list = []
         for arep in reports_to_write:
             if not reports_to_write[arep].make:
@@ -1547,7 +1549,7 @@ class Extension(BaseSystem):
                 report_txt.append("-" * len(graph_name) + "\n\n")
 
                 report_txt.append(".. image:: " + str(file_name_rel))
-                report_txt.append("   :width: {} \n".format(int(pic_size)))
+                report_txt.append(f"   :width: {int(pic_size)} \n")
 
             # write report file and convert to given format
             report_txt.append("\nReport written on " + time.strftime("%Y%m%d %H%M%S"))
@@ -1557,7 +1559,7 @@ class Extension(BaseSystem):
                     import docutils.core as dc
 
                     if format == "tex":
-                        format == "latex"
+                        format = "latex"
                     with warnings.catch_warnings():
                         warnings.filterwarnings("ignore", category=DeprecationWarning)
                         fin_txt = dc.publish_string(
@@ -1566,8 +1568,11 @@ class Extension(BaseSystem):
                             settings_overrides={"output_encoding": "unicode"},
                         )
 
-                except:  # pragma: no cover
-                    warnings.warn("Module docutils not available - write rst instead")
+                except Exception:
+                    warnings.warn(
+                        "Module docutils not available - write rst instead",
+                        stacklevel=2,
+                    )
                     format = "rst"
             format_str = {
                 "latex": "tex",
@@ -1579,17 +1584,13 @@ class Extension(BaseSystem):
             _repfile = curr_ffname + "." + format_str.get(format, str(format))
             with open(path / _repfile, "w") as out_file:
                 out_file.write(fin_txt)
-            logging.info(
-                "Report for {what} written to {file_where}".format(
-                    what=arep, file_where=str(_repfile)
-                )
-            )
+            logging.info(f"Report for {arep} written to {str(_repfile)}")
 
         if _plt:  # pragma: no cover
             plt.ion()
 
     def get_rows(self):
-        """Returns the name of the rows of the extension"""
+        """Return the name of the rows of the extension."""
         possible_dataframes = [
             "F",
             "F_Y",
@@ -1612,16 +1613,16 @@ class Extension(BaseSystem):
             if (df in self.__dict__) and (getattr(self, df) is not None):
                 return getattr(self, df).index
         else:
-            warnings.warn("No attributes available to get row names")
+            warnings.warn("No attributes available to get row names", stacklevel=2)
             return None
 
     @property
     def rows(self):
-        """Returns the name of the rows of the extension"""
+        """Return the name of the rows of the extension."""
         return self.get_rows()
 
     def get_row_data(self, row, name=None):
-        """Returns a dict with all available data for a row in the extension.
+        """Return a dict with all available data for a row in the extension.
 
         If you need a new extension, see the extract method.
 
@@ -1644,6 +1645,7 @@ class Extension(BaseSystem):
             "This method will be removed in future versions. "
             "Use extract method instead",
             DeprecationWarning,
+            stacklevel=2,
         )
 
         retdict = {}
@@ -1654,8 +1656,7 @@ class Extension(BaseSystem):
         return retdict
 
     def extract(self, index, dataframes=None, return_type="dataframes"):
-        """Returns a dict with all available data for a row in the extension.
-
+        """Return a dict with all available data for a row in the extension.
 
         Parameters
         ----------
@@ -1691,7 +1692,8 @@ class Extension(BaseSystem):
         else:
             if not all(elem in self.get_DataFrame() for elem in dataframes):
                 warnings.warn(
-                    f"Not all requested dataframes are available in {self.name}"
+                    f"Not all requested dataframes are available in {self.name}",
+                    stacklevel=2,
                 )
             dataframes = [elem for elem in dataframes if elem in self.get_DataFrame()]
 
@@ -1717,7 +1719,6 @@ class Extension(BaseSystem):
 
         Note
         ----
-
         Since the type of analysis based on the disaggregated matrix is based
         on flows, direct household emissions (F_Y) are not included.
 
@@ -1783,7 +1784,7 @@ class Extension(BaseSystem):
         only_validation=False,
         name="_characterized",
     ):
-        """Characterize stressors
+        """Characterize stressors.
 
         Characterizes the extension with the characterization factors given in factors.
 
@@ -1812,22 +1813,24 @@ class Extension(BaseSystem):
         Any missing data is assumed to be 0.
 
         Note
-        ----
+        -----
         Accordance of units is enforced.
         This is done be checking the column specified in orig_unit_column with the unit
         dataframe of the extension.
 
         Parameters
-        -----------
+        ----------
         factors: pd.DataFrame
             A dataframe in long format with numerical index and columns named
             index.names of the extension to be characterized and
             'characterized_name_column', 'characterization_factors_column',
             'characterized_unit_column', 'orig_unit_column'
 
-        characterized_name_column: str (optional)
+        characterized_name_column: str (optional) or list[str]
             Name of the column with the names of the
-            characterized account (default: "impact")
+            characterized account (default: "impact").
+            In case a list of columns is passed, these get
+            conconateded to one colum and split before return.
 
         characterization_factors_column: str (optional)
             Name of the column with the factors for the
@@ -1844,7 +1847,7 @@ class Extension(BaseSystem):
 
 
         Returns
-        --------
+        -------
         namedtuple with the following attributes:
             validation: pd.DataFrame
             extension: pymrio.Extension
@@ -1853,6 +1856,32 @@ class Extension(BaseSystem):
 
         """
         name = self.name + name if name[0] == "_" else name
+
+        if type(characterized_name_column) is list:
+            if len(characterized_name_column) == 0:
+                raise ValueError(
+                    "characterized_name_column must be a string or a list with at least one element"
+                )
+            elif len(characterized_name_column) == 1:
+                characterized_name_column = characterized_name_column[0]
+                orig_characterized_name_column = None
+            else:
+                orig_characterized_name_column = characterized_name_column
+                sep_char = "<<!>>"
+                all_impacts = pd.concat(
+                    [factors[col] for col in characterized_name_column]
+                ).unique()
+                all_impacts_joined = "".join(all_impacts)
+
+                while sep_char in all_impacts_joined:
+                    sep_char = sep_char.replace("|", "||")
+
+                characterized_name_column = "char_name_col_merged"
+                factors.loc[:, characterized_name_column] = factors[
+                    orig_characterized_name_column
+                ].agg(sep_char.join, axis=1)
+        else:
+            orig_characterized_name_column = None
 
         req = ioutil._characterize_get_requried_col(
             ext_index_names=list(self.get_rows().names),
@@ -1884,13 +1913,15 @@ class Extension(BaseSystem):
 
         if any(validation.error_unit_impact):
             warnings.warn(
-                "Inconsistent impact units found in factors - check validation"
+                "Inconsistent impact units found in factors - check validation",
+                stacklevel=2,
             )
             return ret_value(validation=validation, extension=None)
 
         if any(validation.error_unit_stressor):
             warnings.warn(
-                "Unit errors/inconsistencies between passed units and extension units - check validation"
+                "Unit errors/inconsistencies between passed units and extension units - check validation",
+                stacklevel=2,
             )
             return ret_value(validation=validation, extension=None)
 
@@ -1924,17 +1955,28 @@ class Extension(BaseSystem):
             )
             _group_index = res.index.names.difference(acc.index.names)
             res = res.groupby(_group_index).sum().T.reindex(columns=acc.columns)
+            if orig_characterized_name_column:
+                res.index = pd.MultiIndex.from_arrays(
+                    list(zip(*res.index.str.split(sep_char))),
+                    names=orig_characterized_name_column,
+                )
             setattr(new_ext, acc_name, res)
 
-        setattr(
-            new_ext,
-            "unit",
+        res_unit = (
             factors.loc[:, [characterized_name_column, characterized_unit_column]]
             .drop_duplicates()
             .set_index(characterized_name_column)
             .rename({characterized_unit_column: "unit"}, axis=1)
-            .loc[new_ext.get_rows(), :],
         )
+        if orig_characterized_name_column:
+            res_unit.index = pd.MultiIndex.from_arrays(
+                list(zip(*res_unit.index.str.split(sep_char))),
+                names=orig_characterized_name_column,
+            )
+        res_unit = res_unit.loc[new_ext.get_rows(), :]
+        new_ext.unit = res_unit
+        if orig_characterized_name_column:
+            validation = validation.drop(characterized_name_column, axis=1)
 
         return ret_value(
             validation=validation,
@@ -1952,11 +1994,10 @@ class Extension(BaseSystem):
         ignore_columns=None,
         reindex=None,
     ):
-        """Apply the convert function to all dataframes in the extension
+        """Apply the convert function to all dataframes in the extension.
 
         Parameters
         ----------
-
         df_map : pd.DataFrame
             The DataFrame with the mapping of the old to the new classification.
             This requires a specific structure:
@@ -2110,8 +2151,8 @@ class Extension(BaseSystem):
         return new_extension
 
 
-class IOSystem(BaseSystem):
-    """Class containing a whole EE MRIO System
+class IOSystem(_BaseSystem):
+    """Class containing a whole EE MRIO System.
 
     The class collects pandas dataframes for a whole EE MRIO system. The
     attributes for the trade matrices (Z, L, A, x, Y) can be set directly,
@@ -2188,7 +2229,7 @@ class IOSystem(BaseSystem):
         description=None,
         **kwargs,
     ):
-        """Init function - see docstring class"""
+        """Init function - see docstring class."""
         self.Z = Z
         self.Y = Y
         self.x = x
@@ -2228,6 +2269,7 @@ class IOSystem(BaseSystem):
         self.__basic__ = ["Z", "Y"]  # minimal necessary to calc the rest
 
     def __str__(self):
+        """Return string representation."""
         return super().__str__("IO System with parameters: ")
 
     def __eq__(self, other):
@@ -2245,6 +2287,7 @@ class IOSystem(BaseSystem):
 
     @property
     def name(self):
+        """Return name."""
         try:
             return self.meta.name
         except AttributeError:
@@ -2252,12 +2295,12 @@ class IOSystem(BaseSystem):
 
     @property
     def extensions(self):
-        """Returns the defined extension names"""
+        """Return the defined extension names."""
         return list(self.get_extensions(instance_names=False))
 
     @property
     def extensions_instance_names(self):
-        """Returns the instance names of the extensions"""
+        """Return the instance names of the extensions."""
         return list(self.get_extensions(instance_names=True))
 
     def get_gross_trade(
@@ -2265,7 +2308,7 @@ class IOSystem(BaseSystem):
     ) -> typing.NamedTuple(
         "gross_trade", [("bilat_flows", pd.DataFrame), ("totals", pd.DataFrame)]
     ):
-        """Returns the gross bilateral trade flows and totals
+        """Return the gross bilateral trade flows and totals.
 
         These are the entries of Z and Y with the domestic blocks set to 0.
 
@@ -2283,8 +2326,7 @@ class IOSystem(BaseSystem):
         return calc_gross_trade(Z=self.Z, Y=self.Y)
 
     def calc_all(self, include_ghosh=False):
-        """
-        Calculates missing parts of the IOSystem and all extensions.
+        """Calculate missing parts of the IOSystem and all extensions.
 
         This method calls `calc_system` and `calc_extensions` to perform the calculations.
 
@@ -2304,8 +2346,7 @@ class IOSystem(BaseSystem):
         return self
 
     def calc_system(self, include_ghosh=False):
-        """
-        Calculates the missing part of the core IOSystem
+        """Calculate the missing part of the core IOSystem.
 
         The method checks Z, A, x, L and calculates all which are None
 
@@ -2319,13 +2360,12 @@ class IOSystem(BaseSystem):
         dealt with. The ghosh calculation rely on Z
 
         Parameters
-        -----------
+        ----------
         include_ghosh : bool, optional
             If True, includes ghosh calculations in the system and extensions.
             Default is False.
 
         """
-
         # Possible cases:
         # 1) Z given, rest can be None and calculated
         # 2) A and x given, rest can be calculated
@@ -2358,7 +2398,6 @@ class IOSystem(BaseSystem):
             self.meta._add_modify("Leontief matrix L calculated")
 
         if include_ghosh:
-
             if self.B is None:
                 self.B = calc_B(self.Z, self.x)
                 self.meta._add_modify("Normalized industrial flow matrix B calculated")
@@ -2370,7 +2409,7 @@ class IOSystem(BaseSystem):
         return self
 
     def calc_extensions(self, extensions=None, Y_agg=None, include_ghosh=False):
-        """Calculates the extension and their accounts
+        """Calculate the extension and their accounts.
 
         For the calculation, y is aggregated across specified y categories
         The method calls .calc_system of each extension (or these given in the
@@ -2390,16 +2429,13 @@ class IOSystem(BaseSystem):
             Default is False.
 
         """
-
         ext_list = list(self.get_extensions(data=False, instance_names=True))
         extensions = extensions or ext_list
-        if type(extensions) == str:
+        if isinstance(extensions, str):
             extensions = [extensions]
 
         for ext_name in extensions:
-            self.meta._add_modify(
-                "Calculating accounts for extension {}".format(ext_name)
-            )
+            self.meta._add_modify(f"Calculating accounts for extension {ext_name}")
             ext = getattr(self, ext_name)
             ext.calc_system(
                 x=self.x,
@@ -2420,7 +2456,7 @@ class IOSystem(BaseSystem):
         format="rst",
         **kwargs,
     ):
-        """Generates a report to the given path for all extension
+        """Generate a report to the given path for all extension.
 
         This method calls .report_accounts for all extensions
 
@@ -2455,7 +2491,6 @@ class IOSystem(BaseSystem):
             (through the self.plot_account method)
 
         """
-
         for ext in self.get_extensions(data=True):
             ext.report_accounts(
                 path=path,
@@ -2467,7 +2502,7 @@ class IOSystem(BaseSystem):
             )
 
     def get_extensions(self, names=None, data=False, instance_names=True):
-        """Yields the extensions or their names
+        """Yield the extensions or their names.
 
         Parameters
         ----------
@@ -2493,7 +2528,6 @@ class IOSystem(BaseSystem):
         Generator for Extension or string
 
         """
-
         all_ext_list = [
             key for key in self.__dict__ if isinstance(self.__dict__[key], Extension)
         ]
@@ -2531,7 +2565,7 @@ class IOSystem(BaseSystem):
 
         Similar to pandas str.fullmatch, thus the start of the index string must match.
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -2562,13 +2596,13 @@ class IOSystem(BaseSystem):
         )
 
     def extension_match(self, find_all=None, extensions=None, **kwargs):
-        """Get a dict of extension index dicts which match a search pattern
+        """Get a dict of extension index dicts which match a search pattern.
 
         This calls the extension.match for all extensions.
 
         Similar to pandas str.match, thus the start of the index string must match.
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -2599,14 +2633,14 @@ class IOSystem(BaseSystem):
         )
 
     def extension_contains(self, find_all=None, extensions=None, **kwargs):
-        """Get a dict of extension index dicts which contains a search pattern
+        """Get a dict of extension index dicts which contains a search pattern.
 
         This calls the extension.contains for all extensions.
 
         Similar to pandas str.contains, thus the index
         string must contain the regex pattern.
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -2717,7 +2751,7 @@ class IOSystem(BaseSystem):
             return extracts
 
     def _apply_extension_method(self, extensions, method, *args, **kwargs):
-        """Apply a method to a list of extensions
+        """Apply a method to a list of extensions.
 
         Parameters
         ----------
@@ -2750,17 +2784,16 @@ class IOSystem(BaseSystem):
         ext_data = self.get_extensions(names=extensions, data=True)
 
         result = {}
-        for ext_name, inst_name, ext in zip(extensions, instance_names, ext_data):
+        for ext_name, _inst_name, ext in zip(extensions, instance_names, ext_data):
             method_fun = getattr(ext, method)
             result[ext_name] = method_fun(*args, **kwargs)
         return result
 
     def reset_full(self, force=False):
-        """Remove all accounts which can be recalculated based on Z, Y, F, F_Y
+        """Remove all accounts which can be recalculated based on Z, Y, F, F_Y.
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -2769,13 +2802,12 @@ class IOSystem(BaseSystem):
         return self
 
     def reset_all_full(self, force=False):
-        """Removes all accounts that can be recalculated (IOSystem and extensions)
+        """Remove all accounts that can be recalculated (IOSystem and extensions).
 
         This calls reset_full for the core system and all extension.
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -2787,7 +2819,7 @@ class IOSystem(BaseSystem):
         return self
 
     def reset_extensions(self, force=False):
-        """Resets all extensions - preparation for recalculation with a new Y
+        """Reset all extensions - preparation for recalculation with a new Y.
 
         This calls reset_full for all extension.
         If only a specific extension should be recalulated call reset_full on the
@@ -2795,7 +2827,6 @@ class IOSystem(BaseSystem):
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -2806,14 +2837,13 @@ class IOSystem(BaseSystem):
         return self
 
     def reset_to_flows(self, force=False):
-        """Keeps only the absolute values.
+        """Keep only the absolute values.
 
         This removes all attributes which can not be aggregated and must be
         recalculated after the aggregation.
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -2822,14 +2852,13 @@ class IOSystem(BaseSystem):
         return self
 
     def reset_all_to_flows(self, force=False):
-        """Resets the IOSystem and all extensions to absolute flows
+        """Reset the IOSystem and all extensions to absolute flows.
 
         This method calls reset_to_flows for the IOSystem and for
         all Extensions in the system.
 
         Parameters
         ----------
-
         force: boolean, optional
             If True, reset to flows although the system can not be
             recalculated. Default: False
@@ -2841,14 +2870,13 @@ class IOSystem(BaseSystem):
         return self
 
     def reset_all_to_coefficients(self):
-        """Resets the IOSystem and all extensions to coefficients.
+        """Reset the IOSystem and all extensions to coefficients.
 
         This method calls reset_to_coefficients for the IOSystem and for
         all Extensions in the system
 
-        Note
+        Note:
         -----
-
         The system can not be reconstructed after this steps
         because all absolute data is removed. Save the Y data in case
         a reconstruction might be necessary.
@@ -2860,14 +2888,13 @@ class IOSystem(BaseSystem):
         return self
 
     def save_all(self, path, table_format="txt", sep="\t", float_format="%.12g"):
-        """Saves the system and all extensions
+        """Save the system and all extensions.
 
         Extensions are saved in separate folders (names based on extension)
 
         Parameters are passed to the .save methods of the IOSystem and
         Extensions. See parameters description there.
         """
-
         path = Path(path)
 
         path.mkdir(parents=True, exist_ok=True)
@@ -2894,7 +2921,7 @@ class IOSystem(BaseSystem):
         return self
 
     def aggregate_duplicates(self, inplace=True):
-        """Aggregate duplicated regions and sectors
+        """Aggregate duplicated regions and sectors.
 
         Alternative approach to aggregate MRIO by renaming sectors/regions
         in place and then adding them together. This works well if used with the included classification schemes.
@@ -2913,45 +2940,48 @@ class IOSystem(BaseSystem):
             Aggregated IOSystem (if inplace is False)
 
         """
-
         if not inplace:
             self = self.copy()
 
         try:
             self.reset_all_to_flows()
-        except ResetError:
+        except ResetError as err:
             raise AggregationError(
                 "System under-defined for aggregation - "
                 "do a 'calc_all' before aggregation"
-            )
+            ) from err
 
-        def agg_routine(df):
-            """Aggregation of duplicate columns and rows"""
-            _index_names = df.index.names
-            _columns_names = df.columns.names
-            if (type(df.columns[0]) is not tuple) and df.columns[0].lower() == "unit":
-                df = df.groupby(df.index, sort=False).first()
+        def agg_routine(iodf):
+            """Aggregate duplicate columns and rows."""
+            _index_names = iodf.index.names
+            _columns_names = iodf.columns.names
+            if (type(iodf.columns[0]) is not tuple) and iodf.columns[
+                0
+            ].lower() == "unit":
+                iodf = iodf.groupby(iodf.index, sort=False).first()
             else:
-                df = (
-                    df.groupby(df.index, sort=False)
+                iodf = (
+                    iodf.groupby(iodf.index, sort=False)
                     .sum()
-                    .T.groupby(df.columns, sort=False)
+                    .T.groupby(iodf.columns, sort=False)
                     .sum()
                     .T
                 )
 
-            if type(df.index[0]) is tuple:
-                df.index = pd.MultiIndex.from_tuples(df.index, names=_index_names)
-            if type(df.columns[0]) is tuple:
-                df.columns = pd.MultiIndex.from_tuples(df.columns, names=_columns_names)
-            return df
+            if type(iodf.index[0]) is tuple:
+                iodf.index = pd.MultiIndex.from_tuples(iodf.index, names=_index_names)
+            if type(iodf.columns[0]) is tuple:
+                iodf.columns = pd.MultiIndex.from_tuples(
+                    iodf.columns, names=_columns_names
+                )
+            return iodf
 
         for df_to_agg_name in self.get_DataFrame(data=False, with_unit=True):
             self.meta._add_modify(f"Aggregate economic core - {df_to_agg_name}")
             setattr(
                 self,
                 df_to_agg_name,
-                agg_routine(df=getattr(self, df_to_agg_name)),
+                agg_routine(iodf=getattr(self, df_to_agg_name)),
             )
 
         # Aggregate extension
@@ -2963,7 +2993,7 @@ class IOSystem(BaseSystem):
                 setattr(
                     ext,
                     df_to_agg_name,
-                    agg_routine(df=getattr(ext, df_to_agg_name)),
+                    agg_routine(iodf=getattr(ext, df_to_agg_name)),
                 )
 
         if not inplace:
@@ -2977,7 +3007,7 @@ class IOSystem(BaseSystem):
         sector_names=None,
         inplace=True,
     ):
-        """Aggregates the IO system.
+        """Aggregate the IO system.
 
         Aggregation can be given as vector (use pymrio.build_agg_vec) or
         aggregation matrix. In the case of a vector this must be of length
@@ -3039,11 +3069,11 @@ class IOSystem(BaseSystem):
 
         try:
             self.reset_to_flows()
-        except ResetError:
+        except ResetError as err:
             raise AggregationError(
                 "System under-defined for aggregation - "
                 "do a 'calc_all' before aggregation"
-            )
+            ) from err
 
         if type(region_names) is str:
             region_names = [region_names]
@@ -3281,7 +3311,7 @@ class IOSystem(BaseSystem):
         return self
 
     def remove_extension(self, ext):
-        """Remove extension from IOSystem
+        """Remove extension from IOSystem.
 
         For single Extensions the same can be achieved with del
         IOSystem_name.Extension_name
@@ -3300,12 +3330,12 @@ class IOSystem(BaseSystem):
         for ee in ext:
             try:
                 del self.__dict__[ee]
-                self.meta._add_modify("Removed extension {}".format(ee))
+                self.meta._add_modify(f"Removed extension {ee}")
             except KeyError:
                 ext_instance = self.get_extensions(ee, instance_names=True)
                 for x in ext_instance:
                     del self.__dict__[x]
-                    self.meta._add_modify("Removed extension {}".format(x))
+                    self.meta._add_modify(f"Removed extension {x}")
 
         return self
 
@@ -3321,7 +3351,7 @@ class IOSystem(BaseSystem):
         ignore_columns=None,
         reindex=None,
     ):
-        """Apply the convert function to the extensions of the mrio object
+        """Apply the convert function to the extensions of the mrio object.
 
         Internally that calls the Extension.convert function for all extensions.
 
@@ -3330,7 +3360,6 @@ class IOSystem(BaseSystem):
 
         Parameters
         ----------
-
         df_map : pd.DataFrame
             The DataFrame with the mapping of the old to the new classification.
             This requires a specific structure:
@@ -3468,7 +3497,7 @@ class IOSystem(BaseSystem):
         stressors.
 
         Parameters
-        -----------
+        ----------
         factors: pd.DataFrame
             A dataframe in long format with numerical index and columns named
             index.names of the extension to be characterized and 'extension',
@@ -3503,7 +3532,7 @@ class IOSystem(BaseSystem):
 
 
         Returns
-        --------
+        -------
         pymrio.Extension
 
 
@@ -3521,7 +3550,7 @@ class IOSystem(BaseSystem):
         )
 
     def extension_concate(self, new_extension_name):
-        """Concates all extension of the mrio object
+        """Concates all extension of the mrio object.
 
         This method combines all satellite accounts into a single extension.
 
@@ -3561,7 +3590,7 @@ def extension_characterize(
     only_validation=False,
     orig_unit_column="stressor_unit",
 ):
-    """Characterize stressors across different extensions
+    """Characterize stressors across different extensions.
 
     This works similar to the characterize method of a specific
     extension.
@@ -3579,7 +3608,7 @@ def extension_characterize(
 
 
     Parameters
-    -----------
+    ----------
     extensions : list of extensions
         Extensions to convert. All extensions passed must have the same index names/format.
 
@@ -3617,12 +3646,11 @@ def extension_characterize(
 
 
     Returns
-    --------
+    -------
     pymrio.Extension
 
 
     """
-
     if extension_col_name not in factors.columns:
         raise ValueError("The factors dataframe must include the column 'extension'")
 
@@ -3722,14 +3750,13 @@ def extension_convert(
     ignore_columns=None,
     reindex=None,
 ):
-    """Apply the convert function to a list of extensions
+    """Apply the convert function to a list of extensions.
 
     Internally that calls the Extension.convert function for all extensions.
 
 
     Parameters
     ----------
-
     extensions : list of extensions
         Extensions to convert. All extensions passed must
         have an index structure (index names) as described in df_map.
@@ -3831,7 +3858,6 @@ def extension_convert(
 
 
     """
-
     if type(extensions) is Extension:
         extensions = [extensions]
     elif type(extensions) is tuple:
@@ -3846,7 +3872,8 @@ def extension_convert(
     for ext in extensions:
         if ext.name not in df_map[extension_col_name].unique():
             warnings.warn(
-                f"Extension {ext.name} not found in df_map. Skipping extension."
+                f"Extension {ext.name} not found in df_map. Skipping extension.",
+                stacklevel=2,
             )
             # TODO: later go to logging
             continue
@@ -3894,23 +3921,22 @@ def extension_convert(
 
 
 def extension_concate(*extensions, new_extension_name):
-    """Concatenate extensions
+    """Concatenate extensions.
 
     Notes
-    ----
+    -----
     The method assumes that the first index is the name of the
     stressor/impact/input type. To provide a consistent naming this is renamed
     to 'indicator' if they differ. All other index names ('compartments', ...)
     are added to the concatenated extensions and set to NaN for missing values.
 
     Notes
-    ----
+    -----
     Attributes which are not DataFrames will be set to None if they differ
     between the extensions
 
     Parameters
     ----------
-
     extensions : Extensions
         The Extensions to concatenate as multiple parameters
 
@@ -3919,11 +3945,9 @@ def extension_concate(*extensions, new_extension_name):
 
     Returns
     -------
-
     Concatenated extension
 
     """
-
     if type(extensions[0]) is tuple or type(extensions[0]) is list:
         extensions = extensions[0]
 
@@ -3941,7 +3965,7 @@ def extension_concate(*extensions, new_extension_name):
 
     # get the intersection of the available dataframes
     set_dfs = [set(ext.get_DataFrame(data=False)) for ext in extensions]
-    df_dict = {key: None for key in set.intersection(*set_dfs)}
+    df_dict = dict.fromkeys(set.intersection(*set_dfs))
     if F_Y_present:
         df_dict["F_Y"] = None
     if S_Y_present:
@@ -3974,7 +3998,7 @@ def extension_concate(*extensions, new_extension_name):
             # doesn't work with getattr b/c F_Y can be present as attribute but
             # not as DataFrame
             if "F_Y" in ext.get_DataFrame(data=False):
-                cur_dict["F_Y"] = getattr(ext, "F_Y")
+                cur_dict["F_Y"] = ext.F_Y
             else:
                 cur_dict["F_Y"] = pd.DataFrame(
                     data=0, index=ext.get_index(), columns=SF_Y_columns
@@ -3983,7 +4007,7 @@ def extension_concate(*extensions, new_extension_name):
             # doesn't work with getattr b/c S_Y can be present as attribute but
             # not as DataFrame
             if "S_Y" in ext.get_DataFrame(data=False):
-                cur_dict["S_Y"] = getattr(ext, "S_Y")
+                cur_dict["S_Y"] = ext.S_Y
             else:
                 cur_dict["S_Y"] = pd.DataFrame(
                     data=0, index=ext.get_index(), columns=SF_Y_columns
@@ -3997,8 +4021,8 @@ def extension_concate(*extensions, new_extension_name):
                     df_ind_names = list(df_dict[key].index.names)
                     cur_ind_names[0] = "indicator"
                     df_ind_names[0] = cur_ind_names[0]
-                    cur_dict[key].index.set_names(cur_ind_names, inplace=True)
-                    df_dict[key].index.set_names(df_ind_names, inplace=True)
+                    cur_dict[key].index = cur_dict[key].index.set_names(cur_ind_names)
+                    df_dict[key].index = df_dict[key].index.set_names(df_ind_names)
 
                     for ind in cur_ind_names:
                         if ind not in df_ind_names:

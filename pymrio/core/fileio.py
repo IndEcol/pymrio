@@ -1,7 +1,4 @@
-"""
-Methods to load previously save mrios
-
-"""
+"""Methods to load previously save mrios."""
 
 import collections
 import configparser
@@ -28,13 +25,13 @@ from pymrio.tools.ioutil import get_file_para
 
 # Exceptions
 class ReadError(Exception):
-    """Base class for errors occuring while reading MRIO data"""
+    """Base class for errors occuring while reading MRIO data."""
 
     pass
 
 
 def _get_file_format(file_name):
-    """Helper function to get the format of a stored file"""
+    """Get the format of a stored file."""
     # TODO: move to pathlib
     given_extension = Path(file_name).suffix.lstrip(".")
     for format_key, format_extension in STORAGE_FORMAT.items():
@@ -43,11 +40,11 @@ def _get_file_format(file_name):
             break
     else:
         raise ValueError("Unkown format of stored files")
-    return format_key
+    return table_format
 
 
 def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
-    """Loads a full IO system with all extension in path
+    """Load a full IO system with all extension from path.
 
     Parameters
     ----------
@@ -89,7 +86,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
     """
 
     def clean(varStr):
-        """get valid python name from folder"""
+        """Get valid python name from folder."""
         return re.sub(r"\W|^(?=\d)", "_", str(varStr))
 
     path = Path(path)
@@ -135,16 +132,14 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                 )
             elif len(fpfiles) > 1:
                 raise ReadError(
-                    "Mulitple mrio archives found in {}. "
+                    f"Mulitple mrio archives found in {path}. "
                     "Specify one by the "
-                    'parameter "path_in_arc"'.format(path)
+                    'parameter "path_in_arc"'
                 )
             else:
                 path_in_arc = os.path.dirname(fpfiles[0])
 
-        logging.debug(
-            "Expect file parameter-file at {} in {}".format(path_in_arc, path)
-        )
+        logging.debug(f"Expect file parameter-file at {path_in_arc} in {path}")
 
     io = load(path, include_core=include_core, path_in_arc=path_in_arc)
 
@@ -181,9 +176,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                     path, include_core=include_core, path_in_arc=subfolder_full_meta
                 )
                 setattr(io, clean(subfolder_name), ext)
-                io.meta._add_fileio(
-                    "Added satellite account " "from {}".format(subfolder_full)
-                )
+                io.meta._add_fileio(f"Added satellite account from {subfolder_full}")
             else:
                 continue
 
@@ -206,9 +199,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
             if subfolder_full_meta.exists():
                 ext = load(subfolder_full, include_core=include_core)
                 setattr(io, clean(subfolder_name), ext)
-                io.meta._add_fileio(
-                    "Added satellite account " "from {}".format(subfolder_full)
-                )
+                io.meta._add_fileio(f"Added satellite account from {subfolder_full}")
             else:
                 continue
 
@@ -216,7 +207,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
 
 
 def load(path, include_core=True, path_in_arc=""):
-    """Loads a IOSystem or Extension previously saved with pymrio
+    """Load a IOSystem or Extension previously saved with pymrio.
 
     This function can be used to load a IOSystem or Extension specified in a
     metadata file (as defined in DEFAULT_FILE_NAMES['filepara']: metadata.json)
@@ -248,7 +239,6 @@ def load(path, include_core=True, path_in_arc=""):
 
     Returns
     -------
-
         IOSystem or Extension class depending on systemtype in the json file
         None in case of errors
 
@@ -274,14 +264,12 @@ def load(path, include_core=True, path_in_arc=""):
             ret_system = IOSystem(
                 meta=MRIOMetaData(location=path, path_in_arc=metadata_folder)
             )
-            ret_system.meta._add_fileio(
-                "Loaded IO system from {} - {}".format(path, path_in_arc)
-            )
+            ret_system.meta._add_fileio(f"Loaded IO system from {path} - {path_in_arc}")
         else:
             ret_system = IOSystem(
                 meta=MRIOMetaData(location=path / DEFAULT_FILE_NAMES["metadata"])
             )
-            ret_system.meta._add_fileio("Loaded IO system from {}".format(path))
+            ret_system.meta._add_fileio(f"Loaded IO system from {path}")
 
     elif file_para.content["systemtype"] == GENERIC_NAMES["ext"]:
         ret_system = Extension(file_para.content["name"])
@@ -313,7 +301,7 @@ def load(path, include_core=True, path_in_arc=""):
                 full_file_name = full_file_name.replace("//", "/")
             else:
                 full_file_name = file_name
-            logging.info("Load data from {}".format(full_file_name))
+            logging.info(f"Load data from {full_file_name}")
 
             with zipfile.ZipFile(file=str(path)) as zf:
                 file_format = _get_file_format(full_file_name)
@@ -337,7 +325,7 @@ def load(path, include_core=True, path_in_arc=""):
 
         else:
             full_file_name = path / file_name
-            logging.info("Load data from {}".format(full_file_name))
+            logging.info(f"Load data from {full_file_name}")
             file_format = _get_file_format(full_file_name)
             if file_format == "txt":
                 setattr(
@@ -367,7 +355,7 @@ def archive(
     compression=zipfile.ZIP_DEFLATED,
     compresslevel=-1,
 ):
-    """Archives a MRIO database as zip file
+    """Archive a MRIO database as zip file.
 
     This function is a wrapper around zipfile.write,
     to ease the writing of an archive and removing the source data.
@@ -382,7 +370,6 @@ def archive(
 
     Parameters
     ----------
-
     source: str or pathlib.Path or list of these
         Location of the mrio data (folder).
         If not all data should be archived, pass a list of
@@ -465,14 +452,14 @@ def archive(
             )
 
     if sys.version_info.major == 3 and sys.version_info.minor >= 7:
-        zip_open_para = dict(
-            file=str(archive),
-            mode="a",
-            compression=compression,
-            compresslevel=compresslevel,
-        )
+        zip_open_para = {
+            "file": str(archive),
+            "mode": "a",
+            "compression": compression,
+            "compresslevel": compresslevel,
+        }
     else:
-        zip_open_para = dict(file=str(archive), mode="a", compression=compression)
+        zip_open_para = {"file": str(archive), "mode": "a", "compression": compression}
 
     with zipfile.ZipFile(**zip_open_para) as zz:
         for fullpath, zippath in arc_file_names.items():
@@ -482,7 +469,7 @@ def archive(
         for f in source_files:
             os.remove(str(f))
 
-        for root, dirs, files in os.walk(source_root, topdown=False):
+        for root, dirs, _files in os.walk(source_root, topdown=False):
             for name in dirs:
                 dir_path = os.path.join(root, name)
                 if not os.listdir(dir_path):
@@ -494,7 +481,7 @@ def archive(
 
 
 def _load_all_ini_based_io(path, **kwargs):  # pragma: no cover
-    """DEPRECATED: For convert a previous version to the new json format
+    """Convert a previous version to the new json format (DEPREACATED).
 
     Loads the whole IOSystem with Extensions given in path
 
@@ -520,11 +507,11 @@ def _load_ini_based_io(
     path,
     recursive=False,
     ini=None,
-    subini={},
+    subini=None,
     include_core=True,
     only_coefficients=False,
 ):  # pragma: no cover
-    """DEPRECATED: For convert a previous version to the new json format
+    """Convert a previous version to the new json format (DEPRECATED).
 
     Loads a IOSystem or Extension from a ini files
 
@@ -535,7 +522,6 @@ def _load_ini_based_io(
 
     Parameters
     ----------
-
     path : string
         path or ini file name for the data to load
 
@@ -566,12 +552,10 @@ def _load_ini_based_io(
 
     Returns
     -------
-
         IOSystem or Extension class depending on systemtype in the ini file
         None in case of errors
 
     """
-
     # check path and given parameter
     ini_file_name = None
 
@@ -639,7 +623,7 @@ def _load_ini_based_io(
 
         if (nr_index_col is None) or (nr_header is None):
             raise ReadError(
-                "Index or column specification missing for {}".format(str(file_name))
+                f"Index or column specification missing for {str(file_name)}"
             )
             return None
 
@@ -651,7 +635,7 @@ def _load_ini_based_io(
         if _header == [0]:
             _header = 0
         file = os.path.join(path, file_name)
-        logging.info("Load data from {}".format(file))
+        logging.info(f"Load data from {file}")
 
         if (
             os.path.splitext(file)[1] == ".pkl"
@@ -671,6 +655,7 @@ def _load_ini_based_io(
 
         # loop all subfolder and append extension based on
         # ini file in subfolder
+        subini = subini if subini else {}
         for subfolder in subfolder_list:
             subini_file_name = subini.get(subfolder)
             subpath = os.path.abspath(os.path.join(path, subfolder))
@@ -682,7 +667,7 @@ def _load_ini_based_io(
                         if _inifound:
                             raise ReadError(
                                 "Found multiple ini files in subfolder "
-                                "{} - specify one".format(subpath)
+                                f"{subpath} - specify one"
                             )
                             return None
                         subini_file_name = file
@@ -703,8 +688,7 @@ def _load_ini_based_io(
 
             if systemtype == "IOSystem":
                 raise ReadError(
-                    "IOSystem found in subfolder {} - "
-                    "only extensions expected".format(subpath)
+                    f"IOSystem found in subfolder {subpath} - only extensions expected"
                 )
                 return None
             elif systemtype == "Extension":
@@ -735,8 +719,7 @@ def _load_ini_based_io(
 
                 if (nr_index_col is None) or (nr_header is None):
                     raise ReadError(
-                        "Index or column specification missing "
-                        "for {}".format(str(file_name))
+                        f"Index or column specification missing for {str(file_name)}"
                     )
                     return None
 
@@ -748,7 +731,7 @@ def _load_ini_based_io(
                 if _header == [0]:
                     _header = 0
                 file = os.path.join(subpath, file_name)
-                logging.info("Load data from {}".format(file))
+                logging.info(f"Load data from {file}")
                 if (
                     os.path.splitext(file)[1] == ".pkl"
                     or os.path.splitext(file)[1] == ".pickle"
@@ -773,7 +756,7 @@ def _load_ini_based_io(
 
 
 def load_test():
-    """Returns a small test MRIO
+    """Return a small test MRIO.
 
     The test system contains:
 
@@ -787,17 +770,14 @@ def load_test():
 
     Notes
     -----
-
         For development: This function can be used as an example of
         how to parse an IOSystem
 
     Returns
     -------
-
     IOSystem
 
     """
-
     # row_header:
     #    number of rows containing header on the top of the file (for the
     #    columns)
@@ -813,23 +793,23 @@ def load_test():
     )
 
     # file names and header specs of the system
-    test_system = dict(
-        Z=file_data(
+    test_system = {
+        "Z": file_data(
             file_name="trade_flows_Z.txt", row_header=2, col_header=3, unit_col=2
         ),
-        Y=file_data(
+        "Y": file_data(
             file_name="finald_demand_Y.txt", row_header=2, col_header=3, unit_col=2
         ),
-        fac=file_data(
+        "fac": file_data(
             file_name="factor_input.txt", row_header=2, col_header=2, unit_col=1
         ),
-        emissions=file_data(
+        "emissions": file_data(
             file_name="emissions.txt", row_header=2, col_header=3, unit_col=2
         ),
-        FDemissions=file_data(
+        "FDemissions": file_data(
             file_name="FDemissions.txt", row_header=2, col_header=3, unit_col=2
         ),
-    )
+    }
 
     meta_rec = MRIOMetaData(location=PYMRIO_PATH["test_mrio_data"])
 
@@ -851,18 +831,19 @@ def load_test():
     # - name the header data
     # - save unit in own dataframe and drop unit from the tables
 
-    trade = dict(Z=data["Z"], Y=data["Y"])
-    factor_inputs = dict(F=data["fac"])
-    emissions = dict(F=data["emissions"], F_Y=data["FDemissions"])
+    trade = {"Z": data["Z"], "Y": data["Y"]}
+    factor_inputs = {"F": data["fac"]}
+    emissions = {"F": data["emissions"], "F_Y": data["FDemissions"]}
 
     trade["Z"].index.names = ["region", "sector", "unit"]
     trade["Z"].columns.names = ["region", "sector"]
     trade["unit"] = pd.DataFrame(trade["Z"].iloc[:, 0].reset_index(level="unit").unit)
-    trade["Z"].reset_index(level="unit", drop=True, inplace=True)
-
+    trade["Z"] = trade["Z"].reset_index(level="unit", drop=True)
     trade["Y"].index.names = ["region", "sector", "unit"]
     trade["Y"].columns.names = ["region", "category"]
-    trade["Y"].reset_index(level="unit", drop=True, inplace=True)
+    trade["Y"] = trade["Y"].reset_index(level="unit", drop=True)
+    data["Z"] = trade["Z"]
+    data["Y"] = trade["Y"]
 
     factor_inputs["name"] = "Factor Inputs"
     factor_inputs["F"].index.names = [
@@ -873,7 +854,8 @@ def load_test():
     factor_inputs["unit"] = pd.DataFrame(
         factor_inputs["F"].iloc[:, 0].reset_index(level="unit").unit
     )
-    factor_inputs["F"].reset_index(level="unit", drop=True, inplace=True)
+    # factor_inputs["F"].reset_index(level="unit", drop=True, inplace=True)
+    factor_inputs["F"] = factor_inputs["F"].reset_index(level="unit", drop=True)
 
     emissions["name"] = "Emissions"
     emissions["F"].index.names = [
@@ -885,10 +867,10 @@ def load_test():
     emissions["unit"] = pd.DataFrame(
         emissions["F"].iloc[:, 0].reset_index(level="unit").unit
     )
-    emissions["F"].reset_index(level="unit", drop=True, inplace=True)
+    emissions["F"] = emissions["F"].reset_index(level="unit", drop=True)
     emissions["F_Y"].index.names = ["stressor", "compartment", "unit"]
     emissions["F_Y"].columns.names = ["region", "category"]
-    emissions["F_Y"].reset_index(level="unit", drop=True, inplace=True)
+    emissions["F_Y"] = emissions["F_Y"].reset_index(level="unit", drop=True)
 
     # the population data - this is optional (None can be passed if no data is
     # available)

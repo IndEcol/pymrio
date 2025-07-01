@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pymrio"
-version = "0.6.1"
+version = "0.6.2dev"
 description = "A python module for automating input output calculations and generating reports"
 readme = "README.rst"
 authors = [
@@ -48,7 +48,20 @@ dependencies = [
 
 
 [project.optional-dependencies]
-dev = ["pymrio[lint,test]"]
+dev = [
+  "pdbpp",
+  "country_converter >= 0.8.0",
+  "ipython",
+  "jupyterlab == 3.*",
+  "jupytext",
+  "pynvim",
+  "sphinx >= 1.6.4",
+  "sphinx_rtd_theme >= 0.2.4",
+  "ipykernel",
+  "nbsphinx",
+  "more-itertools",
+  "poethepoet",
+]
 lint = [
   "black >=22.3.0",
   "isort >=5.5.2",
@@ -56,12 +69,15 @@ lint = [
 test = [
   "coveralls",
   "coverage[toml]",
-  "black[juyter]",
-  "pytest >=5.4.0",
+  "black",
+  "pytest >=5.4.3",
   "pytest-black",
   "pytest-cov >=2.7.0",
   "pytest-datadir",
   "pytest-mypy",
+  "pytest-xdist[psutil]",
+  "faker",
+  "pytest-ruff>=0.5",
 ]
 
 
@@ -98,4 +114,74 @@ omit = [
     "pymrio/tools/iodownloader.py"
 ]
 
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+extend-exclude = ["*.ipynb", "doc/source/**/*.py"]
+
+
+[tool.ruff.lint]
+# Default: pycodestyle (E, W) and Pyflakes (F) rules.
+extend-select = [
+    "B",   # flake8-bugbear: Finds potential bugs and design problems.
+    "C",   # flake8-comprehensions: Promotes pythonic list/set/dict comprehensions.
+    "D",   # pydocstyle: Enforces docstring conventions.
+    "I",   # isort: Sorts and organizes imports automatically.
+    "UP",  # pyupgrade: Helps upgrade syntax to newer Python versions.
+    "PD",  # pandas-vet: Checks for common mistakes in pandas usage.
+]
+ignore = [
+    "D100",  # Missing docstring in public module
+    "D104",  # Missing docstring in public package
+    "PD013", # pandas: replace stack by melt
+    "PD010", # pandas: replace stack by pivot
+]
+# These codes are ignored by the linter (e.g., flake8, pydocstyle, or pandas-vet)
+
+[tool.ruff.lint.mccabe]
+max-complexity = 50
+
+[tool.ruff.lint.pydocstyle]
+# Specify the docstring convention to follow. "google" and "numpy" are common in data science.
+convention = "numpy"
+
+[tool.ruff.format]
+# Sets the style for quotes. Can be "single", "double", or "preserve".
+quote-style = "double"
+
+[tool.poe.tasks.sync]
+help = "Sync all dependencies"
+cmd = "uv sync --all-extras"
+
+
+[tool.poe.tasks.format]
+help = "Format all files"
+cmd = "ruff format"
+
+[tool.poe.tasks.check]
+help = "Ruff check, accept --fix and all other arguments"
+cmd  = "ruff check ${args}"
+
+[tool.poe.tasks.fulltest]
+help = "Run the full test suite"
+shell  = """
+coverage erase
+coverage run -m pytest --ruff --ruff-format
+coverage report 
+"""
+
+[tool.poe.tasks.test]
+help = "Fast testing"
+cmd  = "pytest -n auto"
+
+[tool.poe.tasks.doc]
+help = "Build docs"
+shell  = """
+make -C ./doc clean
+make -C ./doc html
+"""
+
+[tool.poe.tasks.build]
+help = "Format, test with coverage and build docs"
+sequence = ["format", "fulltest", "doc"]
 
