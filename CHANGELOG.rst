@@ -6,6 +6,18 @@ Changelog
 v0.6.2dev
 ******************
 
+Miscellaneous
+=============
+
+* change to using uv for development environment
+
+    - removed conda environment.yml file
+    - setup pyproject.toml with uv dependencies
+
+* using ruff for formating, removed black and isort
+* using poe as task runner, remove ./format_and_test.sh
+
+
 ******************
 v0.6.1 - 20250626
 ******************
