@@ -1,4 +1,4 @@
-"""Classification helpers for various standard MRIOs
+"""Classification helpers for various standard MRIOs.
 
 KST 20211123
 """
@@ -13,7 +13,7 @@ from pymrio.core.constants import PYMRIO_PATH
 
 
 def get_classification(mrio_name: Optional[str] = None):
-    """Get predefined classifications included in pymrio
+    """Get predefined classifications included in pymrio.
 
     Parameters
     ----------
@@ -44,7 +44,7 @@ def get_classification(mrio_name: Optional[str] = None):
 
 @dataclass
 class ClassificationData:
-    """Classification data for MRIOs
+    """Classification data for MRIOs.
 
     Typically includes .sectors and .finaldemand
 
@@ -62,6 +62,7 @@ class ClassificationData:
     finaldemand: pd.DataFrame = field(init=False)
 
     def __post_init__(self):
+        """Set sectors and final demand."""
         self.sectors = pd.read_csv(
             Path(self.mrio_classification_folder) / self.sectors_file_name,
             sep=self.sectors_sep,
@@ -74,7 +75,7 @@ class ClassificationData:
     def get_sector_dict(
         self, orig: Union[str, list, pd.Series], new: Union[str, pd.Series]
     ):
-        """Returns sector rename dict based
+        """Return sector rename dict based.
 
         Parameters
         ----------
