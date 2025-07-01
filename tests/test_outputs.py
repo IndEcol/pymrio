@@ -3,9 +3,8 @@
 The report functionality is tested separately
 in test_integration
 
-Note
+Note:
 ----
-
 Here we use the values returned from the plotted graph
 for testing. Regression tests against plotted graphs,
 as provided by image_comparison decorator of matplotlib,

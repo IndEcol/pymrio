@@ -1,5 +1,4 @@
-"""
-Methods to load previously save mrios
+"""Methods to load previously save mrios
 
 """
 
@@ -89,7 +88,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
     """
 
     def clean(varStr):
-        """get valid python name from folder"""
+        """Get valid python name from folder"""
         return re.sub(r"\W|^(?=\d)", "_", str(varStr))
 
     path = Path(path)
@@ -135,15 +134,15 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                 )
             elif len(fpfiles) > 1:
                 raise ReadError(
-                    "Mulitple mrio archives found in {}. "
+                    f"Mulitple mrio archives found in {path}. "
                     "Specify one by the "
-                    'parameter "path_in_arc"'.format(path)
+                    'parameter "path_in_arc"'
                 )
             else:
                 path_in_arc = os.path.dirname(fpfiles[0])
 
         logging.debug(
-            "Expect file parameter-file at {} in {}".format(path_in_arc, path)
+            f"Expect file parameter-file at {path_in_arc} in {path}"
         )
 
     io = load(path, include_core=include_core, path_in_arc=path_in_arc)
@@ -182,7 +181,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                 )
                 setattr(io, clean(subfolder_name), ext)
                 io.meta._add_fileio(
-                    "Added satellite account from {}".format(subfolder_full)
+                    f"Added satellite account from {subfolder_full}"
                 )
             else:
                 continue
@@ -207,7 +206,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None):
                 ext = load(subfolder_full, include_core=include_core)
                 setattr(io, clean(subfolder_name), ext)
                 io.meta._add_fileio(
-                    "Added satellite account from {}".format(subfolder_full)
+                    f"Added satellite account from {subfolder_full}"
                 )
             else:
                 continue
@@ -246,9 +245,8 @@ def load(path, include_core=True, path_in_arc=""):
         for data in e.g. the folder 'emissions' pass 'emissions/'.  Only used
         if parameter 'path' points to an compressed zip file.
 
-    Returns
+    Returns:
     -------
-
         IOSystem or Extension class depending on systemtype in the json file
         None in case of errors
 
@@ -275,13 +273,13 @@ def load(path, include_core=True, path_in_arc=""):
                 meta=MRIOMetaData(location=path, path_in_arc=metadata_folder)
             )
             ret_system.meta._add_fileio(
-                "Loaded IO system from {} - {}".format(path, path_in_arc)
+                f"Loaded IO system from {path} - {path_in_arc}"
             )
         else:
             ret_system = IOSystem(
                 meta=MRIOMetaData(location=path / DEFAULT_FILE_NAMES["metadata"])
             )
-            ret_system.meta._add_fileio("Loaded IO system from {}".format(path))
+            ret_system.meta._add_fileio(f"Loaded IO system from {path}")
 
     elif file_para.content["systemtype"] == GENERIC_NAMES["ext"]:
         ret_system = Extension(file_para.content["name"])
@@ -313,7 +311,7 @@ def load(path, include_core=True, path_in_arc=""):
                 full_file_name = full_file_name.replace("//", "/")
             else:
                 full_file_name = file_name
-            logging.info("Load data from {}".format(full_file_name))
+            logging.info(f"Load data from {full_file_name}")
 
             with zipfile.ZipFile(file=str(path)) as zf:
                 file_format = _get_file_format(full_file_name)
@@ -337,7 +335,7 @@ def load(path, include_core=True, path_in_arc=""):
 
         else:
             full_file_name = path / file_name
-            logging.info("Load data from {}".format(full_file_name))
+            logging.info(f"Load data from {full_file_name}")
             file_format = _get_file_format(full_file_name)
             if file_format == "txt":
                 setattr(
@@ -372,7 +370,7 @@ def archive(
     This function is a wrapper around zipfile.write,
     to ease the writing of an archive and removing the source data.
 
-    Note
+    Note:
     ----
     In contrast to zipfile.write, this function raises an
     error if the data (path + filename) are identical in the zip archive.
@@ -423,7 +421,7 @@ def archive(
         https://docs.python.org/3/library/zlib.html#zlib.compressobj )
         NB: This is only used if python version >= 3.7
 
-    Raises
+    Raises:
     ------
     FileExistsError: In case a file to be archived already present in the
     archive.
@@ -508,7 +506,7 @@ def _load_all_ini_based_io(path, **kwargs):  # pragma: no cover
     **kwargs : key word arguments, optional
             This will be passed directly to the load method
 
-    Returns
+    Returns:
     -------
     IOSystem
     None in case of errors
@@ -564,14 +562,12 @@ def _load_ini_based_io(
         significantly reduces the required memory if the purpose is only
         to analyse the results calculated beforehand.
 
-    Returns
+    Returns:
     -------
-
         IOSystem or Extension class depending on systemtype in the ini file
         None in case of errors
 
     """
-
     # check path and given parameter
     ini_file_name = None
 
@@ -639,7 +635,7 @@ def _load_ini_based_io(
 
         if (nr_index_col is None) or (nr_header is None):
             raise ReadError(
-                "Index or column specification missing for {}".format(str(file_name))
+                f"Index or column specification missing for {str(file_name)}"
             )
             return None
 
@@ -651,7 +647,7 @@ def _load_ini_based_io(
         if _header == [0]:
             _header = 0
         file = os.path.join(path, file_name)
-        logging.info("Load data from {}".format(file))
+        logging.info(f"Load data from {file}")
 
         if (
             os.path.splitext(file)[1] == ".pkl"
@@ -682,7 +678,7 @@ def _load_ini_based_io(
                         if _inifound:
                             raise ReadError(
                                 "Found multiple ini files in subfolder "
-                                "{} - specify one".format(subpath)
+                                f"{subpath} - specify one"
                             )
                             return None
                         subini_file_name = file
@@ -703,9 +699,7 @@ def _load_ini_based_io(
 
             if systemtype == "IOSystem":
                 raise ReadError(
-                    "IOSystem found in subfolder {} - only extensions expected".format(
-                        subpath
-                    )
+                    f"IOSystem found in subfolder {subpath} - only extensions expected"
                 )
                 return None
             elif systemtype == "Extension":
@@ -736,9 +730,7 @@ def _load_ini_based_io(
 
                 if (nr_index_col is None) or (nr_header is None):
                     raise ReadError(
-                        "Index or column specification missing for {}".format(
-                            str(file_name)
-                        )
+                        f"Index or column specification missing for {str(file_name)}"
                     )
                     return None
 
@@ -750,7 +742,7 @@ def _load_ini_based_io(
                 if _header == [0]:
                     _header = 0
                 file = os.path.join(subpath, file_name)
-                logging.info("Load data from {}".format(file))
+                logging.info(f"Load data from {file}")
                 if (
                     os.path.splitext(file)[1] == ".pkl"
                     or os.path.splitext(file)[1] == ".pickle"
@@ -787,19 +779,16 @@ def load_test():
     The test system only contains Z, Y, F, F_Y. The rest can be calculated with
     calc_all()
 
-    Notes
+    Notes:
     -----
-
         For development: This function can be used as an example of
         how to parse an IOSystem
 
-    Returns
+    Returns:
     -------
-
     IOSystem
 
     """
-
     # row_header:
     #    number of rows containing header on the top of the file (for the
     #    columns)

@@ -201,7 +201,6 @@ def test_all_with_ghosh(td_testmrio):
     -) M calculations
     -) concate extension
     """
-
     mr_wig = pymrio.load_test()
     mr_wig.calc_all(include_ghosh=True)
 

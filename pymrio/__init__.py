@@ -1,5 +1,4 @@
-"""
-Pymrio - A python module for automating io calculations and generating reports
+"""Pymrio - A python module for automating io calculations and generating reports
 ==============================================================================
 
 The classes and tools in this module should work with any symetric IO system.
@@ -23,11 +22,11 @@ Standard abbreviation for that module: mr
 """
 
 from pymrio.core.fileio import (
-    load_all,
-    load,
-    archive,
-    load_test,
     ReadError,
+    archive,
+    load,
+    load_all,
+    load_test,
 )
 from pymrio.core.mriosystem import (
     Extension,
@@ -68,29 +67,29 @@ from pymrio.tools.iometadata import MRIOMetaData
 from pymrio.tools.ioparser import (
     ParserError,
     ParserWarning,
-    parse_exio12_ext,
+    generic_exiobase12_parser,
     get_exiobase12_version,
     get_exiobase_files,
-    generic_exiobase12_parser,
+    parse_eora26,
+    parse_exio12_ext,
     parse_exiobase1,
     parse_exiobase2,
     parse_exiobase3,
-    parse_wiod,
-    parse_oecd,
-    parse_eora26,
-    parse_gloria_sut,
     parse_gloria,
+    parse_gloria_sut,
+    parse_oecd,
+    parse_wiod,
 )
 from pymrio.tools.ioutil import (
     build_agg_matrix,
     build_agg_vec,
     convert,
     extend_rows,
+    get_repo_content,
     index_contains,
     index_fullmatch,
     index_match,
     to_long,
-    get_repo_content,
 )
 from pymrio.version import __version__
 

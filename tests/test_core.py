@@ -169,8 +169,7 @@ def test_set_index(fix_testmrio):
 
 
 def test_properties(fix_testmrio):
-    """
-    Test the convinience properties of the MRIO system.
+    """Test the convinience properties of the MRIO system.
     """
     tt = fix_testmrio.testmrio
     assert all(tt.sectors == tt.get_sectors())
@@ -415,7 +414,6 @@ def test_characterize_extension_general(fix_testmrio):
     - testing unit fix
     - testing missing data
     """
-
     factors = pd.read_csv(
         Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
         sep="\t",
@@ -691,7 +689,6 @@ def test_characterize_extension_reg_spec(fix_testmrio):
 @pytest.mark.filterwarnings("ignore::UserWarning")
 def test_characterize_extension_over_extensions(fix_testmrio):
     """Testing characterisation over multiple extensions"""
-
     f_wo_ext = pd.read_csv(
         Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
         sep="\t",
@@ -910,7 +907,6 @@ def test_extension_convert_simple(fix_testmrio):
 @pytest.mark.filterwarnings("ignore::UserWarning")
 def test_extension_convert_function(fix_testmrio):
     """Testing the convert function for a list of extensions"""
-
     tt_pre = fix_testmrio.testmrio.copy()
 
     df_map_double = pd.DataFrame(

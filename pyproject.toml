@@ -114,6 +114,32 @@ omit = [
     "pymrio/tools/iodownloader.py"
 ]
 
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+# Default: pycodestyle (E, W) and Pyflakes (F) rules.
+extend-select = [
+    "B",   # flake8-bugbear: Finds potential bugs and design problems.
+    "C",   # flake8-comprehensions: Promotes pythonic list/set/dict comprehensions.
+    "D",   # pydocstyle: Enforces docstring conventions.
+    "I",   # isort: Sorts and organizes imports automatically.
+    "UP",  # pyupgrade: Helps upgrade syntax to newer Python versions.
+    "PD",  # pandas-vet: Checks for common mistakes in pandas usage.
+]
+# ignore missing docstrings in public modules and __init__ files:
+# ignore = ["D100", "D104"]
+
+[tool.ruff.lint.pydocstyle]
+# Specify the docstring convention to follow. "google" and "numpy" are common in data science.
+convention = "google"
+
+[tool.ruff.format]
+# Sets the style for quotes. Can be "single", "double", or "preserve".
+quote-style = "double"
+
 [tool.poe.tasks.sync]
 help = "Sync all dependencies"
 cmd = "uv sync --all-extras"

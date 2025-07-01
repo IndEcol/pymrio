@@ -112,7 +112,6 @@ def test_aggreation_regions():
 
 def test_aggreation_sectors():
     """Test different possibilities to aggregate sectors"""
-
     sec_agg_df = pd.DataFrame(
         data=[
             ("food", "eat"),

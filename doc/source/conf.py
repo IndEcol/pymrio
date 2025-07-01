@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # pymrio documentation build configuration file, created by
 # sphinx-quickstart on Fri May 30 10:59:10 2014.

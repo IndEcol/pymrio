@@ -14,7 +14,7 @@ from pymrio.core.constants import DEFAULT_FILE_NAMES
 from pymrio.version import __version__ as pymrio_version
 
 
-class MRIOMetaData(object):
+class MRIOMetaData:
     def __init__(
         self,
         location=None,
@@ -29,7 +29,7 @@ class MRIOMetaData(object):
 
         The meta data is stored in a json file.
 
-        Note
+        Note:
         -----
             The parameters 'description', 'name', 'system', and
             'version' should be set during the establishment of the meta data
@@ -116,7 +116,7 @@ class MRIOMetaData(object):
 
         if self._metadata_file and self._metadata_file.is_file():
             self._read_content()
-            self.logger("Read metadata from {}".format(self._metadata_file))
+            self.logger(f"Read metadata from {self._metadata_file}")
 
             if zipfile.is_zipfile(str(self._metadata_file)):
                 self._metadata_file = None
@@ -157,19 +157,12 @@ class MRIOMetaData(object):
             hist = hist + "\n ... (more lines in history)"
 
         return (
-            "Description: {desc}\n"
-            "MRIO Name: {mrio}\n"
-            "System: {system}\n"
-            "Version: {ver}\n"
-            "File: {metafile}\n"
-            "History:\n{hist}".format(
-                desc=self.description,
-                mrio=self.name,
-                system=self.system,
-                ver=self.version,
-                metafile=self._metadata_file,
-                hist=hist,
-            )
+            f"Description: {self.description}\n"
+            f"MRIO Name: {self.name}\n"
+            f"System: {self.system}\n"
+            f"Version: {self.version}\n"
+            f"File: {self._metadata_file}\n"
+            f"History:\n{hist}"
         )
 
     def _make_download_log(
@@ -223,13 +216,12 @@ class MRIOMetaData(object):
             passed to this function. By default, the funtion
             is set to logging.info. Set to None for no output.
 
-        Returns
+        Returns:
         --------
         MRIOMetaData object
             setup as a download log
 
         """
-
         location = Path(location)
 
         if location.exists():
@@ -269,7 +261,7 @@ class MRIOMetaData(object):
                     with zf.open(self._path_in_arc) as f:
                         self._content = json.load(f, object_pairs_hook=OrderedDict)
             else:
-                with open(str(self._metadata_file), "r") as f:
+                with open(str(self._metadata_file)) as f:
                     self._content = json.load(f, object_pairs_hook=OrderedDict)
 
     def note(self, entry):
@@ -289,9 +281,7 @@ class MRIOMetaData(object):
 
     def _add_history(self, entry_type, entry):
         """Generic method to add entry as entry_type to the history"""
-        meta_string = "{time} - {etype} -  {entry}".format(
-            time=self._time(), etype=entry_type.upper(), entry=entry
-        )
+        meta_string = f"{self._time()} - {entry_type.upper()} -  {entry}"
 
         self._content["history"].insert(0, meta_string)
         self.logger(meta_string)
@@ -370,9 +360,7 @@ class MRIOMetaData(object):
         if old_value and log:
             self._add_history(
                 entry_type="METADATA_CHANGE",
-                entry='Changed parameter "{para}" from "{old}" to "{new}"'.format(
-                    para=para, old=old_value, new=new_value
-                ),
+                entry=f'Changed parameter "{para}" from "{old_value}" to "{new_value}"',
             )
 
     def _get_system_meta(self):
@@ -380,7 +368,6 @@ class MRIOMetaData(object):
 
         with username, computername, os, os version, and python version
         """
-
         try:
             username = getpass.getuser()
         except Exception:
@@ -410,7 +397,7 @@ class MRIOMetaData(object):
         }
 
     def _time(self):
-        return "{:%Y%m%d %H:%M:%S}".format(datetime.datetime.now())
+        return f"{datetime.datetime.now():%Y%m%d %H:%M:%S}"
 
     def _read_content(self):
         """Reads metadata from location (and path_in_arc if archive)

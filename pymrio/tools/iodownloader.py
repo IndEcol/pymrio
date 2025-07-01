@@ -140,7 +140,7 @@ def _get_url_datafiles(
         Can be requests.get or requests.post
 
 
-    Returns
+    Returns:
     -------
     Named tuple:
     .raw_text: content of url_db_view for later use
@@ -191,20 +191,18 @@ def _download_urls(
         Be default a Firefox, set in the HEADER variable
 
 
-    Returns
+    Returns:
     -------
-
     The downlog_handler is passed back
 
     """
-
     for url in url_list:
         filename = filename_from_url(url)
         if downlog_handler.name == "Eora":
             filename = filename.split(".zip")[0] + ".zip"
         if not overwrite_existing and filename in os.listdir(storage_folder):
             downlog_handler._add_fileio(
-                "Skip download existing file {}".format(filename)
+                f"Skip download existing file {filename}"
             )
             continue
         storage_file = os.path.join(storage_folder, filename)
@@ -215,13 +213,13 @@ def _download_urls(
         req = requests.get(url, stream=True, cookies=access_cookie, headers=headers)
         if req.status_code != 200:
             raise requests.exceptions.HTTPError(
-                "HTTP Error {} for {}".format(req.status_code, url)
+                f"HTTP Error {req.status_code} for {url}"
             )
         with open(storage_file, "wb") as lf:
             for chunk in req.iter_content(1024 * 5):
                 lf.write(chunk)
 
-        downlog_handler._add_fileio("Downloaded {} to {}".format(url, filename))
+        downlog_handler._add_fileio(f"Downloaded {url} to {filename}")
         downlog_handler.save()
 
     return downlog_handler
@@ -257,9 +255,8 @@ def download_oecd(
         the storage folder (default). Set to True to replace
         files.
 
-    Returns
+    Returns:
     -------
-
     Meta data of the downloaded MRIOs
 
     """
@@ -314,7 +311,7 @@ def download_oecd(
 
     for yy in years:
         if yy not in OECD_CONFIG["datafiles"][version].keys():
-            raise ValueError("Datafile for {} not specified or available.".format(yy))
+            raise ValueError(f"Datafile for {yy} not specified or available.")
 
         filename = "ICIO" + version.lstrip("v") + "_" + yy + ".zip"
 
@@ -374,7 +371,7 @@ def download_wiod2013(
 ):
     """Downloads the 2013 wiod release
 
-    Note
+    Note:
     ----
     Currently, pymrio only works with the 2013 release of the wiod tables. The
     more recent 2016 release so far (October 2017) lacks the environmental and
@@ -405,13 +402,11 @@ def download_wiod2013(
         in WIOD_CONFIG - list of all available urls Remove items from this list
         to only download a subset of extensions
 
-    Returns
+    Returns:
     -------
-
     Meta data of the downloaded MRIOs
 
     """
-
     os.makedirs(storage_folder, exist_ok=True)
 
     if type(years) is int or type(years) is str:
@@ -480,7 +475,6 @@ def download_eora26(
         the storage folder (default). Set to True to replace
         files.
     """
-
     try:
         os.makedirs(storage_folder)
     except FileExistsError:
@@ -597,8 +591,7 @@ def download_exiobase3(
     overwrite_existing=False,
     doi="10.5281/zenodo.3583070",
 ):
-    """
-    Downloads EXIOBASE 3 files from Zenodo
+    """Downloads EXIOBASE 3 files from Zenodo
 
     Since version 3.7 EXIOBASE gets published on the Zenodo scientific data
     repository.  This function download the lastest available version from
@@ -637,13 +630,11 @@ def download_exiobase3(
         see the block 'Versions' on the right hand side of
         https://zenodo.org/record/4277368.
 
-    Returns
+    Returns:
     -------
-
     Meta data of the downloaded MRIOs
 
     """
-
     os.makedirs(storage_folder, exist_ok=True)
 
     doi_url = "https://doi.org/" + doi
@@ -684,9 +675,7 @@ def download_exiobase3(
 
         if not filename:
             downlog._add_fileio(
-                "Could not find EXIOBASE 3 source file with >{}< and >{}<".format(
-                    file_specs[0], file_specs[1]
-                )
+                f"Could not find EXIOBASE 3 source file with >{file_specs[0]}< and >{file_specs[1]}<"
             )
             continue
         requested_urls += [
@@ -711,8 +700,7 @@ def download_gloria(
     version=57,
     overwrite_existing=False,
 ):
-    """
-    Download Gloria databases files
+    """Download Gloria databases files
 
     Parameters
     ----------
@@ -739,12 +727,10 @@ def download_gloria(
         the storage folder (default). Set to True to replace
         files.
 
-    Returns
+    Returns:
     -------
-
     No returns
     """
-
     if f"0{version}" not in urls.keys():
         raise Exception("Specified version is invalid")
 

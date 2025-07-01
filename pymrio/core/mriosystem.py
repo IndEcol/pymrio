@@ -1,5 +1,4 @@
-"""
-Generic classes for pymrio
+"""Generic classes for pymrio
 
 Classes and function here should not be used directly.
 Use the API methods from the pymrio module instead.
@@ -16,8 +15,9 @@ import time
 import typing
 import warnings
 from abc import ABC
-from typing import Iterator, Union
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -50,7 +50,6 @@ from pymrio.tools.iomath import (
 )
 from pymrio.tools.iometadata import MRIOMetaData
 
-
 # internal functions
 # def _warn_deprecation(message):  # pragma: no cover
 #     warnings.warn(message, DeprecationWarning, stacklevel=2)
@@ -79,7 +78,7 @@ class ResetWarning(UserWarning):
 class _BaseSystem(ABC):
     """This class is the base class for IOSystem and Extension
 
-    Note
+    Note:
     ----
     That's is only a base class - do not make an instance of this class.
 
@@ -141,16 +140,16 @@ class _BaseSystem(ABC):
                     strwarn = (
                         "Reset system warning - Recalculation after "
                         "reset not possible "
-                        "because {} missing".format(df)
+                        f"because {df} missing"
                     )
                     warnings.warn(strwarn, ResetWarning)
 
                 else:
                     raise ResetError(
                         "To few tables to recalculate the "
-                        "system after reset ({} missing) "
+                        f"system after reset ({df} missing) "
                         "- reset can be forced by passing "
-                        "'force=True')".format(df)
+                        "'force=True')"
                     )
 
         if _meta:
@@ -196,16 +195,16 @@ class _BaseSystem(ABC):
                     strwarn = (
                         "Reset system warning - Recalculation after "
                         "reset not possible "
-                        "because {} missing".format(df)
+                        f"because {df} missing"
                     )
                     warnings.warn(strwarn, ResetWarning)
 
                 else:
                     raise ResetError(
                         "To few tables to recalculate the "
-                        "system after reset ({} missing) "
+                        f"system after reset ({df} missing) "
                         "- reset can be forced by passing "
-                        "'force=True')".format(df)
+                        "'force=True')"
                     )
 
         if _meta:
@@ -221,9 +220,8 @@ class _BaseSystem(ABC):
 
         This can be used to recalculate the IO tables for a new finald demand.
 
-        Note
+        Note:
         -----
-
         The system can not be reconstructed after this steps
         because all absolute data is removed. Save the Y data in case
         a reconstruction might be necessary.
@@ -255,9 +253,7 @@ class _BaseSystem(ABC):
             new_name = self.name + "_copy"
         if str(type(self)) == "<class 'pymrio.core.mriosystem.IOSystem'>":
             _tmp.meta.note(
-                "IOSystem copy {new} based on {old}".format(
-                    new=new_name, old=self.meta.name
-                )
+                f"IOSystem copy {new_name} based on {self.meta.name}"
             )
             _tmp.meta.change_meta("name", new_name, log=False)
         else:
@@ -272,7 +268,7 @@ class _BaseSystem(ABC):
         entries : List, optional
             If given, retuns an list with None for all values not in entries.
 
-        Returns
+        Returns:
         -------
         Index
             List of categories, None if no attribute to determine
@@ -318,7 +314,6 @@ class _BaseSystem(ABC):
             Only relevant if as_dict is True.
 
         """
-
         possible_dataframes = [
             "A",
             "L",
@@ -388,7 +383,7 @@ class _BaseSystem(ABC):
         entries : List, optional
             If given, retuns an list with None for all values not in entries.
 
-        Returns
+        Returns:
         -------
         Index
             List of regions,
@@ -443,7 +438,7 @@ class _BaseSystem(ABC):
         entries : List, optional
             If given, retuns an list with None for all values not in entries.
 
-        Returns
+        Returns:
         -------
         Index
             List of sectors,
@@ -492,7 +487,7 @@ class _BaseSystem(ABC):
     ) -> Iterator[Union[pd.DataFrame, str]]:
         """Yields all panda.DataFrames or there names
 
-        Notes
+        Notes:
         -----
         For IOSystem this does not include the DataFrames in the extensions.
 
@@ -512,12 +507,11 @@ class _BaseSystem(ABC):
             If True, includes the 'population' vector
             If False, does not include the 'population' vector.
 
-        Returns
+        Returns:
         -------
             DataFrames or string generator, depending on parameter data
 
         """
-
         for key in self.__dict__:
             if (key == "unit") and not with_unit:
                 continue
@@ -563,7 +557,6 @@ class _BaseSystem(ABC):
     def save(self, path, table_format="txt", sep="\t", float_format="%.12g"):
         """Saving the system to path
 
-
         Parameters
         ----------
         path : pathlib.Path or string
@@ -588,7 +581,6 @@ class _BaseSystem(ABC):
             Format for saving the DataFrames, only for txt files.
             default = '%.12g'
         """
-
         for format_key, format_extension in STORAGE_FORMAT.items():
             if table_format.lower() in format_extension:
                 table_extension = table_format
@@ -596,9 +588,9 @@ class _BaseSystem(ABC):
                 break
         else:
             raise ValueError(
-                'Unknown table format "{}" - '
+                f'Unknown table format "{table_format}" - '
                 'must be "txt", "pkl", "parquet" or an alias as '
-                "defined in STORAGE_FORMAT".format(table_format)
+                "defined in STORAGE_FORMAT"
             )
 
         path = Path(path)
@@ -615,7 +607,7 @@ class _BaseSystem(ABC):
             file_para["name"] = self.name
         else:
             warnings.warn(
-                'Unknown system type {} - set to "undef"'.format(str(type(self)))
+                f'Unknown system type {str(type(self))} - set to "undef"'
             )
             file_para["systemtype"] = "undef"
 
@@ -632,7 +624,7 @@ class _BaseSystem(ABC):
 
             save_file = df_name + "." + table_extension
             save_file_with_path = path / save_file
-            logging.info("Save file {}".format(save_file_with_path))
+            logging.info(f"Save file {save_file_with_path}")
             if table_format == "txt":
                 df.to_csv(save_file_with_path, sep=sep, float_format=float_format)
             elif table_format == "pickle":
@@ -654,7 +646,7 @@ class _BaseSystem(ABC):
             if not self.meta:
                 self.meta = MRIOMetaData(name=self.name, location=path)
 
-            self.meta._add_fileio("Saved {} to {}".format(self.name, path))
+            self.meta._add_fileio(f"Saved {self.name} to {path}")
             self.meta.save(location=path)
 
         return self
@@ -671,7 +663,6 @@ class _BaseSystem(ABC):
                 without repetition
 
         """
-
         if type(regions) is list:
             regions = {old: new for old, new in zip(self.get_regions(), regions)}
 
@@ -700,7 +691,6 @@ class _BaseSystem(ABC):
                 complete without repetition
 
         """
-
         if type(sectors) is list:
             sectors = {old: new for old, new in zip(self.get_sectors(), sectors)}
 
@@ -728,7 +718,6 @@ class _BaseSystem(ABC):
                 complete without repetition
 
         """
-
         if type(Y_categories) is list:
             Y_categories = {
                 old: new for old, new in zip(self.get_Y_categories(), Y_categories)
@@ -762,7 +751,7 @@ class _BaseSystem(ABC):
         term : string
             String to search for
 
-        Returns
+        Returns:
         -------
         dict of (multi)index
             With keys 'index', 'region', 'sector', 'Y_category' and
@@ -818,7 +807,7 @@ class _BaseSystem(ABC):
         The index levels need to be named (df.index.name needs to
         be set for all levels).
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -835,7 +824,7 @@ class _BaseSystem(ABC):
             the values are the regex.
             If the entry is not in index name, it is ignored silently.
 
-        Returns
+        Returns:
         -------
         pd.Index or pd.MultiIndex
             The matched rows/index
@@ -852,7 +841,7 @@ class _BaseSystem(ABC):
         The index levels need to be named (df.index.name needs to
         be set for all levels).
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -869,7 +858,7 @@ class _BaseSystem(ABC):
             the values are the regex to match.
             If the entry is not in index name, it is ignored silently.
 
-        Returns
+        Returns:
         -------
         pd.Index or pd.MultiIndex
             The matched rows/index
@@ -886,7 +875,7 @@ class _BaseSystem(ABC):
         The index levels need to be named (df.index.name needs to
         be set for all levels).
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -903,7 +892,7 @@ class _BaseSystem(ABC):
             the values are the regex to match.
             If the entry is not in index name, it is ignored silently.
 
-        Returns
+        Returns:
         -------
         pd.Index or pd.MultiIndex
             The matched rows/index
@@ -916,13 +905,12 @@ class _BaseSystem(ABC):
 class Extension(_BaseSystem):
     """Class which gathers all information for one extension of the IOSystem
 
-    Notes
+    Notes:
     -----
-
     For the total accounts (D_) also reginal (appendix _reg) and
     per capita (appendix _cap) are possible.
 
-    Attributes
+    Attributes:
     ----------
     name : string
         Every extension must have a name. This can (recommended) be the name
@@ -1066,7 +1054,7 @@ class Extension(_BaseSystem):
         - for each region (if population vector is given):
             D_cba_cap, D_pba_cap, D_imp_cap, D_exp_cap
 
-        Notes
+        Notes:
         -----
         Only attributes which are not None are recalculated (for D_* this is
         checked for each group (reg, cap, and w/o appendix)).
@@ -1091,7 +1079,6 @@ class Extension(_BaseSystem):
         population : pandas.DataFrame or np.array, optional
             Row vector with population per region
         """
-
         # TODO This should only be used for calculating the full system.
         # TODO There needs to be a new method for calculating the system
         # for a different demand vector in here
@@ -1107,24 +1094,24 @@ class Extension(_BaseSystem):
 
         if self.F is None:
             self.F = calc_F(self.S, x)
-            logging.debug("{} - F calculated".format(self.name))
+            logging.debug(f"{self.name} - F calculated")
 
         if self.S is None:
             self.S = calc_S(self.F, x)
-            logging.debug("{} - S calculated".format(self.name))
+            logging.debug(f"{self.name} - S calculated")
 
         if (self.F_Y is None) and (self.S_Y is not None):
             self.F_Y = calc_F_Y(self.S_Y, y_vec)
-            logging.debug("{} - F_Y calculated".format(self.name))
+            logging.debug(f"{self.name} - F_Y calculated")
 
         if (self.S_Y is None) and (self.F_Y is not None):
             self.S_Y = calc_S_Y(self.F_Y, y_vec)
-            logging.debug("{} - S_Y calculated".format(self.name))
+            logging.debug(f"{self.name} - S_Y calculated")
 
         if self.M is None:
             if L is not None:
                 self.M = calc_M(self.S, L)
-                logging.debug("{} - M calculated based on L".format(self.name))
+                logging.debug(f"{self.name} - M calculated based on L")
             else:
                 try:
                     self.M = recalc_M(
@@ -1134,17 +1121,17 @@ class Extension(_BaseSystem):
                         nr_sectors=self.get_sectors().size,
                     )
                     logging.debug(
-                        "{} - M calculated based on D_cba and Y".format(self.name)
+                        f"{self.name} - M calculated based on D_cba and Y"
                     )
                 except Exception as ex:
                     logging.debug(
-                        "Recalculation of M not possible - cause: {}".format(ex)
+                        f"Recalculation of M not possible - cause: {ex}"
                     )
 
         if self.M_down is None:
             if G is not None:
                 self.M_down = calc_M_down(self.S, G)
-                logging.debug("{} - M_down calculated based on G".format(self.name))
+                logging.debug(f"{self.name} - M_down calculated based on G")
             else:
                 logging.debug(
                     "Calculation of M_down not possible because G is not available."
@@ -1172,7 +1159,7 @@ class Extension(_BaseSystem):
                 self.D_cba, self.D_pba, self.D_imp, self.D_exp = calc_accounts(
                     self.S, L, Y_agg
                 )
-                logging.debug("{} - Accounts D calculated".format(self.name))
+                logging.debug(f"{self.name} - Accounts D calculated")
 
         # aggregate to country
         if (
@@ -1210,7 +1197,7 @@ class Extension(_BaseSystem):
             except (AssertionError, KeyError):
                 self.D_exp_reg = self.D_exp.T.groupby(level=0, sort=False).sum().T
 
-            logging.debug("{} - Accounts D for regions calculated".format(self.name))
+            logging.debug(f"{self.name} - Accounts D for regions calculated")
 
         # calc accounts per capita if population data is available
         if population is not None:
@@ -1233,7 +1220,7 @@ class Extension(_BaseSystem):
                     self.D_exp_reg / population.iloc[0][self.D_exp_reg.columns]
                 )
 
-                logging.debug("{} - Accounts D per capita calculated".format(self.name))
+                logging.debug(f"{self.name} - Accounts D per capita calculated")
         return self
 
     def plot_account(
@@ -1255,7 +1242,7 @@ class Extension(_BaseSystem):
         However, any valid keyword for the pandas.DataFrame.plot
         method can be passed.
 
-        Notes
+        Notes:
         -----
             This looks prettier with the seaborn module
             (import seaborn before calling this method)
@@ -1283,7 +1270,7 @@ class Extension(_BaseSystem):
         **kwargs : key word arguments, optional
             This will be passed directly to the pd.DataFrame.plot method
 
-        Returns
+        Returns:
         -------
         Axis as given by pandas.DataFrame.plot, None in case of errors
 
@@ -1423,7 +1410,7 @@ class Extension(_BaseSystem):
         The report consists of a text file and a folder with the pics
         (both names following parameter name)
 
-        Notes
+        Notes:
         ----
             This looks prettier with the seaborn module
             (import seaborn before calling this method)
@@ -1455,7 +1442,6 @@ class Extension(_BaseSystem):
             (through the self.plot_account method)
 
         """
-
         if not per_region and not per_capita:
             raise ValueError("Either per_region or per_capita must be choosen")
 
@@ -1481,7 +1467,7 @@ class Extension(_BaseSystem):
             "per region accounts": rep_spec(per_region, "_per_region", False),
             "per capita accounts": rep_spec(per_capita, "_per_capita", True),
         }
-        logging.info("Write report for {}".format(self.name))
+        logging.info(f"Write report for {self.name}")
         fig_name_list = []
         for arep in reports_to_write:
             if not reports_to_write[arep].make:
@@ -1555,7 +1541,7 @@ class Extension(_BaseSystem):
                 report_txt.append("-" * len(graph_name) + "\n\n")
 
                 report_txt.append(".. image:: " + str(file_name_rel))
-                report_txt.append("   :width: {} \n".format(int(pic_size)))
+                report_txt.append(f"   :width: {int(pic_size)} \n")
 
             # write report file and convert to given format
             report_txt.append("\nReport written on " + time.strftime("%Y%m%d %H%M%S"))
@@ -1588,9 +1574,7 @@ class Extension(_BaseSystem):
             with open(path / _repfile, "w") as out_file:
                 out_file.write(fin_txt)
             logging.info(
-                "Report for {what} written to {file_where}".format(
-                    what=arep, file_where=str(_repfile)
-                )
+                f"Report for {arep} written to {str(_repfile)}"
             )
 
         if _plt:  # pragma: no cover
@@ -1642,7 +1626,7 @@ class Extension(_BaseSystem):
             that case the dict can be
             used directly to build a new extension.
 
-        Returns
+        Returns:
         -------
         dict object with the data (pandas DataFrame) for the specific rows
         """
@@ -1664,7 +1648,6 @@ class Extension(_BaseSystem):
     def extract(self, index, dataframes=None, return_type="dataframes"):
         """Returns a dict with all available data for a row in the extension.
 
-
         Parameters
         ----------
         index : valid row index or dict
@@ -1682,7 +1665,7 @@ class Extension(_BaseSystem):
             Any other string: an Extension object is returned, with the name set to the passed string.
 
 
-        Returns
+        Returns:
         -------
         dict object with the data (pandas DataFrame) for the specific rows
         or an Extension object (based on return_type)
@@ -1723,9 +1706,8 @@ class Extension(_BaseSystem):
         on this matrix show the flow of embodied stressors from the source
         region/sector (row index) to the final consumer (column index).
 
-        Note
+        Note:
         ----
-
         Since the type of analysis based on the disaggregated matrix is based
         on flows, direct household emissions (F_Y) are not included.
 
@@ -1742,7 +1724,7 @@ class Extension(_BaseSystem):
         _meta: MRIOMetaData, optional
             Metadata handler for logging, optional. Internal
 
-        Returns
+        Returns:
         -------
         pymrio.Extension
 
@@ -1819,7 +1801,7 @@ class Extension(_BaseSystem):
         Besides the unit errors, the characterization routine works with missing data.
         Any missing data is assumed to be 0.
 
-        Note
+        Note:
         ----
         Accordance of units is enforced.
         This is done be checking the column specified in orig_unit_column with the unit
@@ -1853,7 +1835,7 @@ class Extension(_BaseSystem):
             with be appended to the original name. Default: '_characterized'
 
 
-        Returns
+        Returns:
         --------
         namedtuple with the following attributes:
             validation: pd.DataFrame
@@ -1979,7 +1961,7 @@ class Extension(_BaseSystem):
                 names=orig_characterized_name_column,
             )
         res_unit = res_unit.loc[new_ext.get_rows(), :]
-        setattr(new_ext, "unit", res_unit)
+        new_ext.unit = res_unit
         if orig_characterized_name_column:
             validation = validation.drop(characterized_name_column, axis=1)
 
@@ -2165,12 +2147,12 @@ class IOSystem(_BaseSystem):
     extensions are given as dictionaries containing F, F_Y, D, m, D_cba, D_pba,
     D_imp, D_exp
 
-    Notes
+    Notes:
     -----
         The attributes and extension dictionary entries are pandas.DataFrame
         with an MultiIndex.  This index must have the specified level names.
 
-    Attributes
+    Attributes:
     ----------
     Z : pandas.DataFrame
         Symetric input output table (flows) with country and sectors as
@@ -2316,7 +2298,7 @@ class IOSystem(_BaseSystem):
 
         These are the entries of Z and Y with the domestic blocks set to 0.
 
-        Returns
+        Returns:
         -------
         namedtuple (with two pandas DataFrames)
             A namedTuple with two fields:
@@ -2330,8 +2312,7 @@ class IOSystem(_BaseSystem):
         return calc_gross_trade(Z=self.Z, Y=self.Y)
 
     def calc_all(self, include_ghosh=False):
-        """
-        Calculates missing parts of the IOSystem and all extensions.
+        """Calculates missing parts of the IOSystem and all extensions.
 
         This method calls `calc_system` and `calc_extensions` to perform the calculations.
 
@@ -2341,7 +2322,7 @@ class IOSystem(_BaseSystem):
             If True, includes ghosh calculations in the system and extensions.
             Default is False.
 
-        Returns
+        Returns:
         -------
         self : IOSystem
             The updated IOSystem instance after performing all calculations.
@@ -2351,8 +2332,7 @@ class IOSystem(_BaseSystem):
         return self
 
     def calc_system(self, include_ghosh=False):
-        """
-        Calculates the missing part of the core IOSystem
+        """Calculates the missing part of the core IOSystem
 
         The method checks Z, A, x, L and calculates all which are None
 
@@ -2372,7 +2352,6 @@ class IOSystem(_BaseSystem):
             Default is False.
 
         """
-
         # Possible cases:
         # 1) Z given, rest can be None and calculated
         # 2) A and x given, rest can be calculated
@@ -2436,7 +2415,6 @@ class IOSystem(_BaseSystem):
             Default is False.
 
         """
-
         ext_list = list(self.get_extensions(data=False, instance_names=True))
         extensions = extensions or ext_list
         if isinstance(extensions, str):
@@ -2444,7 +2422,7 @@ class IOSystem(_BaseSystem):
 
         for ext_name in extensions:
             self.meta._add_modify(
-                "Calculating accounts for extension {}".format(ext_name)
+                f"Calculating accounts for extension {ext_name}"
             )
             ext = getattr(self, ext_name)
             ext.calc_system(
@@ -2470,7 +2448,7 @@ class IOSystem(_BaseSystem):
 
         This method calls .report_accounts for all extensions
 
-        Notes
+        Notes:
         -----
             This looks prettier with the seaborn module (import seaborn before
             calling this method)
@@ -2501,7 +2479,6 @@ class IOSystem(_BaseSystem):
             (through the self.plot_account method)
 
         """
-
         for ext in self.get_extensions(data=True):
             ext.report_accounts(
                 path=path,
@@ -2534,12 +2511,11 @@ class IOSystem(_BaseSystem):
             'Factor Inputs' (get it with mrio.factor_inputs.name),
             and an instance name 'factor_inputs'.
 
-        Returns
+        Returns:
         -------
         Generator for Extension or string
 
         """
-
         all_ext_list = [
             key for key in self.__dict__ if isinstance(self.__dict__[key], Extension)
         ]
@@ -2577,7 +2553,7 @@ class IOSystem(_BaseSystem):
 
         Similar to pandas str.fullmatch, thus the start of the index string must match.
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -2597,7 +2573,7 @@ class IOSystem(_BaseSystem):
             the values are the regex.
             If the entry is not in index name, it is ignored silently.
 
-        Returns
+        Returns:
         -------
         dict
             A dict with the extension names as keys and an Index/MultiIndex of
@@ -2614,7 +2590,7 @@ class IOSystem(_BaseSystem):
 
         Similar to pandas str.match, thus the start of the index string must match.
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -2634,7 +2610,7 @@ class IOSystem(_BaseSystem):
             the values are the regex.
             If the entry is not in index name, it is ignored silently.
 
-        Returns
+        Returns:
         -------
         dict
             A dict with the extension names as keys and an Index/MultiIndex of
@@ -2652,7 +2628,7 @@ class IOSystem(_BaseSystem):
         Similar to pandas str.contains, thus the index
         string must contain the regex pattern.
 
-        Note
+        Note:
         -----
         Arguments are set to case=True, flags=0, na=False, regex=True.
         For case insensitive matching, use (?i) at the beginning of the pattern.
@@ -2672,7 +2648,7 @@ class IOSystem(_BaseSystem):
             the values are the regex.
             If the entry is not in index name, it is ignored silently.
 
-        Returns
+        Returns:
         -------
         dict
             A dict with the extension names as keys and an Index/MultiIndex of
@@ -2716,7 +2692,7 @@ class IOSystem(_BaseSystem):
             passed string (this will automatically exclude empty extensions).
 
 
-        Returns
+        Returns:
         -------
         dict
             A dict with the extension names as keys and an Index/MultiIndex of
@@ -2776,7 +2752,7 @@ class IOSystem(_BaseSystem):
         kwargs: dict
             Specifies the keyword arguments to pass to the method.
 
-        Returns
+        Returns:
         -------
         dict
             A dict with the extension names as keys and the return values of the
@@ -2892,9 +2868,8 @@ class IOSystem(_BaseSystem):
         This method calls reset_to_coefficients for the IOSystem and for
         all Extensions in the system
 
-        Note
+        Note:
         -----
-
         The system can not be reconstructed after this steps
         because all absolute data is removed. Save the Y data in case
         a reconstruction might be necessary.
@@ -2913,7 +2888,6 @@ class IOSystem(_BaseSystem):
         Parameters are passed to the .save methods of the IOSystem and
         Extensions. See parameters description there.
         """
-
         path = Path(path)
 
         path.mkdir(parents=True, exist_ok=True)
@@ -2953,13 +2927,12 @@ class IOSystem(_BaseSystem):
             Regardless of the setting, the IOSystem is returned to
             allow for chained operations.
 
-        Returns
+        Returns:
         -------
         IOSystem
             Aggregated IOSystem (if inplace is False)
 
         """
-
         if not inplace:
             self = self.copy()
 
@@ -3067,7 +3040,7 @@ class IOSystem(_BaseSystem):
             Regardless of the setting, the IOSystem is returned to
             allow for chained operations.
 
-        Returns
+        Returns:
         -------
         IOSystem
             Aggregated IOSystem (if inplace is False)
@@ -3346,12 +3319,12 @@ class IOSystem(_BaseSystem):
         for ee in ext:
             try:
                 del self.__dict__[ee]
-                self.meta._add_modify("Removed extension {}".format(ee))
+                self.meta._add_modify(f"Removed extension {ee}")
             except KeyError:
                 ext_instance = self.get_extensions(ee, instance_names=True)
                 for x in ext_instance:
                     del self.__dict__[x]
-                    self.meta._add_modify("Removed extension {}".format(x))
+                    self.meta._add_modify(f"Removed extension {x}")
 
         return self
 
@@ -3548,7 +3521,7 @@ class IOSystem(_BaseSystem):
             with be appended to the original name. Default: '_characterized'
 
 
-        Returns
+        Returns:
         --------
         pymrio.Extension
 
@@ -3585,7 +3558,7 @@ class IOSystem(_BaseSystem):
         new_extension_name : str
             Name for the new extension
 
-        Returns
+        Returns:
         -------
         pymrio.Extension
 
@@ -3662,13 +3635,12 @@ def extension_characterize(
         with be appended to the original name. Default: '_characterized'
 
 
-    Returns
+    Returns:
     --------
     pymrio.Extension
 
 
     """
-
     if extension_col_name not in factors.columns:
         raise ValueError("The factors dataframe must include the column 'extension'")
 
@@ -3877,7 +3849,6 @@ def extension_convert(
 
 
     """
-
     if type(extensions) is Extension:
         extensions = [extensions]
     elif type(extensions) is tuple:
@@ -3942,14 +3913,14 @@ def extension_convert(
 def extension_concate(*extensions, new_extension_name):
     """Concatenate extensions
 
-    Notes
+    Notes:
     ----
     The method assumes that the first index is the name of the
     stressor/impact/input type. To provide a consistent naming this is renamed
     to 'indicator' if they differ. All other index names ('compartments', ...)
     are added to the concatenated extensions and set to NaN for missing values.
 
-    Notes
+    Notes:
     ----
     Attributes which are not DataFrames will be set to None if they differ
     between the extensions
@@ -3963,13 +3934,11 @@ def extension_concate(*extensions, new_extension_name):
     new_extension_name : string
         Name of the new extension
 
-    Returns
+    Returns:
     -------
-
     Concatenated extension
 
     """
-
     if type(extensions[0]) is tuple or type(extensions[0]) is list:
         extensions = extensions[0]
 
@@ -3987,7 +3956,7 @@ def extension_concate(*extensions, new_extension_name):
 
     # get the intersection of the available dataframes
     set_dfs = [set(ext.get_DataFrame(data=False)) for ext in extensions]
-    df_dict = {key: None for key in set.intersection(*set_dfs)}
+    df_dict = dict.fromkeys(set.intersection(*set_dfs))
     if F_Y_present:
         df_dict["F_Y"] = None
     if S_Y_present:
@@ -4020,7 +3989,7 @@ def extension_concate(*extensions, new_extension_name):
             # doesn't work with getattr b/c F_Y can be present as attribute but
             # not as DataFrame
             if "F_Y" in ext.get_DataFrame(data=False):
-                cur_dict["F_Y"] = getattr(ext, "F_Y")
+                cur_dict["F_Y"] = ext.F_Y
             else:
                 cur_dict["F_Y"] = pd.DataFrame(
                     data=0, index=ext.get_index(), columns=SF_Y_columns
@@ -4029,7 +3998,7 @@ def extension_concate(*extensions, new_extension_name):
             # doesn't work with getattr b/c S_Y can be present as attribute but
             # not as DataFrame
             if "S_Y" in ext.get_DataFrame(data=False):
-                cur_dict["S_Y"] = getattr(ext, "S_Y")
+                cur_dict["S_Y"] = ext.S_Y
             else:
                 cur_dict["S_Y"] = pd.DataFrame(
                     data=0, index=ext.get_index(), columns=SF_Y_columns

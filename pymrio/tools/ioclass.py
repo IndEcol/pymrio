@@ -1,5 +1,4 @@
-"""
-Classification helpers for various standard MRIOs
+"""Classification helpers for various standard MRIOs
 
 KST 20211123
 """
@@ -26,7 +25,6 @@ def get_classification(mrio_name: Optional[str] = None):
     Returns:
         pymrio.ClassificationData
     """
-
     if not mrio_name:
         return PYMRIO_PATH.keys()
 
@@ -45,7 +43,7 @@ def get_classification(mrio_name: Optional[str] = None):
 
 
 @dataclass
-class ClassificationData(object):
+class ClassificationData:
     """Classification data for MRIOs
 
     Typically includes .sectors and .finaldemand
@@ -91,7 +89,7 @@ class ClassificationData(object):
             be extracted from the Series name if this is given (to allow for
             tab completion).
 
-        Returns
+        Returns:
         --------
             dict
         """

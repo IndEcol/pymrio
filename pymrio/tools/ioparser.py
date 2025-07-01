@@ -1,5 +1,4 @@
-"""
-Various parser for available MRIOs and files in a similar format
+"""Various parser for available MRIOs and files in a similar format
 as
 
 KST 20140903
@@ -87,7 +86,7 @@ def parse_exio12_ext(
 
     For EXIOBASE 3 - extension can be loaded directly with pymrio.load
 
-    Notes
+    Notes:
     -----
     So far this only parses factor of production extensions F (not
     final demand extensions F_Y nor coeffiecents S).
@@ -124,13 +123,12 @@ def parse_exio12_ext(
     sep : string, optional
         Delimiter to use; default ','
 
-    Returns
+    Returns:
     -------
     pymrio.Extension
         with F (and unit if available)
 
     """
-
     ext_file = os.path.abspath(str(ext_file))
 
     F = pd.read_csv(ext_file, header=[0, 1], index_col=list(range(index_col)), sep=sep)
@@ -199,7 +197,7 @@ def get_exiobase_files(path, coefficients=True):
         If True (default), considers the mrIot file as A matrix,
         and the extensions as S matrices. Otherwise as Z and F, respectively
 
-    Returns
+    Returns:
     -------
     dict of dict
     """
@@ -239,9 +237,7 @@ def get_exiobase_files(path, coefficients=True):
         ]
         if len(found_file) > 1:
             logging.warning(
-                "Multiple files found for {}: {} - USING THE FIRST ONE".format(
-                    kk, found_file
-                )
+                f"Multiple files found for {kk}: {found_file} - USING THE FIRST ONE"
             )
             found_file = found_file[0:1]
         elif len(found_file) == 0:
@@ -282,7 +278,6 @@ def generic_exiobase12_parser(exio_files, system=None):
         Only used for the metadata
 
     """
-
     version = " & ".join(
         {dd.get("version", "") for dd in exio_files.values() if dd.get("version", "")}
     )
@@ -300,7 +295,7 @@ def generic_exiobase12_parser(exio_files, system=None):
     ext_data = dict()
     for tt, tpara in exio_files.items():
         full_file_path = os.path.join(tpara["root_repo"], tpara["file_path"])
-        logging.debug("Parse {}".format(full_file_path))
+        logging.debug(f"Parse {full_file_path}")
         if tpara["root_repo"][-3:] == "zip":
             with zipfile.ZipFile(tpara["root_repo"], "r") as zz:
                 raw_data = pd.read_csv(
@@ -318,7 +313,7 @@ def generic_exiobase12_parser(exio_files, system=None):
             )
 
         meta_rec._add_fileio(
-            "EXIOBASE data {} parsed from {}".format(tt, full_file_path)
+            f"EXIOBASE data {tt} parsed from {full_file_path}"
         )
         if tt in core_components:
             core_data[tt] = raw_data
@@ -443,7 +438,7 @@ def parse_exiobase1(path):
     path : pathlib.Path or string
         Path of the exiobase 1 data
 
-    Returns
+    Returns:
     -------
     pymrio.IOSystem with exio1 data
 
@@ -452,7 +447,7 @@ def parse_exiobase1(path):
 
     exio_files = get_exiobase_files(path)
     if len(exio_files) == 0:
-        raise ParserError("No EXIOBASE files found at {}".format(path))
+        raise ParserError(f"No EXIOBASE files found at {path}")
 
     system = _get_MRIO_system(path)
     if not system:
@@ -493,12 +488,12 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
         will be taken from the pymrio module. If popvector = None no population
         data will be passed to the IOSystem.
 
-    Returns
+    Returns:
     -------
     IOSystem
         A IOSystem with the parsed exiobase 2 data
 
-    Raises
+    Raises:
     ------
     ParserError
         If the exiobase source files are not complete in the given path
@@ -508,7 +503,7 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
 
     exio_files = get_exiobase_files(path)
     if len(exio_files) == 0:
-        raise ParserError("No EXIOBASE files found at {}".format(path))
+        raise ParserError(f"No EXIOBASE files found at {path}")
 
     system = _get_MRIO_system(path)
     if not system:
@@ -580,10 +575,10 @@ def parse_exiobase2(path, charact=True, popvector="exio2"):
             if len(charac_files) > 1:
                 raise ParserError(
                     "Found multiple characcterisation files "
-                    "in {} - specify one: {}".format(path, charac_files)
+                    f"in {path} - specify one: {charac_files}"
                 )
             elif len(charac_files) == 0:
-                raise ParserError("No characcterisation file found in {}".format(path))
+                raise ParserError(f"No characcterisation file found in {path}")
             else:
                 if _content.iszip:
                     with zipfile.ZipFile(path, "r") as zz:
@@ -695,7 +690,7 @@ def parse_exiobase3(path):
     This parser works with either the compressed zip
     archive as downloaded or the extracted system.
 
-    Note
+    Note:
     ----
     The exiobase 3 parser does so far not include
     population and characterization data.
@@ -707,7 +702,7 @@ def parse_exiobase3(path):
         Path to the folder with the EXIOBASE files
         or the compressed archive.
 
-    Returns
+    Returns:
     -------
     IOSystem
         A IOSystem with the parsed exiobase 3 data
@@ -847,17 +842,16 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
         insensitive and passing the first character is sufficient.
     TODO popvector : TO BE IMPLEMENTED (consistent with EXIOBASE)
 
-    Returns
+    Returns:
     -------
     IOSystem
 
-    Raises
+    Raises:
     ------
     ParserError
         If the WIOD source file are not complete or inconsistent
 
     """
-
     # Path manipulation, should work cross platform
     path = os.path.abspath(os.path.normpath(str(path)))
 
@@ -933,7 +927,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
     # header. In order to deal with that first the full file is read.
     wiot_data = pd.read_excel(wiot_file, sheet_name=wiot_sheet, header=None)
 
-    meta_rec._add_fileio("WIOD data parsed from {}".format(wiot_file))
+    meta_rec._add_fileio(f"WIOD data parsed from {wiot_file}")
     # get meta data
     wiot_year = wiot_data.iloc[wiot_meta["year"], wiot_meta["col"]][-4:]
     wiot_iosystem = (
@@ -1089,7 +1083,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
             "unit": _F_sea_unit,
             "name": "SEA",
         }
-        meta_rec._add_fileio("SEA file extension parsed from {}".format(root_path))
+        meta_rec._add_fileio(f"SEA file extension parsed from {root_path}")
 
     # Environmental extensions, names follow the name given
     # in the meta sheet (except for CO2 to get a better description).
@@ -1186,7 +1180,7 @@ def parse_wiod(path, year=None, names=("isic", "c_codes"), popvector=None):
                 "name": dl_envext_para[ik_ext]["name"],
             }
             meta_rec._add_fileio(
-                "Extension {} parsed from {}".format(ik_ext, root_path)
+                f"Extension {ik_ext} parsed from {root_path}"
             )
 
     # Build system
@@ -1239,7 +1233,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
 
     This function is based on the structure of the extensions from _may12.
 
-    Note
+    Note:
     ----
     The function deletes 'secQ' which is not present in the economic tables.
 
@@ -1256,7 +1250,7 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
     para : dict
         Defining the parameters for reading the extension.
 
-    Returns
+    Returns:
     -------
     dict with keys
         F : pd.DataFrame with index 'stressor' and columns 'region', 'sector'
@@ -1267,7 +1261,6 @@ def __get_WIOD_env_extension(root_path, year, ll_co, para):
 
 
     """
-
     ll_root_content = [
         ff for ff in os.listdir(root_path) if ff.startswith(para["start"])
     ]
@@ -1415,7 +1408,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
     sea_data_sheet : string, optional
         Worksheet with the SEA data in the excel file
 
-    Returns
+    Returns:
     -------
     SEA data as extension for the WIOD MRIO
     """
@@ -1450,7 +1443,7 @@ def __get_WIOD_SEA_extension(root_path, year, data_sheet="DATA"):
         except KeyError:
             warnings.warn(
                 "SEA extension does not include data for the "
-                "year {} - SEA-Extension not included".format(year),
+                f"year {year} - SEA-Extension not included",
                 ParserWarning,
             )
             return None, None
@@ -1508,9 +1501,8 @@ def parse_oecd(path, year=None):
     archives. This function works with both, the compressed archives
     and the unpacked csv files.
 
-    Note
+    Note:
     ----
-
     I) The original OECD ICIO tables provide some disaggregation of the Mexican
     and Chinese tables for the interindustry flows. The pymrio parser
     automatically aggregates these into Chinese And Mexican totals. Thus, the
@@ -1530,11 +1522,11 @@ def parse_oecd(path, year=None):
         Year to parse if 'path' is given as a folder.
         If path points to a specific file, this parameter is not used.
 
-    Returns
+    Returns:
     -------
     IOSystem
 
-    Raises
+    Raises:
     ------
     ParserError
         If the file to parse could not be definitely identified.
@@ -1542,7 +1534,6 @@ def parse_oecd(path, year=None):
         If the specified data file could not be found.
 
     """
-
     path = os.path.abspath(os.path.normpath(str(path)))
 
     oecd_file_starts = ["ICIO2016_", "ICIO2018_", "ICIO2021_", "ICIO2023_"]
@@ -1590,7 +1581,7 @@ def parse_oecd(path, year=None):
         years = re.findall(r"\d\d\d\d", oecd_file_name)
         oecd_version = "v" + years[0]
         oecd_year = years[1]
-        meta_desc = "OECD ICIO for {}".format(oecd_year)
+        meta_desc = f"OECD ICIO for {oecd_year}"
 
     except IndexError:
         oecd_version = "n/a"
@@ -1606,7 +1597,7 @@ def parse_oecd(path, year=None):
     )
 
     oecd_raw = pd.read_csv(oecd_file, sep=",", index_col=0).fillna(0)
-    meta_rec._add_fileio("OECD data parsed from {}".format(oecd_file))
+    meta_rec._add_fileio(f"OECD data parsed from {oecd_file}")
 
     mon_unit = "Million USD"
 
@@ -1727,9 +1718,8 @@ def parse_oecd(path, year=None):
 def parse_eora26(path, year=None, price="bp", country_names="eora"):
     """Parse the Eora26 database
 
-    Note
+    Note:
     ----
-
     This parser deletes the statistical discrepancy columns from
     the parsed Eora system (reports the amount of loss in the
     meta records).
@@ -1825,11 +1815,11 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
     ZY_col = namedtuple("ZY", "full eora system name")(0, 1, 2, 3)
 
     eora_files = {
-        "Z": "Eora26_{year}_{price}_T.txt".format(year=str(year), price=price),
-        "Q": "Eora26_{year}_{price}_Q.txt".format(year=str(year), price=price),
-        "QY": "Eora26_{year}_{price}_QY.txt".format(year=str(year), price=price),
-        "VA": "Eora26_{year}_{price}_VA.txt".format(year=str(year), price=price),
-        "Y": "Eora26_{year}_{price}_FD.txt".format(year=str(year), price=price),
+        "Z": f"Eora26_{str(year)}_{price}_T.txt",
+        "Q": f"Eora26_{str(year)}_{price}_Q.txt",
+        "QY": f"Eora26_{str(year)}_{price}_QY.txt",
+        "VA": f"Eora26_{str(year)}_{price}_VA.txt",
+        "Y": f"Eora26_{str(year)}_{price}_FD.txt",
         "labels_Z": "labels_T.txt",
         "labels_Y": "labels_FD.txt",
         "labels_Q": "labels_Q.txt",
@@ -1911,9 +1901,7 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
             for key, filename in eora_files.items()
         }
     meta_rec._add_fileio(
-        "Eora26 for {year}-{price} data parsed from {loc}".format(
-            year=year, price=price, loc=eora_loc
-        )
+        f"Eora26 for {year}-{price} data parsed from {eora_loc}"
     )
 
     eora_data["labels_Z"] = eora_data["labels_Z"].loc[
@@ -1949,12 +1937,8 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
 
         try:
             meta_rec._add_modify(
-                "Remove Rest of the World ({name}) "
-                "row from {table} - loosing {amount}".format(
-                    name=row_name,
-                    table=key,
-                    amount=eora_data[key].loc[:, row_name].sum().values[0],
-                )
+                f"Remove Rest of the World ({row_name}) "
+                f"row from {key} - loosing {eora_data[key].loc[:, row_name].sum().values[0]}"
             )
             eora_data[key].drop(row_name, axis=1, inplace=True)
         except KeyError:
@@ -1962,12 +1946,8 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
 
         try:
             meta_rec._add_modify(
-                "Remove Rest of the World ({name}) column "
-                "from {table} - loosing {amount}".format(
-                    name=row_name,
-                    table=key,
-                    amount=eora_data[key].loc[row_name, :].sum().values[0],
-                )
+                f"Remove Rest of the World ({row_name}) column "
+                f"from {key} - loosing {eora_data[key].loc[row_name, :].sum().values[0]}"
             )
             eora_data[key].drop(row_name, axis=0, inplace=True)
         except KeyError:
@@ -2006,9 +1986,8 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
 def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria"):
     """Parse the GLORIA database in SUT format
 
-    Note
+    Note:
     ----
-
     Countries with null transaction matrix are removed to avoid singular matrices
 
     Parameters
@@ -2037,7 +2016,6 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
         'full' = Full country names as provided by Gloria
         Passing the first letter suffice.
     """
-
     if country_names[0].lower() == "g":
         country_names = "gloria"
         country_col = "Region_acronyms"
@@ -2214,18 +2192,14 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
     for key in gloria_data_sut.keys():
         if "region" in gloria_data_sut[key].columns.names:
             meta_rec._add_modify(
-                "Remove empty countries ({name}) columns from {table}".format(
-                    name=empty_countries, table=key
-                )
+                f"Remove empty countries ({empty_countries}) columns from {key}"
             )
             gloria_data_sut[key] = gloria_data_sut[key].drop(
                 empty_countries, axis=1, level=0
             )
         if "region" in gloria_data_sut[key].index.names:
             meta_rec._add_modify(
-                "Remove empty countries ({name}) row from {table}".format(
-                    name=empty_countries, table=key
-                )
+                f"Remove empty countries ({empty_countries}) row from {key}"
             )
             gloria_data_sut[key] = gloria_data_sut[key].drop(
                 empty_countries, axis=0, level=0
@@ -2267,12 +2241,10 @@ def parse_gloria_sut(path, year, version=59, price="bp", country_names="gloria")
 
 def __construct_IO(data_sut, construct="B"):
     # Construct the IO matrices from the SUT matrices
-    """
-    Builds input output matrices from SUT matrices
+    """Builds input output matrices from SUT matrices
 
-    Note
+    Note:
     ----
-
     Parameters
     ----------
 
@@ -2295,7 +2267,6 @@ def __construct_IO(data_sut, construct="B"):
     Input-Output Tables p.349
     https://ec.europa.eu/eurostat/documents/3859598/5902113/KS-RA-07-013-EN.PDF/b0b3d71e-3930-4442-94be-70b36cea9b39
     """
-
     # Industry output
     g = data_sut["V"].sum(axis=1)
     g_inv = 1 / g
@@ -2402,9 +2373,8 @@ def parse_gloria(
 ):
     """Parse the GLORIA database in IO format
 
-    Note
+    Note:
     ----
-
     Countries with null transaction matrix are removed to avoid singular matrices
     For GLORIA, all constructs are equivalent (Supply table is diagonal)
 
@@ -2434,7 +2404,6 @@ def parse_gloria(
         'full' = Full country names as provided by Gloria
         Passing the first letter suffice.
     """
-
     gloria_data_sut, meta_rec = parse_gloria_sut(
         path, year, version, price, country_names
     )
