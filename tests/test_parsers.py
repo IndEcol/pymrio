@@ -1,4 +1,4 @@
-"""Tests the parsing of different MRIOs"""
+"""Tests the parsing of different MRIOs."""
 
 import os
 import sys
@@ -23,7 +23,7 @@ import pymrio  # noqa
 
 @pytest.fixture()
 def fix_testmrio_calc():
-    """Single point to load the test mrio"""
+    """Single point to load the test mrio."""
 
     class TestMRIO:
         testmrio = pymrio.load_test().calc_all()
@@ -32,6 +32,7 @@ def fix_testmrio_calc():
 
 
 def test_parse_exio1(fix_testmrio_calc):
+    """Test the parsing of EXIO1 data using the fix_testmrio_calc fixture."""
     exio1_mockpath = os.path.join(testpath, "mock_mrios", "exio1_mock")
 
     test_mrio = fix_testmrio_calc.testmrio
@@ -55,6 +56,7 @@ def test_parse_exio1(fix_testmrio_calc):
 
 
 def test_parse_exio2(fix_testmrio_calc):
+    """Test parsing EXIOBSASE2."""
     exio2_mockpath = os.path.join(
         testpath,
         "mock_mrios",
@@ -91,6 +93,7 @@ def test_parse_exio2(fix_testmrio_calc):
 
 
 def test_parse_exio3(fix_testmrio_calc):
+    """Test parsing EXIOBASE3."""
     exio3_mockpath = os.path.join(testpath, "mock_mrios", "exio3_mock")
 
     test_mrio = fix_testmrio_calc.testmrio
@@ -107,6 +110,7 @@ def test_parse_exio3(fix_testmrio_calc):
 
 
 def test_parse_exio_ext():
+    """Test parsing EXIOBASE extensions."""
     ext_mockpath = os.path.join(testpath, "mock_mrios", "exio_ext_mock")
 
     col5 = os.path.join(ext_mockpath, "ext_5col.txt")
@@ -164,6 +168,7 @@ def test_parse_exio_ext():
 
 @pytest.mark.filterwarnings("ignore:Extension data")
 def test_parse_wiod():
+    """Test parsing WIOD."""
     wiod_mockpath = os.path.join(testpath, "mock_mrios", "wiod_mock")
     ww_path = pymrio.parse_wiod(path=wiod_mockpath, year=2009)
     ww_file = pymrio.parse_wiod(
@@ -183,6 +188,7 @@ def test_parse_wiod():
 
 
 def test_oecd_2016():
+    """Test parsing OECD2016."""
     oecd_mockpath = os.path.join(testpath, "mock_mrios", "oecd_mock")
     oecd_IO_file = os.path.join(oecd_mockpath, "ICIO2016_2003.csv")
 
@@ -226,6 +232,7 @@ def test_oecd_2016():
 
 
 def test_oecd_2018():
+    """Test parsing OECD2018."""
     oecd_mockpath = os.path.join(testpath, "mock_mrios", "oecd_mock")
     oecd_IO_csv = os.path.join(oecd_mockpath, "ICIO2018_2010.CSV")
     oecd_IO_zip = os.path.join(oecd_mockpath, "ICIO2018_2010.zip")
@@ -251,6 +258,7 @@ def test_oecd_2018():
 
 
 def test_parse_eora26(fix_testmrio_calc):
+    """Test parsing Eora26."""
     eora_mockpath = os.path.join(testpath, "mock_mrios", "eora26_mock")
 
     test_mrio = fix_testmrio_calc.testmrio
@@ -272,6 +280,7 @@ def test_parse_eora26(fix_testmrio_calc):
 
 
 def test_parse_gloria():
+    """Test parsing Gloria."""
     gloria_mockpath = os.path.join(testpath, "mock_mrios", "gloria_mock")
 
     prices = ["bp", "pp"]

@@ -129,8 +129,13 @@ extend-select = [
     "UP",  # pyupgrade: Helps upgrade syntax to newer Python versions.
     "PD",  # pandas-vet: Checks for common mistakes in pandas usage.
 ]
-# ignore missing docstrings in public modules and __init__ files:
-# ignore = ["D100", "D104"]
+ignore = [
+    "D100",  # Missing docstring in public module
+    "D104",  # Missing docstring in public package
+    "PD013", # pandas: replace stack by melt
+    "PD010", # pandas: replace stack by pivot
+]
+# These codes are ignored by the linter (e.g., flake8, pydocstyle, or pandas-vet)
 
 [tool.ruff.lint.pydocstyle]
 # Specify the docstring convention to follow. "google" and "numpy" are common in data science.

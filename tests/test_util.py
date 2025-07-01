@@ -1,4 +1,4 @@
-"""test cases for all util functions"""
+"""Test cases for all util functions."""
 
 import os
 import string
@@ -187,6 +187,7 @@ def test_diagonalize_blocks():
 
 
 def test_diagonalize_columns_to_sectors():
+    """Test the diagonalize_columns_to_sectors function for correct behavior."""
     inp_array = np.array(([3, 1], [4, 2], [5, 3], [6, 9], [7, 6], [8, 4]))
     out_array = np.array(
         (
@@ -235,6 +236,7 @@ def test_set_block():
 
 
 def test_filename_from_url():
+    """Getting filename from url tests."""
     letters = np.array(list(string.printable))
     fake = Faker()
     for _ in range(100):
@@ -565,8 +567,6 @@ def test_convert_rename_spread_index():
     renamed_missing_nan = convert(to_char, rename_bridge_missing_nan)
     renamed_missing_none = convert(to_char, rename_bridge_missing_none)
 
-    renamed_missing_none
-
     pdt.assert_frame_equal(renamed_missing_string, renamed_missing_nan)
     pdt.assert_frame_equal(renamed_missing_string, renamed_missing_none)
 
@@ -682,10 +682,10 @@ def test_convert_characterize():
     exp_res1A.loc["all_air"] = (
         to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
     )
-    exp_res1A.loc["total_regex"] = (to_char.sum(axis=1) * 2).values
-    exp_res1A.loc["total_sum"] = (to_char.sum(axis=1) * 2).values
+    exp_res1A.loc["total_regex"] = (to_char.sum(axis=1) * 2).to_numpy()
+    exp_res1A.loc["total_sum"] = (to_char.sum(axis=1) * 2).to_numpy()
     exp_res1A = exp_res1A.astype(float)
-    exp_res1A.sort_index(inplace=True)
+    exp_res1A = exp_res1A.sort_index()
 
     res1A = convert(to_char, map_test1, drop_not_bridged_index=True, reindex=None)
 
@@ -767,13 +767,13 @@ def test_convert_characterize():
     exp_res2.loc[("all_air", "air")] = (
         to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
     )
-    exp_res2.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).values
-    exp_res2.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).values
+    exp_res2.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
+    exp_res2.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
     exp_res2 = exp_res2.astype(float)
-    exp_res2.sort_index(inplace=True)
+    exp_res2 = exp_res2.sort_index()
 
     res2 = convert(to_char, map_test2)
-    res2.sort_index(inplace=True)
+    res2 = res2.sort_index()
 
     exp_res2.index.names = res2.index.names
     exp_res2.columns.names = res2.columns.names
@@ -806,13 +806,13 @@ def test_convert_characterize():
     exp_res3.loc[("all_air", "air")] = (
         to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
     )
-    exp_res3.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).values
-    exp_res3.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).values
+    exp_res3.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
+    exp_res3.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
     exp_res3 = exp_res3.astype(float)
-    exp_res3.sort_index(inplace=True)
+    exp_res3 = exp_res3.sort_index()
 
     res3 = convert(to_char, map_test3)
-    res3.sort_index(inplace=True)
+    res3 = res3.sort_index()
 
     exp_res3.index.names = res3.index.names
     exp_res3.columns.names = res3.columns.names
@@ -1057,8 +1057,8 @@ def test_extend_rows():
         "USA",
         "Austria",
     }
-    assert "GLO" not in result["region"].values
-    assert "EU" not in result["region"].values
+    assert "GLO" not in result["region"].to_numpy()
+    assert "EU" not in result["region"].to_numpy()
 
     # Check values were properly copied.
     assert all(result[result.region == "reg1"].value == 10)
