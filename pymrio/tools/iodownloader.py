@@ -573,13 +573,21 @@ def download_exiobase3(
 ):
     """Download EXIOBASE 3 files from Zenodo.
 
-    Since version 3.7 EXIOBASE gets published on the Zenodo scientific data
-    repository.  This function download the lastest available version from
-    Zenodo, for previous version the corresponding DOI (parameter 'doi') needs
-    to specified.
+    Since version 3.7, EXIOBASE has been published on
+    the Zenodo scientific data repository.
+    By default, this function downloads the latest
+    available version from Zenodo.
+    To download a previous version,
+    specify the corresponding DOI using the 'doi' parameter.
 
-    Version 3.7: 10.5281/zenodo.3583071
-    Version 3.8: 10.5281/zenodo.4277368
+        - lastest version: 10.5281/zenodo.3583070
+        - Version 3.9.6: 10.5281/zenodo.15689391
+        - Version 3.9.5: 10.5281/zenodo.14869924
+        - Version 3.9.4: 10.5281/zenodo.14614930
+        - Version 3.8.2: 10.5281/zenodo.5589597
+        - Version 3.8.1: 10.5281/zenodo.4588235
+        - Version 3.8: 10.5281/zenodo.4277368
+        - Version 3.7: 10.5281/zenodo.3583071
 
 
     Parameters

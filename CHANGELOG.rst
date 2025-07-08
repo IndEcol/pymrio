@@ -6,6 +6,10 @@ Changelog
 v0.6.3dev
 ******************
 
+Miscellaneous
+=============
+
+* Improved docstring on the download_exiobase3 function (include all dois)
 
 ******************
 v0.6.2 - 20250701
