@@ -1735,7 +1735,7 @@ class Extension(_BaseSystem):
                 orig_characterized_name_column = characterized_name_column
                 sep_char = "<<!>>"
                 all_impacts = pd.concat([factors[col] for col in characterized_name_column]).unique()
-                all_impacts_joined = "".join(all_impacts)
+                all_impacts_joined = "".join(str(s) for s in all_impacts)
 
                 while sep_char in all_impacts_joined:
                     sep_char = sep_char.replace("|", "||")

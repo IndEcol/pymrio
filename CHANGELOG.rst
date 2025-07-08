@@ -6,6 +6,11 @@ Changelog
 v0.6.3dev
 ******************
 
+Bugfixes
+========
+
+* Various smaller bugfixes
+
 Miscellaneous
 =============
 
