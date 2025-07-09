@@ -599,6 +599,36 @@ def test_characterize_extension_reg_spec(fix_testmrio):
     assert res_split.extension.get_index().names[0] == "impact"
     assert res_split.extension.get_index().names[1] == "impact2"
 
+    # testing passing multiple impact columns with an empty string in impact2
+    fac_split_empty = fac_split.copy()
+    fac_split_empty.loc[fac_split_empty.impact2 == "impact", "impact2"] = ""
+    res_split_empty = tmrio.emissions.characterize(fac_split_empty, characterized_name_column=["impact", "impact2"])
+
+    assert "impact" in res_split_empty.validation.columns
+    assert "impact2" in res_split_empty.validation.columns
+    assert "char_name_col_merged" not in res_split_empty.validation.columns
+
+    npt.assert_array_equal(res_split_empty.extension.F.values, nnaa.F.values)
+    npt.assert_array_equal(res_split_empty.extension.F_Y.values, nnaa.F_Y.values)
+
+    assert res_split_empty.extension.get_index().names[0] == "impact"
+    assert res_split_empty.extension.get_index().names[1] == "impact2"
+
+    # testing passing multiple impact columns with a nan  in impact2
+    fac_split_nan = fac_split.copy()
+    fac_split_nan.loc[fac_split_nan.impact2 == "impact", "impact2"] = None
+    res_split_nan = tmrio.emissions.characterize(fac_split_nan, characterized_name_column=["impact", "impact2"])
+
+    assert "impact" in res_split_nan.validation.columns
+    assert "impact2" in res_split_nan.validation.columns
+    assert "char_name_col_merged" not in res_split_nan.validation.columns
+
+    npt.assert_array_equal(res_split_nan.extension.F.values, nnaa.F.values)
+    npt.assert_array_equal(res_split_nan.extension.F_Y.values, nnaa.F_Y.values)
+
+    assert res_split_nan.extension.get_index().names[0] == "impact"
+    assert res_split_nan.extension.get_index().names[1] == "impact2"
+
 
 @pytest.mark.filterwarnings("ignore::UserWarning")
 def test_characterize_extension_over_extensions(fix_testmrio):
