@@ -38,3 +38,6 @@ tags
 /htmlcov
 /**/htmlcov
 *.swp
+# uv stuff
+uv.lock
+/.venv/
