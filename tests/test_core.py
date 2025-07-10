@@ -4,6 +4,7 @@ import os
 import sys
 from pathlib import Path
 
+import numpy as np
 import numpy.testing as npt
 import pandas as pd
 import pandas.testing as pdt
@@ -614,9 +615,24 @@ def test_characterize_extension_reg_spec(fix_testmrio):
     assert res_split_empty.extension.get_index().names[0] == "impact"
     assert res_split_empty.extension.get_index().names[1] == "impact2"
 
-    # testing passing multiple impact columns with a nan  in impact2
+    # testing passing multiple impact columns with None in impact2
+    fac_split_none = fac_split.copy()
+    fac_split_none.loc[fac_split_none.impact2 == "impact", "impact2"] = None
+    res_split_none = tmrio.emissions.characterize(fac_split_none, characterized_name_column=["impact", "impact2"])
+
+    assert "impact" in res_split_none.validation.columns
+    assert "impact2" in res_split_none.validation.columns
+    assert "char_name_col_merged" not in res_split_none.validation.columns
+
+    npt.assert_array_equal(res_split_none.extension.F.values, nnaa.F.values)
+    npt.assert_array_equal(res_split_none.extension.F_Y.values, nnaa.F_Y.values)
+
+    assert res_split_none.extension.get_index().names[0] == "impact"
+    assert res_split_none.extension.get_index().names[1] == "impact2"
+
+    # testing passing multiple impact columns with np.nan in impact2
     fac_split_nan = fac_split.copy()
-    fac_split_nan.loc[fac_split_nan.impact2 == "impact", "impact2"] = None
+    fac_split_nan.loc[fac_split_nan.impact2 == "impact", "impact2"] = np.nan
     res_split_nan = tmrio.emissions.characterize(fac_split_nan, characterized_name_column=["impact", "impact2"])
 
     assert "impact" in res_split_nan.validation.columns
@@ -628,6 +644,21 @@ def test_characterize_extension_reg_spec(fix_testmrio):
 
     assert res_split_nan.extension.get_index().names[0] == "impact"
     assert res_split_nan.extension.get_index().names[1] == "impact2"
+
+    # testing passing multiple impact columns with pd.NA in impact2
+    fac_split_pdna = fac_split.copy()
+    fac_split_pdna.loc[fac_split_pdna.impact2 == "impact", "impact2"] = pd.NA
+    res_split_pdna = tmrio.emissions.characterize(fac_split_pdna, characterized_name_column=["impact", "impact2"])
+
+    assert "impact" in res_split_pdna.validation.columns
+    assert "impact2" in res_split_pdna.validation.columns
+    assert "char_name_col_merged" not in res_split_pdna.validation.columns
+
+    npt.assert_array_equal(res_split_pdna.extension.F.values, nnaa.F.values)
+    npt.assert_array_equal(res_split_pdna.extension.F_Y.values, nnaa.F_Y.values)
+
+    assert res_split_pdna.extension.get_index().names[0] == "impact"
+    assert res_split_pdna.extension.get_index().names[1] == "impact2"
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning")

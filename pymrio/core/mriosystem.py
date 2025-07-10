@@ -1736,6 +1736,10 @@ class Extension(_BaseSystem):
             else:
                 orig_characterized_name_column = characterized_name_column
 
+                factors.loc[:, characterized_name_column] = factors.loc[:, characterized_name_column].where(
+                    ~factors.loc[:, characterized_name_column].isna(), None
+                )
+
                 characterized_name_column = "char_name_col_merged"
                 factors.loc[:, characterized_name_column] = (
                     factors[orig_characterized_name_column].agg(tuple, axis=1).astype(str)
