@@ -35,6 +35,7 @@ jobs:
     name: Production test
     needs: test_development
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
