@@ -5,6 +5,7 @@ Use the API methods from the pymrio module instead.
 
 """
 
+import ast
 import collections
 import copy
 import json
@@ -1723,6 +1724,7 @@ class Extension(_BaseSystem):
         Extension is set to None when "only_validation" is set to True.
 
         """
+        factors = factors.copy()
         name = self.name + name if name[0] == "_" else name
 
         if type(characterized_name_column) is list:
@@ -1733,17 +1735,12 @@ class Extension(_BaseSystem):
                 orig_characterized_name_column = None
             else:
                 orig_characterized_name_column = characterized_name_column
-                sep_char = "<<!>>"
-                all_impacts = pd.concat([factors[col] for col in characterized_name_column]).unique()
-                all_impacts_joined = "".join(str(s) for s in all_impacts)
-
-                while sep_char in all_impacts_joined:
-                    sep_char = sep_char.replace("|", "||")
 
                 characterized_name_column = "char_name_col_merged"
-                factors.loc[:, characterized_name_column] = factors[orig_characterized_name_column].agg(
-                    sep_char.join, axis=1
+                factors.loc[:, characterized_name_column] = (
+                    factors[orig_characterized_name_column].agg(tuple, axis=1).astype(str)
                 )
+
         else:
             orig_characterized_name_column = None
 
@@ -1811,10 +1808,9 @@ class Extension(_BaseSystem):
             _group_index = res.index.names.difference(acc.index.names)
             res = res.groupby(_group_index).sum().T.reindex(columns=acc.columns)
             if orig_characterized_name_column:
-                res.index = pd.MultiIndex.from_arrays(
-                    list(zip(*res.index.str.split(sep_char))),
-                    names=orig_characterized_name_column,
-                )
+                idx = [ast.literal_eval(val) for val in res.index]
+                res.index = pd.MultiIndex.from_tuples(idx)
+                res.index.names = orig_characterized_name_column
             setattr(new_ext, acc_name, res)
 
         res_unit = (
@@ -1824,10 +1820,10 @@ class Extension(_BaseSystem):
             .rename({characterized_unit_column: "unit"}, axis=1)
         )
         if orig_characterized_name_column:
-            res_unit.index = pd.MultiIndex.from_arrays(
-                list(zip(*res_unit.index.str.split(sep_char))),
-                names=orig_characterized_name_column,
-            )
+            idx = [ast.literal_eval(val) for val in res_unit.index]
+            res_unit.index = pd.MultiIndex.from_tuples(idx)
+            res_unit.index.names = orig_characterized_name_column
+
         res_unit = res_unit.loc[new_ext.get_rows(), :]
         new_ext.unit = res_unit
         if orig_characterized_name_column:
