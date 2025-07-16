@@ -173,3 +173,178 @@ print(air_emissions)
 
 # %% [markdown]
 # For more information on the search methods see the [explore notebook](./explore.ipynb).
+
+# %% [markdown]
+# ## Extract data from a time series of MRIOs
+
+# %% [markdown]
+# The `extract_from_mrioseries` function allows you to extract specific data from multiple MRIO systems stored in different directories or files. This is particularly useful when working with time series data where you have MRIO systems for different years.
+
+# %% [markdown]
+# ### Basic usage
+# 
+# The function takes several parameters:
+# - `mrios`: List of paths to MRIO systems (directories or files)
+# - `key_naming`: How to name the keys in the returned dictionary
+# - `extension`: Which extension to extract from (or None for core system data)
+# - `account`: Which account/matrix to extract (e.g., "D_cba", "Z", "Y")
+# - `index`: Which rows to extract (pandas index or slice)
+# - `columns`: Which columns to extract (pandas columns or slice)
+
+# %% [markdown]
+# Let's create some example MRIO systems with different years to demonstrate:
+
+# %%
+import tempfile
+import os
+import pymrio
+
+# Create temporary directories for different years
+with tempfile.TemporaryDirectory() as tmpdir:
+    # Create test MRIO systems
+    mrio_1999 = pymrio.load_test().calc_all()
+    mrio_2000 = mrio_1999.copy()
+    
+    # Modify the 2000 system to show differences
+    mrio_2000.Z = mrio_2000.Z * 2
+    mrio_2000.Y = mrio_2000.Y * 2
+    
+    # Save to different directories
+    dir_1999 = os.path.join(tmpdir, "test_1999")
+    dir_2000 = os.path.join(tmpdir, "test_2000")
+    
+    mrio_1999.save_all(dir_1999)
+    mrio_2000.save_all(dir_2000)
+    
+    # Extract emission data using year-based naming
+    result = pymrio.extract_from_mrioseries(
+        mrios=[dir_1999, dir_2000],
+        key_naming="year",
+        extension="emissions",
+        account="D_cba",
+        index=None,
+        columns=["reg1"]
+    )
+    
+    print("Available years:", list(result.keys()))
+    print("1999 data shape:", result["1999"].shape)
+    print("2000 data shape:", result["2000"].shape)
+
+# %% [markdown]
+# ### Key naming options
+# 
+# The `key_naming` parameter controls how the dictionary keys are generated:
+# - `None`: Uses the folder/file name as key
+# - `"year"`: Searches for 4-digit years in the folder/file name
+# - Custom function: Pass a function that takes the folder name and returns a key
+
+# %%
+# Example with custom key naming
+def custom_naming(folder_name):
+    return f"dataset_{folder_name}"
+
+with tempfile.TemporaryDirectory() as tmpdir:
+    mrio_test = pymrio.load_test().calc_all()
+    
+    # Save to a test directory
+    test_dir = os.path.join(tmpdir, "mrio_data")
+    mrio_test.save_all(test_dir)
+    
+    # Extract with custom naming
+    result = pymrio.extract_from_mrioseries(
+        mrios=[test_dir],
+        key_naming=custom_naming,
+        extension="emissions",
+        account="D_cba",
+        index=("emission_type1", "air"),
+        columns=["reg1"]
+    )
+    
+    print("Custom key:", list(result.keys())[0])
+
+# %% [markdown]
+# ### Extracting core system data
+# 
+# You can extract data from the core MRIO system (Z, Y, x matrices) by setting `extension=None`:
+
+# %%
+with tempfile.TemporaryDirectory() as tmpdir:
+    mrio_test = pymrio.load_test().calc_all()
+    test_dir = os.path.join(tmpdir, "mrio_core")
+    mrio_test.save_all(test_dir)
+    
+    # Extract Z matrix from core system
+    z_result = pymrio.extract_from_mrioseries(
+        mrios=[test_dir],
+        key_naming=None,
+        extension=None,  # Extract from core system
+        account="Z",
+        index=None,
+        columns=None
+    )
+    
+    print("Core system Z matrix shape:", z_result["mrio_core"].shape)
+
+# %% [markdown]
+# ### Working with ZIP files
+# 
+# The function also supports extracting data from ZIP files containing MRIO systems:
+
+# %%
+import zipfile
+
+with tempfile.TemporaryDirectory() as tmpdir:
+    # Create and save MRIO system
+    mrio_test = pymrio.load_test().calc_all()
+    mrio_dir = os.path.join(tmpdir, "mrio_temp")
+    mrio_test.save_all(mrio_dir)
+    
+    # Create ZIP file
+    zip_path = os.path.join(tmpdir, "mrio_2023.zip")
+    with zipfile.ZipFile(zip_path, 'w') as zf:
+        for root, dirs, files in os.walk(mrio_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                arc_path = os.path.relpath(file_path, mrio_dir)
+                zf.write(file_path, arc_path)
+    
+    # Extract from ZIP file
+    zip_result = pymrio.extract_from_mrioseries(
+        mrios=[zip_path],
+        key_naming="year",
+        extension="emissions",
+        account="D_cba",
+        index=None,
+        columns=["reg1"]
+    )
+    
+    print("Extracted from ZIP:", list(zip_result.keys()))
+
+# %% [markdown]
+# ### Index and column selection
+# 
+# You can specify exactly which rows and columns to extract using pandas indexing:
+
+# %%
+with tempfile.TemporaryDirectory() as tmpdir:
+    mrio_test = pymrio.load_test().calc_all()
+    test_dir = os.path.join(tmpdir, "mrio_subset")
+    mrio_test.save_all(test_dir)
+    
+    # Extract specific emission type and regions
+    subset_result = pymrio.extract_from_mrioseries(
+        mrios=[test_dir],
+        key_naming=None,
+        extension="emissions",
+        account="D_cba",
+        index=("emission_type1", "air"),  # Specific emission type
+        columns=["reg1", "reg2"]  # Specific regions
+    )
+    
+    print("Subset result shape:", subset_result["mrio_subset"].shape)
+    print("Result type:", type(subset_result["mrio_subset"]))
+
+# %% [markdown]
+# The `extract_from_mrioseries` function returns an OrderedDict where keys are determined by the `key_naming` parameter and values are pandas DataFrames (or Series if a single row is selected) containing the extracted data.
+
+# %%

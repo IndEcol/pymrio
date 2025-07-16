@@ -37,3 +37,7 @@ tags
 .coverage
 /htmlcov
 /**/htmlcov
+*.swp
+# uv stuff
+uv.lock
+/.venv/

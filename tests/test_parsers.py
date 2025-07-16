@@ -1,4 +1,4 @@
-"""Tests the parsing of different MRIOs"""
+"""Tests the parsing of different MRIOs."""
 
 import os
 import sys
@@ -23,7 +23,7 @@ import pymrio  # noqa
 
 @pytest.fixture()
 def fix_testmrio_calc():
-    """Single point to load the test mrio"""
+    """Single point to load the test mrio."""
 
     class TestMRIO:
         testmrio = pymrio.load_test().calc_all()
@@ -32,6 +32,7 @@ def fix_testmrio_calc():
 
 
 def test_parse_exio1(fix_testmrio_calc):
+    """Test the parsing of EXIO1 data using the fix_testmrio_calc fixture."""
     exio1_mockpath = os.path.join(testpath, "mock_mrios", "exio1_mock")
 
     test_mrio = fix_testmrio_calc.testmrio
@@ -40,13 +41,9 @@ def test_parse_exio1(fix_testmrio_calc):
 
     exio1.calc_all()
 
-    assert test_mrio.emissions.S.iloc[1, 1] == pytest.approx(
-        exio1.emissions.S.iloc[1, 1]
-    )
+    assert test_mrio.emissions.S.iloc[1, 1] == pytest.approx(exio1.emissions.S.iloc[1, 1])
 
-    assert test_mrio.emissions.D_cba.iloc[0, 5] == pytest.approx(
-        exio1.emissions.D_cba.iloc[0, 5]
-    )
+    assert test_mrio.emissions.D_cba.iloc[0, 5] == pytest.approx(exio1.emissions.D_cba.iloc[0, 5])
 
     assert exio1.get_regions()[0] == "reg1"
 
@@ -55,6 +52,7 @@ def test_parse_exio1(fix_testmrio_calc):
 
 
 def test_parse_exio2(fix_testmrio_calc):
+    """Test parsing EXIOBSASE2."""
     exio2_mockpath = os.path.join(
         testpath,
         "mock_mrios",
@@ -67,13 +65,9 @@ def test_parse_exio2(fix_testmrio_calc):
     exio2 = pymrio.parse_exiobase2(exio2_mockpath, popvector=None)
     exio2.calc_all()
 
-    assert test_mrio.emissions.S.iloc[1, 1] == pytest.approx(
-        exio2.emissions.S.iloc[1, 1]
-    )
+    assert test_mrio.emissions.S.iloc[1, 1] == pytest.approx(exio2.emissions.S.iloc[1, 1])
 
-    assert test_mrio.emissions.D_cba.iloc[0, 5] == pytest.approx(
-        exio2.emissions.D_cba.iloc[0, 5]
-    )
+    assert test_mrio.emissions.D_cba.iloc[0, 5] == pytest.approx(exio2.emissions.D_cba.iloc[0, 5])
 
     pdt.assert_series_equal(
         exio2.impact.D_cba.loc["total emissions"],
@@ -91,6 +85,7 @@ def test_parse_exio2(fix_testmrio_calc):
 
 
 def test_parse_exio3(fix_testmrio_calc):
+    """Test parsing EXIOBASE3."""
     exio3_mockpath = os.path.join(testpath, "mock_mrios", "exio3_mock")
 
     test_mrio = fix_testmrio_calc.testmrio
@@ -107,6 +102,7 @@ def test_parse_exio3(fix_testmrio_calc):
 
 
 def test_parse_exio_ext():
+    """Test parsing EXIOBASE extensions."""
     ext_mockpath = os.path.join(testpath, "mock_mrios", "exio_ext_mock")
 
     col5 = os.path.join(ext_mockpath, "ext_5col.txt")
@@ -114,31 +110,14 @@ def test_parse_exio_ext():
     col2 = os.path.join(ext_mockpath, "ext_2col.txt")
     col1 = os.path.join(ext_mockpath, "ext_1col.txt")
 
-    ext5 = pymrio.parse_exio12_ext(
-        col5, index_col=5, name="col5", sep="\t", drop_compartment=True
-    )
-    ext3 = pymrio.parse_exio12_ext(
-        col3, index_col=3, name="col3", sep="\t", drop_compartment=True
-    )
-    ext2 = pymrio.parse_exio12_ext(
-        col2, index_col=2, name="col2", sep="\t", drop_compartment=True
-    )
-    ext1 = pymrio.parse_exio12_ext(
-        col1, index_col=1, name="col1", sep="\t", drop_compartment=True
-    )
-    ext5_wcmp = pymrio.parse_exio12_ext(
-        col5, index_col=5, name="col5", sep="\t", drop_compartment=False
-    )
-    ext3_wcmp = pymrio.parse_exio12_ext(
-        col3, index_col=3, name="col3", sep="\t", drop_compartment=False
-    )
-    ext2_wcmp = pymrio.parse_exio12_ext(
-        col2, index_col=2, name="col2", sep="\t", drop_compartment=False
-    )
-    ext1_wcmp = pymrio.parse_exio12_ext(
-        col1, index_col=1, name="col1", sep="\t", drop_compartment=False
-    )
-
+    ext5 = pymrio.parse_exio12_ext(col5, index_col=5, name="col5", sep="\t", drop_compartment=True)
+    ext3 = pymrio.parse_exio12_ext(col3, index_col=3, name="col3", sep="\t", drop_compartment=True)
+    ext2 = pymrio.parse_exio12_ext(col2, index_col=2, name="col2", sep="\t", drop_compartment=True)
+    ext1 = pymrio.parse_exio12_ext(col1, index_col=1, name="col1", sep="\t", drop_compartment=True)
+    ext5_wcmp = pymrio.parse_exio12_ext(col5, index_col=5, name="col5", sep="\t", drop_compartment=False)
+    ext3_wcmp = pymrio.parse_exio12_ext(col3, index_col=3, name="col3", sep="\t", drop_compartment=False)
+    ext2_wcmp = pymrio.parse_exio12_ext(col2, index_col=2, name="col2", sep="\t", drop_compartment=False)
+    ext1_wcmp = pymrio.parse_exio12_ext(col1, index_col=1, name="col1", sep="\t", drop_compartment=False)
 
     assert np.allclose(ext5.F, ext3.F)
     assert np.allclose(ext3.F, ext2.F)
@@ -146,7 +125,6 @@ def test_parse_exio_ext():
     assert np.allclose(ext1.F, ext5_wcmp.F)
 
     # pdt.assert_frame_equal(ext1.F, ext5_wcmp.F.droplevel("compartment"))
-
 
     assert ext5.F.iloc[1, 1] == 102
     assert ext5.F.iloc[-1, -1] == 148
@@ -166,11 +144,10 @@ def test_parse_exio_ext():
 
 @pytest.mark.filterwarnings("ignore:Extension data")
 def test_parse_wiod():
+    """Test parsing WIOD."""
     wiod_mockpath = os.path.join(testpath, "mock_mrios", "wiod_mock")
     ww_path = pymrio.parse_wiod(path=wiod_mockpath, year=2009)
-    ww_file = pymrio.parse_wiod(
-        path=os.path.join(wiod_mockpath, "wiot09_row_sep12.xlsx")
-    )
+    ww_file = pymrio.parse_wiod(path=os.path.join(wiod_mockpath, "wiot09_row_sep12.xlsx"))
 
     ww_path.calc_all()
     ww_file.calc_all()
@@ -185,6 +162,7 @@ def test_parse_wiod():
 
 
 def test_oecd_2016():
+    """Test parsing OECD2016."""
     oecd_mockpath = os.path.join(testpath, "mock_mrios", "oecd_mock")
     oecd_IO_file = os.path.join(oecd_mockpath, "ICIO2016_2003.csv")
 
@@ -202,9 +180,7 @@ def test_oecd_2016():
     oecd.calc_all()
 
     # Test standard values
-    assert np.allclose(
-        oecd.Z.loc[("AUS", "C01T05AGR"), ("AUS", "C01T05AGR")], 23697.221
-    )
+    assert np.allclose(oecd.Z.loc[("AUS", "C01T05AGR"), ("AUS", "C01T05AGR")], 23697.221)
     assert np.allclose(oecd.Z.loc[("NZL", "C23PET"), ("AUS", "C20WOD")], 684.49784)
     assert np.allclose(oecd.Y.loc[("NZL", "C23PET"), ("PER", "DIRP")], 14822221.0)
 
@@ -215,19 +191,14 @@ def test_oecd_2016():
 
     assert oecd.Z.shape == (32, 32)
 
-    assert np.allclose(
-        oecd.Z.loc[("CHN", "C01T05AGR"), ("AUS", "C15T16FOD")], 6932.1858
-    )
-    assert np.allclose(
-        oecd.Z.loc[("CHN", "C01T05AGR"), ("AUS", "C15T16FOD")], 6932.1858
-    )
+    assert np.allclose(oecd.Z.loc[("CHN", "C01T05AGR"), ("AUS", "C15T16FOD")], 6932.1858)
+    assert np.allclose(oecd.Z.loc[("CHN", "C01T05AGR"), ("AUS", "C15T16FOD")], 6932.1858)
     assert np.allclose(oecd.Y.loc[("CHN", "C23PET"), ("NZL", "HFCE")], 24074818)
-    assert np.allclose(
-        oecd.factor_inputs.F.loc["VA+TAXSUB", ("CHN", "C20WOD")], 569612.84
-    )
+    assert np.allclose(oecd.factor_inputs.F.loc["VA+TAXSUB", ("CHN", "C20WOD")], 569612.84)
 
 
 def test_oecd_2018():
+    """Test parsing OECD2018."""
     oecd_mockpath = os.path.join(testpath, "mock_mrios", "oecd_mock")
     oecd_IO_csv = os.path.join(oecd_mockpath, "ICIO2018_2010.CSV")
     oecd_IO_zip = os.path.join(oecd_mockpath, "ICIO2018_2010.zip")
@@ -247,12 +218,11 @@ def test_oecd_2018():
     assert np.allclose(oecd.Z.loc[("BEL", "16"), ("AUS", "05T06")], 150.89421)
     assert np.allclose(oecd.Y.loc[("BRA", "09"), ("COL", "GGFC")], 11211977)
     assert np.allclose(oecd.factor_inputs.F.loc["VALU", ("MEX", "01T03")], 284552.21)
-    assert np.allclose(
-        oecd.factor_inputs.F.loc["MEX_TAXSUB", ("BEL", "16")], 1.66161232097811
-    )
+    assert np.allclose(oecd.factor_inputs.F.loc["MEX_TAXSUB", ("BEL", "16")], 1.66161232097811)
 
 
 def test_parse_eora26(fix_testmrio_calc):
+    """Test parsing Eora26."""
     eora_mockpath = os.path.join(testpath, "mock_mrios", "eora26_mock")
 
     test_mrio = fix_testmrio_calc.testmrio
@@ -262,9 +232,7 @@ def test_parse_eora26(fix_testmrio_calc):
 
     eora_short.calc_all()
 
-    assert test_mrio.emissions.D_cba.iloc[1, 1] == pytest.approx(
-        eora_short.Q.D_cba.iloc[1, 1]
-    )
+    assert test_mrio.emissions.D_cba.iloc[1, 1] == pytest.approx(eora_short.Q.D_cba.iloc[1, 1])
 
     assert eora_short.get_regions()[0] == "reg1"
     assert eora_full.get_regions()[0] == "Region 1"
@@ -274,6 +242,7 @@ def test_parse_eora26(fix_testmrio_calc):
 
 
 def test_parse_gloria():
+    """Test parsing Gloria."""
     gloria_mockpath = os.path.join(testpath, "mock_mrios", "gloria_mock")
 
     prices = ["bp", "pp"]

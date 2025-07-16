@@ -1,8 +1,13 @@
-############
-Pymrio
-############
 
-Pymrio: Multi-Regional Input-Output Analysis in Python.
+.. image:: https://raw.githubusercontent.com/IndEcol/pymrio/master/doc/source/_static/textlogo.png
+    :target: http://pymrio.readthedocs.io/en/latest/?badge=latest
+    :alt: pymrio logo
+
+-------
+
+*******************************************************
+pymrio: Multi-Regional Input-Output Analysis in Python
+*******************************************************
 
 .. image:: https://img.shields.io/pypi/v/pymrio.svg
     :target: https://pypi.python.org/pypi/pymrio/
@@ -19,8 +24,6 @@ Pymrio: Multi-Regional Input-Output Analysis in Python.
     :target: https://www.gnu.org/licenses/gpl-3.0
 .. image:: https://zenodo.org/badge/21688312.svg
     :target: https://zenodo.org/badge/latestdoi/21688312
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/psf/black
 
 What is it
 ==========
@@ -92,8 +95,9 @@ The test mrio consists of six regions and eight sectors:
 .. code:: python
 
 
-    print(test_mrio.get_sectors())
-    print(test_mrio.get_regions())
+    print(test_mrio.sectors)
+    print(test_mrio.regions)
+    print(test_mrio.extensions)
 
 The test mrio includes tables flow tables and some satellite accounts. 
 To show these:
@@ -122,7 +126,7 @@ To visualize the accounts:
 
 .. code:: python
 
-    import matplotlib as plt
+    import matplotlib.pyplot as plt
     test_mrio.emissions.plot_account('emission_type1')
     plt.show()
 
@@ -162,34 +166,17 @@ Please check `CONTRIBUTING.rst`_ if you want to help to improve Pymrio.
 Communication, issues, bugs and enhancements
 ============================================
 
+
 Please use the issue tracker for documenting bugs, proposing enhancements and all other communication related to pymrio.
 
 You can follow me on twitter_ to get the latest news about all my open-source and research projects (and occasionally some random retweets).
-
-Research notice
-~~~~~~~~~~~~~~~
-
-Please note that this repository is participating in a study into
-sustainability of open source projects. Data will be gathered about this
-repository for approximately the next 12 months, starting from June
-2021.
-
-Data collected will include number of contributors, number of PRs, time
-taken to close/merge these PRs, and issues closed.
-
-For more information, please visit `the informational
-page <https://sustainable-open-science-and-software.github.io/>`__ or
-download the `participant information
-sheet <https://sustainable-open-science-and-software.github.io/assets/PIS_sustainable_software.pdf>`__.
-
 
 .. _twitter: https://twitter.com/kst_stadler
 
 .. _downloading: http://pymrio.readthedocs.io/en/latest/notebooks/autodownload.html
 .. _parsing: http://pymrio.readthedocs.io/en/latest/handling.html
 .. _documentation: http://pymrio.readthedocs.io/en/latest/
-.. _tutorials: http://pymrio.readthedocs.io/en/latest/handling.html
-
+.. _tutorials: https://pymrio.readthedocs.io/en/latest/notebooks/full_tutorial.html
 .. _EXIOBASE: http://www.exiobase.eu/
 .. _WIOD: http://www.wiod.org/home
 .. _OECD: https://www.oecd.org/sti/ind/inter-country-input-output-tables.htm

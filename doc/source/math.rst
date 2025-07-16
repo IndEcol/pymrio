@@ -185,7 +185,7 @@ categorized into scope 1, 2 and 3, with scope 3 sub-divided into upstream and
 downstream.
 
 For a MRIO the scope 1 is the direct impact of the industries. The factors of production scope 1 associated
-with some product or service in sector 'i' of monetary value 'r' is given by :math:`S e_i r', where :math:`e_i' is the math:`i^{th}' unit vector.
+with some product or service in sector 'i' of monetary value 'r' is given by :math:`S e_i r``, where :math:`e_i`` is the math:`i^{th}`` unit vector.
 Scope 2 is the indirect impact through directly consumed energy (mostly electricity). The precise definition of scope 2
 in an MRIO depends on the list of MRIO sectors that are classified as scope 2 energy suppliers. Scope 2 is therefore
 included in the upstream scope 3, which we refer to as upstream indirect impacts. The upstream multipliers are

@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.0
+#       jupytext_version: 1.17.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -20,11 +20,12 @@
 
 # %% [markdown]
 # Here, we use the included small test MRIO system to highlight the different function. The same functions are available for any MRIO loaded into pymrio. Expect, however, significantly decreased performance due to the size of real MRIO system.
-
-import os
+#
+# import os
 
 # %%
 import pymrio
+import os
 
 io = pymrio.load_test().calc_all()
 
@@ -57,7 +58,6 @@ io_read.meta
 # Internally, pymrio stores data in csv format, with the 'economic core' data in the root and each satellite account in a subfolder. Metadata as file as a file describing the data format ('file_parameters.json') are included in each folder.
 
 # %%
-import os
 
 os.listdir(save_folder_full)
 
@@ -146,9 +146,7 @@ io1_load = pymrio.load_all(mrio_arc, path_in_arc="version1/")
 io2_load = pymrio.load_all(mrio_arc, path_in_arc="version2/")
 
 print(
-    "Extensions of the loaded io1 {ver1} and of io2: {ver2}".format(
-        ver1=sorted(io1_load.get_extensions()), ver2=sorted(io2_load.get_extensions())
-    )
+    f"Extensions of the loaded io1 {sorted(io1_load.get_extensions())} and of io2: {sorted(io2_load.get_extensions())}"
 )
 
 # %% [markdown]
@@ -211,3 +209,62 @@ io.emissions.D_cba.to_excel("/tmp/testmrio/emission_footprints.xlsx")
 
 # %% [markdown]
 # For further information see the pandas [documentation on import/export](https://pandas.pydata.org/pandas-docs/stable/io.html).
+
+# %% [markdown]
+# ## Partial loading of MRIO data
+
+# %% [markdown]
+# Pymrio provides functionality to load only specific parts of a saved MRIO system, which can be useful for memory efficiency or when working with large databases. This is achieved using the `subset` parameter in the `load_all` function.
+
+# %% [markdown]
+# ### Loading specific matrices
+
+# %% [markdown]
+# You can load only specific matrices from a saved MRIO system:
+
+# %%
+# Load only the Z matrix and D_cba data
+io_partial = pymrio.load_all(save_folder_full, subset=["Z", "D_cba"])
+
+# %% [markdown]
+# This will load only the specified matrices. Other matrices like A, Y, L, etc. will not be loaded:
+
+# %%
+print("Available matrices in partial load:")
+print(io_partial)
+print(io_partial.emissions)
+
+# %% [markdown]
+# ### Loading specific extensions
+
+# %% [markdown]
+# You can also restrict loading to specific extensions using the `subfolders` parameter:
+
+# %%
+# Load only from the emissions extension
+io_emis_only = pymrio.load_all(save_folder_full, subfolders="emissions", subset=["Z", "D_cba"])
+print(io_emis_only)
+
+# %% [markdown]
+# Multiple extensions can be specified as a list:
+
+# %%
+# Load from multiple extensions (some may not exist)
+io_multi_ext = pymrio.load_all(save_folder_full, subfolders=["emissions", "factor_inputs"], subset=["Z", "D_cba"])
+print(io_multi_ext)
+
+# %% [markdown]
+# ### Loading extensions without core data
+
+# %% [markdown]
+# To load only extension data without the core economic matrices, use `include_core=False`:
+
+# %%
+# Load only extension data, no core matrices
+io_ext_only = pymrio.load_all(save_folder_full, subfolders="emissions", include_core=False, subset=["D_cba"])
+
+print("Available matrices (extensions only):")
+print(io_ext_only)
+print("Available extensions:")
+print(list(io_ext_only.get_extensions()))
+print("Available dataframes: ", list(io_ext_only.emissions.get_DataFrame()))

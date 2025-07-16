@@ -114,7 +114,7 @@ air_accounts_dict.keys()
 # Alternatively, one can automatically convert the extracted satellite accounts to a new MRIO extension.
 
 air_accounts_extension = mrio.emissions.extract(
-    index=air_emission_index, return_as_extension=True
+    index=air_emission_index, return_type="extension"
 )
 print(air_accounts_extension)
 

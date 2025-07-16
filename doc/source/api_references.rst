@@ -183,7 +183,7 @@ numpy array.
    calc_x
    calc_Z
    calc_A
-   calc_As
+   calc_B
    calc_L
    calc_G
    calc_S
@@ -311,7 +311,6 @@ Routines developed for pymrio which can also be used independently.
    index_fullmatch
    build_agg_matrix
    build_agg_vec
-   convert_to_long
 
 
 *************

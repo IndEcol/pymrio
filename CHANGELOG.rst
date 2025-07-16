@@ -2,9 +2,70 @@
 Changelog
 #########
 
+******************
+v0.6.3dev
+******************
 
-v0.6dev
-=======
+New Features
+============
+
+* function for extracting data from a time series of mrios (extract_from_mrioseries).
+
+Bugfixes
+========
+
+* Various smaller bugfixes
+* Argument include_core in load and load_all works as expected
+
+Miscellaneous
+=============
+
+* Improved docstring on the download_exiobase3 function (include all dois)
+
+******************
+v0.6.2 - 20250701
+******************
+
+New Features
+============
+
+* characterization function accepts list of column names for characterized_name_column
+
+Miscellaneous
+=============
+
+* change to using uv for development environment
+
+    - removed conda environment.yml file
+    - setup pyproject.toml with uv dependencies
+
+* using ruff for formating, removed black and isort
+* using poe as task runner, remove ./format_and_test.sh
+
+
+******************
+v0.6.1 - 20250626
+******************
+
+New Features
+============
+
+* `convert` functions (ioutil.convert, Extension.convert, pymrio.extension_convert) have a new argument
+  `reindex` which specifies a order of the converted dataframe/extension. It is a wrapper around pandas reindex,
+  but also allows to passing of a bridge column name to sort after the order given in the bridge table.
+* we have a logo
+* characterization method accepts multiple columns for characterized_name_column. Thus is can be used for characterizing into a multiindex.
+
+Fixes
+======
+
+* spelling mistakes in docs
+* package data for including classification was missing
+
+******************
+v0.6.0 - 20250616
+******************
+
 
 Breaking Changes
 ================
@@ -50,6 +111,17 @@ New Features
 
     To utilise this feature, pass `include_ghosh=True` to the `calc_all` or `calc_system` calls.
 
+* Some convenience functions have been added to the MRIO object.
+    - sectors ... shortand for `mrio.get_sectors()`
+    - regions ... shorthand for `mrio.get_regions()`
+    - Y_categories ... shorthand for `mrio.get_Y_categories()`
+    - rows ... shorthand for `mrio.extension.get_rows()`
+    - extensions ... shorthand for `mrio.get_extensions(instance_names=False)`
+    - extensions_instance_names ... shorthand for `mrio.get_extensions(instance_names=True)`
+    - DataFrame ... shorthand for `mrio.get_dataframe()`
+
+* New "full" tutorial at https://pymrio.readthedocs.io/en/latest/notebooks/full_tutorial.html
+
 Deprecated
 ==========
 
@@ -65,6 +137,8 @@ Miscellaneous
 * Adopted OECD ICIO MRIO column rename to `out` (contributed by @spjuhel, #160).
 
 * Fixed warnings regarding regex characters (contributed by @pcorpet, #155).
+
+* Adopted the Github CI workflows to the newest versions, including (test)PyPI uploads
 
 ***************************
 v0.5.4 - 20240412

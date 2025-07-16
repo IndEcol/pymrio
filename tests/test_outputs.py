@@ -1,11 +1,10 @@
-"""Test for producing graphical outputs
+"""Test for producing graphical outputs.
 
 The report functionality is tested separately
 in test_integration
 
-Note
+Note:
 ----
-
 Here we use the values returned from the plotted graph
 for testing. Regression tests against plotted graphs,
 as provided by image_comparison decorator of matplotlib,
@@ -27,7 +26,13 @@ import pymrio  # noqa
 
 @pytest.fixture()
 def fix_testmrio_calc():
-    """Single point to load the test mrio"""
+    """Single point to load the test mrio.
+
+    Returns
+    -------
+    TestMRIO
+        A class containing the loaded test MRIO with all calculations performed.
+    """
 
     class TestMRIO:
         testmrio = pymrio.load_test().calc_all()
@@ -36,7 +41,13 @@ def fix_testmrio_calc():
 
 
 def test_graphs_totals(fix_testmrio_calc):
-    """Testing graph totals"""
+    """Testing graph totals.
+
+    Parameters
+    ----------
+    fix_testmrio_calc : fixture
+        The fixture providing the test MRIO object.
+    """
     stressor = ("emission_type1", "air")
     tt = fix_testmrio_calc.testmrio
     ax = tt.emissions.plot_account(row=stressor)
@@ -59,14 +70,18 @@ def test_graphs_totals(fix_testmrio_calc):
 
 
 def test_graphs_population_sector(fix_testmrio_calc):
-    """Testing graph per population for a specific sector"""
+    """Testing graph per population for a specific sector.
+
+    Parameters
+    ----------
+    fix_testmrio_calc : fixture
+        The fixture providing the test MRIO object.
+    """
     stressor = ("emission_type2", "water")
     sector = "mining"
 
     tt = fix_testmrio_calc.testmrio
-    ax = tt.emissions.plot_account(
-        row=stressor, per_capita=True, population=tt.population, sector=sector
-    )
+    ax = tt.emissions.plot_account(row=stressor, per_capita=True, population=tt.population, sector=sector)
 
     assert stressor[0] in str(ax.title)
     assert stressor[1] in str(ax.title)
@@ -77,15 +92,19 @@ def test_graphs_population_sector(fix_testmrio_calc):
     # for each account from all regions. Thus
     # the order of drawn patches is for each account
     # (cba, pba, imp, exp) for each region
-    sec_reg1_pop = (
-        tt.emissions.D_cba.loc[stressor, ("reg1", sector)] / tt.population.reg1
-    ).iloc[0]
+    sec_reg1_pop = (tt.emissions.D_cba.loc[stressor, ("reg1", sector)] / tt.population.reg1).iloc[0]
 
     assert ax.patches[0].get_height() == sec_reg1_pop
 
 
 def test_graphs_population_total(fix_testmrio_calc):
-    """Testing total per population accounts"""
+    """Testing total per population accounts.
+
+    Parameters
+    ----------
+    fix_testmrio_calc : fixture
+        The fixture providing the test MRIO object.
+    """
     stressor = ("emission_type2", "water")
 
     tt = fix_testmrio_calc.testmrio

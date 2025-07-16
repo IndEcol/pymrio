@@ -1,4 +1,4 @@
-"""test cases for all util functions"""
+"""Test cases for all util functions."""
 
 import os
 import string
@@ -35,6 +35,7 @@ from pymrio.tools.ioutil import (  # noqa
 
 @pytest.fixture()
 def csv_test_files_content():
+    """Get the content of csv test."""
     test_para = namedtuple("test_para", ["text", "sep", "header_rows", "index_col"])
 
     class example_csv_content:
@@ -119,7 +120,7 @@ def csv_test_files_content():
 
 
 def test_find_first_number():
-    """Some tests for finding the first number in a sequence"""
+    """Some tests for finding the first number in a sequence."""
     assert find_first_number([0, 1, 2, 3]) == 0
     assert find_first_number(["a", 1, 2, 3]) == 1
     assert find_first_number(["a", 1, "c", 3]) == 1
@@ -129,11 +130,9 @@ def test_find_first_number():
 
 
 def test_dev_read(csv_test_files_content):
-    """Tests the csv sniffer"""
+    """Tests the csv sniffer."""
     for tests in csv_test_files_content.test_contents:
-        with patch(
-            "builtins.open", mock_open(read_data=tests.text), create=False
-        ) as mo:  # noqa
+        with patch("builtins.open", mock_open(read_data=tests.text), create=False) as _:  # noqa
             res = sniff_csv_format("foo")
         assert res["sep"] == tests.sep
         assert res["nr_index_col"] == tests.index_col
@@ -141,28 +140,24 @@ def test_dev_read(csv_test_files_content):
 
 
 def test_build_agg_matrix():
-    """Tests building the aggreagation matrix"""
-
+    """Tests building the aggreagation matrix."""
     am_num = build_agg_matrix([1, 0, 0, 1, 0])
     expected = np.array([[0.0, 1.0, 1.0, 0.0, 1.0], [1.0, 0.0, 0.0, 1.0, 0.0]])
-    am_str = build_agg_matrix(
-        ["r2", "r1", "r1", "r2", "r1"], pos_dict={"r1": 0, "r2": 1}
-    )
+    am_str = build_agg_matrix(["r2", "r1", "r1", "r2", "r1"], pos_dict={"r1": 0, "r2": 1})
 
     np.testing.assert_allclose(am_num, expected)
     np.testing.assert_allclose(am_str, expected)
 
 
 def test_build_agg_vec():
-    """Simple test based on the test mrio"""
+    """Simple test based on the test mrio."""
     vec = build_agg_vec(["OECD", "EU"], path="test", miss="RoW")
     expected = ["OECD", "EU", "OECD", "OECD", "RoW", "RoW"]
     assert vec == expected
 
 
 def test_diagonalize_blocks():
-    """Tests the numpy implementation of diagonalize_blocks"""
-
+    """Tests the numpy implementation of diagonalize_blocks."""
     # arr (df):  output (df): (blocks = [x, y, z])
     #     (all letters are index or header)
     #       A B     A A A B B B
@@ -190,6 +185,7 @@ def test_diagonalize_blocks():
 
 
 def test_diagonalize_columns_to_sectors():
+    """Test the diagonalize_columns_to_sectors function for correct behavior."""
     inp_array = np.array(([3, 1], [4, 2], [5, 3], [6, 9], [7, 6], [8, 4]))
     out_array = np.array(
         (
@@ -204,9 +200,7 @@ def test_diagonalize_columns_to_sectors():
 
     regions = ["A", "B"]
     sectors = ["x", "y", "z"]
-    reg_sec_index = pd.MultiIndex.from_product(
-        [regions, sectors], names=["region", "sector"]
-    )
+    reg_sec_index = pd.MultiIndex.from_product([regions, sectors], names=["region", "sector"])
 
     inp_df = pd.DataFrame(data=inp_array, index=reg_sec_index, columns=regions)
     inp_df.columns.names = ["region"]
@@ -218,7 +212,7 @@ def test_diagonalize_columns_to_sectors():
 
 
 def test_set_block():
-    """Set block util function"""
+    """Set block util function."""
     full_arr = np.random.random((10, 10))
     block_arr = np.zeros((2, 2))
 
@@ -238,6 +232,7 @@ def test_set_block():
 
 
 def test_filename_from_url():
+    """Getting filename from url tests."""
     letters = np.array(list(string.printable))
     fake = Faker()
     for _ in range(100):
@@ -257,21 +252,18 @@ def test_filename_from_url():
         "conference.pdf": "http://www.dennis.com/conference.pdf&34gegrt4",
     }
 
-    for filename in test_urls.keys():
+    for filename in test_urls:
         assert filename_from_url(test_urls[filename]) == filename
 
 
 def test_util_regex():
-    """Test regex matching"""
-
+    """Test regex matching."""
     test_index = pd.MultiIndex.from_product(
         [["a1", "b1", "c2", "b2"], ["aa", "bb", "cc", "dd"]],
         names=["region", "sector"],
     )
 
-    test_df = pd.DataFrame(
-        data=np.random.random((16, 2)), index=test_index, columns=["foo", "bar"]
-    )
+    test_df = pd.DataFrame(data=np.random.random((16, 2)), index=test_index, columns=["foo", "bar"])
 
     # 1. Full functionality test with fullmatch
 
@@ -292,22 +284,16 @@ def test_util_regex():
 
     mdx_match = index_fullmatch(test_index, region=".*2", sector="cc")
 
-    assert (
-        len(mdx_match.get_level_values("region").unique().difference({"c2", "b2"})) == 0
-    )
+    assert len(mdx_match.get_level_values("region").unique().difference({"c2", "b2"})) == 0
 
     test_ds = test_df.foo
     ds_match = index_fullmatch(test_ds, sector="aa")
 
     assert ds_match.index.get_level_values("sector").unique() == ["aa"]
-    assert all(
-        ds_match.index.get_level_values("region").unique() == ["a1", "b1", "c2", "b2"]
-    )
+    assert all(ds_match.index.get_level_values("region").unique() == ["a1", "b1", "c2", "b2"])
 
     idx_match = index_fullmatch(test_index.get_level_values("region"), region=".*2")
-    assert (
-        len(idx_match.get_level_values("region").unique().difference({"c2", "b2"})) == 0
-    )
+    assert len(idx_match.get_level_values("region").unique().difference({"c2", "b2"})) == 0
 
     # test with empty dataframes
     test_empty = pd.DataFrame(index=test_index)
@@ -324,9 +310,7 @@ def test_util_regex():
     # 2. test the contains functionality
 
     df_match_contains = index_contains(test_df, region="1", sector="c")
-    assert all(
-        df_match_contains.index.get_level_values("region").unique() == ["a1", "b1"]
-    )
+    assert all(df_match_contains.index.get_level_values("region").unique() == ["a1", "b1"])
     assert df_match_contains.index.get_level_values("sector").unique() == ["cc"]
 
     # 3. test the match functionality
@@ -344,9 +328,7 @@ def test_util_regex():
 
     # 6. test with all kwargs not present
 
-    df_some_match = index_match(
-        test_df, region="a.*", sector=".*b.*", not_present_column="abc"
-    )
+    df_some_match = index_match(test_df, region="a.*", sector=".*b.*", not_present_column="abc")
     assert df_some_match.index.get_level_values("region").unique() == ["a1"]
     assert df_some_match.index.get_level_values("sector").unique() == ["bb"]
 
@@ -357,11 +339,8 @@ def test_util_regex():
 
 
 def test_convert_rename_singleindex():
-    """Testing the renaming of one table with a single index"""
-
-    to_char = pd.DataFrame(
-        data=99.0, index=["em1", "em2", "em3"], columns=["r1", "r2", "r3"]
-    )
+    """Testing the renaming of one table with a single index."""
+    to_char = pd.DataFrame(data=99.0, index=["em1", "em2", "em3"], columns=["r1", "r2", "r3"])
     to_char.index.name = "em_type"
     to_char.columns.name = "reg"
 
@@ -380,8 +359,7 @@ def test_convert_rename_singleindex():
 
 
 def test_convert_rename_multiindex():
-    """Testing the renaming of one table with a multiindex"""
-
+    """Testing the renaming of one table with a multiindex."""
     to_char = pd.DataFrame(
         data=99.0,
         index=pd.MultiIndex.from_product([["em1", "em2", "emA"], ["air", "water"]]),
@@ -400,15 +378,10 @@ def test_convert_rename_multiindex():
         ],
     )
 
-    char_res_keep_comp = convert(
-        to_char, rename_bridge_simple, drop_not_bridged_index=False
-    )
+    char_res_keep_comp = convert(to_char, rename_bridge_simple, drop_not_bridged_index=False)
 
     assert all(char_res_keep_comp.columns == to_char.columns)
-    assert all(
-        char_res_keep_comp.index.get_level_values("compart")
-        == to_char.index.get_level_values("compart")
-    )
+    assert all(char_res_keep_comp.index.get_level_values("compart") == to_char.index.get_level_values("compart"))
     npt.assert_allclose(char_res_keep_comp.values, to_char.values)
 
     pdt.assert_index_equal(
@@ -427,9 +400,7 @@ def test_convert_rename_multiindex():
         ),
     )
 
-    char_res_agg_comp = convert(
-        to_char, rename_bridge_simple, drop_not_bridged_index=True
-    )
+    char_res_agg_comp = convert(to_char, rename_bridge_simple, drop_not_bridged_index=True)
 
     assert all(char_res_agg_comp.columns == to_char.columns)
     assert char_res_agg_comp.sum().sum() == to_char.sum().sum()
@@ -457,25 +428,20 @@ def test_convert_rename_multiindex():
         ],
     )
 
-    char_res_keep_comp_wo_factor = convert(
-        to_char, rename_bridge_simple_wo_factor, drop_not_bridged_index=False
-    )
+    char_res_keep_comp_wo_factor = convert(to_char, rename_bridge_simple_wo_factor, drop_not_bridged_index=False)
 
     pdt.assert_frame_equal(char_res_keep_comp_wo_factor, char_res_keep_comp)
 
 
 def test_convert_rename_spread_index():
-    """Testing the renaming of one table from an index to an multiindex
+    """Testing the renaming of one table from an index to an multiindex.
 
     This is for example needed for the EXIOBASE stressor to GLAM conversion,
-    where one stressor level need to be spread to multiple flows/classes
+    where one stressor level need to be spread to multiple flows/classes.
     """
-
     # TEST SIMPLE CASE: SPREADING SINGLE INDEX TO MULTIINDEX
 
-    to_char = pd.DataFrame(
-        data=99.0, index=["em1", "em2", "em3"], columns=["r1", "r2", "r3"]
-    )
+    to_char = pd.DataFrame(data=99.0, index=["em1", "em2", "em3"], columns=["r1", "r2", "r3"])
     to_char.index.name = "stressor"
     to_char.columns.name = "reg"
 
@@ -491,9 +457,7 @@ def test_convert_rename_spread_index():
     renamed_simple = convert(to_char, rename_bridge_simple)
 
     assert all(renamed_simple.columns == to_char.columns)
-    rename_bridge_indexed = rename_bridge_simple.set_index(
-        ["flow__stressor", "class__stressor", "class2__stressor"]
-    )
+    rename_bridge_indexed = rename_bridge_simple.set_index(["flow__stressor", "class__stressor", "class2__stressor"])
     rename_bridge_indexed.index.names = ["flow", "class", "class2"]
     pdt.assert_index_equal(renamed_simple.index, rename_bridge_indexed.index)
 
@@ -529,9 +493,7 @@ def test_convert_rename_spread_index():
         99 * 2,
     )
     npt.assert_allclose(
-        renamed_region_spec.loc[
-            ("emission3", "to_water", "to_water (unspecified)"), "r3"
-        ],
+        renamed_region_spec.loc[("emission3", "to_water", "to_water (unspecified)"), "r3"],
         99,
     )
 
@@ -572,15 +534,11 @@ def test_convert_rename_spread_index():
     renamed_missing_nan = convert(to_char, rename_bridge_missing_nan)
     renamed_missing_none = convert(to_char, rename_bridge_missing_none)
 
-    renamed_missing_none
-
     pdt.assert_frame_equal(renamed_missing_string, renamed_missing_nan)
     pdt.assert_frame_equal(renamed_missing_string, renamed_missing_none)
 
     assert all(renamed_simple.columns == to_char.columns)
-    rename_bridge_indexed = rename_bridge_simple.set_index(
-        ["flow__stressor", "class__stressor", "class2__stressor"]
-    )
+    rename_bridge_indexed = rename_bridge_simple.set_index(["flow__stressor", "class__stressor", "class2__stressor"])
     rename_bridge_indexed.index.names = ["flow", "class", "class2"]
     pdt.assert_index_equal(renamed_simple.index, rename_bridge_indexed.index)
 
@@ -603,25 +561,17 @@ def test_convert_rename_spread_index():
         ],
     )
 
-    ren_multi1_comp = convert(
-        to_char_multi, rename_bridge_level1, drop_not_bridged_index=False
-    )
+    ren_multi1_comp = convert(to_char_multi, rename_bridge_level1, drop_not_bridged_index=False)
 
-    ren_multi1_wocomp = convert(
-        to_char_multi, rename_bridge_level1, drop_not_bridged_index=True
-    )
+    ren_multi1_wocomp = convert(to_char_multi, rename_bridge_level1, drop_not_bridged_index=True)
 
     assert all(ren_multi1_comp.columns == to_char_multi.columns)
     assert all(ren_multi1_wocomp.columns == to_char_multi.columns)
 
-    rename_bridge_level1_indexed = rename_bridge_level1.set_index(
-        ["stressor__em_type", "class__em_type"]
-    )
+    rename_bridge_level1_indexed = rename_bridge_level1.set_index(["stressor__em_type", "class__em_type"])
 
     rename_bridge_level1_indexed.index.names = ["stressor", "class"]
-    pdt.assert_index_equal(
-        rename_bridge_level1_indexed.index, ren_multi1_wocomp.index, check_order=False
-    )
+    pdt.assert_index_equal(rename_bridge_level1_indexed.index, ren_multi1_wocomp.index, check_order=False)
 
     assert "compart" in ren_multi1_comp.index.names
 
@@ -651,14 +601,11 @@ def test_convert_rename_spread_index():
         ["stressor__em_type", "comp__compart", "class__compart"]
     )
     rename_bridge_level2_indexed.index.names = ["stressor", "comp", "class"]
-    pdt.assert_index_equal(
-        rename_bridge_level2_indexed.index, ren_multi2_comp.index, check_order=False
-    )
+    pdt.assert_index_equal(rename_bridge_level2_indexed.index, ren_multi2_comp.index, check_order=False)
 
 
 def test_convert_characterize():
-    """Testing the characterization of one table"""
-
+    """Testing the characterization of one table."""
     to_char = pd.DataFrame(
         data=5,
         index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
@@ -667,7 +614,8 @@ def test_convert_characterize():
     to_char.columns.names = ["reg", "sec"]
     to_char.index.names = ["em_type", "compart"]
 
-    # TEST1A: with only impact (one index level in the result) , sum over compartments as the compartment gets dropped in the argument
+    # TEST1A: with only impact (one index level in the result)
+    # sum over compartments as the compartment gets dropped in the argument
 
     map_test1 = pd.DataFrame(
         columns=["em_type", "compart", "total__em_type", "factor"],
@@ -683,27 +631,40 @@ def test_convert_characterize():
     )
 
     # alternative way to calculated the expected result
-    exp_res1A = pd.DataFrame(
-        columns=to_char.columns, index=["total_regex", "total_sum", "all_air"]
-    )
-    exp_res1A.loc["all_air"] = (
-        to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
-    )
-    exp_res1A.loc["total_regex"] = (to_char.sum(axis=1) * 2).values
-    exp_res1A.loc["total_sum"] = (to_char.sum(axis=1) * 2).values
+    exp_res1A = pd.DataFrame(columns=to_char.columns, index=["total_regex", "total_sum", "all_air"])
+    exp_res1A.loc["all_air"] = to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
+    exp_res1A.loc["total_regex"] = (to_char.sum(axis=1) * 2).to_numpy()
+    exp_res1A.loc["total_sum"] = (to_char.sum(axis=1) * 2).to_numpy()
     exp_res1A = exp_res1A.astype(float)
-    exp_res1A.sort_index(inplace=True)
+    exp_res1A = exp_res1A.sort_index()
 
-    res1A = convert(to_char, map_test1, drop_not_bridged_index=True)
-
-    res1A.sort_index(inplace=True)
+    res1A = convert(to_char, map_test1, drop_not_bridged_index=True, reindex=None)
 
     exp_res1A.index.names = res1A.index.names
     exp_res1A.columns.names = res1A.columns.names
 
     pdt.assert_frame_equal(res1A, exp_res1A)
 
-    # TEST1B: with only impact (one index level in the result) , keep compartments as these are not dropped now
+    # test reordering (alphabetic already checked with passing None before)
+    res1A_co = convert(to_char, map_test1, drop_not_bridged_index=True, reindex="total__em_type")
+    exp_res1A_co = exp_res1A.reindex(["total_regex", "total_sum", "all_air"])
+
+    pdt.assert_frame_equal(res1A_co, exp_res1A_co)
+
+    with pytest.raises(ValueError):
+        convert(to_char, map_test1, drop_not_bridged_index=True, reindex="non_existing")
+
+    res1A_co2 = convert(
+        to_char,
+        map_test1,
+        drop_not_bridged_index=True,
+        reindex=["total_sum", "total_regex", "all_air"],
+    )
+    exp_res1A_co2 = exp_res1A.reindex(["total_sum", "total_regex", "all_air"])
+    pdt.assert_frame_equal(res1A_co2, exp_res1A_co2)
+
+    # TEST1B: with only impact (one index level in the result) ,
+    # keep compartments as these are not dropped now
 
     res1B = convert(to_char, map_test1, drop_not_bridged_index=False)
 
@@ -749,20 +710,16 @@ def test_convert_characterize():
     # alternative way to calculated the expected result
     exp_res2 = pd.DataFrame(
         columns=to_char.columns,
-        index=pd.MultiIndex.from_tuples(
-            [("total_regex", "all"), ("total_sum", "all"), ("all_air", "air")]
-        ),
+        index=pd.MultiIndex.from_tuples([("total_regex", "all"), ("total_sum", "all"), ("all_air", "air")]),
     )
-    exp_res2.loc[("all_air", "air")] = (
-        to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
-    )
-    exp_res2.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).values
-    exp_res2.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).values
+    exp_res2.loc[("all_air", "air")] = to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
+    exp_res2.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
+    exp_res2.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
     exp_res2 = exp_res2.astype(float)
-    exp_res2.sort_index(inplace=True)
+    exp_res2 = exp_res2.sort_index()
 
     res2 = convert(to_char, map_test2)
-    res2.sort_index(inplace=True)
+    res2 = res2.sort_index()
 
     exp_res2.index.names = res2.index.names
     exp_res2.columns.names = res2.columns.names
@@ -788,20 +745,16 @@ def test_convert_characterize():
     # alternative way to calculated the expected result
     exp_res3 = pd.DataFrame(
         columns=to_char.columns,
-        index=pd.MultiIndex.from_tuples(
-            [("total_regex", "all"), ("total_sum", "all"), ("all_air", "air")]
-        ),
+        index=pd.MultiIndex.from_tuples([("total_regex", "all"), ("total_sum", "all"), ("all_air", "air")]),
     )
-    exp_res3.loc[("all_air", "air")] = (
-        to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
-    )
-    exp_res3.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).values
-    exp_res3.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).values
+    exp_res3.loc[("all_air", "air")] = to_char.loc[("em1", "air")] * 0.5 + to_char.loc[("em2", "air")] * 0.5
+    exp_res3.loc[("total_regex", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
+    exp_res3.loc[("total_sum", "all")] = (to_char.sum(axis=1) * 2).to_numpy()
     exp_res3 = exp_res3.astype(float)
-    exp_res3.sort_index(inplace=True)
+    exp_res3 = exp_res3.sort_index()
 
     res3 = convert(to_char, map_test3)
-    res3.sort_index(inplace=True)
+    res3 = res3.sort_index()
 
     exp_res3.index.names = res3.index.names
     exp_res3.columns.names = res3.columns.names
@@ -869,18 +822,14 @@ def test_convert_characterize():
 
     map_test4_stack = map_test4.stack(level="region")
 
-    char4_calc_stack = convert(
-        map_test4_stack, char4, drop_not_bridged_index=False
-    ).unstack(level="region")[0]
+    char4_calc_stack = convert(map_test4_stack, char4, drop_not_bridged_index=False).unstack(level="region")[0]
 
     pdt.assert_frame_equal(char4_calc_nostack, char4_calc_stack)
 
     # TEST 4, with sectors in addition
 
     map_test5 = pd.DataFrame(
-        columns=pd.MultiIndex.from_product(
-            [["Region1", "Region2", "Region3"], ["SecA", "SecB"]]
-        ),
+        columns=pd.MultiIndex.from_product([["Region1", "Region2", "Region3"], ["SecA", "SecB"]]),
         index=[
             "Wheat",
             "Maize",
@@ -902,14 +851,14 @@ def test_convert_characterize():
     map_test5.columns.names = ["region", "sector"]
 
     char5_res = convert(map_test5, char4)
-    pdt.assert_frame_equal(
-        char5_res.T.groupby(level="region").sum().T, char4_calc_nostack.astype("float")
-    )
+    pdt.assert_frame_equal(char5_res.T.groupby(level="region").sum().T, char4_calc_nostack.astype("float"))
 
-    # TODO: test case for multindex characterization on one of teh inner levels - does not work in the GLAM example
+    # TODO: test case for multindex characterization on one of teh inner levels
+    # does not work in the GLAM example
 
 
 def test_convert_wrong_inputs():
+    """Testing wrong inputs for convert function."""
     to_char = pd.DataFrame(
         data=5,
         index=pd.MultiIndex.from_product([["em1", "em2"], ["air", "water"]]),
@@ -992,21 +941,22 @@ def test_convert_wrong_inputs():
 
 
 def test_extend_rows():
-    # Test basic functionality with string values
-    df = pd.DataFrame(
+    """Test basic extend functionality with string values."""
+    df_to_extend = pd.DataFrame(
         {
             "region": ["GLO", "GLO", "GLO"],
             "sector": ["A", "B", "C"],
             "value": [1, 2, 3],
         }
     )
+    # Test with empty new_values list (shouldn't change the original rows).
 
-    result = extend_rows(df, region={"GLO": ["reg1", "reg2"]})
+    result = extend_rows(df_to_extend, region={"GLO": ["reg1", "reg2"]})
     assert len(result) == 6
     assert set(result["region"].unique()) == {"reg1", "reg2"}
 
-    # Test spreading two columns, one it itself and another column
-    df = pd.DataFrame(
+    # Test spreading two columns, one it itself and another column.
+    df_to_extend = pd.DataFrame(
         {
             "region": ["GLO", "GLO", "GLO"],
             "sector": ["A", "B", "C"],
@@ -1014,7 +964,7 @@ def test_extend_rows():
         }
     )
 
-    result = extend_rows(df, region={"GLO": ["reg1", "reg2"]}, sector={"C": ["C", "D"]})
+    result = extend_rows(df_to_extend, region={"GLO": ["reg1", "reg2"]}, sector={"C": ["C", "D"]})
     assert len(result) == 8  # 2 regions * (2 sectors from C + 2 original sectors)
     assert set(result["region"].unique()) == {"reg1", "reg2"}
     assert set(result["sector"].unique()) == {"A", "B", "C", "D"}
@@ -1022,8 +972,8 @@ def test_extend_rows():
     assert all(result[(result.sector == "D") & (result.region == "reg1")].value == 3)
     assert all(result[(result.sector == "C") & (result.region == "reg1")].value == 3)
 
-    # Tests extending rows for multiple values in the same column
-    df = pd.DataFrame(
+    # Tests extending rows for multiple values in the same column.
+    df_to_extend = pd.DataFrame(
         {
             "region": ["GLO", "EU", "USA"],
             "sector": ["A", "B", "C"],
@@ -1032,10 +982,11 @@ def test_extend_rows():
     )
 
     result = extend_rows(
-        df, region={"GLO": ["reg1", "reg2"], "EU": ["France", "Germany", "Austria"]}
+        df_to_extend,
+        region={"GLO": ["reg1", "reg2"], "EU": ["France", "Germany", "Austria"]},
     )
 
-    # Original had 3 rows, GLO expands to 2 new rows, EU expands to 3 new rows, + 1 USA
+    # Original had 3 rows, GLO expands to 2 new rows, EU expands to 3 new rows, + 1 USA.
     assert len(result) == 6
     assert set(result["region"].unique()) == {
         "reg1",
@@ -1045,10 +996,10 @@ def test_extend_rows():
         "USA",
         "Austria",
     }
-    assert "GLO" not in result["region"].values
-    assert "EU" not in result["region"].values
+    assert "GLO" not in result["region"].to_numpy()
+    assert "EU" not in result["region"].to_numpy()
 
-    # Check values were properly copied
+    # Check values were properly copied.
     assert all(result[result.region == "reg1"].value == 10)
     assert all(result[result.region == "reg2"].value == 10)
     assert all(result[result.region == "France"].value == 20)
@@ -1056,8 +1007,8 @@ def test_extend_rows():
     assert all(result[result.region == "Austria"].value == 20)
     assert all(result[result.region == "USA"].value == 30)
 
-    # Test with numerical values
-    df = pd.DataFrame(
+    # Test with numerical values.
+    df_to_extend = pd.DataFrame(
         {
             "year": [2020, 2020, 2020],
             "id": [1, 2, 3],
@@ -1065,12 +1016,12 @@ def test_extend_rows():
         }
     )
 
-    result = extend_rows(df, year={2020: [2021, 2022]})
+    result = extend_rows(df_to_extend, year={2020: [2021, 2022]})
     assert len(result) == 6
     assert set(result["year"].unique()) == {2021, 2022}
     assert result["value"].sum() == 2 * (10 + 20 + 30)
 
-    # Test ValueError for non-numerical DataFrame
+    # Test ValueError for non-numerical DataFrame.
     df_with_custom_index = pd.DataFrame(
         {
             "region": ["GLO", "GLO"],
@@ -1082,23 +1033,23 @@ def test_extend_rows():
     with pytest.raises(ValueError, match="DataFrame index must be numerical"):
         extend_rows(df_with_custom_index, region={"GLO": ["reg1"]})
 
-    # Test ValueError for non-existent column
+    # Test ValueError for non-existent column.
     with pytest.raises(ValueError, match="Column nonexistent not in DataFrame"):
-        extend_rows(df, nonexistent={"val": ["new"]})
+        extend_rows(df_to_extend, nonexistent={"val": ["new"]})
 
-    # Test ValueError for non-existent value to spread
+    # Test ValueError for non-existent value to spread.
     with pytest.raises(ValueError, match="No rows found to spread for value"):
-        extend_rows(df, year={1999: ["new"]})
+        extend_rows(df_to_extend, year={1999: ["new"]})
 
     # Test with empty new_values list (shouldn't change the original rows)
-    df = pd.DataFrame(
+    df_to_extend = pd.DataFrame(
         {
             "region": ["GLO", "EU"],
             "value": [1, 2],
         }
     )
 
-    result = extend_rows(df, region={"GLO": []})
+    result = extend_rows(df_to_extend, region={"GLO": []})
 
     assert len(result) == 2
     assert set(result["region"].unique()) == {"GLO", "EU"}
