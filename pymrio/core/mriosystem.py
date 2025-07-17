@@ -30,6 +30,7 @@ from pymrio.core.constants import (
     MISSING_AGG_ENTRY,
     STORAGE_FORMAT,
 )
+from pymrio.tools.iohem import HEM
 from pymrio.tools.iomath import (
     calc_A,
     calc_accounts,
@@ -3356,6 +3357,139 @@ class IOSystem(_BaseSystem):
 
         """
         return extension_concate(*list(self.get_extensions(data=True)), new_extension_name=new_extension_name)
+
+    def apply_HEM(
+        self,
+        regions=None,
+        sectors=None,
+        extraction_type="1.2",
+        multipliers=True,
+        downstream_allocation_matrix="A12",
+        save_extraction=True,
+        save_path="./HEM_results",
+        calculate_impacts=True,
+        extension="all",
+        specific_impact=None,  # If specific impact is provided, details on other sectors are kept.
+        save_impacts=True,
+        save_core_IO=True,
+        save_details=True,
+        return_results=False,
+    ):
+        """Apply a specific extraction using the HEM to the IOSystem.
+
+        Parameters
+        ----------
+        regions : list, optional
+            List of regions to consider in the HEM. If None, all regions are considered.
+            Default: None
+        sectors : list, optional
+            List of sectors to consider in the HEM. If None, all sectors are considered.
+            Default: None
+        extraction_type : str, optional
+            Type of extraction to apply. See "https://doi.org/10.1111/jiec.13522" for more information.
+            Default: "1.2"
+        multipliers : bool, optional
+            Whether to calculate HEM multipliers . Default: True
+        downstream_allocation_matrix : str, optional
+            The allocation matrix to use for downstream allocation. Can be "A12" or "L12".
+            Default: "A12"
+        save_extraction : bool, optional
+            Whether to save the extraction results to disk. Default: True
+        save_path : str, optional
+            Path to save the extraction results. Default: "./HEM_results"
+        calculate_impacts : bool, optional
+            Whether to calculate environmental impacts. Default: True
+        extension : str, optional
+            The extension to use for impact calculations. Can be "all" or a specific extension name.
+            Default: "all"
+        specific_impact : str, optional
+            If provided, only this specific impact will be calculated.
+            If None, all impacts in extensions are calculated.
+            Default: None
+        save_impacts : bool, optional
+            Whether to save the impact results to disk. Default: True
+        save_core_IO : bool, optional
+            Whether to save the core IO results along with the extraction. Default: True
+        save_details : bool, optional
+            Whether to save detailed results of the extraction. Default: True
+        return_results : bool, optional
+            Whether to return the HEM results as a list. Default: False
+
+        Returns
+        -------
+        list
+            If return_results is True, returns a list of HEM results. Otherwise, returns None.
+
+        Raises
+        ------
+        ValueError
+            If neither regions nor sectors are specified.
+        ValueError
+            If specific_impact is provided but extension is "all".
+
+        """
+        # TODO: Option to whether or not add results as an attribute in PyMRIO object.
+
+        if (regions is None) & (sectors is None):
+            raise ValueError("At least one of regions or sectors must be specified.")
+
+        # First, make sure that all necessary matrices are available in IOSystem.
+        if (self.x is None) or (self.Y is None) or (self.A is None):
+            self.calc_system()
+        elif (downstream_allocation_matrix == "L12") and (self.L is None):
+            self.L = self.calc_L(self.A)
+
+        HEM_object = HEM(IOSystem=self, save_path=save_path)
+
+        HEM_object.make_extraction(
+            regions=regions,
+            sectors=sectors,
+            extraction_type=extraction_type,
+            multipliers=multipliers,
+            downstream_allocation_matrix=downstream_allocation_matrix,
+        )
+
+        if save_extraction:
+            HEM_object.save_extraction(save_core_IO=save_core_IO, save_details=save_details)
+
+        HEM_results = []
+
+        if calculate_impacts:
+            if extension == "all":
+                if specific_impact is not None:
+                    raise ValueError("If specific_impact is given, extension must not be 'all'.")
+                for impact in self.get_extensions():
+                    impact_extension = getattr(self, impact)
+
+                    if impact_extension.S is None:
+                        impact_extension.S = calc_S(impact_extension.F, self.x)
+
+                    HEM_object.calculate_impacts(intensities=impact_extension.S)
+                    if save_impacts:
+                        HEM_object.save_impacts(extension=impact)
+                    if return_results:
+                        HEM_results.append(HEM_object)
+
+            else:
+                impact_extension = getattr(self, extension)
+                if impact_extension.S is None:
+                    impact_extension.S = calc_S(impact_extension.F, self.x)
+
+                if specific_impact is None:
+                    HEM_object.calculate_impacts(intensities=impact_extension.S)
+                else:
+                    HEM_object.calculate_impacts(intensities=impact_extension.S.loc[specific_impact, :])
+
+                if save_impacts:
+                    HEM_object.save_impacts(extension=extension, specific_impact=specific_impact)
+                if return_results:
+                    HEM_results.append(HEM_object)
+            if return_results:
+                return HEM_results
+
+        elif return_results:
+            HEM_results.append(HEM_object)
+            return HEM_results
 
 
 def extension_characterize(

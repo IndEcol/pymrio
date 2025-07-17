@@ -28,6 +28,8 @@ Session.vim
 /**/build/
 /__pycache__
 /tests/__pycache__/
+/tests/hem_save_test_all/
+/tests/hem_save_test_specific/
 /.cache
 /.idea
 /**/.ipynb_checkpoints/

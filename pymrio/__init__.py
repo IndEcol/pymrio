@@ -46,6 +46,7 @@ from pymrio.tools.iodownloader import (
     download_oecd,
     download_wiod2013,
 )
+from pymrio.tools.iohem import HEM
 from pymrio.tools.iomath import (
     calc_A,
     calc_accounts,
@@ -93,8 +94,8 @@ from pymrio.tools.ioutil import (
     to_long,
 )
 from pymrio.tools.tshelper import (
-    apply_method,
     apply_function,
+    apply_method,
     extract_from_mrioseries,
 )
 from pymrio.version import __version__
@@ -123,6 +124,8 @@ __all__ = [
     "archive",
     "load_test",
     "ReadError",
+    # tools.iohem
+    "HEM",
     # tools.iomath
     "calc_A",
     "calc_accounts",
