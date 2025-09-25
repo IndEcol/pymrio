@@ -1,5 +1,5 @@
 """test cases for all mathematical functions."""
-
+# %%
 import os
 import sys
 
@@ -24,14 +24,14 @@ from pymrio.tools.iomath import calc_G  # noqa
 from pymrio.tools.iomath import calc_gross_trade  # noqa
 from pymrio.tools.iomath import calc_L  # noqa
 from pymrio.tools.iomath import calc_M  # noqa
-from pymrio.tools.iomath import calc_M_down  # noqa
+from pymrio.tools.iomath import calc_M_Ghosh  # noqa
 from pymrio.tools.iomath import calc_S  # noqa
 from pymrio.tools.iomath import calc_S_Y  # noqa
 from pymrio.tools.iomath import calc_x  # noqa
 from pymrio.tools.iomath import calc_x_from_L  # noqa
 from pymrio.tools.iomath import calc_Z  # noqa
 
-
+# %%
 # test data
 @pytest.fixture()
 def td_IO_Data_Miller():
@@ -115,7 +115,6 @@ def td_IO_Data_Miller():
         )
 
     return IO_Data_Miller
-
 
 @pytest.fixture()
 def td_small_MRIO():
@@ -428,7 +427,20 @@ def td_small_MRIO():
             columns=_Z_multiindex,
         )
 
-        M_down = pd.DataFrame(
+        M_Ghosh = pd.DataFrame(
+            data=(
+                [[0.87388465, 0.36636797],
+                [0.55666652, 0.52391329],
+                [1.473585  , 0.4772512 ],
+                [0.46438353, 0.3465165 ],
+                [0.86492491, 0.25702995],
+                [0.63734675, 0.50857434]]
+            ),  # noqa
+            columns=["ext_type_1", "ext_type_2"],
+            index=_Z_multiindex,
+        )
+
+        M_Ghosh_down = pd.DataFrame(
             data=[
                 [
                     0.48172779,
@@ -449,7 +461,7 @@ def td_small_MRIO():
             ],
             index=["ext_type_1", "ext_type_2"],
             columns=_Z_multiindex,
-        )
+        ).T
 
         D_cba = pd.DataFrame(
             data=[
@@ -705,9 +717,9 @@ def test_calc_M_MRIO(td_small_MRIO):
     pdt.assert_frame_equal(td_small_MRIO.M, calc_M(td_small_MRIO.S, td_small_MRIO.L))
 
 
-def test_calc_M_down_MRIO(td_small_MRIO):
-    """Test calculation of M_down (Gosh-based) matrix in MRIO model."""
-    pdt.assert_frame_equal(td_small_MRIO.M_down, calc_M_down(td_small_MRIO.S, td_small_MRIO.G))
+def test_calc_M_Ghosh_MRIO(td_small_MRIO):
+    """Test calculation of M_Ghosh (Ghosh-based) matrix in MRIO model."""
+    pdt.assert_frame_equal(td_small_MRIO.M_Ghosh, calc_M_Ghosh(td_small_MRIO.S, td_small_MRIO.G))
 
 
 def test_calc_gross_trade_MRIO(td_small_MRIO):

@@ -137,10 +137,10 @@ test_mrio.calc_all(include_ghosh=True)
 print(test_mrio)
 
 # %% [markdown]
-# This also calculates downstream multipliers M_down
+# This also calculates Ghosh multipliers M_Ghosh
 
 # %%
-test_mrio.emissions.M_down
+test_mrio.emissions.M_Ghosh
 
 # %% [markdown]
 # See the [math section](../math.rst) of the documentation for further details on the Ghosh calculations.

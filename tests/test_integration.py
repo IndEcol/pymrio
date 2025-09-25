@@ -7,7 +7,7 @@ This tests the full computation and fileio.
 
 Might be the slowest test to run - make optional if it takes to long.
 """
-
+# %%
 import os
 import sys
 
@@ -97,58 +97,56 @@ def td_testmrio():
                     ]
                 ]
             )
-            M_down_values = np.array(
+            M_Ghosh_values = np.array(
                 [
-                    [
-                        5.63682037e-02,
-                        1.58826114e-01,
-                        2.77181617e-04,
-                        1.24260752e-01,
-                        4.73781802e-04,
-                        1.47221885e-04,
-                        5.08842766e-04,
-                        8.27157324e-04,
-                        2.58260444e-05,
-                        1.40935038e-01,
-                        7.28719271e-05,
-                        5.55187475e-05,
-                        1.31414529e-04,
-                        7.63356055e-05,
-                        3.93032602e-04,
-                        1.59470188e-04,
-                        5.44620512e-05,
-                        1.92986549e-03,
-                        6.09150229e-04,
-                        8.16103355e-02,
-                        3.49016453e-03,
-                        2.79285723e-03,
-                        3.85380897e-03,
-                        1.23089234e-02,
-                        5.14123958e-04,
-                        6.05570091e-02,
-                        7.60911713e-04,
-                        3.07985491e-04,
-                        3.42198855e-03,
-                        4.20922429e-04,
-                        2.13360046e-04,
-                        4.40940379e-04,
-                        8.09987164e-02,
-                        6.75547762e-02,
-                        7.37546870e-04,
-                        3.23573339e-04,
-                        4.90632930e-02,
-                        3.56147875e-04,
-                        3.02290799e-03,
-                        9.35063455e-04,
-                        1.90276590e-04,
-                        1.87421503e-01,
-                        4.46892122e-04,
-                        7.31872326e-02,
-                        3.39365262e-03,
-                        7.98904286e-04,
-                        7.76958438e-04,
-                        4.99082254e-04,
-                    ]
+                    [0.5225561 ],
+                    [0.65756216],
+                    [0.00473417],
+                    [0.5472355 ],
+                    [0.01772519],
+                    [0.00568822],
+                    [0.00922866],
+                    [0.03440748],
+                    [0.00188181],
+                    [0.75013998],
+                    [0.00203768],
+                    [0.00142178],
+                    [0.01295829],
+                    [0.00541751],
+                    [0.01268766],
+                    [0.01271283],
+                    [0.00210632],
+                    [0.00713347],
+                    [0.0071196 ],
+                    [0.58120523],
+                    [0.06218467],
+                    [0.06532605],
+                    [0.04001635],
+                    [0.17603932],
+                    [0.02800893],
+                    [0.49852299],
+                    [0.00523151],
+                    [0.00280954],
+                    [0.32052008],
+                    [0.00749766],
+                    [0.00255429],
+                    [0.01555917],
+                    [0.57612848],
+                    [0.69293328],
+                    [0.00493526],
+                    [0.00260152],
+                    [0.49634848],
+                    [0.00515573],
+                    [0.03258598],
+                    [0.02620705],
+                    [0.00806297],
+                    [0.86794689],
+                    [0.00481975],
+                    [0.64359805],
+                    [0.15009733],
+                    [0.05766786],
+                    [0.00976597],
+                    [0.01817829]
                 ]
             )
 
@@ -190,7 +188,7 @@ def test_all_wo_ghosh(td_testmrio):
     assert all(mr_nog.emissions.get_regions() == sat_new.get_regions())
     assert all(mr_nog.emissions.get_sectors() == sat_new.get_sectors())
     assert "M" in sat_new.get_DataFrame()
-    assert "M_down" not in sat_new.get_DataFrame()
+    assert "M_Ghosh" not in sat_new.get_DataFrame()
 
 
 def test_all_with_ghosh(td_testmrio):
@@ -220,8 +218,8 @@ def test_all_with_ghosh(td_testmrio):
         rtol=1e-5,
     )
     npt.assert_allclose(
-        td_testmrio.factor_inputs.M_down_values,
-        mr_wig.factor_inputs.M_down.values,
+        td_testmrio.factor_inputs.M_Ghosh_values,
+        mr_wig.factor_inputs.M_Ghosh.values,
         rtol=1e-5,
     )
 
@@ -233,7 +231,7 @@ def test_all_with_ghosh(td_testmrio):
     assert all(mr_wig.emissions.get_regions() == sat_new.get_regions())
     assert all(mr_wig.emissions.get_sectors() == sat_new.get_sectors())
     assert "M" in sat_new.get_DataFrame()
-    assert "M_down" in sat_new.get_DataFrame()
+    assert "M_Ghosh" in sat_new.get_DataFrame()
 
 
 def test_txt_zip_fileio(tmpdir):

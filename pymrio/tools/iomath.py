@@ -113,7 +113,8 @@ def calc_Z(A, x):
 def calc_A(Z, x):
     """Calculate the A matrix (coefficients) from Z and x.
 
-    A is a normalized version of the industrial flows Z
+    A is a normalized version of the industrial flows Z.
+    Also known as direct input coefficients.
 
     Parameters
     ----------
@@ -154,8 +155,8 @@ def calc_B(Z, x):
     """Calculate the B matrix (coefficients) from Z and x.
 
     B is a normalized version of the industrial flows of the
-    transpose of Z, which quantifies the input to downstream
-    sectors.
+    transpose of Z.
+    Also known as direct output coefficients.
 
     Parameters
     ----------
@@ -237,7 +238,7 @@ def calc_G(B, L=None, x=None):
     Either from B (high computation effort) or from Leontief
     matrix L and x (low computation effort).
 
-    G = inverse matrix of (I - B) = hat(x) *  L * hat(x)^{-1}
+    G = inverse matrix of (I - B) = hat(x)^{-1} *  L * hat(x)
 
     where I is an identity matrix of same shape as B, and hat(x) is the diagonal
     matrix with values of x on the diagonal.
@@ -396,7 +397,7 @@ def calc_F_Y(S_Y, y):
 
 
 def calc_M(S, L):
-    """Calculate multipliers of the extensions.
+    """Calculate Leontief multipliers of the extensions.
 
     Parameters
     ----------
@@ -408,7 +409,7 @@ def calc_M(S, L):
     Returns
     -------
     pandas.DataFrame or numpy.array
-        Multipliers M
+        Leontief multipliers M for the extensions.
         The type is determined by the type of S.
         If DataFrame index/columns as S
 
@@ -416,10 +417,10 @@ def calc_M(S, L):
     return S.dot(L)
 
 
-def calc_M_down(S, G):
-    """Calculate downstream multipliers of the extensions.
+def calc_M_Ghosh(S, G):
+    """Calculate Ghosh multipliers of the extensions.
 
-    M_down = S * ( G^T - I )
+    M_Ghosh = G S
 
     Where I is an identity matrix of same shape as G
 
@@ -433,12 +434,12 @@ def calc_M_down(S, G):
     Returns
     -------
     pandas.DataFrame or numpy.array
-        Downstream multipliers M
+        Ghosh multipliers M_Ghosh for the extensions.
         The type is determined by the type of S.
         If DataFrame index/columns as S
 
     """
-    return S.dot(np.transpose(G) - np.eye(G.shape[0]))
+    return G.dot(S.T)
 
 
 def calc_e(M, Y):

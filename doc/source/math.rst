@@ -14,7 +14,10 @@ was available for a specific operation, resulting in a substantial speed up of t
 In these cases the original formula remains as comment in the source code.
 
 Basic MRIO calculations
-------------------------
+=======================
+
+Core tables
+------------
 
 MRIO tables describe the global inter-industries flows within and across countries for :math:`k` countries with a transaction matrix :math:`Z`:
 
@@ -31,9 +34,11 @@ MRIO tables describe the global inter-industries flows within and across countri
     \end{equation}
 
 Each submatrix on the main diagonal (:math:`Z_{i,i}`) represents the domestic
-interactions for each industry :math:`n`. The off diagonal matrices (:math:`Z_{i,j}`)
+interactions for each sector :math:`n`. The off diagonal matrices (:math:`Z_{i,j}`)
 describe the trade from region :math:`i` to region :math:`j` (with :math:`i, j = 1, \ldots, k`)
-for each industry. Accordingly, global final demand can be represented by 
+for each sector. 
+
+Global final demand can be represented by 
 
 .. math::
     
@@ -48,10 +53,24 @@ for each industry. Accordingly, global final demand can be represented by
     \end{equation}
 
 with final demand satisfied by domestic production in the main diagonal
-(:math:`Y_{i,i}`) and direct import to final demand from country :math:`i` to :math:`j` by
+(:math:`Y_{i,i}`) and direct import to final demand from region :math:`i` to :math:`j` by
 :math:`Y_{i,j}`.
 
-The global economy can thus be described by:
+Similarly, the global value-added (primary inputs) can be represented by
+
+.. math::
+    
+    \begin{equation}
+        v =
+        \begin{pmatrix}
+          V_{1} & V_{2} & \cdots & V_{k} \\
+        \end{pmatrix}
+    \end{equation}
+
+with the value-added for each region :math:`i` as :math:`V_i` (with :math:`i = 1, \ldots, k`). 
+
+
+The global economy can thus be described by either:
 
 .. math::
 
@@ -59,33 +78,18 @@ The global economy can thus be described by:
         x = Ze + Ye
     \end{equation}
 
+or equivalently 
+
+.. math::
+
+    \begin{equation}
+        x' = e'Z + v'
+    \end{equation}
+
 with :math:`e` representing the summation vector (column vector with 1's of
-appropriate dimension) and :math:`x` the total industry output. 
+appropriate dimension), and the :math:`'` indicating the transpose matrix, 
+and :math:`x` the total industry input/output (which are necessarily equal). 
 
-The direct requirement matrix :math:`A` is given by multiplication of :math:`Z` with the
-diagonalised and inverted industry output :math:`x`:
-
-.. math::
-
-    \begin{equation}
-        A = Z\hat{x}^{-1}
-    \end{equation}
-
-Based on the linear economy assumption of the IO model and 
-the classic Leontief_ demand-style modeling 
-(see `Leontief 1970 <https://www.jstor.org/stable/1926294?seq=1#page_scan_tab_contents>`_), 
-total industry output :math:`x` can be calculated for any arbitrary vector of 
-final demand :math:`y` by multiplying with the total requirement matrix (Leontief matrix) :math:`L`. 
-
-.. _Leontief: https://en.wikipedia.org/wiki/Wassily_Leontief
-
-.. math::
-
-    \begin{equation}
-        x = (\mathrm{I}- A)^{-1}y = Ly 
-    \end{equation}
-
-with :math:`\mathrm{I}` defined as the identity matrix with the size of :math:`A`.
 
 The global multi regional IO system can be extended with various factors of
 production :math:`f_{h,i}`. These can represent among others value added, employment
@@ -112,8 +116,44 @@ with the factor of production coefficients :math:`S` given by
         S = F\hat{x}^{-1}
     \end{equation}
 
+If the factor of production represent required environmental impacts, these can
+also occur during the final use phase. In that case :math:`F_Y` describe the impacts
+associated with final demand (e.g. household emissions).
 
-Multipliers (total, direct and indirect, requirement factors for one unit of output) are then obtained by
+
+Leontief demand model
+---------------------
+
+The Leontief demand model assumes that final demand drives economic production and environmental impacts.
+
+To derive the model, one must first calculate the direct input requirement matrix :math:`A`.
+It is given by multiplication of :math:`Z` with the
+diagonalised and inverted industry output :math:`x`:
+
+.. math::
+
+    \begin{equation}
+        A = Z\hat{x}^{-1}
+    \end{equation}
+
+Based on the linear economy assumption of the IO model and 
+the classic Leontief_ demand-style modeling 
+(see `Leontief 1970 <https://www.jstor.org/stable/1926294?seq=1#page_scan_tab_contents>`_), 
+total industry output :math:`x` can be calculated for any arbitrary vector of 
+final demand :math:`y` by multiplying with the total requirement matrix (Leontief matrix) :math:`L`. 
+
+.. _Leontief: https://en.wikipedia.org/wiki/Wassily_Leontief
+
+.. math::
+
+    \begin{equation}
+        x = (\mathrm{I}- A)^{-1}y = Ly 
+    \end{equation}
+
+with :math:`\mathrm{I}` defined as the identity matrix with the size of :math:`A`.
+
+
+Leontief multipliers (total direct and indirect output needed in each sector to satisfy one unit of final demand) are then obtained by
 
 .. math::
     
@@ -121,8 +161,15 @@ Multipliers (total, direct and indirect, requirement factors for one unit of out
         M = SL
     \end{equation}
 
-Total requirements (footprints in case of environmental requirements) for any
-given final demand vector :math:`y` are then given by 
+If one wants to only extract the indirect output needed, one can calculate it as:
+.. math::
+    
+    \begin{equation}
+        M_{Leontief indirect} = S ( L - I ) = M - S
+    \end{equation}
+
+Total requirements (footprints in case of environmental requirements) 
+for any given final demand vector :math:`y` are then given by 
 
 .. math::
 
@@ -151,11 +198,63 @@ other countries is given by:
 
 with the hat indicating diagonalization of the resulting column-vector of the term underneath.
 
-If the factor of production represent required environmental impacts, these can
-also occur during the final use phase. In that case :math:`F_Y` describe the impacts
-associated with final demand (e.g. household emissions).
 
-These need to be added to the total production- and consumption-based accounts to obtain the total impacts per country. 
+
+Ghosh supply model
+---------------------
+
+The Ghosh supply model assumes that primary inputs (value-added) drives economic production and environmental impacts.
+See `Ghosh Model <https://www.openriskmanual.org/wiki/Ghosh_Model>`_ for more information.
+
+To derive the model, one must first calculate the direct output requirement matrix :math:`B`.
+It is given by multiplication of the diagonalised 
+and inverted industry output :math:`x`: with :math:`Z`
+
+.. math::
+
+    \begin{equation}
+        B = \hat{x}^{-1} Z
+    \end{equation}
+
+
+Similarly, the Ghosh inverse matrix :math:`G` is defined as the inverse of the identity matrix minus the output requirement matrix :math:`B`
+
+.. math::
+
+    \begin{equation}
+        G = (\mathrm{I}- B)^{-1} = \hat{x} L \hat{x}^{-1}
+    \end{equation}
+
+with :math:`\mathrm{I}` defined as the identity matrix with the size of :math:`B`.
+
+Ghosh multipliers (total direct and indirect outputs generated in response to one unit of value-added supplied to a sector) are then obtained by
+
+.. math::
+    
+    \begin{equation}
+        M_{Ghosh} = G S
+    \end{equation}
+
+If one wants to only extract the indirect output generated in response to one unit of value-added supplied to a sector, one can calculate it as:
+.. math::
+    
+    \begin{equation}
+        M_{Ghosh indirect} = S ( G - I ) = M_{Ghosh} - S
+    \end{equation}
+
+Total requirements for any given value added vector :math:`v` are then given by 
+
+.. math::
+
+    \begin{equation}
+        D_{iba} = v M_{Ghosh}
+    \end{equation}
+
+
+
+Production-, Consumption-, and Income-based accounting
+======================================================
+
 Production-based accounts (direct territorial requirements) per region `i` are therefore given by summing over the stressors per sector (0 ... `m`) 
 plus the stressors occurring due to the final consumption for all final demand categories (0 ... `w`) of that region.
 
@@ -165,7 +264,8 @@ plus the stressors occurring due to the final consumption for all final demand c
         D_{pba}^i = \sum_{s=0}^m F^i_s + \sum_{c=0}^w F^i_{Yc}
    \end{equation}
 
-Similarly, total requirements (footprints in case of environmental requirements) per region `i` are given by summing the detailed footprint accounts and adding the aggregated final demand stressors.
+Consumption-based per region `i` are given by summing the total requirements (footprints) 
+as calculated by the Leontief demand model and adding the aggregated final demand stressors.
 
 .. math::
 
@@ -173,64 +273,21 @@ Similarly, total requirements (footprints in case of environmental requirements)
         D_{cba}^i = \sum_{s=0}^m D_{cba, s}^{i} + \sum_{c=0}^w F_{Yc}^i
    \end{equation}
 
+Income-based accounts are given by summing the total requirements (footprints)
+as calculated by the Ghosh supply (cost-push) model and adding the aggregated final demand stressors.
+
+.. math::
+
+   \begin{equation}
+        D_{iba}^i = \sum_{s=0}^m D_{iba, s}^{i} + \sum_{c=0}^w F_{Yc}^i
+   \end{equation}
+
+
 Internally, the summation are implemented with the `group-by <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.groupby.html>`_ functionality provided by the pandas package.
 
 
-
-Upstream and Downstream scope 3
---------------------------------
-
-In the context of impact analyses the factors of production are often
-categorized into scope 1, 2 and 3, with scope 3 sub-divided into upstream and
-downstream.
-
-For a MRIO the scope 1 is the direct impact of the industries. The factors of production scope 1 associated
-with some product or service in sector 'i' of monetary value 'r' is given by :math:`S e_i r``, where :math:`e_i`` is the math:`i^{th}`` unit vector.
-Scope 2 is the indirect impact through directly consumed energy (mostly electricity). The precise definition of scope 2
-in an MRIO depends on the list of MRIO sectors that are classified as scope 2 energy suppliers. Scope 2 is therefore
-included in the upstream scope 3, which we refer to as upstream indirect impacts. The upstream multipliers are
-
-.. math::
-
-    \begin{equation}
-        M_{up} = S ( L - I ) = M - S.
-    \end{equation}
-
-The downstream scope 3 consists of the factors of production associated with the sectors' output
-that is input to other sectors. The downstream impact can be attributed with the Ghosh methodology
-(`Lenzen, 2010 <https://www.sciencedirect.com/science/article/abs/pii/S092180091000128X>`_ ).
-
-The downstream attribution according to Ghosh is done by the input share matrix
-
-.. math::
-
-    \begin{equation}
-        B = \hat{x}^{-1} Z
-    \end{equation}
-
-Note that we have defined this matrix in analogy with :math:`A`, meaning that the factors of production coefficient
-are given by :math:`S G^{T}` where
-
-.. math::
-
-    \begin{equation}
-        G = (\mathrm{I}- B)^{-1} = \hat{x} L \hat{x}^{-1}
-    \end{equation}
-
-is the Ghosh inverse matrix.
-The pure downstream multiplier (excluding scope 1) is given by
-
-
-.. math::
-
-    \begin{equation}
-        M_{down} = S(G^{T}-I)
-    \end{equation}
-
-The sector's total impact multiplier is simply the sum of :math:`M_{up}`, :math:`S` and :math:`M_{down}`.
-
 Aggregation
-------------
+===========
 
 For the aggregation of the MRIO system the matrix :math:`B_k` defines
 the aggregation matrix for regions and :math:`B_n` the aggregation matrix

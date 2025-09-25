@@ -189,7 +189,7 @@ numpy array.
    calc_S
    calc_F
    calc_M
-   calc_M_down
+   calc_M_Ghosh
    calc_e
    calc_accounts
 
