@@ -55,6 +55,11 @@ from pymrio.tools.iometadata import MRIOMetaData
 #     warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
+# Constants for column name validation
+ALTERNATIVE_REGION_NAMES = ["country", "countries", "regions", "reg", "location"]
+ALTERNATIVE_SECTOR_NAMES = ["sectors", "industry", "industries", "sec", "activity"]
+
+
 # Exceptions
 class ResetError(Exception):
     """Base class for errors while reseting the system."""
@@ -1793,7 +1798,7 @@ class Extension(_BaseSystem):
         factors_indexed = factors.set_index(index_col + [characterized_name_column])
 
         if factors_indexed.index.duplicated().any():
-            # Provide a helpful error message
+            # Build helpful error message
             error_msg = (
                 "Duplicate indices found in characterization factors. "
                 "This typically occurs when region or sector specific characterization factors "
@@ -1804,7 +1809,7 @@ class Extension(_BaseSystem):
                 f"Current columns in factors dataframe: {list(factors.columns)}\n\n"
             )
 
-            # Check for common misnaming patterns
+            # Check for case mismatches
             possible_region_cols = [col for col in factors.columns if col.lower() == "region" and col != "region"]
             possible_sector_cols = [col for col in factors.columns if col.lower() == "sector" and col != "sector"]
 
@@ -1815,13 +1820,10 @@ class Extension(_BaseSystem):
                 error_msg += f"Found possible sector column with different case: {possible_sector_cols}\n"
                 error_msg += "Please rename it to 'sector' (lowercase).\n"
 
+            # Check for alternative column names if no case mismatch found
             if not possible_region_cols and not possible_sector_cols:
-                # Check for other common region/sector column names
-                common_region_names = ["country", "countries", "regions", "reg", "location"]
-                common_sector_names = ["sectors", "industry", "industries", "sec", "activity"]
-
-                found_region_alternatives = [col for col in factors.columns if col.lower() in common_region_names]
-                found_sector_alternatives = [col for col in factors.columns if col.lower() in common_sector_names]
+                found_region_alternatives = [col for col in factors.columns if col.lower() in ALTERNATIVE_REGION_NAMES]
+                found_sector_alternatives = [col for col in factors.columns if col.lower() in ALTERNATIVE_SECTOR_NAMES]
 
                 if found_region_alternatives:
                     error_msg += f"Found possible alternative region column names: {found_region_alternatives}\n"
