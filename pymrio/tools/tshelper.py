@@ -3,6 +3,7 @@
 import re
 from collections import OrderedDict
 from pathlib import Path
+import warnings
 
 from pymrio.core.fileio import load as mrioload
 
@@ -106,14 +107,21 @@ def extract_from_mrioseries(mrios, key_naming, extension, account, index, column
     if columns is None or columns == ":":
         columns = slice(None)
 
+    extracted = OrderedDict()
+
     for key, val in mrdata.items():
-        if extension is None or extension.lower() == "core":
-            mrdata[key] = mrioload(val, subset=[account]).__dict__[account].loc[index, columns]
-        else:
-            if val.suffix == ".zip":
-                mrdata[key] = (
-                    mrioload(val, path_in_arc=extension, subset=[account]).__dict__[account].loc[index, columns]
-                )
+        try:
+            if extension is None or extension.lower() == "core":
+                data = mrioload(val, subset=[account]).__dict__[account].loc[index, columns]
             else:
-                mrdata[key] = mrioload(val / extension, subset=[account]).__dict__[account].loc[index, columns]
-    return mrdata
+                if val.suffix == ".zip":
+                    data = mrioload(val, path_in_arc=extension, subset=[account]).__dict__[account].loc[index, columns]
+                else:
+                    data = mrioload(val / extension, subset=[account]).__dict__[account].loc[index, columns]
+        except Exception as exc:
+            warnings.warn(f"Missing data for account {account} in {val}: {exc}", UserWarning, stacklevel=2)
+            continue
+
+        extracted[key] = data
+
+    return extracted

@@ -163,6 +163,9 @@ convention = "numpy"
 # Sets the style for quotes. Can be "single", "double", or "preserve".
 quote-style = "double"
 
+[tool.poe.env]
+UV_CACHE_DIR = ".uv-cache"
+
 [tool.poe.tasks.sync]
 help = "Sync all dependencies"
 cmd = "uv sync --all-extras"
@@ -205,4 +208,3 @@ uv run jupyter lab --notebook-dir=./doc/source/notebooks
 [tool.poe.tasks.build]
 help = "Format, test with coverage and build docs"
 sequence = ["format", "fulltest", "doc"]
-

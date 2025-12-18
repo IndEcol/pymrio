@@ -40,4 +40,5 @@ tags
 *.swp
 # uv stuff
 uv.lock
+.uv-cache
 /.venv/

@@ -1,6 +1,7 @@
 """Test the time series functionalities."""
 
 import os
+import shutil
 import sys
 import zipfile
 
@@ -171,6 +172,42 @@ def test_extract_from_mrioseries(tmpdir):
     assert len(result_parquet) == 1
     assert "parquet_test" in result_parquet
     assert isinstance(result_parquet["parquet_test"], pd.DataFrame)
+
+    # Test 7: Missing data should be skipped with warning
+    test_2001_dir = tmpdir.mkdir("test_2001")
+    test_mrio.save_all(str(test_2001_dir))
+    os.remove(os.path.join(str(test_2001_dir), "emissions", "D_cba.txt"))
+
+    mixed_list = sorted(tmpdir.listdir("test_*"))
+
+    with pytest.warns(UserWarning, match="Missing data for account D_cba in"):
+        result_missing = pymrio.extract_from_mrioseries(
+            mrios=mixed_list, key_naming="year", extension="emissions", account="D_cba", index=None, columns=["reg1"]
+        )
+
+    # Missing 2001 should be skipped; 1999/2000 remain unchanged
+    assert set(result_missing) == {"1999", "2000"}
+    pdt.assert_frame_equal(result_missing["1999"] * 2, result_missing["2000"])
+
+    # Test 8: Missing extension folder should be skipped with warning
+    test_2002_dir = tmpdir.mkdir("test_2002")
+    test_mrio.save_all(str(test_2002_dir))
+    shutil.rmtree(os.path.join(str(test_2002_dir), "emissions"))
+
+    missing_ext_list = [test_1999_dir, test_2000_dir, test_2002_dir]
+
+    with pytest.warns(UserWarning, match="Missing data for account D_cba in"):
+        result_missing_ext = pymrio.extract_from_mrioseries(
+            mrios=missing_ext_list,
+            key_naming="year",
+            extension="emissions",
+            account="D_cba",
+            index=None,
+            columns=["reg1"],
+        )
+
+    assert set(result_missing_ext) == {"1999", "2000"}
+    pdt.assert_frame_equal(result_missing_ext["1999"] * 2, result_missing_ext["2000"])
 
 
 def test_apply_method():
