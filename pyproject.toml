@@ -44,6 +44,7 @@ dependencies = [
     "openpyxl >= 3.0.6, < 3.1.1",
     "docutils >= 0.14",
     "faker >= 18.4.0",
+
 ]
 
 

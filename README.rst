@@ -77,6 +77,18 @@ ahead of the official releases. To install directly from the master branch use:
     pip install git+https://github.com/IndEcol/pymrio@master
 
 
+Development installation
+========================
+
+To set up your development environment, install
+``uv``, then sync the project dependencies, including test and lint requirements:
+
+.. code-block:: bash
+
+   uv sync --all-extras
+
+See ./CONTRIBUTING.rst for further instructions about contributing to pymrio.
+
 
 Quickstart    
 ==========

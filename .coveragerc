@@ -1,0 +1,10 @@
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    def __str__
+    raise NotImplementedError
+    _load_ini_based_io
+    if __name__ == .__main__.:
+omit = 
+    *tools/iodownloader.py
