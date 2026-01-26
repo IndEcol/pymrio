@@ -395,10 +395,8 @@ def test_convert_rename_multiindex():
                 "emission2",
                 "emission2",
             ],
-            dtype="object",
             name="stressor",
         ),
-        exact=False,
     )
 
     char_res_agg_comp = convert(to_char, rename_bridge_simple, drop_not_bridged_index=True)

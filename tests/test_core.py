@@ -1434,7 +1434,7 @@ def test_concate_extensions(fix_testmrio):
     assert len(added_diff.F_Y) == len(tt.emissions.F) + len(tt.factor_inputs.F)
 
     testF = added_diff.F.reset_index("compartment")
-    assert pd.isna(testF.loc["Value Added", "compartment"]).all()
+    assert pd.isna(testF.loc["Value Added", "compartment"].item())
 
     added_meth = tt.extension_concate(new_extension_name="method")
     pdt.assert_frame_equal(added_meth.F, added_diff.F, check_like=True, check_names=True)
