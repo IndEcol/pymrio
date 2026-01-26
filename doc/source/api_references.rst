@@ -181,17 +181,22 @@ numpy array.
    :toctree: api_doc/
 
    calc_x
+   calc_x_from_L
    calc_Z
    calc_A
    calc_B
    calc_L
    calc_G
    calc_S
+   calc_S_Y
    calc_F
+   calc_F_Y
    calc_M
    calc_M_down
    calc_e
    calc_accounts
+   recalc_M
+   calc_gross_trade
 
 
 *********************************
