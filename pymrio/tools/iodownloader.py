@@ -581,6 +581,7 @@ def download_exiobase3(
     specify the corresponding DOI using the 'doi' parameter.
 
         - lastest version: 10.5281/zenodo.3583070
+        - Version 3.10.1: 10.5281/zenodo.18937492
         - Version 3.9.6: 10.5281/zenodo.15689391
         - Version 3.9.5: 10.5281/zenodo.14869924
         - Version 3.9.4: 10.5281/zenodo.14614930
