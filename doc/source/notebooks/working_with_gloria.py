@@ -27,7 +27,15 @@
 # %% [markdown]
 # ## Getting GLORIA
 
-# %%
+# %% [markdown]
+# **Accessing GLORIA data**
+#
+# GLORIA data must be downloaded manually. To request access and download the database, visit the IELab GLORIA page:
+#
+# https://ielab.info/labs/ielab-gloria
+#
+# After downloading the required files, place them in the location expected by the pymrio GLORIA parser before running the parser locally.
+#
 
 # %% [markdown]
 # ## Parsing

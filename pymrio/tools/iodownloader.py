@@ -713,6 +713,9 @@ def download_gloria(
     -------
     No returns
     """
+    # not longer working, raise not implemented error for now
+    raise NotImplementedError("
+                              Gloria database download is now longer working, please download the files manually following: https://ielab.info/labs/ielab-gloria")
     if f"0{version}" not in urls.keys():
         raise Exception("Specified version is invalid")
 
