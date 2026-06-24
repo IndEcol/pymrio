@@ -55,6 +55,11 @@ from pymrio.tools.iometadata import MRIOMetaData
 #     warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
+# Constants for column name validation
+ALTERNATIVE_REGION_NAMES = ["country", "countries", "regions", "reg", "location"]
+ALTERNATIVE_SECTOR_NAMES = ["sectors", "industry", "industries", "sec", "activity"]
+
+
 # Exceptions
 class ResetError(Exception):
     """Base class for errors while reseting the system."""
@@ -1788,12 +1793,48 @@ class Extension(_BaseSystem):
             )
             return ret_value(validation=validation, extension=None)
 
-        fac_calc = (
-            factors.set_index(index_col + [characterized_name_column])
-            .loc[:, characterization_factors_column]
-            .unstack(characterized_name_column)
-            .fillna(0)
-        )
+        # Check for duplicate indices before unstacking
+        # This can happen if region/sector columns are not named correctly
+        factors_indexed = factors.set_index(index_col + [characterized_name_column])
+
+        if factors_indexed.index.duplicated().any():
+            # Build helpful error message
+            error_msg = (
+                "Duplicate indices found in characterization factors. "
+                "This typically occurs when region or sector specific characterization factors "
+                "are provided but the column names don't match pymrio's expectations.\n\n"
+                "Expected column names:\n"
+                "  - 'region' (lowercase) for region-specific factors\n"
+                "  - 'sector' (lowercase) for sector-specific factors\n\n"
+                f"Current columns in factors dataframe: {list(factors.columns)}\n\n"
+            )
+
+            # Check for case mismatches
+            possible_region_cols = [col for col in factors.columns if col.lower() == "region" and col != "region"]
+            possible_sector_cols = [col for col in factors.columns if col.lower() == "sector" and col != "sector"]
+
+            if possible_region_cols:
+                error_msg += f"Found possible region column with different case: {possible_region_cols}\n"
+                error_msg += "Please rename it to 'region' (lowercase).\n"
+            if possible_sector_cols:
+                error_msg += f"Found possible sector column with different case: {possible_sector_cols}\n"
+                error_msg += "Please rename it to 'sector' (lowercase).\n"
+
+            # Check for alternative column names if no case mismatch found
+            if not possible_region_cols and not possible_sector_cols:
+                found_region_alternatives = [col for col in factors.columns if col.lower() in ALTERNATIVE_REGION_NAMES]
+                found_sector_alternatives = [col for col in factors.columns if col.lower() in ALTERNATIVE_SECTOR_NAMES]
+
+                if found_region_alternatives:
+                    error_msg += f"Found possible alternative region column names: {found_region_alternatives}\n"
+                    error_msg += "Please rename to 'region' (lowercase) if these are region identifiers.\n"
+                if found_sector_alternatives:
+                    error_msg += f"Found possible alternative sector column names: {found_sector_alternatives}\n"
+                    error_msg += "Please rename to 'sector' (lowercase) if these are sector identifiers.\n"
+
+            raise ValueError(error_msg)
+
+        fac_calc = factors_indexed.loc[:, characterization_factors_column].unstack(characterized_name_column).fillna(0)
 
         new_ext = Extension(name=name)
 

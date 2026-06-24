@@ -747,6 +747,56 @@ def test_characterize_extension_over_extensions(fix_testmrio):
     pdt.assert_frame_equal(ex_reg_one.unit, ex_reg_method.unit)
 
 
+def test_characterize_error_wrong_column_names(fix_testmrio):
+    """Test improved error message when region/sector column names are wrong."""
+    tmrio = fix_testmrio.testmrio
+
+    # Load region-specific factors
+    factors_reg_spec = pd.read_csv(
+        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact_reg_spec.tsv"),
+        sep="\t",
+    )
+
+    # Test case 1: Wrong case for region column (Region instead of region)
+    factors_wrong_case = factors_reg_spec.copy()
+    factors_wrong_case = factors_wrong_case.rename(columns={"region": "Region"})
+
+    with pytest.raises(ValueError) as exc_info:
+        tmrio.emissions.characterize(factors_wrong_case)
+
+    error_msg = str(exc_info.value)
+    assert "Duplicate indices found" in error_msg
+    assert "column names don't match pymrio's expectations" in error_msg
+    assert "'region' (lowercase)" in error_msg
+    assert "Found possible region column with different case: ['Region']" in error_msg
+
+    # Test case 2: Alternative column name (country instead of region)
+    factors_country = factors_reg_spec.copy()
+    factors_country = factors_country.rename(columns={"region": "country"})
+
+    with pytest.raises(ValueError) as exc_info:
+        tmrio.emissions.characterize(factors_country)
+
+    error_msg = str(exc_info.value)
+    assert "Duplicate indices found" in error_msg
+    assert "Found possible alternative region column names: ['country']" in error_msg
+
+    # Test case 3: Abbreviated column name (reg instead of region)
+    factors_reg = factors_reg_spec.copy()
+    factors_reg = factors_reg.rename(columns={"region": "reg"})
+
+    with pytest.raises(ValueError) as exc_info:
+        tmrio.emissions.characterize(factors_reg)
+
+    error_msg = str(exc_info.value)
+    assert "Duplicate indices found" in error_msg
+    assert "Found possible alternative region column names: ['reg']" in error_msg
+
+    # Test case 4: Verify correct column names still work
+    result = tmrio.emissions.characterize(factors_reg_spec)
+    assert result.extension is not None
+
+
 def test_extension_convert_simple(fix_testmrio):
     """Testing the convert function within extensions object."""
     tt_pre = fix_testmrio.testmrio.copy()
