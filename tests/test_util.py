@@ -29,6 +29,7 @@ from pymrio.tools.ioutil import (  # noqa
     index_fullmatch,
     index_match,
     set_block,
+    set_dom_block,
     sniff_csv_format,
 )
 
@@ -1053,3 +1054,21 @@ def test_extend_rows():
 
     assert len(result) == 2
     assert set(result["region"].unique()) == {"GLO", "EU"}
+
+
+def test_set_dom_block():
+    """Domestic blocks are set, everything else is kept, on the numpy and the pandas path."""
+    idx = pd.MultiIndex.from_product([["r1", "r2"], ["s1", "s2"]], names=["region", "sector"])
+    cols = pd.MultiIndex.from_product([["r1", "r2", "disc"], ["c1"]], names=["region", "category"])
+    df = pd.DataFrame(np.arange(12, dtype=float).reshape(4, 3) + 1, index=idx, columns=cols)
+    expected = df.copy()
+    expected.iloc[0:2, 0] = 0
+    expected.iloc[2:4, 1] = 0
+
+    res = set_dom_block(df)
+    pdt.assert_frame_equal(res, expected)
+    assert (df.to_numpy() > 0).all()  # input unchanged
+
+    # mixed dtypes take the pandas path, with the same result
+    mixed = df.astype({("disc", "c1"): "int64"})
+    pdt.assert_frame_equal(set_dom_block(mixed), expected.astype({("disc", "c1"): "int64"}))

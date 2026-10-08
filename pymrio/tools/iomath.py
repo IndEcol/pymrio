@@ -530,12 +530,23 @@ def calc_accounts(S, L, Y):
 
     if isinstance(Y.columns, pd.MultiIndex):
         raise ValueError("Column index of Y can not be a MultiIndex - aggregate the columns")
-    Y_diag = ioutil.diagonalize_columns_to_sectors(Y)
-    x_diag = L @ Y_diag
+    sectors = Y.index.get_level_values("sector").unique()
+    nr_sectors = len(sectors)
+    if Y.index.equals(L.columns) and Y.shape[0] % nr_sectors == 0:
+        # Same as L @ diagonalize_columns_to_sectors(Y), one sector at a time.
+        # Each column of the diagonalized Y is zero outside one sector, so the
+        # dense product would do nr_sectors times the work.
+        L_by_sector = L.to_numpy().reshape(L.shape[0], -1, nr_sectors)
+        Y_by_sector = Y.to_numpy().reshape(-1, nr_sectors, Y.shape[1])
+        x_diag = pd.DataFrame(
+            np.einsum("irs,rsc->ics", L_by_sector, Y_by_sector, optimize=True).reshape(L.shape[0], -1),
+            index=L.index,
+            columns=pd.MultiIndex.from_product([Y.columns, sectors], names=[*Y.columns.names, "sector"]),
+        )
+    else:
+        x_diag = L @ ioutil.diagonalize_columns_to_sectors(Y)
 
     x_tot = x_diag.to_numpy().sum(1)
-
-    del Y_diag
 
     D_cba = pd.DataFrame(S @ x_diag)
 
