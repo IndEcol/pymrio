@@ -53,7 +53,7 @@ dev = [
   "pdbpp",
   "country_converter >= 0.8.0",
   "ipython",
-  "jupyterlab == 3.*",
+  "jupyterlab >= 4",
   "jupytext",
   "pynvim",
   "sphinx >= 1.6.4",
