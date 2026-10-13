@@ -313,7 +313,9 @@ def download_oecd(storage_folder, version="v2023", years=None, overwrite_existin
                     continue
             if version == "v2023":
                 filename = "ICIO-" + yy + "-extended.zip"
-                filenames = [f"{yr}.zip" for yr in range(int(yy[:4]), int(yy[-4:]) + 1)]
+                filenames = [f"ICIO2023_{yr}.csv" for yr in range(int(yy[:4]), int(yy[-4:]) + 1)]
+                if set(filenames).issubset(os.listdir(storage_folder)):
+                    continue
 
             elif filename in os.listdir(storage_folder):
                 continue
@@ -328,11 +330,14 @@ def download_oecd(storage_folder, version="v2023", years=None, overwrite_existin
         if version == "v2021" or version == "v2023":
             with zipfile.ZipFile(storage_file, "r") as zip_ref:
                 zip_ref.extractall(storage_folder)
+                # top-level names only: renaming a folder moves the files inside it
+                extracted = {name.split("/")[0] for name in zip_ref.namelist()}
             os.remove(storage_file)
             if version == "v2023":
-                for file in os.listdir(storage_folder):
-                    # absolute_path = os.path.join(storage_folder, file)
-                    os.rename(
+                # Only rename what this zip contained; other files in the folder
+                # are earlier downloads or the download log.
+                for file in extracted:
+                    os.replace(
                         os.path.join(storage_folder, file),
                         os.path.join(
                             storage_folder,
