@@ -1,9 +1,9 @@
 """Extract data from MRIO timeseries."""
 
 import re
+import warnings
 from collections import OrderedDict
 from pathlib import Path
-import warnings
 
 from pymrio.core.fileio import load as mrioload
 

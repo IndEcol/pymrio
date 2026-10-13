@@ -93,8 +93,8 @@ from pymrio.tools.ioutil import (
     to_long,
 )
 from pymrio.tools.tshelper import (
-    apply_method,
     apply_function,
+    apply_method,
     extract_from_mrioseries,
 )
 from pymrio.version import __version__
