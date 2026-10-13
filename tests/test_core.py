@@ -1499,6 +1499,12 @@ def test_concate_extensions(fix_testmrio):
     # When names differ, indicator is used
     assert added_diff.get_rows().names == ["indicator", "compartment"]
 
+    # The input extensions keep their index names (#129)
+    for df in tt.factor_inputs.get_DataFrame(data=True):
+        assert df.index.names == ["inputtype"]
+    added_inputs = pymrio.extension_concate(tt.factor_inputs, tt.factor_inputs, new_extension_name="inputs")
+    assert added_inputs.get_rows().names == ["inputtype"]
+
     assert len(added_same.F) == len(tt.emissions.F) * 2
     assert len(added_same.F_Y) == len(tt.emissions.F) * 2
     assert len(added_diff.F) == len(tt.emissions.F) + len(tt.factor_inputs.F)

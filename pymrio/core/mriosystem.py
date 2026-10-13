@@ -3833,8 +3833,10 @@ def extension_concate(*extensions, new_extension_name):
                     df_ind_names = list(df_dict[key].index.names)
                     cur_ind_names[0] = "indicator"
                     df_ind_names[0] = cur_ind_names[0]
-                    cur_dict[key].index = cur_dict[key].index.set_names(cur_ind_names)
-                    df_dict[key].index = df_dict[key].index.set_names(df_ind_names)
+                    # rename_axis returns a new frame: cur_dict holds the input
+                    # extension's own DataFrames, which must stay unchanged
+                    cur_dict[key] = cur_dict[key].rename_axis(index=cur_ind_names)
+                    df_dict[key] = df_dict[key].rename_axis(index=df_ind_names)
 
                     for ind in cur_ind_names:
                         if ind not in df_ind_names:
