@@ -797,6 +797,27 @@ def test_characterize_error_wrong_column_names(fix_testmrio):
     assert result.extension is not None
 
 
+def test_characterize_error_unnamed_index(fix_testmrio):
+    """Test the error message when the extension index has no names (#176)."""
+    factors = pd.read_csv(
+        Path(PYMRIO_PATH["test_mrio"] / Path("concordance") / "emissions_charact.tsv"),
+        sep="\t",
+    )
+    ext = fix_testmrio.testmrio.emissions.copy()
+    named = ext.get_rows()
+    ext.set_index(named.set_names([None] * named.nlevels))
+
+    with pytest.raises(ValueError) as exc_info:
+        ext.characterize(factors)
+
+    error_msg = str(exc_info.value)
+    assert "Missing: [None, None]" in error_msg
+    assert "unnamed levels" in error_msg
+
+    ext.set_index(named)
+    assert ext.characterize(factors).extension is not None
+
+
 def test_extension_convert_simple(fix_testmrio):
     """Testing the convert function within extensions object."""
     tt_pre = fix_testmrio.testmrio.copy()

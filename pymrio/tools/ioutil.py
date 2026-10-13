@@ -961,8 +961,16 @@ def _characterize_get_requried_col(
         characterized_unit_column,
     ]
 
-    if not set(required_columns).issubset(set(factors.columns)):
-        raise ValueError("Not all required columns in the passed DataFrame >factors<")
+    missing = [col for col in required_columns if col not in factors.columns]
+    if missing:
+        error_msg = f"Not all required columns in the passed DataFrame >factors<. Missing: {missing}"
+        if None in ext_index_names:
+            error_msg += (
+                f"\nThe row index of the extension has unnamed levels (index names: {ext_index_names}). "
+                "Name them to match the columns of >factors<, "
+                "for example, for a single-level index: ext.set_index(ext.get_rows().set_names('stressor'))"
+            )
+        raise ValueError(error_msg)
 
     return namedtuple("ret_val", ["required_index_col", "all_required_columns"])(req_index, required_columns)
 
