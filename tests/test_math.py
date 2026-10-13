@@ -30,6 +30,7 @@ from pymrio.tools.iomath import calc_S_Y  # noqa
 from pymrio.tools.iomath import calc_x  # noqa
 from pymrio.tools.iomath import calc_x_from_L  # noqa
 from pymrio.tools.iomath import calc_Z  # noqa
+from pymrio.tools.ioutil import diagonalize_columns_to_sectors  # noqa
 
 
 # test data
@@ -761,3 +762,24 @@ def test_calc_accounts_MRIO(td_small_MRIO):
         nD_cba.sum(axis=1),
         nD_pba.sum(axis=1) + nD_imp.sum(axis=1) - nD_exp.sum(axis=1),
     )
+
+
+def test_calc_accounts_matches_dense_product():
+    """calc_accounts gives the same accounts as L @ diagonalized Y, with uneven Y columns."""
+    rng = np.random.default_rng(1)
+    idx = pd.MultiIndex.from_product([["r1", "r2", "r3"], ["s1", "s2", "s3", "s4"]], names=["region", "sector"])
+    L = pd.DataFrame(rng.random((12, 12)), index=idx, columns=idx)
+    S = pd.DataFrame(rng.random((5, 12)), columns=idx)
+    # an extra final demand "region" outside the core, as in the OECD tables
+    Y = pd.DataFrame(rng.random((12, 4)), index=idx, columns=pd.Index(["r1", "r2", "r3", "disc"], name="region"))
+
+    D_cba, D_pba, D_imp, D_exp = calc_accounts(S, L, Y)
+
+    x_diag = L @ diagonalize_columns_to_sectors(Y)
+    pdt.assert_frame_equal(D_cba, pd.DataFrame(S @ x_diag), check_exact=False, rtol=1e-12)
+    x_trade = x_diag.copy()
+    for reg in ["r1", "r2", "r3"]:
+        x_trade.loc[reg, reg] = 0
+    pdt.assert_frame_equal(D_imp, pd.DataFrame(S @ x_trade), check_exact=False, rtol=1e-12)
+    npt.assert_allclose(D_pba.to_numpy(), S.to_numpy() * x_diag.to_numpy().sum(1), rtol=1e-12)
+    npt.assert_allclose(D_exp.to_numpy(), S.to_numpy() * x_trade.to_numpy().sum(1), rtol=1e-12)

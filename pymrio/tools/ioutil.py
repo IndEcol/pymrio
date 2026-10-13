@@ -344,6 +344,21 @@ def set_dom_block(df: pd.DataFrame, value: float = 0) -> pd.DataFrame:
 
     """
     regions = df.index.get_level_values(0).unique()
+    row_regions = df.index.get_level_values(0)
+    col_regions = df.columns.get_level_values(0)
+    dtypes = df.dtypes.unique()
+    # Setting the blocks in a numpy copy avoids pandas setting one column at a time.
+    # Mixed or upcasting dtypes and regions missing from the columns keep the pandas path.
+    if (
+        len(dtypes) == 1
+        and isinstance(dtypes[0], np.dtype)
+        and np.result_type(dtypes[0], value) == dtypes[0]
+        and regions.isin(col_regions).all()
+    ):
+        arr = df.to_numpy(copy=True)
+        for reg in regions:
+            arr[np.ix_(row_regions == reg, col_regions == reg)] = value
+        return pd.DataFrame(arr, index=df.index, columns=df.columns)
     df_res = df.copy()
     for reg in regions:
         df_res.loc[reg, reg] = value
