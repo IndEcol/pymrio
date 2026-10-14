@@ -58,8 +58,28 @@ Raw data
 Save data
 =========
 
-Currently, the full MRIO system can be saved in txt or the python specific
-binary format ('pickle'). Both formats work with the same API interface:
+MRIO tables can be saved as text (``table_format="txt"``, the default),
+Python pickle (``table_format="pkl"`` or ``"pickle"``), or Parquet
+(``table_format="parquet"``). All formats use the same folder structure:
+core tables in the root, extensions in subfolders, and JSON metadata describing
+the files. :func:`load_all` detects the format automatically.
+
+Pickle and Parquet preserve the stored numerical precision without converting
+values to text. Parquet uses PyArrow, which is included in pymrio's dependencies.
+Only load pickle files from trusted sources, since unpickling can execute code.
+
+For example, save and reload the bundled test system in Parquet format:
+
+.. code-block:: python
+
+   import pymrio
+
+   io = pymrio.load_test().calc_all()
+   io.save_all("test_mrio_parquet", table_format="parquet")
+   io_reloaded = pymrio.load_all("test_mrio_parquet")
+
+The :doc:`loading, saving and exporting tutorial <notebooks/load_save_export>`
+includes examples for both binary formats.
 
 .. autosummary::
    :toctree: api_doc/
