@@ -230,6 +230,10 @@ def test_parse_eora26(fix_testmrio_calc):
     eora_short = pymrio.parse_eora26(eora_mockpath, year=2010)
     eora_full = pymrio.parse_eora26(eora_mockpath, year=2010, country_names="full")
 
+    for eora in (eora_short, eora_full):
+        assert (eora.unit["unit"] == "000 USD").all()
+        assert (eora.VA.unit["unit"] == "000 USD").all()
+
     eora_short.calc_all()
 
     assert test_mrio.emissions.D_cba.iloc[1, 1] == pytest.approx(eora_short.Q.D_cba.iloc[1, 1])
