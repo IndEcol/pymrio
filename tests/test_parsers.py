@@ -5,6 +5,7 @@ import sys
 import warnings
 
 import numpy as np
+import pandas as pd
 import pandas.testing as pdt
 import pytest
 
@@ -19,6 +20,7 @@ except NameError:
 sys.path.append(os.path.join(testpath, ".."))
 
 import pymrio  # noqa
+from pymrio.core.constants import PYMRIO_PATH  # noqa
 
 
 @pytest.fixture()
@@ -84,6 +86,13 @@ def test_parse_exio2(fix_testmrio_calc):
         _ = pymrio.parse_exiobase2("foo.zip")
 
 
+@pytest.mark.parametrize("model", ["exio2_pxp", "exio2_ixi"])
+def test_exiobase2_population_label(model):
+    """Both bundled EXIOBASE 2 classifications label their population row correctly."""
+    population = pd.read_csv(PYMRIO_PATH[model] / "misc" / "population.txt", sep="\t", index_col=0)
+    assert population.index.tolist() == ["Population"]
+
+
 def test_parse_exio3(fix_testmrio_calc):
     """Test parsing EXIOBASE3."""
     exio3_mockpath = os.path.join(testpath, "mock_mrios", "exio3_mock")
@@ -99,6 +108,40 @@ def test_parse_exio3(fix_testmrio_calc):
     # Test the renaming of the regions - depends on the correct pseudo
     # naming in the mock mrio
     assert list(exio3.get_regions()) == ["AU", "BR", "FI", "FR", "KR", "WF"]
+
+
+@pytest.mark.parametrize("archived", [False, True])
+@pytest.mark.parametrize("format_name", ["legacy", "modern", "both", "missing"])
+def test_parse_exiobase3_final_demand_extensions(tmp_path, archived, format_name):
+    """Normalize legacy final-demand accounts without overwriting modern accounts."""
+    io = pymrio.load_all(os.path.join(testpath, "mock_mrios", "exio3_mock"))
+    io.rename_regions({"AUS": "AU", "BRA": "BR", "FIN": "FI", "FRA": "FR", "KOR": "KR", "WWF": "WF"})
+    io.impacts = io.satellite.copy()
+    io.impacts.name = "impacts"
+    expected = {}
+    for name in ("satellite", "impacts"):
+        extension = getattr(io, name)
+        if format_name in ("modern", "both"):
+            extension.F_Y = extension.F_hh * 2
+        if format_name in ("modern", "missing"):
+            del extension.F_hh
+        expected[name] = extension.F_Y if format_name != "legacy" else extension.F_hh
+
+    path = tmp_path / "exio3"
+    io.save_all(path)
+    if archived:
+        archive = tmp_path / "exio3.zip"
+        pymrio.archive(source=path, archive=archive)
+        path = archive
+
+    parsed = pymrio.parse_exiobase3(path)
+    for name, final_demand in expected.items():
+        extension = getattr(parsed, name)
+        assert not hasattr(extension, "F_hh")
+        if final_demand is None:
+            assert extension.F_Y is None
+        else:
+            pdt.assert_frame_equal(extension.F_Y, final_demand, check_dtype=False)
 
 
 def test_parse_exio_ext():
