@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import zipfile
+from pathlib import Path
 
 import pandas as pd
 import pandas.testing as pdt
@@ -13,6 +14,26 @@ TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
 
 import pymrio  # noqa
+
+
+@pytest.mark.parametrize("archived", [False, True])
+@pytest.mark.parametrize("extension, account", [(None, "Z"), ("emissions", "F")])
+def test_extract_from_single_path(tmp_path, archived, extension, account):
+    """A single pathlib.Path works for core and extension data in folders and ZIPs."""
+    mrio = pymrio.load_test()
+    path = tmp_path / "test_2000"
+    mrio.save_all(path)
+    if archived:
+        archive = tmp_path / "test_2000.zip"
+        pymrio.archive(source=path, archive=archive)
+        path = archive
+    assert isinstance(path, Path)
+
+    result = pymrio.extract_from_mrioseries(path, "year", extension, account, None, None)
+
+    assert list(result) == ["2000"]
+    expected = mrio.Z if extension is None else mrio.emissions.F
+    pdt.assert_frame_equal(result["2000"], expected, check_exact=False, check_dtype=False)
 
 
 def test_extract_from_mrioseries(tmpdir):

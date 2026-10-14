@@ -59,8 +59,8 @@ def extract_from_mrioseries(mrios, key_naming, extension, account, index, column
 
     Parameters
     ----------
-    mrios: list of pathlib.Path or str
-        List of mrios (file path) to extract data.
+    mrios: pathlib.Path, str, or list of pathlib.Path or str
+        One MRIO path or a list of paths to extract data from.
 
     key_naming: str or lambda function
         Naming of the dict keys.
@@ -87,7 +87,7 @@ def extract_from_mrioseries(mrios, key_naming, extension, account, index, column
         with order as in MRIOs, and extracted data (pd.DataFrames) as values.
 
     """
-    if type(mrios) in (Path, str):
+    if isinstance(mrios, (Path, str)):
         mrios = [mrios]
 
     mrios = [Path(mrio) for mrio in mrios]
