@@ -18,6 +18,34 @@ import pandas as pd
 import pymrio.tools.ioutil as ioutil
 
 
+def _align_axis(data, labels, axis=0):
+    """Align a labeled operand, rejecting missing, extra, or ambiguous labels."""
+    current = data.axes[axis]
+    if not current.is_unique or not labels.is_unique:
+        raise ValueError("Labels must be unique for labeled matrix calculations")
+    if current.equals(labels):
+        return data
+    positions = current.get_indexer(labels)
+    if len(current) != len(labels) or (positions < 0).any():
+        unexpected = np.ones(len(current), dtype=bool)
+        unexpected[positions[positions >= 0]] = False
+        raise ValueError(
+            f"Labels do not match: missing {list(labels[positions < 0])}, unexpected {list(current[unexpected])}"
+        )
+    return data.reindex(labels, axis=axis)
+
+
+def _align_vector(vector, labels=None):
+    """Convert an output vector to NumPy after aligning its labels when available."""
+    if isinstance(vector, (pd.DataFrame, pd.Series)):
+        if isinstance(vector, pd.DataFrame) and vector.shape[1] != 1:
+            raise ValueError("An output vector DataFrame must have exactly one column")
+        if labels is not None:
+            vector = _align_axis(vector, labels)
+        return vector.to_numpy()
+    return vector
+
+
 def calc_x(Z, Y):
     """Calculate the industry output x from the Z and Y matrix.
 
@@ -37,6 +65,8 @@ def calc_x(Z, Y):
         The type is determined by the type of Z. If DataFrame index as Z
 
     """
+    if isinstance(Z, pd.DataFrame) and isinstance(Y, pd.DataFrame):
+        Y = _align_axis(Y, Z.index)
     x = np.reshape(np.sum(np.hstack((Z, Y)), 1), (-1, 1))
     if type(Z) is pd.DataFrame:
         x = pd.DataFrame(x, index=Z.index, columns=["indout"])
@@ -99,8 +129,7 @@ def calc_Z(A, x):
         If DataFrame index/columns as A
 
     """
-    if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
-        x = x.to_numpy()
+    x = _align_vector(x, A.columns if isinstance(A, pd.DataFrame) else None)
     x = x.reshape((1, -1))  # use numpy broadcasting - much faster
     # (but has to ensure that x is a row vector)
     # old mathematical form:
@@ -130,8 +159,7 @@ def calc_A(Z, x):
         If DataFrame index/columns as Z
 
     """
-    if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
-        x = x.to_numpy()
+    x = _align_vector(x, Z.columns if isinstance(Z, pd.DataFrame) else None)
     if (type(x) is not np.ndarray) and (x == 0):
         recix = 0
     else:
@@ -172,8 +200,7 @@ def calc_B(Z, x):
         If DataFrame index/columns as Z
 
     """
-    if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
-        x = x.to_numpy()
+    x = _align_vector(x, Z.index if isinstance(Z, pd.DataFrame) else None)
     if (type(x) is not np.ndarray) and (x == 0):
         recix = 0
     else:
@@ -227,7 +254,9 @@ def calc_L(A):
     """
     I = np.eye(A.shape[0])  # noqa
     if type(A) is pd.DataFrame:
-        return pd.DataFrame(np.linalg.inv(I - A), index=A.index, columns=A.columns)
+        columns = A.columns
+        A = _align_axis(A, A.index, axis=1)
+        return pd.DataFrame(np.linalg.inv(I - A), index=A.index, columns=A.columns).reindex(columns=columns)
     return np.linalg.inv(I - A)
 
 
@@ -237,7 +266,7 @@ def calc_G(B, L=None, x=None):
     Either from B (high computation effort) or from Leontief
     matrix L and x (low computation effort).
 
-    G = inverse matrix of (I - B) = hat(x) *  L * hat(x)^{-1}
+    G = inverse matrix of (I - B) = hat(x)^{-1} * L * hat(x)
 
     where I is an identity matrix of same shape as B, and hat(x) is the diagonal
     matrix with values of x on the diagonal.
@@ -246,6 +275,10 @@ def calc_G(B, L=None, x=None):
     ----------
     B : pandas.DataFrame or numpy.array
         Symmetric input output table (coefficients)
+    L : pandas.DataFrame or numpy.array, optional
+        Leontief inverse, used together with x instead of inverting I - B.
+    x : pandas.DataFrame, pandas.Series or numpy.array, optional
+        Industry output vector, required when L is given.
 
     Returns
     -------
@@ -258,34 +291,22 @@ def calc_G(B, L=None, x=None):
     # if L has already been calculated, then G can be derived from it
     # with low computational cost.
     if L is not None and x is not None:
-        if (type(x) is pd.DataFrame) or (type(x) is pd.Series):
-            x = x.to_numpy()
-        if (type(x) is not np.ndarray) and (x == 0):
-            recix = 0
-        else:
-            with warnings.catch_warnings():
-                # catch the divide by zero warning
-                # we deal wit that by setting to 0 afterwards
-                warnings.simplefilter("ignore")
-                recix = 1 / x
-            recix[recix == np.inf] = 0
-            recix = recix.reshape((1, -1))
-
+        x_rows = np.asarray(_align_vector(x, L.index if isinstance(L, pd.DataFrame) else None)).reshape((-1, 1))
+        x_columns = np.asarray(_align_vector(x, L.columns if isinstance(L, pd.DataFrame) else None)).reshape((1, -1))
+        with np.errstate(divide="ignore"):
+            recix = 1 / x_rows
+        recix[recix == np.inf] = 0
         if type(L) is pd.DataFrame:
             return pd.DataFrame(
-                np.transpose(recix * np.transpose(L.to_numpy() * x)),
+                recix * L.to_numpy() * x_columns,
                 index=L.index,
                 columns=L.columns,
             )
-        # G = hat(x) *  L * hat(x)^{-1} in
-        # mathematical form hatx.dot(L.transpose()).dot(np.linalg.inv(hatx)).
-        # it is computationally much faster to multiply
-        # element-wise because hatx is a diagonal matrix.
-        return np.transpose(recix * np.transpose(L * x))
+        return recix * L * x_columns
     # calculation of the inverse of I-As has a high computational cost.
     I = np.eye(B.shape[0])  # noqa
     if type(B) is pd.DataFrame:
-        return pd.DataFrame(np.linalg.inv(I - B), index=B.index, columns=B.columns)
+        return calc_L(B)
     return np.linalg.inv(I - B)  # G = inverse matrix of (I - B)
 
 
@@ -335,7 +356,7 @@ def calc_S_Y(F_Y, y):
         If DataFrame index/columns as F
 
     """
-    if type(F_Y) is pd.DataFrame and type(y) is (pd.Series or pd.DataFrame):
+    if isinstance(F_Y, pd.DataFrame) and isinstance(y, (pd.Series, pd.DataFrame)):
         F_Y_calc = F_Y.loc[:, y.index]
     else:
         F_Y_calc = F_Y
@@ -387,7 +408,7 @@ def calc_F_Y(S_Y, y):
         If DataFrame index/columns as S_Y
 
     """
-    if type(S_Y) is pd.DataFrame and type(y) is (pd.Series or pd.DataFrame):
+    if isinstance(S_Y, pd.DataFrame) and isinstance(y, (pd.Series, pd.DataFrame)):
         S_Y_calc = S_Y.loc[:, y.index]
     else:
         S_Y_calc = S_Y
@@ -438,6 +459,8 @@ def calc_M_down(S, G):
         If DataFrame index/columns as S
 
     """
+    if isinstance(G, pd.DataFrame):
+        G = _align_axis(G, G.index, axis=1)
     return S.dot(np.transpose(G) - np.eye(G.shape[0]))
 
 
@@ -486,10 +509,11 @@ def recalc_M(S, D_cba, Y):
     """
     Y_diag = ioutil.diagonalize_columns_to_sectors(Y)
     Y_inv = np.linalg.inv(Y_diag)
+    if isinstance(D_cba, pd.DataFrame):
+        Y_inv = pd.DataFrame(Y_inv, index=Y_diag.columns, columns=Y_diag.index)
     M = D_cba.dot(Y_inv)
     if type(D_cba) is pd.DataFrame:
-        M.columns = D_cba.columns
-        M.index = D_cba.index
+        M = _align_axis(M, D_cba.columns, axis=1)
 
     return M
 
@@ -518,11 +542,11 @@ def calc_accounts(S, L, Y):
         Format: D_row x L_col (=nr_countries*nr_sectors)
 
         - D_cba        Footprint per sector and country
-        - D_pba      Total factur use per sector and country
-        - D_imp       Total global factor use to satisfy total final demand in
-                      the country per sector
-        - D_exp       Total factor use in one country to satisfy final demand
-                      in all other countries (per sector)
+        - D_pba       Total factor use per producing sector and country
+        - D_imp       Factor use abroad to satisfy final demand in the consuming
+                      country, attributed to its demanded sectors
+        - D_exp       Factor use per producing sector and country to satisfy
+                      final demand in all other countries
     """
     # diagonalize each sector block per country
     # this results in a disaggregated y with final demand per country per
@@ -532,7 +556,11 @@ def calc_accounts(S, L, Y):
         raise ValueError("Column index of Y can not be a MultiIndex - aggregate the columns")
     sectors = Y.index.get_level_values("sector").unique()
     nr_sectors = len(sectors)
-    if Y.index.equals(L.columns) and Y.shape[0] % nr_sectors == 0:
+    if (
+        Y.index.equals(L.columns)
+        and Y.shape[0] % nr_sectors == 0
+        and np.array_equal(Y.index.get_level_values("sector"), np.tile(sectors, Y.shape[0] // nr_sectors))
+    ):
         # Same as L @ diagonalize_columns_to_sectors(Y), one sector at a time.
         # Each column of the diagonalized Y is zero outside one sector, so the
         # dense product would do nr_sectors times the work.
@@ -546,7 +574,7 @@ def calc_accounts(S, L, Y):
     else:
         x_diag = L @ ioutil.diagonalize_columns_to_sectors(Y)
 
-    x_tot = x_diag.to_numpy().sum(1)
+    x_tot = x_diag.sum(axis=1)
 
     D_cba = pd.DataFrame(S @ x_diag)
 
@@ -556,17 +584,17 @@ def calc_accounts(S, L, Y):
     # which are not in the core. This happens for example for statistical discrepancy
     # in the OECD tables. It is "theoretically" possible to calculate footprints for
     # these "regions", but not PBA accounts.
-    D_pba = pd.DataFrame(S.to_numpy() * x_tot.reshape((1, -1)), index=S.index, columns=S.columns)
+    D_pba = calc_F(S, x_tot)
 
     # for the traded accounts set the domestic industry output to zero
     x_trade = ioutil.set_dom_block(x_diag, value=0)
     D_imp = pd.DataFrame(S @ x_trade)
 
-    x_exp = x_trade.sum(1).to_numpy()
+    x_exp = x_trade.sum(axis=1)
 
     # D_exp = S.dot(np.diagflat(x_exp))
     # faster broadcasted version:
-    D_exp = pd.DataFrame(S.to_numpy() * x_exp.reshape((1, -1)), index=S.index, columns=S.columns)
+    D_exp = calc_F(S, x_exp)
 
     return (D_cba, D_pba, D_imp, D_exp)
 

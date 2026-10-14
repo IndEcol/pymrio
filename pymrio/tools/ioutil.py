@@ -274,8 +274,15 @@ def diagonalize_columns_to_sectors(df: pd.DataFrame, sector_index_level: Union[s
     sectors = df.index.get_level_values(sector_index_level).unique()
     sector_name = sector_index_level if type(sector_index_level) is str else "sector"
 
+    # Assign each row to its labeled sector, including shuffled or incomplete blocks.
+    sector_codes = sectors.get_indexer(df.index.get_level_values(sector_index_level))
+    values = df.to_numpy()
+    diagonalized = np.zeros((len(df), df.shape[1] * len(sectors)))
+    for column in range(df.shape[1]):
+        diagonalized[np.arange(len(df)), column * len(sectors) + sector_codes] = values[:, column]
+
     diag_df = pd.DataFrame(
-        data=diagonalize_blocks(df.values, blocksize=len(sectors)),
+        data=diagonalized,
         index=df.index,
         columns=pd.MultiIndex.from_product([df.columns, sectors], names=[*df.columns.names, sector_name]),
     )
