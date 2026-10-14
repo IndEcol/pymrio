@@ -1612,9 +1612,9 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
     the parsed Eora system (reports the amount of loss in the
     meta records).
 
-    Eora does not provide any information on the unit of the
-    monetary values. Based on personal communication the unit
-    is set to Mill USD manually.
+    Monetary values are in thousands of current-year US dollars
+    (``000 USD``), as documented in the
+    `Eora FAQ <https://eora.org/documentation/faq>`_.
 
 
     Parameters
@@ -1828,14 +1828,14 @@ def parse_eora26(path, year=None, price="bp", country_names="eora"):
 
     Q_unit.index = eora_data["Q"].index
 
-    meta_rec.note("Set Eora moneatry units to Mill USD manually")
+    meta_rec.note("Set Eora monetary units to 000 USD (thousands of current-year US dollars)")
     Z_unit = pd.DataFrame(
-        data=["Mill USD"] * len(eora_data["Z"].index),
+        data=["000 USD"] * len(eora_data["Z"].index),
         index=eora_data["Z"].index,
         columns=["unit"],
     )
     VA_unit = pd.DataFrame(
-        data=["Mill USD"] * len(eora_data["VA"].index),
+        data=["000 USD"] * len(eora_data["VA"].index),
         index=eora_data["VA"].index,
         columns=["unit"],
     )
