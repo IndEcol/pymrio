@@ -679,13 +679,12 @@ def parse_exiobase3(path):
 
     """
     io = load_all(path)
-    # need to rename the final demand satellite,
-    # wrong name in the standard distribution
-    try:
-        io.satellite.F_Y = io.satellite.F_hh.copy()
-        del io.satellite.F_hh
-    except AttributeError:
-        pass
+    # Older distributions use F_hh for direct final-demand impacts.
+    for extension in io.get_extensions(data=True):
+        if hasattr(extension, "F_hh"):
+            if extension.F_Y is None and extension.F_hh is not None:
+                extension.F_Y = extension.F_hh.copy()
+            del extension.F_hh
 
     # some ixi in the exiobase 3.4 official distribution
     # have a country name mixup. Clean it here:
