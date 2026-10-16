@@ -465,24 +465,45 @@ def calc_M_down(S, G):
 
 
 def calc_e(M, Y):
-    """Calculate total impacts (footprints of consumption Y).
+    """Calculate total impacts for a final-demand matrix or vector.
+
+    Computes e = M Y, applying total requirement multipliers to final demand.
 
     Parameters
     ----------
-    M : pandas.DataFrame or numpy.array
-        Multipliers
-    Y : pandas.DataFrame or numpy.array
-        Final consumption
-
-    TODO - this must be completely redone (D, check for dataframe, ...)
+    M : pandas.DataFrame or numpy.ndarray
+        Total requirement multipliers, with stressors or impact categories in
+        rows and producing industries (region-sector pairs) in columns.
+    Y : pandas.DataFrame, pandas.Series or numpy.ndarray
+        Final demand with producing industries in rows. A matrix has one column
+        per final-demand category or consuming region; a vector represents one
+        demand scenario or the sum across final-demand columns.
 
     Returns
     -------
-    pandas.DataFrame or numpy.array
-        Multipliers m
-        The type is determined by the type of M.
-        If DataFrame index/columns as M
-        The calculation is based on multipliers M and final demand Y
+    pandas.DataFrame, pandas.Series or numpy.ndarray
+        Total impacts, with one row per stressor or impact category. A matrix Y
+        gives one result column per demand column; a vector Y gives a vector
+        of impacts. For pandas operands, the result retains M's row labels and
+        Y's column labels, when present.
+
+    Notes
+    -----
+    Pandas operands align the producing-industry labels before multiplication;
+    their label sets must match. NumPy operands are matched by position.
+    Use calc_accounts to additionally disaggregate consumption by demanded
+    sector and calculate production, import and export accounts.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> M = np.array([[2.0, 3.0], [5.0, 7.0]])
+    >>> Y = np.array([[10.0, 20.0], [30.0, 40.0]])
+    >>> calc_e(M, Y)
+    array([[110., 160.],
+           [260., 380.]])
+    >>> calc_e(M, Y.sum(axis=1))
+    array([270., 640.])
 
     """
     return M.dot(Y)

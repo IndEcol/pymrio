@@ -706,6 +706,53 @@ def test_calc_M_MRIO(td_small_MRIO):
     pdt.assert_frame_equal(td_small_MRIO.M, calc_M(td_small_MRIO.S, td_small_MRIO.L))
 
 
+@pytest.mark.parametrize("labeled", [False, True])
+@pytest.mark.parametrize("vector", [False, True])
+def test_calc_e_total_impacts(labeled, vector):
+    """Calculate known impact totals for matrix and vector demand with both input types."""
+    multipliers = np.array([[2, 3], [5, 7]])
+    demand = np.array([[10, 20], [30, 40]])
+    expected = np.array([[110, 160], [260, 380]])
+    if vector:
+        demand = np.array([30, 70])
+        expected = np.array([270, 640])
+    if labeled:
+        stressors = ["emissions", "water"]
+        industries = ["food", "mining"]
+        multipliers = pd.DataFrame(multipliers, index=stressors, columns=industries)
+        if vector:
+            demand = pd.Series(demand, index=industries)
+            expected = pd.Series(expected, index=stressors)
+        else:
+            categories = ["households", "government"]
+            demand = pd.DataFrame(demand, index=industries, columns=categories)
+            expected = pd.DataFrame(expected, index=stressors, columns=categories)
+
+    actual = calc_e(multipliers, demand)
+    if isinstance(expected, pd.DataFrame):
+        pdt.assert_frame_equal(actual, expected)
+    elif isinstance(expected, pd.Series):
+        pdt.assert_series_equal(actual, expected)
+    else:
+        npt.assert_array_equal(actual, expected)
+
+
+def test_calc_e_aligns_producing_industry_labels():
+    """Demand rows match multiplier columns by label rather than their input order."""
+    multipliers = pd.DataFrame([[2, 3], [5, 7]], index=["emissions", "water"], columns=["food", "mining"])
+    demand = pd.DataFrame([[10, 20], [30, 40]], index=["food", "mining"], columns=["households", "government"])
+    expected = pd.DataFrame([[110, 160], [260, 380]], index=multipliers.index, columns=demand.columns)
+    pdt.assert_frame_equal(calc_e(multipliers, demand.iloc[::-1]), expected)
+
+
+def test_calc_e_rejects_unmatched_producing_industry_labels():
+    """Unmatched classifications must fail even when the input dimensions agree."""
+    multipliers = pd.DataFrame([[2, 3]], columns=["food", "mining"])
+    demand = pd.DataFrame([[10], [30]], index=["food", "transport"])
+    with pytest.raises(ValueError, match="not aligned"):
+        calc_e(multipliers, demand)
+
+
 def test_calc_M_down_MRIO(td_small_MRIO):
     """Test calculation of M_down (Gosh-based) matrix in MRIO model."""
     pdt.assert_frame_equal(td_small_MRIO.M_down, calc_M_down(td_small_MRIO.S, td_small_MRIO.G))
