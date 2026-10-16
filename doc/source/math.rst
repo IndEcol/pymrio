@@ -13,6 +13,12 @@ This was generally the case when `numpy broadcasting <https://docs.scipy.org/doc
 was available for a specific operation, resulting in a substantial speed up of the calculations.
 In these cases the original formula remains as comment in the source code.
 
+When both operands have pandas labels, the mathematical routines align their
+corresponding rows or columns before calculation. Matching labels may appear in
+different orders, but missing, extra, or duplicate labels raise a ``ValueError``
+where an alignment would otherwise be ambiguous. NumPy inputs have no labels and
+are matched by position, so their ordering must be consistent.
+
 Basic MRIO calculations
 ------------------------
 
@@ -130,26 +136,56 @@ given final demand vector :math:`y` are then given by
         D_{cba} = My
     \end{equation}
 
-Setting the domestically satisfied final demand :math:`Y_{i,i}` to zero (:math:`Y_{t} = Y -
-Y_{i,j}\; |\; i = j`) allows to calculate the factor of production occurring
-abroad (embodied in imports)
+To attribute impacts to individual demanded sectors, :func:`pymrio.calc_accounts`
+first aggregates final-demand categories to one column per consuming country.
+It then disaggregates each column by sector into :math:`\widetilde{Y}`: each
+resulting column contains the demand for one sector in one consuming country.
+The output required throughout the supply chain is
+
+.. math::
+
+    X = L\widetilde{Y}.
+
+The block :math:`X_{i,j}` contains production in country :math:`i` required by
+final demand in country :math:`j`. Setting the domestic blocks of this
+**output requirements matrix** to zero isolates production abroad:
+
+.. math::
+
+    (X_t)_{i,j} =
+    \begin{cases}
+        0 & \text{if } i = j, \\
+        X_{i,j} & \text{otherwise}.
+    \end{cases}
+
+The impacts embodied in imports are then
 
 .. math::
 
     \begin{equation}
-        D_{imp} = SLY_{t}
+        D_{imp} = SX_t
     \end{equation}
 
-The factors of production occurring domestically to satisfy final demand in
-other countries is given by:
+Each column of :math:`D_{imp}` refers to the consuming country and its demanded
+sector. The impacts occurring in each producing sector to satisfy final demand
+in other countries are
 
 .. math::
 
     \begin{equation}
-        D_{exp} = S\widehat{LY_{t}e}
+        D_{exp} = S\widehat{X_t e}
     \end{equation}
 
-with the hat indicating diagonalization of the resulting column-vector of the term underneath.
+where :math:`e` sums across consuming countries and demanded sectors, and the
+hat diagonalizes the resulting output vector. Each column of :math:`D_{exp}`
+refers to the producing country and sector.
+
+For example, suppose country 1 consumes 100 units of its own product, each unit
+requiring 0.5 units of input from country 2. At direct impact intensities of 1
+and 2 in countries 1 and 2 respectively, the imported inputs embody 100 units
+of impact. These are country 1's import impacts and country 2's export impacts.
+The purchased final product is domestic, so removing domestic final demand
+before applying :math:`L` would incorrectly omit these impacts.
 
 If the factor of production represent required environmental impacts, these can
 also occur during the final use phase. In that case :math:`F_Y` describe the impacts
@@ -214,7 +250,7 @@ are given by :math:`S G^{T}` where
 .. math::
 
     \begin{equation}
-        G = (\mathrm{I}- B)^{-1} = \hat{x} L \hat{x}^{-1}
+        G = (\mathrm{I}- B)^{-1} = \hat{x}^{-1} L \hat{x}
     \end{equation}
 
 is the Ghosh inverse matrix.
