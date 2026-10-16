@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.2
+#       jupytext_version: 1.19.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -55,14 +55,16 @@ io_read.meta
 # ## Storage format
 
 # %% [markdown]
-# Internally, pymrio stores data in csv format, with the 'economic core' data in the root and each satellite account in a subfolder. Metadata as file as a file describing the data format ('file_parameters.json') are included in each folder.
+# By default, pymrio stores tables as tab-separated text files. The economic core is in the root folder and each extension is in a subfolder. Each folder includes metadata and a `file_parameters.json` file describing its tables. Pickle and Parquet use the same folder structure.
 
 # %%
 
 os.listdir(save_folder_full)
 
 # %% [markdown]
-# The file format for storing the MRIO data can be switched to a binary pickle format with:
+# ### Pickle
+#
+# Use `table_format="pkl"` (or its alias `"pickle"`) to store tables in Python's binary pickle format:
 
 # %%
 save_folder_bin = "/tmp/testmrio/binary"
@@ -70,7 +72,29 @@ io.save_all(path=save_folder_bin, table_format="pkl")
 os.listdir(save_folder_bin)
 
 # %% [markdown]
-# This can be used to reduce the storage space required on the disk for large MRIO databases.
+# Loading works with the same function as for text files; the format is detected automatically:
+
+# %%
+io_read_bin = pymrio.load_all(save_folder_bin)
+
+# %% [markdown]
+# Only load pickle files from trusted sources, since unpickling can execute code.
+
+# %% [markdown]
+# ### Parquet
+#
+# Use `table_format="parquet"` for a binary tabular format with compression. Parquet uses PyArrow, which is included in pymrio's dependencies:
+
+# %%
+save_folder_parquet = "/tmp/testmrio/parquet"
+io.save_all(path=save_folder_parquet, table_format="parquet")
+os.listdir(save_folder_parquet)
+
+# %%
+io_read_parquet = pymrio.load_all(save_folder_parquet)
+
+# %% [markdown]
+# Both binary formats preserve the stored numerical precision without formatting values as text. They can also reduce storage space for large MRIO systems. Use `save_all` to include every extension, or `save` to store only the core or an individual extension. Already saved folders can be archived in the same way regardless of their table format.
 
 # %% [markdown]
 # ## Archiving MRIOs databases
