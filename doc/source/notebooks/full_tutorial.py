@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.19.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -36,6 +36,7 @@
 
 
 # %%
+import numpy as np
 import pymrio
 
 # Load the test MRIO system
@@ -128,6 +129,29 @@ print(test_mrio.emissions.DataFrames)
 print("D_cba (consumption-based):", test_mrio.emissions.D_cba)
 
 # %% [markdown]
+# ### Calculate accounts for a new final demand
+#
+# The included test MRIO also lets us explore demand scenarios. Here, final demand increases by 10% in every region and category, while the production and extension coefficients stay fixed.
+#
+# Work on a copy to keep the baseline available for comparison. Reset to coefficients before assigning the new demand so that `calc_all()` recalculates the flows and accounts.
+
+# %%
+scenario = test_mrio.copy()
+scenario.reset_all_to_coefficients()
+scenario.Y = test_mrio.Y * 1.10
+scenario.calc_all()
+
+# %%
+print("Output increases by 10%:", np.allclose(scenario.x, test_mrio.x * 1.10))
+print(
+    "Consumption-based footprints increase by 10%:",
+    np.allclose(scenario.emissions.D_cba_reg, test_mrio.emissions.D_cba_reg * 1.10),
+)
+
+# %% [markdown]
+# For a worked example that changes demand for individual sectors, see [updating a system for a new final demand](pymrio_directly_assign_attributes.ipynb#Update-to-system-for-a-new-final-demand).
+
+# %% [markdown]
 # ## Ghosh Calculations in calc_all
 #
 # When `calc_all` is executed, it can optionally calculate Ghosh inverse matrices for downstream analysis:
@@ -200,8 +224,6 @@ print("Extensions containing 'type':", all_extension_search)
 # ## Using Functions from iomath
 #
 # Pymrio's `iomath` module provides low-level functions for specific calculations:
-#
-# import numpy as np
 
 # %%
 from pymrio.tools import iomath
