@@ -17,6 +17,7 @@ TESTPATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(TESTPATH, ".."))
 
 from pymrio.tools.ioutil import (  # noqa
+    _validate_characterization_table,
     build_agg_matrix,
     build_agg_vec,
     convert,
@@ -32,6 +33,30 @@ from pymrio.tools.ioutil import (  # noqa
     set_dom_block,
     sniff_csv_format,
 )
+
+
+@pytest.mark.parametrize("stressor_unit, mismatch", [("kg", False), ("g", True)])
+@pytest.mark.filterwarnings("error::FutureWarning")
+def test_characterization_unit_flags_are_boolean(stressor_unit, mismatch):
+    """Validate unit flags without version-specific pandas options or warnings."""
+    factors = pd.DataFrame(
+        {
+            "stressor": ["a", "b", "missing"],
+            "impact": ["impact"] * 3,
+            "factor": [1.0] * 3,
+            "stressor_unit": ["kg", stressor_unit, "kg"],
+            "impact_unit": ["kg"] * 3,
+        }
+    )
+    units = pd.DataFrame({"unit": ["kg", "kg"]}, index=pd.Index(["a", "b"], name="stressor"))
+
+    validation = _validate_characterization_table(factors, factors.columns, pd.Index([]), pd.Index([]), units)
+
+    pdt.assert_series_equal(
+        validation.error_unit_stressor,
+        pd.Series([False, mismatch, False], name="error_unit_stressor"),
+    )
+    assert validation.error_missing_stressor.tolist() == [False, False, True]
 
 
 @pytest.fixture()

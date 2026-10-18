@@ -1105,11 +1105,8 @@ def _validate_characterization_table(
     fac = fac.reset_index()
     um = um.reset_index()
 
-    fac.error_unit_stressor = fac.error_unit_stressor.astype("object")
-    fac.loc[:, "error_unit_stressor"] = um.loc[:, orig_unit_column] != um.loc[:, ext_unit_col]
-    with pd.option_context("future.no_silent_downcasting", True):
-        fac.loc[:, "error_unit_stressor"] = fac.loc[:, "error_unit_stressor"].fillna(False)
-    fac.error_unit_stressor = fac.error_unit_stressor.infer_objects(copy=False)
+    unit_mismatch = um.loc[:, orig_unit_column] != um.loc[:, ext_unit_col]
+    fac["error_unit_stressor"] = unit_mismatch.reindex(fac.index, fill_value=False)
 
     fac = fac.set_index(ext_unit.index.names).sort_index()
     for row in fac.index.unique():
