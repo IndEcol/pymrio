@@ -2,6 +2,62 @@
 Changelog
 #########
 
+*******************
+v0.7.0 - Unreleased
+*******************
+
+Compatibility and behaviour changes
+===================================
+
+* Labeled mathematical inputs are aligned by their pandas labels, including
+  reordered regions and sectors. Missing, extra, or duplicate labels now raise
+  errors instead of silently producing incorrectly ordered results (#107).
+* Eora26 monetary tables and value added are labeled ``000 USD``, matching the
+  source data. Numerical values are unchanged (#175).
+* Require ``openpyxl >= 3.1.5`` for compatibility with recent pandas versions
+  (#144, #177). The updated dependency takes effect when this release is
+  published; the requirements of previously published releases are unchanged.
+* Disable the GLORIA downloader because its upstream download interface has
+  changed. Download GLORIA manually from https://ielab.info/labs/ielab-gloria.
+
+Bugfixes
+========
+
+* Correct label alignment in coefficient, inverse, account, and multiplier
+  calculations, including systems with reordered sectors (#107).
+* Correct the fast Ghosh inverse calculation when output is a column vector
+  (#137).
+* Normalize EXIOBASE final-demand satellite accounts from ``F_hh`` to ``F_Y``
+  without replacing existing ``F_Y`` data, for both folder and ZIP inputs (#91).
+* Correct the population label in bundled EXIOBASE concordance data (#9).
+* Accept a single ``pathlib.Path`` in ``extract_from_mrioseries``.
+* Explain characterization failures caused by missing or misnamed index levels
+  (#167, #176).
+* Restore characterization support for pandas 2.1 without relying on
+  version-specific options or deprecated boolean downcasting behaviour.
+* Avoid renaming files during repeated OECD ICIO v2023 downloads (#156).
+* Preserve extension index names during concatenation (#129).
+
+Performance
+===========
+
+* Reduce memory use and speed up ``calc_accounts`` and ``set_dom_block`` (#180).
+
+Documentation and tests
+=======================
+
+* Make the full test-MRIO tutorial executable and add a final-demand scenario
+  using ``reset_all_to_coefficients`` (#77).
+* Document ``calc_e`` matrix and vector results, with executable examples and
+  regression tests (#8).
+* Add matrix dimensions, account suffix explanations, and a USEEIO terminology
+  comparison (#87).
+* Correct the Ghosh formula and the explanation of traded-account calculations
+  (#75, #137).
+* Document pickle and Parquet storage and their trade-offs (#110).
+* Repair the CI badge and improve headless plotting, dependency compatibility,
+  and documentation-build checks (#120, #179).
+
 ******************
 v0.6.3 - 20251219
 ******************
