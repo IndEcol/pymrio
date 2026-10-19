@@ -42,7 +42,7 @@ Bugfixes
 Performance
 ===========
 
-* Reduce memory use and speed up ``calc_accounts`` and ``set_dom_block`` (#180).
+* Reduce memory use and speed up ``calc_accounts`` and ``set_dom_block`` (#180) - Special thanks to @simonvanlierde 
 
 Documentation and tests
 =======================
