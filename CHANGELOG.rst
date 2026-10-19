@@ -3,12 +3,13 @@ Changelog
 #########
 
 *******************
-v0.7.0 - Unreleased
+v0.7.0 - 20261019
 *******************
 
 Compatibility and behaviour changes
 ===================================
 
+* Tests and updated until Python 3.15
 * Labeled mathematical inputs are aligned by their pandas labels, including
   reordered regions and sectors. Missing, extra, or duplicate labels now raise
   errors instead of silently producing incorrectly ordered results (#107).
