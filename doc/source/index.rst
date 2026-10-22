@@ -13,6 +13,7 @@ Contents:
    Basic Tutorial <notebooks/full_tutorial>
    terminology
    math
+   structural_path_analysis
    Automatic MRIO download <notebooks/autodownload>
    handling
    notebooks/metadata

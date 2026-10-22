@@ -2,6 +2,15 @@
 Changelog
 #########
 
+Unreleased
+**********
+
+* Add structural path analysis with ``calc_spa`` and ``IOSystem.calc_spa``.
+  ``SPAResult`` exposes ranked production paths, exact tier totals, and
+  per-consumer footprint and residual accounting. Signed inputs, bounded
+  traversal, and safe finite-depth pruning are supported. Add test-MRIO
+  examples, mathematical background, and independent numerical tests.
+
 *******************
 v0.7.0 - 20261019
 *******************

@@ -265,10 +265,17 @@ Characterizing stressors
 Analysing the source of impacts
 ===============================
 
+Structural path analysis extracts production paths for one indicator and
+selected final demand. See :doc:`structural_path_analysis` for a runnable
+test-MRIO example, mathematical conventions, and footprint accounting.
+
 .. autosummary::
    :toctree: api_doc/
 
    Extension.diag_stressor
+   IOSystem.calc_spa
+   calc_spa
+   SPAResult
 
 Changing extensions
 ===================

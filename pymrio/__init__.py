@@ -81,6 +81,7 @@ from pymrio.tools.ioparser import (
     parse_oecd,
     parse_wiod,
 )
+from pymrio.tools.iospa import SPAResult, calc_spa
 from pymrio.tools.ioutil import (
     build_agg_matrix,
     build_agg_vec,
@@ -140,6 +141,9 @@ __all__ = [
     "calc_x",
     "calc_x_from_L",
     "calc_Z",
+    # tools.iospa
+    "SPAResult",
+    "calc_spa",
     # tools.iometadata
     "MRIOMetaData",
     # tools.ioparser

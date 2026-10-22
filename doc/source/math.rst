@@ -22,6 +22,9 @@ are matched by position, so their ordering must be consistent.
 Basic MRIO calculations
 ------------------------
 
+For the expansion of production footprints into individual supply-chain paths,
+see :doc:`structural_path_analysis`.
+
 MRIO tables describe the global inter-industries flows within and across countries for :math:`k` countries with a transaction matrix :math:`Z`:
 
 .. math::

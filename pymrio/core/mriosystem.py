@@ -49,6 +49,7 @@ from pymrio.tools.iomath import (
     recalc_M,
 )
 from pymrio.tools.iometadata import MRIOMetaData
+from pymrio.tools.iospa import calc_spa
 
 # internal functions
 # def _warn_deprecation(message):  # pragma: no cover
@@ -2209,6 +2210,79 @@ class IOSystem(_BaseSystem):
 
         """
         return calc_gross_trade(Z=self.Z, Y=self.Y)
+
+    def calc_spa(self, extension, stressor, Y=None, *, max_depth=3, cutoff=0.0, top_n=100, max_nodes=1_000_000):
+        """Analyse production paths for one extension indicator.
+
+        Parameters
+        ----------
+        extension : str or Extension
+            Extension attribute name (for example, ``"emissions"``) or an
+            Extension instance with calculated direct intensities ``S``.
+        stressor : object
+            Exact row label in ``extension.S``. For a MultiIndex, pass the
+            complete tuple, for example ``("emission_type1", "air")``.
+        Y : pandas.Series or pandas.DataFrame, optional
+            Selected final demand, with all industry rows. Defaults to
+            ``self.Y``. Select consumer columns with pandas before calling;
+            each column remains separate. Aggregate columns explicitly when
+            analysing a combined bundle.
+        max_depth : int, optional
+            Maximum intermediate transactions, default 3. Zero keeps direct
+            production for final demand only.
+        cutoff : float, optional
+            Minimum absolute path contribution in indicator units, default 0.
+        top_n : int or None, optional
+            Maximum retained paths across demand columns, default 100.
+            None retains all paths meeting the cutoff.
+        max_nodes : int, optional
+            Maximum examined path prefixes, default 1,000,000. Exceeding the
+            limit raises RuntimeError without returning partial results.
+
+        Returns
+        -------
+        SPAResult
+            Ranked paths, exact tier totals, and per-consumer footprint and
+            residual accounting, including the indicator label and its unit.
+
+        Notes
+        -----
+        Call :meth:`calc_all` first to calculate ``A`` and the extension's
+        ``S``. This method does not modify or recalculate the IOSystem.
+        Direct final-demand extension flows ``F_Y`` are excluded. See
+        :func:`pymrio.calc_spa` for signed-value and convergence conventions.
+
+        Examples
+        --------
+        >>> import pymrio
+        >>> io = pymrio.load_test().calc_all()
+        >>> result = io.calc_spa("emissions", ("emission_type1", "air"), max_depth=1)
+        >>> result.unit
+        'kg'
+        """
+        if isinstance(extension, str):
+            extension = getattr(self, extension, None)
+        if not isinstance(extension, Extension):
+            raise ValueError("extension must name an existing Extension or be an Extension instance")
+        if self.A is None or extension.S is None:
+            raise ValueError("SPA requires A and extension.S; call calc_all() first")
+        if not extension.S.index.is_unique:
+            raise ValueError("Extension indicator labels must be unique")
+        position = extension.S.index.get_loc(stressor)
+        if not isinstance(position, (int, np.integer)):
+            raise ValueError("stressor must select exactly one complete indicator label")
+        result = calc_spa(
+            self.A,
+            extension.S.iloc[[position]],
+            self.Y if Y is None else Y,
+            max_depth=max_depth,
+            cutoff=cutoff,
+            top_n=top_n,
+            max_nodes=max_nodes,
+        )
+        if extension.unit is not None and stressor in extension.unit.index:
+            result.unit = extension.unit.loc[[stressor], "unit"].iloc[0]
+        return result
 
     def calc_all(self, include_ghosh=False):
         """Calculate missing parts of the IOSystem and all extensions.
