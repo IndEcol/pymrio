@@ -42,3 +42,5 @@ tags
 uv.lock
 .uv-cache
 /.venv/
+/example/
+
