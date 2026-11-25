@@ -2,9 +2,11 @@
 
 import collections
 import configparser
+import contextlib
 import json
 import logging
 import os
+import posixpath
 import re
 import sys
 import zipfile
@@ -20,7 +22,7 @@ from pymrio.core.constants import (
 )
 from pymrio.core.mriosystem import Extension, IOSystem
 from pymrio.tools.iometadata import MRIOMetaData
-from pymrio.tools.ioutil import get_file_para
+from pymrio.tools.ioutil import fs_url, get_file_para, get_fs, is_zip, open_zip
 
 
 # Exceptions
@@ -43,7 +45,18 @@ def _get_file_format(file_name):
     return table_format
 
 
-def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=None):
+def _read_table(file_handle, file_format, index_col, header):
+    """Read a stored DataFrame from an open binary file handle."""
+    if file_format == "txt":
+        return pd.read_csv(file_handle, index_col=index_col, header=header, sep="\t")
+    if file_format == "pickle":
+        return pd.read_pickle(file_handle)
+    if file_format == "parquet":
+        return pd.read_parquet(file_handle)
+    raise ValueError("Unknown file format")
+
+
+def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=None, storage_options=None):
     """Load a full IO system with all extension from path.
 
     Parameters
@@ -55,6 +68,8 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=
         later case and if there are several mrio's in the zip file the
         parameter 'path_in_arc' need to be specifiec to further indicate the
         location of the data in the compressed file.
+        This can also be an fsspec URL, e.g. 's3://bucket/mrio' or
+        's3://bucket/mrio.zip' (see 'storage_options').
 
     include_core : boolean, optional
         If False the load method does not include A, L and Z matrix. This
@@ -87,6 +102,10 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=
         Which accounts to load, e.g. 'D_cba', 'Z', etc
         If None (default), load all accounts
 
+    storage_options: dict, optional
+        Passed to the fsspec filesystem when 'path' is a URL.
+        See :func:`load` for an S3 example.
+
     """
 
     def clean(varStr):
@@ -96,11 +115,19 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=
     if isinstance(subfolders, (str, Path)):
         subfolders = [subfolders]
 
-    path = Path(path)
+    fs, fs_path = get_fs(path, storage_options)
+    is_archive = is_zip(fs, fs_path)
 
-    if zipfile.is_zipfile(str(path)):
-        with zipfile.ZipFile(file=str(path), mode="r") as zz:
+    if is_archive:
+        with open_zip(fs, fs_path) as zz:
             zipcontent = zz.namelist()
+            if not path_in_arc:
+                fpfiles = [
+                    f
+                    for f in zipcontent
+                    if os.path.basename(f) == DEFAULT_FILE_NAMES["filepara"]
+                    and json.loads(zz.read(f).decode("utf-8"))["systemtype"] == "IOSystem"
+                ]
         if path_in_arc:
             path_in_arc = str(path_in_arc)
             if path_in_arc not in zipcontent:
@@ -120,13 +147,6 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=
                     )
 
         else:
-            with zipfile.ZipFile(file=str(path), mode="r") as zz:
-                fpfiles = [
-                    f
-                    for f in zz.namelist()
-                    if os.path.basename(f) == DEFAULT_FILE_NAMES["filepara"]
-                    and json.loads(zz.read(f).decode("utf-8"))["systemtype"] == "IOSystem"
-                ]
             if len(fpfiles) == 0:
                 raise ReadError(
                     "File parameter file {} not found in {}. "
@@ -140,9 +160,15 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=
 
         logging.debug(f"Expect file parameter-file at {path_in_arc} in {path}")
 
-    io = load(path, include_core=include_core, path_in_arc=path_in_arc, subset=subset)
+    io = load(
+        path,
+        include_core=include_core,
+        path_in_arc=path_in_arc,
+        subset=subset,
+        storage_options=storage_options,
+    )
 
-    if zipfile.is_zipfile(str(path)):
+    if is_archive:
         root_in_zip = os.path.dirname(path_in_arc)
         if subfolders is None:
             subfolders = {
@@ -167,7 +193,13 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=
                 subfolder_full_meta = subfolder_full
 
             if subfolder_full_meta in zipcontent:
-                ext = load(path, include_core=include_core, path_in_arc=subfolder_full_meta, subset=subset)
+                ext = load(
+                    path,
+                    include_core=include_core,
+                    path_in_arc=subfolder_full_meta,
+                    subset=subset,
+                    storage_options=storage_options,
+                )
                 setattr(io, clean(subfolder_name), ext)
                 io.meta._add_fileio(f"Added satellite account from {subfolder_full}")
             else:
@@ -175,22 +207,34 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=
 
     else:
         if subfolders is None:
-            subfolders = [d for d in path.iterdir() if d.is_dir()]
+            subfolders = [
+                fs_url(fs, entry["name"]) for entry in fs.ls(fs_path, detail=True) if entry["type"] == "directory"
+            ]
 
         for subfolder_name in subfolders:
-            if not os.path.exists(str(subfolder_name)):
-                subfolder_full = path / subfolder_name
+            subfolder_name = str(subfolder_name)
+            # Names relative to path take precedence over paths/URLs given as is
+            subfolder_rel = posixpath.join(fs_path, subfolder_name)
+            if fs.exists(subfolder_rel):
+                subfolder_full = fs_url(fs, subfolder_rel)
             else:
                 subfolder_full = subfolder_name
-            subfolder_name = os.path.basename(os.path.normpath(subfolder_name))
 
-            if not os.path.isfile(str(subfolder_full)):
-                subfolder_full_meta = subfolder_full / DEFAULT_FILE_NAMES["filepara"]
+            sub_fs, sub_path = get_fs(subfolder_full, storage_options)
+            subfolder_name = posixpath.basename(sub_path.rstrip("/"))
+
+            if not sub_fs.isfile(sub_path):
+                subfolder_full_meta = posixpath.join(sub_path, DEFAULT_FILE_NAMES["filepara"])
             else:
-                subfolder_full_meta = subfolder_full
+                subfolder_full_meta = sub_path
 
-            if subfolder_full_meta.exists():
-                ext = load(subfolder_full, include_core=include_core, subset=subset)
+            if sub_fs.exists(subfolder_full_meta):
+                ext = load(
+                    subfolder_full,
+                    include_core=include_core,
+                    subset=subset,
+                    storage_options=storage_options,
+                )
                 setattr(io, clean(subfolder_name), ext)
                 io.meta._add_fileio(f"Added satellite account from {subfolder_full}")
             else:
@@ -199,7 +243,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=
     return io
 
 
-def load(path, include_core=True, path_in_arc="", subset=None):
+def load(path, include_core=True, path_in_arc="", subset=None, storage_options=None):
     """Load a IOSystem or Extension previously saved with pymrio.
 
     This function can be used to load a IOSystem or Extension specified in a
@@ -217,6 +261,8 @@ def load(path, include_core=True, path_in_arc="", subset=None):
         the location of a compressed zip file with the data. In the
         later case the parameter 'path_in_arc' need to be specific to
         further indicate the location of the data in the compressed file.
+        This can also be an fsspec URL, e.g. 's3://bucket/mrio' or
+        's3://bucket/mrio.zip' (see 'storage_options').
 
     include_core : boolean, optional
         If False the load method does not include A, L and Z matrix. This
@@ -234,6 +280,21 @@ def load(path, include_core=True, path_in_arc="", subset=None):
         Which accounts to load, e.g. 'D_cba', 'Z', etc
         If None (default), load all accounts
 
+    storage_options: dict, optional
+        Passed to the fsspec filesystem when 'path' is a URL. For S3 (requires
+        the optional dependency s3fs) this can hold credentials and endpoint
+        configuration, e.g. for an S3-compatible service::
+
+            storage_options = {
+                "key": "...",
+                "secret": "...",
+                "endpoint_url": "https://ecs.example.com:9021",
+                "config_kwargs": {"s3": {"addressing_style": "path"}},
+            }
+
+        If not given, s3fs falls back to the standard AWS configuration
+        (environment variables, ~/.aws/config, instance roles).
+
 
     Returns
     -------
@@ -241,18 +302,19 @@ def load(path, include_core=True, path_in_arc="", subset=None):
         None in case of errors
 
     """
-    path = Path(path)
+    fs, fs_path = get_fs(path, storage_options)
 
     if type(subset) is str:
         subset = [subset]
 
-    if not path.exists():
+    if not fs.exists(fs_path):
         raise ReadError("Given path does not exist")
 
-    file_para = get_file_para(path=path, path_in_arc=path_in_arc)
+    is_archive = is_zip(fs, fs_path)
+    file_para = get_file_para(path=path, path_in_arc=path_in_arc, storage_options=storage_options)
 
     if file_para.content["systemtype"] == GENERIC_NAMES["iosys"]:
-        if zipfile.is_zipfile(str(path)):
+        if is_archive:
             # Not using os.path.join here b/c this adds the wrong
             # separator when reading the zip in windows
             if file_para.folder != "":
@@ -260,10 +322,13 @@ def load(path, include_core=True, path_in_arc="", subset=None):
             else:
                 metadata_folder = DEFAULT_FILE_NAMES["metadata"]
 
-            ret_system = IOSystem(meta=MRIOMetaData(location=path, path_in_arc=metadata_folder))
+            ret_system = IOSystem(
+                meta=MRIOMetaData(location=path, path_in_arc=metadata_folder, storage_options=storage_options)
+            )
             ret_system.meta._add_fileio(f"Loaded IO system from {path} - {path_in_arc}")
         else:
-            ret_system = IOSystem(meta=MRIOMetaData(location=path / DEFAULT_FILE_NAMES["metadata"]))
+            metadata_file = fs_url(fs, posixpath.join(file_para.folder, DEFAULT_FILE_NAMES["metadata"]))
+            ret_system = IOSystem(meta=MRIOMetaData(location=metadata_file, storage_options=storage_options))
             ret_system.meta._add_fileio(f"Loaded IO system from {path}")
 
     elif file_para.content["systemtype"] == GENERIC_NAMES["ext"]:
@@ -273,75 +338,46 @@ def load(path, include_core=True, path_in_arc="", subset=None):
         raise ReadError("Type of system no defined in the file parameters")
         return None
 
-    for key in file_para.content["files"]:
-        if not include_core and key in ["A", "L", "Z"]:
-            continue
+    with open_zip(fs, fs_path) if is_archive else contextlib.nullcontext() as zf:
+        for key in file_para.content["files"]:
+            if not include_core and key in ["A", "L", "Z"]:
+                continue
 
-        if (subset is not None) and key not in subset:
-            continue
+            if (subset is not None) and key not in subset:
+                continue
 
-        file_name = file_para.content["files"][key]["name"]
-        nr_index_col = file_para.content["files"][key]["nr_index_col"]
-        nr_header = file_para.content["files"][key]["nr_header"]
-        _index_col = list(range(int(nr_index_col)))
-        _header = list(range(int(nr_header)))
-        _index_col = 0 if _index_col == [0] else _index_col
-        _header = 0 if _header == [0] else _header
+            file_name = file_para.content["files"][key]["name"]
+            nr_index_col = file_para.content["files"][key]["nr_index_col"]
+            nr_header = file_para.content["files"][key]["nr_header"]
+            _index_col = list(range(int(nr_index_col)))
+            _header = list(range(int(nr_header)))
+            _index_col = 0 if _index_col == [0] else _index_col
+            _header = 0 if _header == [0] else _header
 
-        if key == "FY":  # Legacy code to read data saved with version < 0.4
-            key = "F_Y"
+            if key == "FY":  # Legacy code to read data saved with version < 0.4
+                key = "F_Y"
 
-        if zipfile.is_zipfile(str(path)):
-            # Not using os.path.join here b/c this adds the wrong
-            # separator when reading the zip in windows
-            if file_para.folder != "":
-                full_file_name = file_para.folder + "/" + file_name
-                full_file_name = full_file_name.replace("//", "/")
-            else:
-                full_file_name = file_name
-            logging.info(f"Load data from {full_file_name}")
-
-            with zipfile.ZipFile(file=str(path)) as zf:
-                file_format = _get_file_format(full_file_name)
-                if file_format == "txt":
-                    setattr(
-                        ret_system,
-                        key,
-                        pd.read_csv(
-                            zf.open(full_file_name),
-                            index_col=_index_col,
-                            header=_header,
-                            sep="\t",
-                        ),
-                    )
-                elif file_format == "pickle":
-                    setattr(ret_system, key, pd.read_pickle(zf.open(full_file_name)))
-                elif file_format == "parquet":
-                    setattr(ret_system, key, pd.read_parquet(zf.open(full_file_name)))
+            if is_archive:
+                # Not using os.path.join here b/c this adds the wrong
+                # separator when reading the zip in windows
+                if file_para.folder != "":
+                    full_file_name = file_para.folder + "/" + file_name
+                    full_file_name = full_file_name.replace("//", "/")
                 else:
-                    ValueError("Unknown file format")
+                    full_file_name = file_name
+                logging.info(f"Load data from {full_file_name}")
+                file_handle = zf.open(full_file_name)
+            else:
+                full_file_name = posixpath.join(file_para.folder, file_name)
+                logging.info(f"Load data from {fs_url(fs, full_file_name)}")
+                file_handle = fs.open(full_file_name, "rb")
 
-        else:
-            full_file_name = path / file_name
-            logging.info(f"Load data from {full_file_name}")
-            file_format = _get_file_format(full_file_name)
-            if file_format == "txt":
+            with file_handle as fh:
                 setattr(
                     ret_system,
                     key,
-                    pd.read_csv(
-                        full_file_name,
-                        index_col=_index_col,
-                        header=_header,
-                        sep="\t",
-                    ),
+                    _read_table(fh, _get_file_format(full_file_name), _index_col, _header),
                 )
-            elif file_format == "pickle":
-                setattr(ret_system, key, pd.read_pickle(full_file_name))
-            elif file_format == "parquet":
-                setattr(ret_system, key, pd.read_parquet(full_file_name))
-            else:
-                ValueError("Unknown file format")
     return ret_system
 
 

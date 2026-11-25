@@ -47,11 +47,15 @@ dependencies = [
     "openpyxl >= 3.1.5",
     "docutils >= 0.14",
     "faker >= 18.4.0",
+    "fsspec >= 2023.1.0",
 
 ]
 
 
 [project.optional-dependencies]
+s3 = [
+  "s3fs >= 2023.1.0",
+]
 dev = [
   "pdbpp",
   "country_converter >= 0.8.0",
@@ -81,6 +85,7 @@ test = [
   "pytest-xdist[psutil]",
   "faker",
   "pytest-ruff>=0.5",
+  "moto[server] >= 5.0",
 ]
 
 
