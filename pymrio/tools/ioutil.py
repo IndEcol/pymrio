@@ -6,20 +6,66 @@ KST 20140502
 import json
 import logging
 import os
+import posixpath
 import re
 import ssl
 import zipfile
 from collections import namedtuple
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Union
 
+import fsspec
 import numpy as np
 import pandas as pd
 import requests
 import urllib3
+from fsspec.implementations.local import LocalFileSystem
 from requests.adapters import HTTPAdapter
 
 from pymrio.core.constants import DEFAULT_FILE_NAMES, LONG_VALUE_NAME, PYMRIO_PATH
+
+
+def get_fs(path, storage_options=None):
+    """Resolve a local path or URL to an fsspec filesystem.
+
+    Parameters
+    ----------
+    path: str or pathlib.Path
+        Local path or fsspec URL (e.g. 's3://bucket/mrio').
+
+    storage_options: dict, optional
+        Passed to the fsspec filesystem constructor, e.g. credentials and
+        endpoint configuration for s3fs, gcsfs or adlfs.
+
+    Returns
+    -------
+    tuple of (fsspec.AbstractFileSystem, str)
+        The filesystem and the path with the protocol stripped.
+    """
+    return fsspec.core.url_to_fs(str(path), **(storage_options or {}))
+
+
+def fs_url(fs, path):
+    """Return path as plain local path or, for remote filesystems, as full URL."""
+    if isinstance(fs, LocalFileSystem):
+        return path
+    return fs.unstrip_protocol(path)
+
+
+def is_zip(fs, path):
+    """Check if path on filesystem fs is a zip archive."""
+    if not fs.isfile(path):
+        return False
+    with fs.open(path, "rb") as fh:
+        return zipfile.is_zipfile(fh)
+
+
+@contextmanager
+def open_zip(fs, path):
+    """Open the zip archive at path on filesystem fs for reading."""
+    with fs.open(path, "rb") as fh, zipfile.ZipFile(fh) as zf:
+        yield zf
 
 
 def is_vector(inp):
@@ -71,7 +117,7 @@ def get_repo_content(path):
     return namedtuple("repocontent", ["iszip", "filelist"])(iszip, filelist)
 
 
-def get_file_para(path, path_in_arc=""):
+def get_file_para(path, path_in_arc="", storage_options=None):
     """Read the file parameter file.
 
     Helper function to consistently read the file parameter file, which can
@@ -96,12 +142,16 @@ def get_file_para(path, path_in_arc=""):
         (default), for data in e.g. the folder 'emissions' pass 'emissions/'.
         Only used if parameter 'path' points to an compressed zip file.
 
+    storage_options: dict, optional
+        Passed to the fsspec filesystem when 'path' is a URL
+        (e.g. 's3://...'). See :func:`pymrio.load` for details.
+
     Returns
     -------
     Returns a namedtuple with
     .folder: str with the absolute path containing the
-           file parameter file. In case of a zip the path
-           is relative to the root in the zip
+           file parameter file (without protocol for remote filesystems).
+           In case of a zip the path is relative to the root in the zip
     .name: Filename without folder of the used parameter file.
     .content: Dictionary with the content oft the file parameter file
 
@@ -110,43 +160,44 @@ def get_file_para(path, path_in_arc=""):
     FileNotFoundError if parameter file not found
 
     """
-    path = Path(path)
+    fs, fs_path = get_fs(path, storage_options)
 
-    if zipfile.is_zipfile(str(path)):
+    if is_zip(fs, fs_path):
         para_file_folder = str(path_in_arc)
-        with zipfile.ZipFile(file=str(path)) as zf:
+        with open_zip(fs, fs_path) as zf:
             files = zf.namelist()
-    else:
-        para_file_folder = str(path)
-        files = [str(f) for f in path.glob("**/*")]
 
-    if para_file_folder not in files:
-        if zipfile.is_zipfile(str(path)):
-            # b/c in win os.path.join adds \ also for within zipfile
-            if para_file_folder != "":
-                para_file_full_path = (para_file_folder + "/" + DEFAULT_FILE_NAMES["filepara"]).replace("//", "/")
+            if para_file_folder not in files:
+                # b/c in win os.path.join adds \ also for within zipfile
+                if para_file_folder != "":
+                    para_file_full_path = (para_file_folder + "/" + DEFAULT_FILE_NAMES["filepara"]).replace("//", "/")
+                else:
+                    para_file_full_path = DEFAULT_FILE_NAMES["filepara"]
             else:
-                para_file_full_path = DEFAULT_FILE_NAMES["filepara"]
+                para_file_full_path = para_file_folder
+                para_file_folder = os.path.dirname(para_file_full_path)
 
-        else:
-            para_file_full_path = os.path.join(para_file_folder, DEFAULT_FILE_NAMES["filepara"])
-    else:
-        para_file_full_path = para_file_folder
-        para_file_folder = os.path.dirname(para_file_full_path)
+            if para_file_full_path not in files:
+                raise FileNotFoundError(f"File parameter file {para_file_full_path} not found")
 
-    if para_file_full_path not in files:
-        raise FileNotFoundError(f"File parameter file {para_file_full_path} not found")
-
-    if zipfile.is_zipfile(str(path)):
-        with zipfile.ZipFile(file=str(path)) as zf:
             para_file_content = json.loads(zf.read(para_file_full_path).decode("utf-8"))
     else:
-        with open(para_file_full_path) as pf:
+        if fs.isfile(fs_path):
+            para_file_full_path = fs_path
+            para_file_folder = posixpath.dirname(fs_path)
+        else:
+            para_file_folder = fs_path
+            para_file_full_path = posixpath.join(fs_path, DEFAULT_FILE_NAMES["filepara"])
+
+        if not fs.isfile(para_file_full_path):
+            raise FileNotFoundError(f"File parameter file {fs_url(fs, para_file_full_path)} not found")
+
+        with fs.open(para_file_full_path, "r", encoding="utf-8") as pf:
             para_file_content = json.load(pf)
 
     return namedtuple("file_parameter", ["folder", "name", "content"])(
         para_file_folder,
-        os.path.basename(para_file_full_path),
+        posixpath.basename(para_file_full_path),
         para_file_content,
     )
 

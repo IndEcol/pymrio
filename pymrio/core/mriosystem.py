@@ -10,6 +10,7 @@ import collections
 import copy
 import json
 import logging
+import posixpath
 import re
 import string
 import time
@@ -515,14 +516,15 @@ class _BaseSystem:
         else:
             return True
 
-    def save(self, path, table_format="txt", sep="\t", float_format="%.12g"):
+    def save(self, path, table_format="txt", sep="\t", float_format="%.12g", storage_options=None):
         r"""Save the system to path.
 
         Parameters
         ----------
         path : pathlib.Path or string
             path for the saved data (will be created if necessary, data
-            within will be overwritten).
+            within will be overwritten). This can also be an fsspec URL,
+            e.g. 's3://bucket/mrio', 'gs://bucket/mrio' or 'az://container/mrio'.
 
         table_format : string
             Format to save the DataFrames:
@@ -541,6 +543,10 @@ class _BaseSystem:
         float_format : string, optional
             Format for saving the DataFrames, only for txt files.
             default = '%.12g'
+
+        storage_options : dict, optional
+            Passed to the fsspec filesystem when 'path' is a URL.
+            See :func:`pymrio.load` for cloud storage examples.
         """
         for format_key, format_extension in STORAGE_FORMAT.items():
             if table_format.lower() in format_extension:
@@ -554,10 +560,10 @@ class _BaseSystem:
                 "defined in STORAGE_FORMAT"
             )
 
-        path = Path(path)
-        path.mkdir(parents=True, exist_ok=True)
+        fs, fs_path = ioutil.get_fs(path, storage_options)
+        fs.makedirs(fs_path, exist_ok=True)
 
-        para_file_path = path / DEFAULT_FILE_NAMES["filepara"]
+        para_file_path = posixpath.join(fs_path, DEFAULT_FILE_NAMES["filepara"])
         file_para = {}
         file_para["files"] = {}
 
@@ -582,14 +588,18 @@ class _BaseSystem:
                 nr_header = 1
 
             save_file = df_name + "." + table_extension
-            save_file_with_path = path / save_file
-            logging.info(f"Save file {save_file_with_path}")
+            save_file_with_path = posixpath.join(fs_path, save_file)
+            logging.info(f"Save file {ioutil.fs_url(fs, save_file_with_path)}")
             if table_format == "txt":
-                df.to_csv(save_file_with_path, sep=sep, float_format=float_format)
+                # newline="" as pandas handles line endings itself
+                with fs.open(save_file_with_path, "w", encoding="utf-8", newline="") as fh:
+                    df.to_csv(fh, sep=sep, float_format=float_format)
             elif table_format == "pickle":
-                df.to_pickle(save_file_with_path)
+                with fs.open(save_file_with_path, "wb") as fh:
+                    df.to_pickle(fh)
             elif table_format == "parquet":
-                df.to_parquet(save_file_with_path)
+                with fs.open(save_file_with_path, "wb") as fh:
+                    df.to_parquet(fh)
             else:
                 raise ValueError("Unknow table format passed through")
 
@@ -598,15 +608,15 @@ class _BaseSystem:
             file_para["files"][df_name]["nr_index_col"] = str(nr_index_col)
             file_para["files"][df_name]["nr_header"] = str(nr_header)
 
-        with para_file_path.open(mode="w") as pf:
+        with fs.open(para_file_path, mode="w", encoding="utf-8") as pf:
             json.dump(file_para, pf, indent=4)
 
         if file_para["systemtype"] == GENERIC_NAMES["iosys"]:
             if not self.meta:
-                self.meta = MRIOMetaData(name=self.name, location=path)
+                self.meta = MRIOMetaData(name=self.name, location=path, storage_options=storage_options)
 
             self.meta._add_fileio(f"Saved {self.name} to {path}")
-            self.meta.save(location=path)
+            self.meta.save(location=path, storage_options=storage_options)
 
         return self
 
@@ -2759,7 +2769,7 @@ class IOSystem(_BaseSystem):
         self.meta._add_modify("Reset full system to coefficients")
         return self
 
-    def save_all(self, path, table_format="txt", sep="\t", float_format="%.12g"):
+    def save_all(self, path, table_format="txt", sep="\t", float_format="%.12g", storage_options=None):
         """Save the system and all extensions.
 
         Extensions are saved in separate folders (names based on extension)
@@ -2767,28 +2777,30 @@ class IOSystem(_BaseSystem):
         Parameters are passed to the .save methods of the IOSystem and
         Extensions. See parameters description there.
         """
-        path = Path(path)
+        fs, fs_path = ioutil.get_fs(path, storage_options)
 
-        path.mkdir(parents=True, exist_ok=True)
+        fs.makedirs(fs_path, exist_ok=True)
 
         self.save(
             path=path,
             table_format=table_format,
             sep=sep,
             float_format=float_format,
+            storage_options=storage_options,
         )
 
         for ext, ext_name in zip(
             self.get_extensions(data=True),
             self.get_extensions(instance_names=True),
         ):
-            ext_path = path / ext_name
+            ext_path = ioutil.fs_url(fs, posixpath.join(fs_path, ext_name))
 
             ext.save(
                 path=ext_path,
                 table_format=table_format,
                 sep=sep,
                 float_format=float_format,
+                storage_options=storage_options,
             )
         return self
 

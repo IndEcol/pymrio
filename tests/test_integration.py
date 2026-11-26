@@ -9,8 +9,11 @@ Might be the slowest test to run - make optional if it takes to long.
 """
 
 import os
+import socket
 import sys
+import uuid
 
+import fsspec
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -332,6 +335,174 @@ def test_pickle_fileio(tmpdir):
     assert mr_load == mr
 
     # checking partial read
+
+
+@pytest.mark.parametrize("table_format", ["txt", "parquet", "pickle"])
+def test_fsspec_memory_fileio(table_format):
+    """Round trip through a non-local fsspec filesystem."""
+    fs = fsspec.filesystem("memory")
+    url = f"memory://pymrio_test_{table_format}"
+    mr = pymrio.load_test()
+
+    try:
+        mr.save_all(url, table_format=table_format)
+
+        assert fs.isfile(f"{url}/file_parameters.json")
+        assert fs.isfile(f"{url}/metadata.json")
+        assert fs.isfile(f"{url}/emissions/file_parameters.json")
+
+        mr_load = pymrio.load_all(url)
+        npt.assert_allclose(mr.Z.values, mr_load.Z.values, rtol=1e-5)
+        npt.assert_allclose(mr.emissions.F.values, mr_load.emissions.F.values, rtol=1e-5)
+        assert any(url in entry for entry in mr_load.meta.file_io_history)
+
+        emis = pymrio.load(f"{url}/emissions")
+        npt.assert_allclose(mr.emissions.F.values, emis.F.values, rtol=1e-5)
+
+        mr_sub = pymrio.load_all(url, subfolders=["emissions"], subset=["Z", "F"])
+        assert "factor_inputs" not in mr_sub.get_extensions()
+        assert "A" not in mr_sub.get_DataFrame()
+    finally:
+        fs.rm(url, recursive=True)
+
+    with pytest.raises(pymrio.ReadError):
+        pymrio.load(url)
+
+
+def test_fsspec_memory_zip(tmpdir):
+    """Load a zip archive stored on a non-local fsspec filesystem."""
+    fs = fsspec.filesystem("memory")
+    mr = pymrio.load_test()
+    save_path = str(tmpdir.mkdir("pymrio_zip_src"))
+    mr.save_all(save_path)
+    zip_arc = os.path.join(str(tmpdir), "mrio.zip")
+    pymrio.archive(source=save_path, archive=zip_arc, path_in_arc="test")
+
+    url = "memory://pymrio_zip_test/mrio.zip"
+    fs.put_file(zip_arc, url)
+    try:
+        mr_load = pymrio.load_all(url)
+        npt.assert_allclose(mr.Z.values, mr_load.Z.values, rtol=1e-5)
+        npt.assert_allclose(mr.emissions.F.values, mr_load.emissions.F.values, rtol=1e-5)
+
+        emissions = pymrio.load(url, path_in_arc="test/emissions")
+        npt.assert_allclose(mr.emissions.F.values, emissions.F.values, rtol=1e-5)
+    finally:
+        fs.rm("memory://pymrio_zip_test", recursive=True)
+
+
+def test_s3_fileio_custom_endpoint():
+    """Round trip to an S3-compatible endpoint (moto) using storage_options."""
+    s3fs = pytest.importorskip("s3fs")
+    moto_server = pytest.importorskip("moto.server")
+
+    server = moto_server.ThreadedMotoServer(ip_address="127.0.0.1", port=0, verbose=False)
+    server.start()
+    try:
+        host, port = server.get_host_and_port()
+        storage_options = {
+            "key": "testing",
+            "secret": "testing",
+            "endpoint_url": f"http://{host}:{port}",
+            "client_kwargs": {"region_name": "eu-west-1"},
+            "config_kwargs": {"s3": {"addressing_style": "path"}},
+            "skip_instance_cache": True,
+        }
+        s3fs.S3FileSystem(**storage_options).mkdir("pymrio-test")
+
+        mr = pymrio.load_test()
+        mr.save_all("s3://pymrio-test/mrio", table_format="parquet", storage_options=storage_options)
+        mr_load = pymrio.load_all("s3://pymrio-test/mrio", storage_options=storage_options)
+        assert mr_load == mr
+        assert "emissions" in mr_load.get_extensions()
+    finally:
+        server.stop()
+
+
+@pytest.fixture(scope="module")
+def docker_available():
+    """Skip if testcontainers is missing or no Docker daemon is reachable."""
+    pytest.importorskip("testcontainers")
+    from testcontainers.core.docker_client import DockerClient
+
+    try:
+        DockerClient().client.ping()
+    except Exception as e:
+        pytest.skip(f"Docker not available: {e}")
+
+
+@pytest.fixture(scope="module")
+def azurite_connection_string(docker_available):
+    """Azurite blob storage emulator, yields its connection string."""
+    from testcontainers.community.azurite import AzuriteContainer
+
+    container = AzuriteContainer().with_command("azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck --loose")
+    with container:
+        yield container.get_connection_string()
+
+
+@pytest.fixture(scope="module")
+def fake_gcs_endpoint(docker_available):
+    """fake-gcs-server emulator, yields its endpoint URL."""
+    from testcontainers.core.container import DockerContainer
+    from testcontainers.core.wait_strategies import HttpWaitStrategy
+
+    with socket.socket() as sock:
+        sock.bind(("", 0))
+        port = sock.getsockname()[1]
+    # fake-gcs-server must know its public host:port, so bind a fixed host port
+    container = (
+        DockerContainer("fsouza/fake-gcs-server:latest")
+        .with_bind_ports(4443, port)
+        .with_command(f"-scheme http -public-host localhost:{port}")
+        .waiting_for(HttpWaitStrategy(4443, "/storage/v1/b"))
+    )
+    with container:
+        yield f"http://localhost:{port}"
+
+
+@pytest.mark.docker
+def test_azure_fileio_emulator(azurite_connection_string):
+    """Round trip to Azure Blob Storage (Azurite emulator)."""
+    adlfs = pytest.importorskip("adlfs")
+    storage_options = {"connection_string": azurite_connection_string}
+    container = f"pymrio-test-{uuid.uuid4().hex[:8]}"
+    fs = adlfs.AzureBlobFileSystem(**storage_options)
+    fs.mkdir(container)
+    try:
+        mr = pymrio.load_test()
+        mr.save_all(f"az://{container}/mrio", table_format="parquet", storage_options=storage_options)
+        mr_load = pymrio.load_all(f"az://{container}/mrio", storage_options=storage_options)
+        assert mr_load == mr
+        assert "emissions" in mr_load.get_extensions()
+    finally:
+        fs.rm(container, recursive=True)
+
+
+@pytest.mark.docker
+def test_gcs_fileio_emulator(fake_gcs_endpoint, monkeypatch):
+    """Round trip to Google Cloud Storage (fake-gcs-server emulator)."""
+    # gcsfs' default gRPC bucket-type lookup ignores endpoint_url and hangs against emulators
+    monkeypatch.setenv("GCSFS_EXPERIMENTAL_ZB_HNS_SUPPORT", "false")
+    gcsfs = pytest.importorskip("gcsfs")
+    if gcsfs.GCSFileSystem is not gcsfs.core.GCSFileSystem:
+        pytest.skip("gcsfs was imported before GCSFS_EXPERIMENTAL_ZB_HNS_SUPPORT could be disabled")
+    storage_options = {
+        "endpoint_url": fake_gcs_endpoint,
+        "token": "anon",
+        "project": "pymrio-test",
+    }
+    bucket = f"pymrio-test-{uuid.uuid4().hex[:8]}"
+    fs = gcsfs.GCSFileSystem(**storage_options)
+    fs.mkdir(bucket)
+    try:
+        mr = pymrio.load_test()
+        mr.save_all(f"gs://{bucket}/mrio", table_format="parquet", storage_options=storage_options)
+        mr_load = pymrio.load_all(f"gs://{bucket}/mrio", storage_options=storage_options)
+        assert mr_load == mr
+        assert "emissions" in mr_load.get_extensions()
+    finally:
+        fs.rm(bucket, recursive=True)
 
 
 def test_partial_reads(tmpdir):
