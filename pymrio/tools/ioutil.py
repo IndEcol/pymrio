@@ -36,7 +36,7 @@ def get_fs(path, storage_options=None):
 
     storage_options: dict, optional
         Passed to the fsspec filesystem constructor, e.g. credentials and
-        endpoint configuration for s3fs.
+        endpoint configuration for s3fs, gcsfs or adlfs.
 
     Returns
     -------

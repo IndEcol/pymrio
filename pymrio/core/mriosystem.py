@@ -524,7 +524,7 @@ class _BaseSystem:
         path : pathlib.Path or string
             path for the saved data (will be created if necessary, data
             within will be overwritten). This can also be an fsspec URL,
-            e.g. 's3://bucket/mrio'.
+            e.g. 's3://bucket/mrio', 'gs://bucket/mrio' or 'az://container/mrio'.
 
         table_format : string
             Format to save the DataFrames:
@@ -546,7 +546,7 @@ class _BaseSystem:
 
         storage_options : dict, optional
             Passed to the fsspec filesystem when 'path' is a URL.
-            See :func:`pymrio.load` for an S3 example.
+            See :func:`pymrio.load` for cloud storage examples.
         """
         for format_key, format_extension in STORAGE_FORMAT.items():
             if table_format.lower() in format_extension:

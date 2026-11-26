@@ -9,7 +9,9 @@ Might be the slowest test to run - make optional if it takes to long.
 """
 
 import os
+import socket
 import sys
+import uuid
 
 import fsspec
 import numpy as np
@@ -415,6 +417,92 @@ def test_s3_fileio_custom_endpoint():
         assert "emissions" in mr_load.get_extensions()
     finally:
         server.stop()
+
+
+@pytest.fixture(scope="module")
+def docker_available():
+    """Skip if testcontainers is missing or no Docker daemon is reachable."""
+    pytest.importorskip("testcontainers")
+    from testcontainers.core.docker_client import DockerClient
+
+    try:
+        DockerClient().client.ping()
+    except Exception as e:
+        pytest.skip(f"Docker not available: {e}")
+
+
+@pytest.fixture(scope="module")
+def azurite_connection_string(docker_available):
+    """Azurite blob storage emulator, yields its connection string."""
+    from testcontainers.community.azurite import AzuriteContainer
+
+    container = AzuriteContainer().with_command("azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck --loose")
+    with container:
+        yield container.get_connection_string()
+
+
+@pytest.fixture(scope="module")
+def fake_gcs_endpoint(docker_available):
+    """fake-gcs-server emulator, yields its endpoint URL."""
+    from testcontainers.core.container import DockerContainer
+    from testcontainers.core.wait_strategies import HttpWaitStrategy
+
+    with socket.socket() as sock:
+        sock.bind(("", 0))
+        port = sock.getsockname()[1]
+    # fake-gcs-server must know its public host:port, so bind a fixed host port
+    container = (
+        DockerContainer("fsouza/fake-gcs-server:latest")
+        .with_bind_ports(4443, port)
+        .with_command(f"-scheme http -public-host localhost:{port}")
+        .waiting_for(HttpWaitStrategy(4443, "/storage/v1/b"))
+    )
+    with container:
+        yield f"http://localhost:{port}"
+
+
+@pytest.mark.docker
+def test_azure_fileio_emulator(azurite_connection_string):
+    """Round trip to Azure Blob Storage (Azurite emulator)."""
+    adlfs = pytest.importorskip("adlfs")
+    storage_options = {"connection_string": azurite_connection_string}
+    container = f"pymrio-test-{uuid.uuid4().hex[:8]}"
+    fs = adlfs.AzureBlobFileSystem(**storage_options)
+    fs.mkdir(container)
+    try:
+        mr = pymrio.load_test()
+        mr.save_all(f"az://{container}/mrio", table_format="parquet", storage_options=storage_options)
+        mr_load = pymrio.load_all(f"az://{container}/mrio", storage_options=storage_options)
+        assert mr_load == mr
+        assert "emissions" in mr_load.get_extensions()
+    finally:
+        fs.rm(container, recursive=True)
+
+
+@pytest.mark.docker
+def test_gcs_fileio_emulator(fake_gcs_endpoint, monkeypatch):
+    """Round trip to Google Cloud Storage (fake-gcs-server emulator)."""
+    # gcsfs' default gRPC bucket-type lookup ignores endpoint_url and hangs against emulators
+    monkeypatch.setenv("GCSFS_EXPERIMENTAL_ZB_HNS_SUPPORT", "false")
+    gcsfs = pytest.importorskip("gcsfs")
+    if gcsfs.GCSFileSystem is not gcsfs.core.GCSFileSystem:
+        pytest.skip("gcsfs was imported before GCSFS_EXPERIMENTAL_ZB_HNS_SUPPORT could be disabled")
+    storage_options = {
+        "endpoint_url": fake_gcs_endpoint,
+        "token": "anon",
+        "project": "pymrio-test",
+    }
+    bucket = f"pymrio-test-{uuid.uuid4().hex[:8]}"
+    fs = gcsfs.GCSFileSystem(**storage_options)
+    fs.mkdir(bucket)
+    try:
+        mr = pymrio.load_test()
+        mr.save_all(f"gs://{bucket}/mrio", table_format="parquet", storage_options=storage_options)
+        mr_load = pymrio.load_all(f"gs://{bucket}/mrio", storage_options=storage_options)
+        assert mr_load == mr
+        assert "emissions" in mr_load.get_extensions()
+    finally:
+        fs.rm(bucket, recursive=True)
 
 
 def test_partial_reads(tmpdir):

@@ -56,6 +56,12 @@ dependencies = [
 s3 = [
   "s3fs >= 2023.1.0",
 ]
+gcs = [
+  "gcsfs >= 2023.1.0",
+]
+azure = [
+  "adlfs >= 2023.1.0",
+]
 dev = [
   "pdbpp",
   "country_converter >= 0.8.0",
@@ -86,6 +92,7 @@ test = [
   "faker",
   "pytest-ruff>=0.5",
   "moto[server] >= 5.0",
+  "testcontainers[azurite] >= 4.0",
 ]
 
 
@@ -103,6 +110,9 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 filterwarnings = [
     "ignore:Using or importing the ABCs from:DeprecationWarning"
+]
+markers = [
+    "docker: needs a Docker daemon (skipped if unavailable)",
 ]
 
 [tool.coverage.run]

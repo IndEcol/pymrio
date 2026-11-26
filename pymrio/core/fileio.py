@@ -68,8 +68,9 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=
         later case and if there are several mrio's in the zip file the
         parameter 'path_in_arc' need to be specifiec to further indicate the
         location of the data in the compressed file.
-        This can also be an fsspec URL, e.g. 's3://bucket/mrio' or
-        's3://bucket/mrio.zip' (see 'storage_options').
+        This can also be an fsspec URL, e.g. 's3://bucket/mrio',
+        'gs://bucket/mrio', 'az://container/mrio' or 's3://bucket/mrio.zip'
+        (see 'storage_options').
 
     include_core : boolean, optional
         If False the load method does not include A, L and Z matrix. This
@@ -104,7 +105,7 @@ def load_all(path, include_core=True, subfolders=None, path_in_arc=None, subset=
 
     storage_options: dict, optional
         Passed to the fsspec filesystem when 'path' is a URL.
-        See :func:`load` for an S3 example.
+        See :func:`load` for cloud storage examples.
 
     """
 
@@ -261,8 +262,9 @@ def load(path, include_core=True, path_in_arc="", subset=None, storage_options=N
         the location of a compressed zip file with the data. In the
         later case the parameter 'path_in_arc' need to be specific to
         further indicate the location of the data in the compressed file.
-        This can also be an fsspec URL, e.g. 's3://bucket/mrio' or
-        's3://bucket/mrio.zip' (see 'storage_options').
+        This can also be an fsspec URL, e.g. 's3://bucket/mrio',
+        'gs://bucket/mrio', 'az://container/mrio' or 's3://bucket/mrio.zip'
+        (see 'storage_options').
 
     include_core : boolean, optional
         If False the load method does not include A, L and Z matrix. This
@@ -281,10 +283,11 @@ def load(path, include_core=True, path_in_arc="", subset=None, storage_options=N
         If None (default), load all accounts
 
     storage_options: dict, optional
-        Passed to the fsspec filesystem when 'path' is a URL. For S3 (requires
-        the optional dependency s3fs) this can hold credentials and endpoint
-        configuration, e.g. for an S3-compatible service::
+        Passed to the fsspec filesystem when 'path' is a URL. Cloud storage
+        requires the matching optional dependency: ``pymrio[s3]`` (s3fs),
+        ``pymrio[gcs]`` (gcsfs) or ``pymrio[azure]`` (adlfs). Examples::
 
+            # S3-compatible service (e.g. Dell ECS)
             storage_options = {
                 "key": "...",
                 "secret": "...",
@@ -292,8 +295,15 @@ def load(path, include_core=True, path_in_arc="", subset=None, storage_options=N
                 "config_kwargs": {"s3": {"addressing_style": "path"}},
             }
 
-        If not given, s3fs falls back to the standard AWS configuration
-        (environment variables, ~/.aws/config, instance roles).
+            # Google Cloud Storage
+            storage_options = {"project": "my-project", "token": "/path/to/key.json"}
+
+            # Azure Blob Storage / Data Lake Gen2
+            storage_options = {"account_name": "myaccount", "account_key": "..."}
+
+        If not given, each backend falls back to its standard credential
+        discovery (AWS config and environment variables, Google application
+        default credentials, Azure DefaultAzureCredential).
 
 
     Returns
